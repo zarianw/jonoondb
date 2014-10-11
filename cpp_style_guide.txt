@@ -1,0 +1,8 @@
+# C++ style guide 
+We use google's c++ style guide (http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml) for the most part. The places where we differ are documented below:
+
+1) Instance/Member variables should being with m_. It works with intellisense as you are trying to use the member variables.
+
+2) Variable names (parameters, local function variables, instance variables should use camelCase instead of snake_case)
+
+3) Line length can be 120 characters instead of 80 as specified in google c++ style guide.

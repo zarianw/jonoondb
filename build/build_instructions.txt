@@ -1,0 +1,2 @@
+# command line sample
+cmake -DGTEST_PATH=e:\code\gtest-1.7.0 CMakeLists.txt -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/Software/boost_1_55_0 -DFLATBUFFERS_PATH=E:\Code\flatbuffers
