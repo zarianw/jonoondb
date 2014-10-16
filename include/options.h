@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace jonoondb_api
 {
 		class Options

@@ -24,6 +24,11 @@ set (TEST_PATH ${PROJECT_SOURCE_DIR}/../test/)
 set (EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 set (LIBRARY_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
+
+
 # add the include directories
 include_directories(${INCLUDE_PATH} ${INCLUDE_INTERNAL_PATH})
 
@@ -32,6 +37,9 @@ add_library(
  sqlite
  ${INCLUDE_INTERNAL_PATH}/sqlite3ext.h
  ${SRC_PATH}/sqlite_amalgamation_3080500/sqlite3.c ${INCLUDE_INTERNAL_PATH}/sqlite3.h)
+if(CMAKE_COMPILER_IS_GNUCXX)
+  target_link_libraries(sqlite pthread dl)
+endif()
 
 # boost
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs

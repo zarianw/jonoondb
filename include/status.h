@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace jonoondb_api
 {
   class Status
@@ -8,7 +10,7 @@ namespace jonoondb_api
     Status();
     Status(const Status& other);
     Status(Status&& other);
-    Status(const char code, const char* message, const size_t messageLength);
+    Status(const char code, const char* message, const std::size_t messageLength);
     ~Status();
     Status& operator=(Status&& other);
     Status& operator=(const Status& other);
@@ -33,20 +35,16 @@ namespace jonoondb_api
     static const char MissingDatabaseFolderCode = 4;
     static const char FailedToOpenMetadataDatabaseFileCode = 5;
     static const char OutOfMemoryErrorCode = 6;
-
     static const char DuplicateKeyErrorCode = 7;
     static const char DataFileMissingCode = 8;
     static const char DataFileInfoMissingCode = 9;
-
     static const char InvalidOperationCode = 10;
     static const char InvalidIteratorCode = 11;
     static const char FileIOErrorCode = 12;
     static const char APIMisuseErrorCode = 13;
     static const char KeyNotFoundCode = 14;
-
     static const char CollectionAlreadyExistCode = 15;
     static const char IndexAlreadyExistCode = 16;
-
 
     static const char SQLiteErrorCode = 101;
   private:

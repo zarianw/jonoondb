@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <memory>
 #include <atomic>
+#include <list>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/lock_types.hpp>
 

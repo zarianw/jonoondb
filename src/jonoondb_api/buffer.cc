@@ -1,5 +1,6 @@
 #include <memory>
 #include <string>
+#include <cstring>
 #include "buffer.h"
 #include "constants.h"
 #include "standard_deleters.h"

@@ -1,9 +1,28 @@
 #include <string>
+#include <cstring>
 #include "status.h"
 
 using namespace std;
 
 using namespace jonoondb_api;
+
+const char Status::GenericErrorCode;
+const char Status::InvalidArgumentCode;
+const char Status::MissingDatabaseFileCode;
+const char Status::MissingDatabaseFolderCode;
+const char Status::FailedToOpenMetadataDatabaseFileCode;
+const char Status::OutOfMemoryErrorCode;
+const char Status::DuplicateKeyErrorCode;
+const char Status::DataFileMissingCode;
+const char Status::DataFileInfoMissingCode;
+const char Status::InvalidOperationCode;
+const char Status::InvalidIteratorCode;
+const char Status::FileIOErrorCode;
+const char Status::APIMisuseErrorCode;
+const char Status::KeyNotFoundCode;
+const char Status::CollectionAlreadyExistCode;
+const char Status::IndexAlreadyExistCode;
+const char Status::SQLiteErrorCode;
 
 Status::Status()
 {
