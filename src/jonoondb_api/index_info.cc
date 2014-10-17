@@ -53,19 +53,19 @@ Status IndexInfo::Validate()
   if (StringUtils::IsNullOrEmpty(m_indexInfoData->Name))
   {
     errorMessage = "Index name is null or empty.";
-    return Status(Status::GenericErrorCode, errorMessage.c_str(), (int32_t)errorMessage.length());
+    return Status(kStatusGenericErrorCode, errorMessage.c_str(), (int32_t)errorMessage.length());
   }
 
   if (m_indexInfoData->Type < 1)
   {
     errorMessage = "Index type should be greater than 0.";
-    return Status(Status::GenericErrorCode, errorMessage.c_str(), (int32_t)errorMessage.length());
+    return Status(kStatusGenericErrorCode, errorMessage.c_str(), (int32_t)errorMessage.length());
   }
 
   if (m_indexInfoData->Columns.size() < 1)
   {
     errorMessage = "Index columns should be greater than 0.";
-    return Status(Status::GenericErrorCode, errorMessage.c_str(), (int32_t)errorMessage.length());
+    return Status(kStatusGenericErrorCode, errorMessage.c_str(), (int32_t)errorMessage.length());
   }
 
   return Status();

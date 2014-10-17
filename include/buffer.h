@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Constants.h"
+#include "constants.h"
 
 namespace jonoondb_api
 {

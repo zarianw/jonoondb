@@ -24,6 +24,11 @@ set (TEST_PATH ${PROJECT_SOURCE_DIR}/../test/)
 set (EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 set (LIBRARY_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
+
+
 # add the include directories
 include_directories(${INCLUDE_PATH} ${INCLUDE_INTERNAL_PATH})
 
@@ -32,12 +37,15 @@ add_library(
  sqlite
  ${INCLUDE_INTERNAL_PATH}/sqlite3ext.h
  ${SRC_PATH}/sqlite_amalgamation_3080500/sqlite3.c ${INCLUDE_INTERNAL_PATH}/sqlite3.h)
+if(CMAKE_COMPILER_IS_GNUCXX)
+  target_link_libraries(sqlite pthread dl)
+endif()
 
 # boost
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.55.0 REQUIRED COMPONENTS filesystem system)
+find_package(Boost 1.55.0 REQUIRED COMPONENTS filesystem system thread date_time chrono)
 include_directories(${BOOST_ROOT})
 
 # jonoondb_api
@@ -51,6 +59,8 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/sqlite_utils.h
  ${INCLUDE_PATH}/document.h
  ${INCLUDE_PATH}/enums.h
+ ${INCLUDE_INTERNAL_PATH}/blob_metadata.h 
+ ${INCLUDE_INTERNAL_PATH}/concurrent_lru_cache.h 
  ${SRC_PATH}/jonoondb_api/database.cc ${INCLUDE_PATH}/database.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
  ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
@@ -83,6 +93,7 @@ add_executable(
  ${TEST_PATH}/main.cc
  ${TEST_PATH}/status_tests.cc
  ${TEST_PATH}/database_metadata_manager_tests.cc
- ${TEST_PATH}/buffer_tests.cc)
+ ${TEST_PATH}/buffer_tests.cc
+ ${TEST_PATH}/concurrent_lru_cache_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)

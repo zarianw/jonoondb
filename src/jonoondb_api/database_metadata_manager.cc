@@ -45,7 +45,7 @@ Status DatabaseMetadataManager::Initialize()
 
   if (!boost::filesystem::exists(pathObj) && !m_createDBIfMissing)
   {
-    return Status(Status::MissingDatabaseFileCode, errorMessage.c_str(), (int32_t)errorMessage.length());
+    return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(), (int32_t)errorMessage.length());
   }
 
   int sqliteCode = sqlite3_open(pathObj.string().c_str(), &m_metadataDBConnection);//, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);	
@@ -53,7 +53,7 @@ Status DatabaseMetadataManager::Initialize()
   if (sqliteCode != SQLITE_OK)
   {
     errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::FailedToOpenMetadataDatabaseFileCode, errorMessage.c_str(), errorMessage.length());
+    return Status(kStatusFailedToOpenMetadataDatabaseFileCode, errorMessage.c_str(), errorMessage.length());
   }
 
   auto status = CreateTables();
@@ -76,14 +76,14 @@ Status DatabaseMetadataManager::CreateTables()
   if (sqliteCode != SQLITE_OK)
   {
     string errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
+    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
   }
 
   sqliteCode = sqlite3_exec(m_metadataDBConnection, "PRAGMA journal_mode = WAL;", 0, 0, 0);
   if (sqliteCode != SQLITE_OK)
   {
     string errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
+    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
   }
 
   sqliteCode = sqlite3_busy_handler(m_metadataDBConnection, SQLiteUtils::SQLiteGenericBusyHandler, nullptr);
@@ -91,7 +91,7 @@ Status DatabaseMetadataManager::CreateTables()
   if (sqliteCode != SQLITE_OK)
   {
     string errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
+    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
   }
 
   // Create the necessary tables if they do not exist
@@ -134,7 +134,7 @@ Status DatabaseMetadataManager::PrepareStatements()
   if (sqliteCode != SQLITE_OK)
   {
     std::string errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
+    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
   }
 
   sqliteCode = sqlite3_prepare_v2(
@@ -148,7 +148,7 @@ Status DatabaseMetadataManager::PrepareStatements()
   if (sqliteCode != SQLITE_OK)
   {
     std::string errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
+    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(), errorMessage.length());
   }
 
   return Status();
@@ -163,13 +163,13 @@ Status DatabaseMetadataManager::Open(const char* dbPath, const char* dbName, boo
   if (StringUtils::IsNullOrEmpty(dbPath))
   {
     errorMessage = "Argument dbPath is null or empty.";
-    return Status(Status::InvalidArgumentCode, errorMessage.c_str(), errorMessage.length());
+    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(), errorMessage.length());
   }
 
   if (StringUtils::IsNullOrEmpty(dbName))
   {
     errorMessage = "Argument dbName is null or empty.";
-    return Status(Status::InvalidArgumentCode, errorMessage.c_str(), errorMessage.length());
+    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(), errorMessage.length());
   }
 
   unique_ptr<DatabaseMetadataManager> dbMetadataManager(new DatabaseMetadataManager(dbPath, dbName, createDBIfMissing));
@@ -201,7 +201,7 @@ Status DatabaseMetadataManager::AddCollection(const char* name, int schemaType, 
   if (sqliteCode != SQLITE_OK)
   {
     std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
   }
 
   sqliteCode = sqlite3_bind_text(
@@ -214,7 +214,7 @@ Status DatabaseMetadataManager::AddCollection(const char* name, int schemaType, 
   if (sqliteCode != SQLITE_OK)
   {
     std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
   }
 
   sqliteCode = sqlite3_bind_int(
@@ -225,7 +225,7 @@ Status DatabaseMetadataManager::AddCollection(const char* name, int schemaType, 
   if (sqliteCode != SQLITE_OK)
   {
     std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
   }
 
   //Now insert the record
@@ -236,12 +236,12 @@ Status DatabaseMetadataManager::AddCollection(const char* name, int schemaType, 
     {
       //Key already exists
       std::string errorMsg = "Collection with the same name already exists.";
-      return Status(Status::CollectionAlreadyExistCode, errorMsg.c_str(), errorMsg.length());
+      return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(), errorMsg.length());
     }
     else
     {
       std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-      return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+      return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
     }
   }
 
@@ -269,7 +269,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName, const In
   if (sqliteCode != SQLITE_OK)
   {
     std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
   }
 
   sqliteCode = sqlite3_bind_text(
@@ -282,7 +282,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName, const In
   if (sqliteCode != SQLITE_OK)
   {
     std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
   }
 
   Buffer buffer;
@@ -302,7 +302,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName, const In
   if (sqliteCode != SQLITE_OK)
   {
     std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
   }
 
   //Now insert the record
@@ -313,12 +313,12 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName, const In
     {
       //Key already exists
       std::string errorMsg = "Index with the same name already exists.";
-      return Status(Status::IndexAlreadyExistCode, errorMsg.c_str(), errorMsg.length());
+      return Status(kStatusIndexAlreadyExistCode, errorMsg.c_str(), errorMsg.length());
     }
     else
     {
       std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-      return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+      return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
     }
   }
 

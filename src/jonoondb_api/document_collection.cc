@@ -33,13 +33,13 @@ Status DocumentCollection::Construct(
 	if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath))
 	{
 		errorMessage = "Argument databaseMetadataFilePath is null or empty.";
-		return Status(Status::InvalidArgumentCode, errorMessage.c_str(), (int32_t)errorMessage.length());
+		return Status(kStatusInvalidArgumentCode, errorMessage.c_str(), (int32_t)errorMessage.length());
 	}	
 
 	// databaseMetadataFile should exist and all the tables should exist in it
 	if (!boost::filesystem::exists(databaseMetadataFilePath))
 	{
-		return Status(Status::MissingDatabaseFileCode, errorMessage.c_str(), (int32_t)errorMessage.length());
+		return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(), (int32_t)errorMessage.length());
 	}
 
 	sqlite3* dbConnection;
@@ -49,7 +49,7 @@ Status DocumentCollection::Construct(
 	{
 		errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
 		SQLiteUtils::CloseSQLiteConnection(dbConnection);
-		return Status(Status::FailedToOpenMetadataDatabaseFileCode, errorMessage.c_str(), errorMessage.length());
+		return Status(kStatusFailedToOpenMetadataDatabaseFileCode, errorMessage.c_str(), errorMessage.length());
 	}	
 
 	documentCollection = new DocumentCollection(dbConnection);

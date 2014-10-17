@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <thread>
 
-#include "Status.h"
+#include "status.h"
 #include "sqlite3.h"
 #include "exception_utils.h"
 #include "constants.h"
@@ -21,7 +21,7 @@ namespace jonoondb_api
 			if (sqliteCode != SQLITE_OK)
 			{
 				std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-				return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+				return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
 			}
 
 			return Status();
@@ -41,13 +41,13 @@ namespace jonoondb_api
 			if (sqliteCode1 != SQLITE_OK)
 			{
 				std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode1);
-				return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+				return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
 			}
 
 			if (sqliteCode2 != SQLITE_OK)
 			{
 				std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode2);
-				return Status(Status::SQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+				return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
 			}
 
 			return Status();

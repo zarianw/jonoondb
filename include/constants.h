@@ -15,8 +15,4 @@ namespace jonoondb_api
   typedef void(*DeleterFuncPtr)(char*);
 
   const std::string MemoryAllocationFailedErrorMessage = "Memory allocation failed.";
-
-  const Status InvalidIteratorStatus(Status::InvalidIteratorCode, "Iterator initialized with invalid data.",
-    strlen("Iterator initialized with invalid data."));
-
-} // jonoon_api
+} // jonoondb_api

@@ -13,7 +13,7 @@ Status DocumentFactory::CreateDocument(const Buffer& buffer, bool deepCopy, Sche
     break;
   default:
     string errorMsg = "Unknown schema";
-    return Status(Status::GenericErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusGenericErrorCode, errorMsg.c_str(), errorMsg.length());
   }
   return Status();
 }
