@@ -15,7 +15,7 @@ TEST(Status, Constructor1)
 TEST(Status, Constructor2)
 {
   string errorMsg = "Error Message.";
-  Status status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
   ASSERT_STREQ(status.c_str(), errorMsg.c_str());
   ASSERT_TRUE(status.InvalidArgument());
 }
@@ -23,7 +23,7 @@ TEST(Status, Constructor2)
 TEST(Status, CopyConstructor)
 {
   string errorMsg = "Error Message.";
-  Status status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
 
   //Now copy the object
   Status status2(status);
@@ -39,7 +39,7 @@ TEST(Status, CopyConstructor)
 TEST(Status, AssignmentOperator)
 {
   string errorMsg = "Error Message.";
-  Status status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
 
   //Do the assignment
   Status status2;
@@ -59,7 +59,7 @@ TEST(Status, MoveAssignmentOperator)
 
   Status status;
   //Assign Status from a rvalue object
-  status = Status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  status = Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
 
   //Now verify
   ASSERT_STREQ(status.c_str(), errorMsg.c_str());
@@ -68,7 +68,7 @@ TEST(Status, MoveAssignmentOperator)
 
 Status GetStatusRValue(const string& errorMsg)
 {
-  Status sts = Status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  Status sts = Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
 
   return sts;
 }

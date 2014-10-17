@@ -52,13 +52,13 @@ Status Buffer::Assign(char* buffer, size_t bufferLengthInBytes, size_t bufferCap
   {
     //Capacity cannot be less than length
     string errorMsg = "Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.";
-    return Status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
   }
   else if (customDeleterFunc == nullptr)
   {
     //Capacity cannot be less than length
     string errorMsg = "Argument customDeleterFunc is nullptr.";
-    return Status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
   }
   else
   {
@@ -69,7 +69,7 @@ Status Buffer::Assign(char* buffer, size_t bufferLengthInBytes, size_t bufferCap
     catch (bad_alloc)
     {
       //Memory allocation failed			
-      return Status(Status::OutOfMemoryErrorCode, MemoryAllocationFailedErrorMessage.c_str(), MemoryAllocationFailedErrorMessage.length());
+      return Status(kStatusOutOfMemoryErrorCode, MemoryAllocationFailedErrorMessage.c_str(), MemoryAllocationFailedErrorMessage.length());
     }
   }
 
@@ -86,7 +86,7 @@ Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes, size_t buffe
   if (buffer == nullptr)
   {
     string errorMsg = "Argument buffer is nullptr.";
-    return Status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
   }
   else if (bufferCapacityInBytes == 0)
   {
@@ -96,7 +96,7 @@ Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes, size_t buffe
   {
     //Capacity cannot be less than length
     string errorMsg = "Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes";
-    return Status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
   }
   else
   {
@@ -120,7 +120,7 @@ Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes, size_t buffe
           delete data;
         }
         //Memory allocation failed			
-        return Status(Status::OutOfMemoryErrorCode, MemoryAllocationFailedErrorMessage.c_str(), MemoryAllocationFailedErrorMessage.length());
+        return Status(kStatusOutOfMemoryErrorCode, MemoryAllocationFailedErrorMessage.c_str(), MemoryAllocationFailedErrorMessage.length());
       }
     }
     else
@@ -139,7 +139,7 @@ Status Buffer::Copy(const char* buffer, size_t bytesToCopy)
   if (buffer == nullptr)
   {
     string errorMsg = "Argument buffer is nullptr.";
-    return Status(Status::InvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
   }
   else if (bytesToCopy > 0)
   {
@@ -163,7 +163,7 @@ Status Buffer::Copy(const char* buffer, size_t bytesToCopy)
           delete data;
         }
         //Memory allocation failed			
-        return Status(Status::OutOfMemoryErrorCode, MemoryAllocationFailedErrorMessage.c_str(), MemoryAllocationFailedErrorMessage.length());
+        return Status(kStatusOutOfMemoryErrorCode, MemoryAllocationFailedErrorMessage.c_str(), MemoryAllocationFailedErrorMessage.length());
       }
     }
     else
@@ -277,7 +277,7 @@ Status Buffer::Resize(size_t newBufferCapacityInBytes)
     catch (bad_alloc& ex)
     {
       //Memory allocation failed
-      return Status(Status::OutOfMemoryErrorCode, ex.what(), strlen(ex.what()));
+      return Status(kStatusOutOfMemoryErrorCode, ex.what(), strlen(ex.what()));
     }
   }
 
@@ -348,7 +348,7 @@ Status Buffer::SetLength(size_t value)
     if (value != 0)
     {
       string errorMsg = "Specified length is not between 0 and buffer capacity.";
-      return Status(Status::GenericErrorCode, errorMsg.c_str(), errorMsg.length());
+      return Status(kStatusGenericErrorCode, errorMsg.c_str(), errorMsg.length());
     }
   }
   else
@@ -356,7 +356,7 @@ Status Buffer::SetLength(size_t value)
     if (value > m_bufferImpl->BufferCapacity)
     {
       string errorMsg = "Specified buffer length is not between 0 and buffer capacity.";
-      return Status(Status::GenericErrorCode, errorMsg.c_str(), errorMsg.length());
+      return Status(kStatusGenericErrorCode, errorMsg.c_str(), errorMsg.length());
     }
     else
     {

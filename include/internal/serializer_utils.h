@@ -43,7 +43,7 @@ namespace jonoondb_api
       catch (exception& ex)
       {
         string errorMessage(ex.what());
-        return Status(Status::GenericErrorCode, errorMessage.c_str(), errorMessage.length());
+        return Status(kStatusGenericErrorCode, errorMessage.c_str(), errorMessage.length());
       }
 
       return Status();

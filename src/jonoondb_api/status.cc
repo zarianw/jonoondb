@@ -6,23 +6,27 @@ using namespace std;
 
 using namespace jonoondb_api;
 
-const char Status::GenericErrorCode;
-const char Status::InvalidArgumentCode;
-const char Status::MissingDatabaseFileCode;
-const char Status::MissingDatabaseFolderCode;
-const char Status::FailedToOpenMetadataDatabaseFileCode;
-const char Status::OutOfMemoryErrorCode;
-const char Status::DuplicateKeyErrorCode;
-const char Status::DataFileMissingCode;
-const char Status::DataFileInfoMissingCode;
-const char Status::InvalidOperationCode;
-const char Status::InvalidIteratorCode;
-const char Status::FileIOErrorCode;
-const char Status::APIMisuseErrorCode;
-const char Status::KeyNotFoundCode;
-const char Status::CollectionAlreadyExistCode;
-const char Status::IndexAlreadyExistCode;
-const char Status::SQLiteErrorCode;
+namespace jonoondb_api
+{
+  const char kStatusGenericErrorCode = 1;
+  const char kStatusInvalidArgumentCode = 2;
+  const char kStatusMissingDatabaseFileCode = 3;
+  const char kStatusMissingDatabaseFolderCode = 4;
+  const char kStatusFailedToOpenMetadataDatabaseFileCode = 5;
+  const char kStatusOutOfMemoryErrorCode = 6;
+  const char kStatusDuplicateKeyErrorCode = 7;
+  const char kStatusDataFileMissingCode = 8;
+  const char kStatusDataFileInfoMissingCode = 9;
+  const char kStatusInvalidOperationCode = 10;
+  const char kStatusInvalidIteratorCode = 11;
+  const char kStatusFileIOErrorCode = 12;
+  const char kStatusAPIMisuseErrorCode = 13;
+  const char kStatusKeyNotFoundCode = 14;
+  const char kStatusCollectionAlreadyExistCode = 15;
+  const char kStatusIndexAlreadyExistCode = 16;
+
+  const char kStatusSQLiteErrorCode = 101;
+}
 
 Status::Status()
 {
@@ -120,7 +124,7 @@ bool Status::InvalidArgument() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::InvalidArgumentCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusInvalidArgumentCode, 1))
 		{
 			return true; 
 		}		
@@ -134,7 +138,7 @@ bool Status::MissingDatabaseFile() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::MissingDatabaseFileCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusMissingDatabaseFileCode, 1))
 		{
 			return true; 
 		}		
@@ -148,7 +152,7 @@ bool Status::MissingDatabaseFolder() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::MissingDatabaseFolderCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusMissingDatabaseFolderCode, 1))
 		{
 			return true; 
 		}		
@@ -162,7 +166,7 @@ bool Status::FailedToOpenMetadataDatabaseFile() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::FailedToOpenMetadataDatabaseFileCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusFailedToOpenMetadataDatabaseFileCode, 1))
 		{
 			return true; 
 		}		
@@ -176,7 +180,7 @@ bool Status::OutOfMemoryError() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::OutOfMemoryErrorCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusOutOfMemoryErrorCode, 1))
 		{
 			return true; 
 		}		
@@ -190,7 +194,7 @@ bool Status::DuplicateKeyError() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::DuplicateKeyErrorCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusDuplicateKeyErrorCode, 1))
 		{
 			return true; 
 		}		
@@ -204,7 +208,7 @@ bool Status::GenericError() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::GenericErrorCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusGenericErrorCode, 1))
 		{
 			return true; 
 		}		
@@ -218,7 +222,7 @@ bool Status::KeyNotFound() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::KeyNotFoundCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusKeyNotFoundCode, 1))
 		{
 			return true; 
 		}		
@@ -232,7 +236,7 @@ bool Status::FileIOError() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::FileIOErrorCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusFileIOErrorCode, 1))
 		{
 			return true; 
 		}		
@@ -246,7 +250,7 @@ bool Status::APIMisuseError() const
 	if(m_statusData != nullptr)
 	{
 		//Read Code
-		if(!memcmp(m_statusData + sizeof(size_t), &Status::APIMisuseErrorCode, 1))
+		if(!memcmp(m_statusData + sizeof(size_t), &kStatusAPIMisuseErrorCode, 1))
 		{
 			return true; 
 		}		
@@ -260,7 +264,7 @@ bool Status::CollectionAlreadyExist() const
   if (m_statusData != nullptr)
   {
     //Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &Status::CollectionAlreadyExistCode, 1))
+    if (!memcmp(m_statusData + sizeof(size_t), &kStatusCollectionAlreadyExistCode, 1))
     {
       return true;
     }
@@ -274,7 +278,7 @@ bool Status::IndexAlreadyExist() const
   if (m_statusData != nullptr)
   {
     //Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &Status::IndexAlreadyExistCode, 1))
+    if (!memcmp(m_statusData + sizeof(size_t), &kStatusIndexAlreadyExistCode, 1))
     {
       return true;
     }

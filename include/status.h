@@ -28,25 +28,7 @@ namespace jonoondb_api
     bool APIMisuseError() const;
     bool CollectionAlreadyExist() const;
     bool IndexAlreadyExist() const;
-
-    static const char GenericErrorCode = 1;
-    static const char InvalidArgumentCode = 2;
-    static const char MissingDatabaseFileCode = 3;
-    static const char MissingDatabaseFolderCode = 4;
-    static const char FailedToOpenMetadataDatabaseFileCode = 5;
-    static const char OutOfMemoryErrorCode = 6;
-    static const char DuplicateKeyErrorCode = 7;
-    static const char DataFileMissingCode = 8;
-    static const char DataFileInfoMissingCode = 9;
-    static const char InvalidOperationCode = 10;
-    static const char InvalidIteratorCode = 11;
-    static const char FileIOErrorCode = 12;
-    static const char APIMisuseErrorCode = 13;
-    static const char KeyNotFoundCode = 14;
-    static const char CollectionAlreadyExistCode = 15;
-    static const char IndexAlreadyExistCode = 16;
-
-    static const char SQLiteErrorCode = 101;
+    
   private:
     //class StatusImpl;
     //std::unique_ptr<StatusImpl> m_statusImpl;			
@@ -55,4 +37,23 @@ namespace jonoondb_api
     //Byte 6 onwards: Null terminated message string
     char* m_statusData;
   };
+
+  extern const char kStatusGenericErrorCode;
+  extern const char kStatusInvalidArgumentCode;
+  extern const char kStatusMissingDatabaseFileCode;
+  extern const char kStatusMissingDatabaseFolderCode;
+  extern const char kStatusFailedToOpenMetadataDatabaseFileCode;
+  extern const char kStatusOutOfMemoryErrorCode;
+  extern const char kStatusDuplicateKeyErrorCode;
+  extern const char kStatusDataFileMissingCode;
+  extern const char kStatusDataFileInfoMissingCode;
+  extern const char kStatusInvalidOperationCode;
+  extern const char kStatusInvalidIteratorCode;
+  extern const char kStatusFileIOErrorCode;
+  extern const char kStatusAPIMisuseErrorCode;
+  extern const char kStatusKeyNotFoundCode;
+  extern const char kStatusCollectionAlreadyExistCode;
+  extern const char kStatusIndexAlreadyExistCode;
+
+  extern const char kStatusSQLiteErrorCode;
 } // jonoon_api
