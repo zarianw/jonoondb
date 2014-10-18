@@ -2,37 +2,30 @@
 #include <string>
 #include <cstring>
 
-namespace jonoon_utils
-{
-	class StringUtils
-	{
-	public:		
+namespace jonoon_utils {
+class StringUtils {
+ public:
 
-		static bool IsNullOrEmpty(const char* str)
-		{
-			if (str == nullptr)
-			{
-				return true;
-			}
-			
-			if (strlen(str) == 0)
-			{
-				return true;
-			}
+  static bool IsNullOrEmpty(const char* str) {
+    if (str == nullptr) {
+      return true;
+    }
 
-			return false;
-		}
+    if (strlen(str) == 0) {
+      return true;
+    }
 
-		static bool IsNullOrEmpty(const std::string& str)
-		{
-			if (str.size() == 0)
-			{
-				return true;
-			}
+    return false;
+  }
 
-			return false;
-		}
-	
-	};
+  static bool IsNullOrEmpty(const std::string& str) {
+    if (str.size() == 0) {
+      return true;
+    }
 
-} // jonoondb_api
+    return false;
+  }
+
+};
+
+}  // jonoondb_api

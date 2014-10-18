@@ -1,9 +1,7 @@
 #pragma once
 
-namespace jonoondb_api
-{
-  class IndexManager
-  {
+namespace jonoondb_api {
+class IndexManager {
 
-  };
+};
 }
