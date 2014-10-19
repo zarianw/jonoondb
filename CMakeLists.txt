@@ -2,10 +2,10 @@ cmake_minimum_required (VERSION 2.8)
 
 project (JonoonDB)
 
-set (SRC_PATH ${PROJECT_SOURCE_DIR}/../src/)
-set (INCLUDE_PATH ${PROJECT_SOURCE_DIR}/../include/)
-set (INCLUDE_INTERNAL_PATH ${PROJECT_SOURCE_DIR}/../include/internal)
-set (TEST_PATH ${PROJECT_SOURCE_DIR}/../test/)
+set (SRC_PATH ${PROJECT_SOURCE_DIR}/src/)
+set (INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include/)
+set (INCLUDE_INTERNAL_PATH ${PROJECT_SOURCE_DIR}/include/internal)
+set (TEST_PATH ${PROJECT_SOURCE_DIR}/test/)
 
 # The version number.
 # set (JonoonDB_VERSION_MAJOR 1)
