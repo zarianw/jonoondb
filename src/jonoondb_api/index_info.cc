@@ -17,7 +17,7 @@ struct IndexInfo::IndexInfoData {
 };
 
 IndexInfo::IndexInfo(const char* name, int16_t type, const char* columns[],
-                     int columnsLength, bool isAscending) {
+                     size_t columnsLength, bool isAscending) {
   m_indexInfoData = new IndexInfoData();
   if (name != nullptr) {
     m_indexInfoData->Name = name;

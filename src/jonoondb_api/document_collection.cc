@@ -1,5 +1,5 @@
 #include <string>
-#include "boost/filesystem.hpp"
+#include <boost/filesystem.hpp>
 #include "sqlite3.h"
 #include "document_collection.h"
 #include "status.h"
@@ -54,6 +54,6 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   return Status();
 }
 
-Status DocumentCollection::Insert(Buffer& documentData) {
+Status DocumentCollection::Insert(const Buffer& documentData) {
   return Status();
 }

@@ -45,7 +45,7 @@ endif()
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system thread date_time chrono)
+find_package(Boost 1.56.0 REQUIRED COMPONENTS filesystem system thread date_time chrono)
 include_directories(${BOOST_ROOT})
 
 # jonoondb_api
@@ -60,7 +60,9 @@ add_library(
  ${INCLUDE_PATH}/document.h
  ${INCLUDE_PATH}/enums.h
  ${INCLUDE_INTERNAL_PATH}/blob_metadata.h 
- ${INCLUDE_INTERNAL_PATH}/concurrent_lru_cache.h 
+ ${INCLUDE_INTERNAL_PATH}/concurrent_lru_cache.h
+ ${INCLUDE_INTERNAL_PATH}/memory_mapped_file.h
+ ${INCLUDE_INTERNAL_PATH}/file_info.h  
  ${SRC_PATH}/jonoondb_api/database.cc ${INCLUDE_PATH}/database.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
  ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
@@ -94,6 +96,7 @@ add_executable(
  ${TEST_PATH}/status_tests.cc
  ${TEST_PATH}/database_metadata_manager_tests.cc
  ${TEST_PATH}/buffer_tests.cc
- ${TEST_PATH}/concurrent_lru_cache_tests.cc)
+ ${TEST_PATH}/concurrent_lru_cache_tests.cc
+ ${TEST_PATH}/memory_mapped_file_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
