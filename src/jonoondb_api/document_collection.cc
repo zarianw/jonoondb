@@ -11,53 +11,49 @@ using namespace jonoondb_api;
 using namespace jonoon_utils;
 using namespace std;
 
-DocumentCollection::DocumentCollection(sqlite3* dbConnection) : m_dbConnection(dbConnection)
-{
+DocumentCollection::DocumentCollection(sqlite3* dbConnection)
+    : m_dbConnection(dbConnection) {
 }
 
-DocumentCollection::~DocumentCollection()
-{
+DocumentCollection::~DocumentCollection() {
 }
 
-Status DocumentCollection::Construct(
-	const char* databaseMetadataFilePath,
-	const char* name,
-	int schemaType,
-	const char* schema,
-	const IndexInfo indexes[],
-	int indexesLength,
-	DocumentCollection*& documentCollection)
-{
-	string errorMessage;
-	// Validate function arguments
-	if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath))
-	{
-		errorMessage = "Argument databaseMetadataFilePath is null or empty.";
-		return Status(kStatusInvalidArgumentCode, errorMessage.c_str(), (int32_t)errorMessage.length());
-	}	
+Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
+                                     const char* name, int schemaType,
+                                     const char* schema,
+                                     const IndexInfo indexes[],
+                                     int indexesLength,
+                                     DocumentCollection*& documentCollection) {
+  string errorMessage;
+  // Validate function arguments
+  if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
+    errorMessage = "Argument databaseMetadataFilePath is null or empty.";
+    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
+                  (int32_t) errorMessage.length());
+  }
 
-	// databaseMetadataFile should exist and all the tables should exist in it
-	if (!boost::filesystem::exists(databaseMetadataFilePath))
-	{
-		return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(), (int32_t)errorMessage.length());
-	}
+  // databaseMetadataFile should exist and all the tables should exist in it
+  if (!boost::filesystem::exists(databaseMetadataFilePath)) {
+    return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(),
+                  (int32_t) errorMessage.length());
+  }
 
-	sqlite3* dbConnection;
-	int sqliteCode = sqlite3_open(databaseMetadataFilePath, &dbConnection);//, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);	
+  sqlite3* dbConnection;
+  int sqliteCode = sqlite3_open(databaseMetadataFilePath, &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
 
-	if (sqliteCode != SQLITE_OK)
-	{
-		errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-		SQLiteUtils::CloseSQLiteConnection(dbConnection);
-		return Status(kStatusFailedToOpenMetadataDatabaseFileCode, errorMessage.c_str(), errorMessage.length());
-	}	
+  if (sqliteCode != SQLITE_OK) {
+    errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
+        sqliteCode);
+    SQLiteUtils::CloseSQLiteConnection(dbConnection);
+    return Status(kStatusFailedToOpenMetadataDatabaseFileCode,
+                  errorMessage.c_str(), errorMessage.length());
+  }
 
-	documentCollection = new DocumentCollection(dbConnection);
+  documentCollection = new DocumentCollection(dbConnection);
 
-	return Status();
+  return Status();
 }
 
-Status DocumentCollection::Insert(Buffer& documentData)
-{
+Status DocumentCollection::Insert(Buffer& documentData) {
   return Status();
 }

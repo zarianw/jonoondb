@@ -24,7 +24,7 @@ TEST(DatabaseMetadataManager, AddCollection_NewSingleIndex)
   DatabaseMetadataManager* mgr;
   auto status = DatabaseMetadataManager::Open(g_TestRootDirectory.c_str(), dbName.c_str(), true, mgr);
   ASSERT_TRUE(status.OK());
-  char* columns[] = { "MyColumn" };
+  const char* columns[] = { "MyColumn" };
   IndexInfo indexInfo(string("MyIndex").c_str(), 1, columns, 1, true);
   status = mgr->AddCollection("MyCollection", 1, "", &indexInfo, 1);
   ASSERT_TRUE(status.OK());

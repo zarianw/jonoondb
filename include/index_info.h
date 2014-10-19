@@ -11,7 +11,7 @@ namespace jonoondb_api
   class IndexInfo
   {
   public:
-    IndexInfo(const char* name, int16_t type, char* columns[], int columnsLength, bool isAscending);
+    IndexInfo(const char* name, int16_t type, const char* columns[], int columnsLength, bool isAscending);
     IndexInfo();
     ~IndexInfo();
     Status Validate();
