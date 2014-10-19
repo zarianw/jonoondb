@@ -4,6 +4,8 @@
 *.vcxproj
 *.vcxproj.filters
 *.sln
+*.cproject
+*.project
 /unittests
 
 #cmake

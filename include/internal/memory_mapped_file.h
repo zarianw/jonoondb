@@ -4,7 +4,7 @@
 #include <string>
 #include <boost/interprocess/file_mapping.hpp> // NOLINT
 #include <boost/interprocess/mapped_region.hpp> // NOLINT
-#include "Status.h"
+#include "status.h"
 
 namespace jonoondb_api {
 // Forward declarations
@@ -56,7 +56,7 @@ class MemoryMappedFile {
     m_currentWritePosition += m_currentWriteOffset;
   }
 
-  Status Write(const void* data, const size_t length, const size_t offset)
+  /*Status Write(const void* data, const size_t length, const size_t offset)
   {
     try {
       char* destinationAddress = reinterpret_cast<char *>(GetBaseAddress());
@@ -73,7 +73,7 @@ class MemoryMappedFile {
       std::string errorMessage = "Unexpected error occured while opening mmap file.";
       return Status(kStatusGenericErrorCode, errorMessage.c_str(), errorMessage.length());
     }
-  }
+  }*/
 
   Status WriteAtCurrentPosition(const void* data, const size_t length) {
     try {
@@ -129,7 +129,7 @@ class MemoryMappedFile {
       // Normally throwing exceptions is not the error handling mechanism but in this class we are using boost
       // which throws exceptions for error handling. Throwing exception in this one function is ok because the callee
       // upstream is catching the exception.
-      throw std::exception(message);
+      throw std::invalid_argument(message);
       break;
     }
   }
