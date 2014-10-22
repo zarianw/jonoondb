@@ -62,9 +62,8 @@ Status Buffer::Assign(char* buffer, size_t bufferLengthInBytes,
                                     bufferCapacityInBytes, customDeleterFunc);
     } catch (bad_alloc) {
       // Memory allocation failed
-      return Status(kStatusOutOfMemoryErrorCode,
-                    MemoryAllocationFailedErrorMessage.c_str(),
-                    MemoryAllocationFailedErrorMessage.length());
+      string errorMsg = "Memory allocation failed.";
+      return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(), errorMsg.length());
     }
   }
 
@@ -106,9 +105,8 @@ Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes,
           delete data;
         }
         // Memory allocation failed
-        return Status(kStatusOutOfMemoryErrorCode,
-                      MemoryAllocationFailedErrorMessage.c_str(),
-                      MemoryAllocationFailedErrorMessage.length());
+        string errorMsg = "Memory allocation failed.";
+        return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(), errorMsg.length());
       }
     } else {
       // Our capacity is the same so no need to reallocate the buffer
@@ -142,9 +140,8 @@ Status Buffer::Copy(const char* buffer, size_t bytesToCopy) {
           delete data;
         }
         // Memory allocation failed
-        return Status(kStatusOutOfMemoryErrorCode,
-                      MemoryAllocationFailedErrorMessage.c_str(),
-                      MemoryAllocationFailedErrorMessage.length());
+          string errorMsg = "Memory allocation failed.";
+          return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(), errorMsg.length());
       }
     } else {
       // Our existing bufer is big enough, no need to reallocate

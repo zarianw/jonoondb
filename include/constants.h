@@ -12,7 +12,4 @@ const std::chrono::milliseconds SQLiteBusyHandlerRetryIntervalInMillisecs(200);
 const int SQLiteBusyHandlerRetryCount = 20;
 
 typedef void (*DeleterFuncPtr)(char*);
-
-const std::string MemoryAllocationFailedErrorMessage =
-    "Memory allocation failed.";
 }  // jonoondb_api
