@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace jonoondb_api;
+using namespace jonoondb_test;
 
 TEST(DatabaseMetadataManager, Open_New)
 {

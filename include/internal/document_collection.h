@@ -1,7 +1,7 @@
 #pragma once
 
 // Forward declaration
-class sqlite3;
+struct sqlite3;
 
 namespace jonoondb_api {
 // Forward Declaration
@@ -12,16 +12,13 @@ class Buffer;
 class DocumentCollection {
  public:
   ~DocumentCollection();
-  static Status Construct(const char* databaseMetadataFilePath,
-                          const char* name, int schemaType, const char* schema,
-                          const IndexInfo indexes[], int indexesLength,
-                          DocumentCollection*& documentCollection);
-
-  Status Insert(Buffer& documentData);
+  static Status Construct(const char* databaseMetadataFilePath, const char* name, int schemaType, const char* schema,
+                          const IndexInfo indexes[], int indexesLength, DocumentCollection*& documentCollection);
+  Status Insert(const Buffer& documentData);
 
  private:
-  DocumentCollection(sqlite3* dbConnection);
+  explicit DocumentCollection(sqlite3* dbConnection);
   sqlite3* m_dbConnection;
 };
-}
+}  // namespace jonoondb_api
 

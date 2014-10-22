@@ -1,7 +1,7 @@
 #include <string>
 #include <memory>
+#include <boost/filesystem.hpp>
 #include "sqlite3.h"
-#include "boost/filesystem.hpp"
 #include "database_metadata_manager.h"
 #include "status.h"
 #include "string_utils.h"
