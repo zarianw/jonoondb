@@ -58,8 +58,7 @@ include_directories(${BOOST_ROOT})
 
 # jonoondb_api
 add_library(
- jonoondb_api
- ${INCLUDE_PATH}/constants.h 
+ jonoondb_api 
  ${INCLUDE_PATH}/standard_deleters.h 
  ${INCLUDE_INTERNAL_PATH}/string_utils.h
  ${INCLUDE_INTERNAL_PATH}/serializer_utils.h
@@ -70,7 +69,9 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/blob_metadata.h 
  ${INCLUDE_INTERNAL_PATH}/concurrent_lru_cache.h
  ${INCLUDE_INTERNAL_PATH}/memory_mapped_file.h
- ${INCLUDE_INTERNAL_PATH}/file_info.h  
+ ${INCLUDE_INTERNAL_PATH}/file_info.h
+ ${INCLUDE_PATH}/indexer.h
+ ${INCLUDE_PATH}/constants.h     
  ${SRC_PATH}/jonoondb_api/database.cc ${INCLUDE_PATH}/database.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
  ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
@@ -81,7 +82,8 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
  ${SRC_PATH}/jonoondb_api/buffer.cc ${INCLUDE_PATH}/buffer.h
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
- ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h)
+ ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
+ ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h)
 target_link_libraries(jonoondb_api sqlite ${Boost_LIBRARIES})
 
 # flatbuffers
@@ -105,6 +107,7 @@ add_executable(
  ${TEST_PATH}/database_metadata_manager_tests.cc
  ${TEST_PATH}/buffer_tests.cc
  ${TEST_PATH}/concurrent_lru_cache_tests.cc
- ${TEST_PATH}/memory_mapped_file_tests.cc)
+ ${TEST_PATH}/memory_mapped_file_tests.cc
+ ${TEST_PATH}/database_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)

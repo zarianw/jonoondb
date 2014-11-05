@@ -4,6 +4,7 @@
 #include "database_metadata_manager.h"
 #include "status.h"
 #include "index_info.h"
+#include "enums.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -26,7 +27,7 @@ TEST(DatabaseMetadataManager, AddCollection_NewSingleIndex)
   auto status = DatabaseMetadataManager::Open(g_TestRootDirectory.c_str(), dbName.c_str(), true, mgr);
   ASSERT_TRUE(status.OK());
   const char* columns[] = { "MyColumn" };
-  IndexInfo indexInfo(string("MyIndex").c_str(), 1, columns, 1, true);
+  IndexInfo indexInfo(string("MyIndex").c_str(), IndexType::WAHCompressedBitmap, columns, 1, true);
   status = mgr->AddCollection("MyCollection", 1, "", &indexInfo, 1);
   ASSERT_TRUE(status.OK());
 }

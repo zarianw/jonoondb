@@ -1,5 +1,6 @@
 #include <string>
 #include <memory>
+#include <sstream>
 #include <boost/filesystem.hpp>
 #include "sqlite3.h"
 #include "database_metadata_manager.h"
@@ -14,7 +15,6 @@
 using namespace std;
 using namespace boost::filesystem;
 using namespace jonoondb_api;
-using namespace jonoon_utils;
 
 DatabaseMetadataManager::DatabaseMetadataManager(const char* dbPath,
                                                  const char* dbName,
@@ -40,6 +40,8 @@ Status DatabaseMetadataManager::Initialize() {
   path pathObj(m_dbPath);
   pathObj += m_dbName;
   pathObj += ".dat";
+
+  m_fullDbPath = pathObj.string();
 
   if (!boost::filesystem::exists(pathObj) && !m_createDBIfMissing) {
     return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(),
@@ -236,7 +238,9 @@ Status DatabaseMetadataManager::AddCollection(const char* name, int schemaType,
   if (sqliteCode != SQLITE_DONE) {
     if (sqliteCode == SQLITE_CONSTRAINT) {
       //Key already exists
-      std::string errorMsg = "Collection with the same name already exists.";
+      ostringstream ss;
+      ss << "Collection with name \"" << name << "\" already exists.";
+      std::string errorMsg = ss.str();
       return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(),
                     errorMsg.length());
     } else {
@@ -311,4 +315,8 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
   }
 
   return Status();
+}
+
+const char* DatabaseMetadataManager::GetFullDBPath() const {
+  return m_fullDbPath.c_str();
 }

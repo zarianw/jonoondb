@@ -8,7 +8,6 @@
 #include "sqlite_utils.h"
 
 using namespace jonoondb_api;
-using namespace jonoon_utils;
 using namespace std;
 
 DocumentCollection::DocumentCollection(sqlite3* dbConnection)

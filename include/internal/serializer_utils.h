@@ -19,7 +19,7 @@ class SerializerUtils {
       FlatBufferBuilder fbb;
       auto name = fbb.CreateString(indexInfo.GetName());
       auto mloc = CreateIndexInfoFB(fbb, name, 0, indexInfo.GetIsAscending(),
-                                    indexInfo.GetType());
+                                    (int16_t)indexInfo.GetType());
       fbb.Finish(mloc);
       auto size = fbb.GetSize();
       if (size > buffer.GetCapacity()) {

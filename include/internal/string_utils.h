@@ -2,7 +2,7 @@
 #include <string>
 #include <cstring>
 
-namespace jonoon_utils {
+namespace jonoondb_api {
 class StringUtils {
  public:
 

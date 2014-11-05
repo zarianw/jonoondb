@@ -9,7 +9,7 @@ Status DocumentFactory::CreateDocument(const Buffer& buffer, bool deepCopy,
                                        SchemaType schemaType,
                                        Document*& document) {
   switch (schemaType) {
-    case jonoondb_api::FLAT_BUFFERS:
+  case jonoondb_api::SchemaType::FLAT_BUFFERS:
       break;
     default:
       string errorMsg = "Unknown schema";

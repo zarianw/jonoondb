@@ -12,7 +12,8 @@ class Status;
 class IndexInfo;
 
 class DatabaseMetadataManager {
- public:
+public:
+  ~DatabaseMetadataManager();
   static Status Open(const char* dbPath, const char* dbName,
                      bool createDBIfMissing,
                      DatabaseMetadataManager*& databaseMetadataManager);
@@ -20,7 +21,8 @@ class DatabaseMetadataManager {
   Status AddCollection(const char* name, int schemaType, const char* schema,
                        const IndexInfo indexes[], int indexesLength);
 
-  ~DatabaseMetadataManager();
+  const char* GetFullDBPath() const;
+  
  private:
   DatabaseMetadataManager(const char* dbPath, const char* dbName,
                           bool createDBIfMissing);
@@ -31,6 +33,7 @@ class DatabaseMetadataManager {
 
   std::string m_dbName;
   std::string m_dbPath;
+  std::string m_fullDbPath;
   sqlite3* m_metadataDBConnection;
   sqlite3_stmt* m_insertCollectionSchemaStmt;
   sqlite3_stmt* m_insertCollectionIndexStmt;
