@@ -67,3 +67,31 @@ TEST(Database, Open_CreateIfMissing) {
   ASSERT_TRUE(sts.OK());
   ASSERT_TRUE(db->Close().OK()); //Checking if database closed successfully			
 }
+
+TEST(Database, CreateCollection_New) {
+  string dbName = "CreateCollection_New";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db;
+  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
+  ASSERT_TRUE(sts.OK());
+  sts = db->CreateCollection("CollectionName", 1, "Schema IDL", nullptr, 0);
+  ASSERT_TRUE(sts.OK());
+  ASSERT_TRUE(db->Close().OK());
+}
+
+TEST(Database, CreateCollection_CollectionAlreadyExist) {
+  string dbName = "CreateCollection_CollectionAlreadyExist";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db;
+  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
+  ASSERT_TRUE(sts.OK());
+  sts = db->CreateCollection("CollectionName", 1, "Schema IDL", nullptr, 0);
+  ASSERT_TRUE(sts.OK());
+  sts = db->CreateCollection("CollectionName", 1, "Schema IDL", nullptr, 0);
+  ASSERT_TRUE(sts.CollectionAlreadyExist());
+  ASSERT_TRUE(db->Close().OK());
+}
