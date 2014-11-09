@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <Indexer.h>
 
 namespace jonoondb_api {
 
@@ -9,13 +10,13 @@ namespace jonoondb_api {
 class Status;
 class IndexInfo;
 class Indexer;
-class document;
+class Document;
 
 class IndexManager {
 public:
   Status Construct(const IndexInfo indexes[], int indexesLength, IndexManager*& indexManager);
   Status CreateIndex(const IndexInfo& indexInfo);
-  Status IndexDocument(const document& document);
+  Status IndexDocument(const Document& document);
 private:
   std::vector<std::unique_ptr<Indexer>> m_indexers;
 };

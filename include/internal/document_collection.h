@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include "Indexer.h"
+
 // Forward declaration
 struct sqlite3;
 
@@ -8,6 +11,7 @@ namespace jonoondb_api {
 class Status;
 class IndexInfo;
 class Buffer;
+class IndexManager;
 
 class DocumentCollection {
  public:
@@ -19,6 +23,7 @@ class DocumentCollection {
  private:
   explicit DocumentCollection(sqlite3* dbConnection);
   sqlite3* m_dbConnection;
+  std::unique_ptr<IndexManager> m_indexManager;
 };
 }  // namespace jonoondb_api
 

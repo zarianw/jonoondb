@@ -6,6 +6,9 @@
 #include "string_utils.h"
 #include "exception_utils.h"
 #include "sqlite_utils.h"
+#include "document.h"
+#include "document_factory.h"
+#include "index_manager.h"
 
 using namespace jonoondb_api;
 using namespace std;
@@ -54,5 +57,15 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
 }
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
+  Document* docPtr;
+  Status sts = DocumentFactory::CreateDocument(documentData, false, SchemaType::FLAT_BUFFERS, docPtr);
+  if (!sts.OK()) {
+    return sts;
+  }
+  
+  // unique_ptr will ensure that we will release memory even incase of exception.
+  unique_ptr<Document> doc(docPtr);
+  m_indexManager->IndexDocument(*doc.get());
+
   return Status();
 }
