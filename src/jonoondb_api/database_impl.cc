@@ -67,12 +67,12 @@ Status DatabaseImpl::Insert(const char* collectionName, const Buffer& documentDa
     return Status(kStatusCollectionNotFound, errorMsg.c_str(), errorMsg.length());    
   }
     
-  // Todo: Add data in collection
+  // Add data in collection
   Status status = item->second->Insert(documentData);
   if (!status.OK()) {
     return status;
   }
-  
-  return Status();
+
+  return status;
 }
 

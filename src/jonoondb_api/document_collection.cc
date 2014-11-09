@@ -13,11 +13,17 @@
 using namespace jonoondb_api;
 using namespace std;
 
-DocumentCollection::DocumentCollection(sqlite3* dbConnection)
-    : m_dbConnection(dbConnection) {
+DocumentCollection::DocumentCollection(sqlite3* dbConnection, unique_ptr<IndexManager> indexManager)
+    : m_dbConnection(dbConnection), m_indexManager(move(indexManager)) {
 }
 
 DocumentCollection::~DocumentCollection() {
+  if (m_dbConnection != nullptr) {
+    if (sqlite3_close(m_dbConnection) != SQLITE_OK) {
+      //Todo: Handle SQLITE_BUSY response here
+    }
+    m_dbConnection = nullptr;
+  }
 }
 
 Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
@@ -40,8 +46,10 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
                   (int32_t) errorMessage.length());
   }
 
-  sqlite3* dbConnection;
+  sqlite3* dbConnection = nullptr;
   int sqliteCode = sqlite3_open(databaseMetadataFilePath, &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+  
+  std::unique_ptr<sqlite3, int(*)(sqlite3*)> dbConnectionUniquePtr(dbConnection, sqlite3_close);
 
   if (sqliteCode != SQLITE_OK) {
     errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
@@ -51,9 +59,15 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
                   errorMessage.c_str(), errorMessage.length());
   }
 
-  documentCollection = new DocumentCollection(dbConnection);
+  IndexManager* indexManager;
+  Status sts = IndexManager::Construct(indexes, indexesLength, indexManager);
+  if (!sts.OK()) {
+    return sts;
+  }
+  unique_ptr<IndexManager> indexManagerUniquePtr(indexManager);
+  documentCollection = new DocumentCollection(dbConnectionUniquePtr.release(), move(indexManagerUniquePtr));
 
-  return Status();
+  return sts;
 }
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
@@ -65,7 +79,10 @@ Status DocumentCollection::Insert(const Buffer& documentData) {
   
   // unique_ptr will ensure that we will release memory even incase of exception.
   unique_ptr<Document> doc(docPtr);
-  m_indexManager->IndexDocument(*doc.get());
+  sts = m_indexManager->IndexDocument(*doc.get());
+  if (!sts.OK()) {
+    return sts;
+  }
 
-  return Status();
+  return sts;
 }

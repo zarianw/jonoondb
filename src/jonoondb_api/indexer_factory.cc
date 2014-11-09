@@ -7,7 +7,7 @@ using namespace jonoondb_api;
 
 Status IndexerFactory::CreateIndexer(const IndexInfo& indexInfo, Indexer*& indexer) {
   switch (indexInfo.GetType()) {
-  case IndexType::WAHCompressedBitmap:
+  case IndexType::EWAHCompressedBitmap:
     break;
   default:
     break;

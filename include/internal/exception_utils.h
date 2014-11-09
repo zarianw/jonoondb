@@ -12,4 +12,4 @@ class ExceptionUtils {
     return sqliteErrorMsg;
   }
 };
-}  // joonondb_api
+}  // namespace jonoondb_api

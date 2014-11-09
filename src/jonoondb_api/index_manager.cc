@@ -7,7 +7,11 @@
 using namespace std;
 using namespace jonoondb_api;
 
+IndexManager::IndexManager(const IndexInfo indexes[], int indexesLength) {
+}
+
 Status IndexManager::Construct(const IndexInfo indexes[], int indexesLength, IndexManager*& indexManager) {
+  indexManager = new IndexManager(indexes, indexesLength);
   return Status();
 }
 

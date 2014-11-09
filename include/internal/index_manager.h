@@ -14,7 +14,8 @@ class Document;
 
 class IndexManager {
 public:
-  Status Construct(const IndexInfo indexes[], int indexesLength, IndexManager*& indexManager);
+  IndexManager(const IndexInfo indexes[], int indexesLength);
+  static Status Construct(const IndexInfo indexes[], int indexesLength, IndexManager*& indexManager);
   Status CreateIndex(const IndexInfo& indexInfo);
   Status IndexDocument(const Document& document);
 private:

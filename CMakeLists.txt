@@ -83,7 +83,8 @@ add_library(
  ${SRC_PATH}/jonoondb_api/buffer.cc ${INCLUDE_PATH}/buffer.h
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
- ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h)
+ ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
+ ${SRC_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer.cc ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h)
 target_link_libraries(jonoondb_api sqlite ${Boost_LIBRARIES})
 
 # flatbuffers

@@ -9,6 +9,7 @@ class Document;
 
 class Indexer {
 public:
+  virtual ~Indexer() = 0;
   // This function validates that the document is valid for insert.
   // If this function returns OK status then the insert function call on the same document must succeed.
   virtual Status ValidateForInsert(const Document& document) = 0;

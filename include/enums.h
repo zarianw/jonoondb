@@ -8,7 +8,7 @@ enum class SchemaType {
 };
 
 enum class IndexType : std::int16_t {
-  WAHCompressedBitmap = 1
+  EWAHCompressedBitmap = 1
 };
 
 } // namespace jonoondb_api

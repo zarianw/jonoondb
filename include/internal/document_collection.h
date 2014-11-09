@@ -21,7 +21,7 @@ class DocumentCollection {
   Status Insert(const Buffer& documentData);
 
  private:
-  explicit DocumentCollection(sqlite3* dbConnection);
+  explicit DocumentCollection(sqlite3* dbConnection, std::unique_ptr<IndexManager> indexManager);
   sqlite3* m_dbConnection;
   std::unique_ptr<IndexManager> m_indexManager;
 };
