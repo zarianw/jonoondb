@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
-#include "Indexer.h"
+#include <memory>
+#include "index_manager.h"
 
 // Forward declaration
 struct sqlite3;
@@ -11,7 +11,6 @@ namespace jonoondb_api {
 class Status;
 class IndexInfo;
 class Buffer;
-class IndexManager;
 
 class DocumentCollection {
  public:

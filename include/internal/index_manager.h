@@ -2,14 +2,12 @@
 
 #include <vector>
 #include <memory>
-#include <Indexer.h>
+#include "indexer.h"
 
 namespace jonoondb_api {
-
-// Foward declarations
+// Forward declarations
 class Status;
 class IndexInfo;
-class Indexer;
 class Document;
 
 class IndexManager {
