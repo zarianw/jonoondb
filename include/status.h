@@ -26,6 +26,7 @@ class Status {
   bool APIMisuseError() const;
   bool CollectionAlreadyExist() const;
   bool IndexAlreadyExist() const;
+  bool CollectionNotFound() const;
 
  private:
   //class StatusImpl;
@@ -52,6 +53,7 @@ extern const char kStatusAPIMisuseErrorCode;
 extern const char kStatusKeyNotFoundCode;
 extern const char kStatusCollectionAlreadyExistCode;
 extern const char kStatusIndexAlreadyExistCode;
+extern const char kStatusCollectionNotFound;
 
 extern const char kStatusSQLiteErrorCode;
 }  // jonoon_api

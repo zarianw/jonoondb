@@ -10,19 +10,29 @@ Database::Database(DatabaseImpl* databaseImpl)
 }
 
 Status Database::Open(const char* dbPath, const char* dbName,
-                      const Options& options, Database** db) {
+                      const Options& options, Database*& db) {
   DatabaseImpl* dbImpl;
-  Status status = DatabaseImpl::Open(dbPath, dbName, options, &dbImpl);
+  Status status = DatabaseImpl::Open(dbPath, dbName, options, dbImpl);
   if (!status.OK()) {
     return status;
   }
-
-  *db = new Database(dbImpl);
+  db = new Database(dbImpl);
 
   return status;
 }
 
+Status Database::Close() {
+  Status status = m_databaseImpl->Close();
+  delete this;
+  return status;
+}
+
+Status Database::CreateCollection(const char* name, int schemaType, const char* schema,
+                                  const IndexInfo indexes[], int indexesLength) {
+  return m_databaseImpl->CreateCollection(name, schemaType, schema, indexes, indexesLength);
+}
+
 Status Database::Insert(const char* collectionName, Buffer& documentData) {
-  return Status();
+  return m_databaseImpl->Insert(collectionName, documentData);  
 }
 

@@ -1,7 +1,22 @@
 #pragma once
 
-namespace jonoondb_api {
-class IndexManager {
+#include <vector>
+#include <memory>
+#include "indexer.h"
 
+namespace jonoondb_api {
+// Forward declarations
+class Status;
+class IndexInfo;
+class Document;
+
+class IndexManager {
+public:
+  IndexManager(const IndexInfo indexes[], int indexesLength);
+  static Status Construct(const IndexInfo indexes[], int indexesLength, IndexManager*& indexManager);
+  Status CreateIndex(const IndexInfo& indexInfo);
+  Status IndexDocument(const Document& document);
+private:
+  std::vector<std::unique_ptr<Indexer>> m_indexers;
 };
-}
+} // namespace jonoondb_api

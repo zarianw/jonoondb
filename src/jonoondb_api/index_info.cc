@@ -4,19 +4,19 @@
 #include "index_info.h"
 #include "status.h"
 #include "string_utils.h"
+#include "enums.h"
 
 using namespace jonoondb_api;
-using namespace jonoon_utils;
 using namespace std;
 
 struct IndexInfo::IndexInfoData {
   string Name;
   vector<string> Columns;
   bool IsAscending;
-  int16_t Type;
+  IndexType Type;
 };
 
-IndexInfo::IndexInfo(const char* name, int16_t type, const char* columns[],
+IndexInfo::IndexInfo(const char* name, IndexType type, const char* columns[],
                      size_t columnsLength, bool isAscending) {
   m_indexInfoData = new IndexInfoData();
   if (name != nullptr) {
@@ -46,13 +46,7 @@ Status IndexInfo::Validate() {
     errorMessage = "Index name is null or empty.";
     return Status(kStatusGenericErrorCode, errorMessage.c_str(),
                   (int32_t) errorMessage.length());
-  }
-
-  if (m_indexInfoData->Type < 1) {
-    errorMessage = "Index type should be greater than 0.";
-    return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
-  }
+  } 
 
   if (m_indexInfoData->Columns.size() < 1) {
     errorMessage = "Index columns should be greater than 0.";
@@ -71,11 +65,11 @@ bool IndexInfo::GetIsAscending() const {
   return m_indexInfoData->IsAscending;
 }
 
-void IndexInfo::SetType(int value) {
+void IndexInfo::SetType(IndexType value) {
   m_indexInfoData->Type = value;
 }
 
-int16_t IndexInfo::GetType() const {
+IndexType IndexInfo::GetType() const {
   return m_indexInfoData->Type;
 }
 

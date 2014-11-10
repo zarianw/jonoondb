@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 namespace jonoondb_api {
 //Forward Declarations
 class DatabaseImpl;
@@ -9,20 +11,17 @@ class IndexInfo;
 class Buffer;
 
 class Database {
- public:
-  ~Database();
-
+public:
   static Status Open(const char* dbPath, const char* dbName,
-                     const Options& options, Database** db);
+                     const Options& options, Database*& db);
+  Status Close();
   Status CreateCollection(const char* name, int schemaType, const char* schema,
                           const IndexInfo indexes[], int indexesLength);
-  Status Insert(const char* collectionName, Buffer& documentData);
+  Status Insert(const char* collectionName, Buffer& documentData);  
 
-  //Status Close();
-
- private:
+private:
   Database(DatabaseImpl* databaseImpl);
-  DatabaseImpl* m_databaseImpl;
+  std::unique_ptr<DatabaseImpl> m_databaseImpl;
 };
 
 }  // jonoondb_api

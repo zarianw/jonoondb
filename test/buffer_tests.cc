@@ -6,15 +6,12 @@
 using namespace std;
 using namespace jonoondb_api;
 
-Buffer GetBufferRValue(char* source, size_t length)
-{
-  if (source == nullptr)
-  {
+Buffer GetBufferRValue(char* source, size_t length) {
+  if (source == nullptr) {
     Buffer buffer;
     return buffer;
   }
-  else
-  {
+  else {
     Buffer buffer;
     buffer.Assign(source, length, length, StandardDeleteNoOp);
     return buffer;
