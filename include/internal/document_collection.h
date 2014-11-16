@@ -16,7 +16,7 @@ class DocumentCollection {
  public:
   ~DocumentCollection();
   static Status Construct(const char* databaseMetadataFilePath, const char* name, int schemaType, const char* schema,
-                          const IndexInfo indexes[], int indexesLength, DocumentCollection*& documentCollection);
+                          const IndexInfo indexes[], size_t indexesLength, DocumentCollection*& documentCollection);
   Status Insert(const Buffer& documentData);
 
  private:

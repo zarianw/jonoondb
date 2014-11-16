@@ -30,7 +30,7 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
                                      const char* name, int schemaType,
                                      const char* schema,
                                      const IndexInfo indexes[],
-                                     int indexesLength,
+                                     size_t indexesLength,
                                      DocumentCollection*& documentCollection) {
   string errorMessage;
   // Validate function arguments
