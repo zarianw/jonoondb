@@ -30,10 +30,10 @@ endif()
 
 if(APPLE)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+    "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -m64")
 elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++11")
+    "${CMAKE_CXX_FLAGS} -std=c++11 -m64")
 endif()
 
 
@@ -54,7 +54,10 @@ set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
 find_package(Boost 1.56.0 REQUIRED COMPONENTS filesystem system thread date_time chrono)
-include_directories(${BOOST_ROOT})
+include_directories(${Boost_INCLUDE_DIR})
+
+message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
+message("Using Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
 
 # jonoondb_api
 add_library(
@@ -84,7 +87,8 @@ add_library(
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
  ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
- ${SRC_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer.cc ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h)
+ ${SRC_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer.cc ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h
+ ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h)
 target_link_libraries(jonoondb_api sqlite ${Boost_LIBRARIES})
 
 # flatbuffers

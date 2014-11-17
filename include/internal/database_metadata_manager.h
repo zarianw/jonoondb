@@ -19,7 +19,7 @@ public:
                      DatabaseMetadataManager*& databaseMetadataManager);
 
   Status AddCollection(const char* name, int schemaType, const char* schema,
-                       const IndexInfo indexes[], int indexesLength);
+                       const IndexInfo indexes[], size_t indexesLength);
 
   const char* GetFullDBPath() const;
   

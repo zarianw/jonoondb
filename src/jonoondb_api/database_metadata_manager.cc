@@ -197,7 +197,7 @@ Status DatabaseMetadataManager::Open(
 Status DatabaseMetadataManager::AddCollection(const char* name, int schemaType,
                                               const char* schema,
                                               const IndexInfo indexes[],
-                                              int indexesLength) {
+                                              size_t indexesLength) {
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
   unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
