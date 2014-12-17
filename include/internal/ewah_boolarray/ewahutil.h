@@ -44,13 +44,9 @@
 static inline uint32_t ctz64(uint64_t n) {
 #if defined(__GNUC__) && UINT_MAX >= UINT32_MAX
 	return static_cast<uint32_t>(__builtin_ctzl(n));
-#elif defined(_MSC_VER) && _MSC_VER >= 1400
+#elif defined(_WIN64) && defined(_MSC_VER) && _MSC_VER >= 1400
 	uint32_t i;
-#if _WIN64
 	_BitScanForward64((unsigned long *) &i, n);
-#else
-  _BitScanForward((unsigned long *)&i, n);
-#endif
 	return i;
 #else
 	uint32_t i = 1;
@@ -196,7 +192,7 @@ inline uint32_t countOnes(uint32_t v) {
 inline uint32_t countOnes(uint64_t x) {
     return static_cast<uint32_t>(__builtin_popcountl(x));
 }
-#elif defined(_MSC_VER) && _MSC_VER >= 1400
+#elif defined(_WIN64) && defined(_MSC_VER) && _MSC_VER >= 1400
 inline uint32_t countOnes(uint64_t x) {
 	return static_cast<uint32_t>(__popcnt64(static_cast<__int64>(x)));
 }

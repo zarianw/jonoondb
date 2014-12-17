@@ -12,11 +12,11 @@ class Document;
 
 class IndexManager {
 public:
-  IndexManager(const IndexInfo indexes[], int indexesLength);
+  IndexManager(std::unique_ptr<std::vector<std::unique_ptr<Indexer>>> indexers);
   static Status Construct(const IndexInfo indexes[], size_t indexesLength, IndexManager*& indexManager);
   Status CreateIndex(const IndexInfo& indexInfo);
   Status IndexDocument(const Document& document);
 private:
-  std::vector<std::unique_ptr<Indexer>> m_indexers;
+  std::unique_ptr<std::vector<std::unique_ptr<Indexer>>> m_indexers;
 };
 } // namespace jonoondb_api
