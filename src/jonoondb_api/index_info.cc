@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <sstream>
 #include "index_info.h"
 #include "status.h"
 #include "string_utils.h"
@@ -33,6 +34,20 @@ IndexInfo::IndexInfo(const char* name, IndexType type, const char* columns[],
 
 IndexInfo::IndexInfo()
     : m_indexInfoData(new IndexInfoData()) {
+}
+
+IndexInfo::IndexInfo(const IndexInfo& other) {
+  if (this != &other) {
+    m_indexInfoData = new IndexInfoData();
+    m_indexInfoData->Name = other.GetName();
+    m_indexInfoData->IsAscending = other.GetIsAscending();
+    m_indexInfoData->Type = other.GetType();
+    size_t length = other.GetColumnsLength();
+    SetColumnsLength(length);
+    for (size_t i = 0; i < length; i++) {
+      m_indexInfoData->Columns[i] = other.GetColumn(i);
+    }
+  }
 }
 
 IndexInfo::~IndexInfo() {
@@ -79,5 +94,35 @@ void IndexInfo::SetName(const char* value) {
 
 const char* IndexInfo::GetName() const {
   return m_indexInfoData->Name.c_str();
+}
+
+const char* IndexInfo::GetColumn(size_t index) const {
+  if (index < m_indexInfoData->Columns.size()) {
+    return m_indexInfoData->Columns[index].c_str();
+  } else {
+    return nullptr;
+  }
+}
+
+Status IndexInfo::SetColumn(size_t index, const char* column) {
+  if (index >= m_indexInfoData->Columns.size()) {
+    ostringstream ss;
+    ss << "Cannot set column. Index value " << index <<
+      " is more than the size of the column vector which is " << m_indexInfoData->Columns.size(); ".";
+    string errorMsg = ss.str();
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.size());
+  }
+
+  m_indexInfoData->Columns[index] = column;
+
+  return Status();
+}
+
+size_t IndexInfo::GetColumnsLength() const {
+  return m_indexInfoData->Columns.size();
+}
+
+void IndexInfo::SetColumnsLength(size_t length) {
+  m_indexInfoData->Columns.resize(length);
 }
 

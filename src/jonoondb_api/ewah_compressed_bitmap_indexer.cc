@@ -4,6 +4,9 @@
 
 using namespace jonoondb_api;
 
+EWAHCompressedBitmapIndexer::EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo)
+    : m_indexInfo (indexInfo) {
+}
 EWAHCompressedBitmapIndexer::~EWAHCompressedBitmapIndexer() {
 }
 

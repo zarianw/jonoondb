@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 namespace jonoondb_api
 {
@@ -12,8 +13,9 @@ namespace jonoondb_api
   class IndexInfo
   {
   public:
-    IndexInfo(const char* name, IndexType type, const char* columns[], size_t columnsLength, bool isAscending);
+    IndexInfo(const char* name, IndexType type, const char* columns[], std::size_t columnsLength, bool isAscending);
     IndexInfo();
+    IndexInfo(const IndexInfo& other);
     ~IndexInfo();
     Status Validate();
     void SetName(const char* value);
@@ -22,6 +24,10 @@ namespace jonoondb_api
     bool GetIsAscending() const;
     void SetType(IndexType value);
     IndexType GetType() const;
+    std::size_t GetColumnsLength() const;
+    void SetColumnsLength(std::size_t value);
+    const char* GetColumn(std::size_t index) const;
+    Status SetColumn(std::size_t index, const char* column);
 
   private:
     // Forward declaration
