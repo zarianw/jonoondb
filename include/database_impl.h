@@ -3,6 +3,7 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
+#include <cstdint>
 #include "database_metadata_manager.h"
 #include "document_collection.h"
 
@@ -12,14 +13,14 @@ class Status;
 class Options;
 class Buffer;
 class IndexInfo;
-
+enum class SchemaType : std::int32_t;
 
 class DatabaseImpl {
  public:
   static Status Open(const char* dbPath, const char* dbName,
                      const Options& options, DatabaseImpl*& db);
   Status Close();
-  Status CreateCollection(const char* name, int schemaType, const char* schema, const IndexInfo indexes[],
+  Status CreateCollection(const char* name, SchemaType schemaType, const char* schema, const IndexInfo indexes[],
     size_t indexesLength);
   Status Insert(const char* collectionName, const Buffer& documentData);
 

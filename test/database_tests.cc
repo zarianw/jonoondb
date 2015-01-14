@@ -76,7 +76,7 @@ TEST(Database, CreateCollection_New) {
   Database* db;
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", 1, "Schema IDL", nullptr, 0);
+  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.OK());
   ASSERT_TRUE(db->Close().OK());
 }
@@ -89,9 +89,9 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   Database* db;
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", 1, "Schema IDL", nullptr, 0);
+  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", 1, "Schema IDL", nullptr, 0);
+  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.CollectionAlreadyExist());
   ASSERT_TRUE(db->Close().OK());
 }

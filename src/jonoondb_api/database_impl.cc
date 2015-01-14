@@ -8,6 +8,7 @@
 #include "string_utils.h"
 #include "index_manager.h"
 #include "document_collection.h"
+#include "enums.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -37,7 +38,7 @@ Status DatabaseImpl::Close() {
   return Status();
 }
 
-Status DatabaseImpl::CreateCollection(const char* name, int schemaType, const char* schema,
+Status DatabaseImpl::CreateCollection(const char* name, SchemaType schemaType, const char* schema,
                                       const IndexInfo indexes[], size_t indexesLength) {
   DocumentCollection* documentCollectionPtr;
   Status status = DocumentCollection::Construct(m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes,

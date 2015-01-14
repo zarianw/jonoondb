@@ -2,6 +2,7 @@
 #include "status.h"
 #include "database_impl.h"
 #include "buffer.h"
+#include "enums.h"
 
 using namespace jonoondb_api;
 
@@ -27,7 +28,7 @@ Status Database::Close() {
   return status;
 }
 
-Status Database::CreateCollection(const char* name, int schemaType, const char* schema,
+Status Database::CreateCollection(const char* name, SchemaType schemaType, const char* schema,
                                   const IndexInfo indexes[], int indexesLength) {
   return m_databaseImpl->CreateCollection(name, schemaType, schema, indexes, indexesLength);
 }

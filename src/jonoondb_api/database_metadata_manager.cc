@@ -11,6 +11,7 @@
 #include "exception_utils.h"
 #include "index_info.h"
 #include "serializer_utils.h"
+#include "enums.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -194,7 +195,7 @@ Status DatabaseMetadataManager::Open(
   return status;
 }
 
-Status DatabaseMetadataManager::AddCollection(const char* name, int schemaType,
+Status DatabaseMetadataManager::AddCollection(const char* name, SchemaType schemaType,
                                               const char* schema,
                                               const IndexInfo indexes[],
                                               size_t indexesLength) {
@@ -225,7 +226,7 @@ Status DatabaseMetadataManager::AddCollection(const char* name, int schemaType,
   }
 
   sqliteCode = sqlite3_bind_int(m_insertCollectionSchemaStmt, 3,  // Index of wildcard
-                                schemaType);
+                                static_cast<int>(schemaType));
 
   if (sqliteCode != SQLITE_OK) {
     std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(

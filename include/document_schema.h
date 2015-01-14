@@ -5,11 +5,12 @@
 namespace jonoondb_api {
 // Forward declaration
 class Status;
-enum class ColumnType : std::int16_t;
+enum class ColumnType : std::int32_t;
 
 class DocumentSchema {
-public:
-  virtual const char* GetSchemaText() = 0;
-  virtual Status GetColumnType(const char* columnName, ColumnType& columnType) = 0;
+public:  
+  virtual ~DocumentSchema() {}
+  virtual const char* GetSchemaText() const = 0;
+  virtual Status GetColumnType(const char* columnName, ColumnType& columnType) const = 0;
 };
 }

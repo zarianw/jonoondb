@@ -28,6 +28,6 @@ TEST(DatabaseMetadataManager, AddCollection_NewSingleIndex)
   ASSERT_TRUE(status.OK());
   const char* columns[] = { "MyColumn" };
   IndexInfo indexInfo(string("MyIndex").c_str(), IndexType::EWAHCompressedBitmap, columns, 1, true);
-  status = mgr->AddCollection("MyCollection", 1, "", &indexInfo, 1);
+  status = mgr->AddCollection("MyCollection", SchemaType::FLAT_BUFFERS, "", &indexInfo, 1);
   ASSERT_TRUE(status.OK());
 }

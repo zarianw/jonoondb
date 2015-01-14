@@ -8,7 +8,7 @@ namespace jonoondb_api
   // Forward declaration
   class Status;
   class Buffer;
-  enum class IndexType : std::int16_t;
+  enum class IndexType : std::int32_t;
 
   class IndexInfo
   {

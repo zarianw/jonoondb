@@ -12,7 +12,7 @@ namespace jonoondb_api {
 class Status;
 class IndexInfo;
 class Document;
-enum class ColumnType : std::int16_t;
+enum class ColumnType : std::int32_t;
 
 class IndexManager {
 public:
