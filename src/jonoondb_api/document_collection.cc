@@ -1,5 +1,7 @@
 #include <string>
 #include <boost/filesystem.hpp>
+#include <unordered_map>
+#include <string>
 #include "sqlite3.h"
 #include "document_collection.h"
 #include "status.h"
@@ -60,7 +62,12 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   }
 
   IndexManager* indexManager;
-  Status sts = IndexManager::Construct(indexes, indexesLength, indexManager);
+  unordered_map<string, ColumnType> columnTypes;
+  auto sts = PopulateColumnTypes(indexes, indexesLength, columnTypes);
+  if (!sts.OK()) {
+    return sts;
+  }
+  sts = IndexManager::Construct(indexes, indexesLength, columnTypes, indexManager);
   if (!sts.OK()) {
     return sts;
   }
@@ -85,4 +92,9 @@ Status DocumentCollection::Insert(const Buffer& documentData) {
   }
 
   return sts;
+}
+
+Status DocumentCollection::PopulateColumnTypes(const IndexInfo indexes[], size_t indexesLength,
+                                               std::unordered_map<std::string, ColumnType>& columnTypes) {
+  return Status();
 }

@@ -10,14 +10,18 @@ namespace jonoondb_api {
 class Status;
 
 class Document {
- public:
+public:
+  virtual void GetDocumentSequenceId() = 0;
+  virtual void SetDocumentSequenceId() = 0;
+
+
   virtual Status GetInt32(const char* fieldName, int32_t& value) = 0;
   virtual Status SetInt32(const char* fieldName, int32_t& value) = 0;
 
   virtual Status GetSubDocument(const char* fieldName, int32_t& value) = 0;
   virtual Status SetSubDocument(const char* fieldName, int32_t& value) = 0;
 
- private:
+private:
   Document();
   Document(const Document&) = delete;
 };

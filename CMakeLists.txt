@@ -68,13 +68,15 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/exception_utils.h
  ${INCLUDE_INTERNAL_PATH}/sqlite_utils.h
  ${INCLUDE_PATH}/document.h
+ ${INCLUDE_PATH}/document_schema.h
  ${INCLUDE_PATH}/enums.h
  ${INCLUDE_INTERNAL_PATH}/blob_metadata.h 
  ${INCLUDE_INTERNAL_PATH}/concurrent_lru_cache.h
  ${INCLUDE_INTERNAL_PATH}/memory_mapped_file.h
  ${INCLUDE_INTERNAL_PATH}/file_info.h
  ${INCLUDE_PATH}/indexer.h
- ${INCLUDE_PATH}/constants.h     
+ ${INCLUDE_PATH}/constants.h
+ ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h  
  ${SRC_PATH}/jonoondb_api/database.cc ${INCLUDE_PATH}/database.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
  ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
@@ -87,8 +89,10 @@ add_library(
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
  ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
- ${SRC_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer.cc ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h
- ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h)
+ ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${INCLUDE_INTERNAL_PATH}/document_schema_factory.h
+ 
+ ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
+ ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h)
 target_link_libraries(jonoondb_api sqlite ${Boost_LIBRARIES})
 
 # flatbuffers

@@ -13,12 +13,14 @@ IndexManager::IndexManager(unique_ptr<vector<unique_ptr<Indexer>>> indexers)
     : m_indexers (move(indexers)) {
 }
 
-Status IndexManager::Construct(const IndexInfo indexes[], size_t indexesLength, IndexManager*& indexManager) {
+Status IndexManager::Construct(const IndexInfo indexes[], size_t indexesLength,
+                               std::unordered_map<std::string, ColumnType>& columnTypes,
+                               IndexManager*& indexManager) {
   unique_ptr<vector<unique_ptr<Indexer>>> indexers;
 
   for (size_t i = 0; i < indexesLength; i++) {
     Indexer* indexer;
-    auto sts = IndexerFactory::CreateIndexer(indexes[i], indexer);
+    auto sts = IndexerFactory::CreateIndexer(indexes[i], columnTypes, indexer);
     if (!sts.OK()) {
       return sts;
     }
@@ -30,9 +32,10 @@ Status IndexManager::Construct(const IndexInfo indexes[], size_t indexesLength, 
   return Status();
 }
 
-Status IndexManager::CreateIndex(const IndexInfo& indexInfo) {
+Status IndexManager::CreateIndex(const IndexInfo& indexInfo,
+  std::unordered_map<std::string, ColumnType>& columnTypes) {
   Indexer* indexer;
-  auto sts = IndexerFactory::CreateIndexer(indexInfo, indexer);
+  auto sts = IndexerFactory::CreateIndexer(indexInfo, columnTypes, indexer);
   if (!sts.OK()) {
     return sts;
   }
