@@ -5,25 +5,24 @@
 using namespace std;
 using namespace jonoondb_api;
 
-TEST(Status, Constructor1)
-{
+TEST(Status, Constructor1) {
   Status status;
   ASSERT_STREQ(status.c_str(), "OK");
   ASSERT_TRUE(status.OK());
 }
 
-TEST(Status, Constructor2)
-{
+TEST(Status, Constructor2) {
   string errorMsg = "Error Message.";
-  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+                errorMsg.length());
   ASSERT_STREQ(status.c_str(), errorMsg.c_str());
   ASSERT_TRUE(status.InvalidArgument());
 }
 
-TEST(Status, CopyConstructor)
-{
+TEST(Status, CopyConstructor) {
   string errorMsg = "Error Message.";
-  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+                errorMsg.length());
 
   //Now copy the object
   Status status2(status);
@@ -36,10 +35,10 @@ TEST(Status, CopyConstructor)
   ASSERT_TRUE(status2.InvalidArgument());
 }
 
-TEST(Status, AssignmentOperator)
-{
+TEST(Status, AssignmentOperator) {
   string errorMsg = "Error Message.";
-  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+                errorMsg.length());
 
   //Do the assignment
   Status status2;
@@ -53,28 +52,27 @@ TEST(Status, AssignmentOperator)
   ASSERT_TRUE(status2.InvalidArgument());
 }
 
-TEST(Status, MoveAssignmentOperator)
-{
+TEST(Status, MoveAssignmentOperator) {
   string errorMsg = "Error Message.";
 
   Status status;
   //Assign Status from a rvalue object
-  status = Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+  status = Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+                  errorMsg.length());
 
   //Now verify
   ASSERT_STREQ(status.c_str(), errorMsg.c_str());
   ASSERT_TRUE(status.InvalidArgument());
 }
 
-Status GetStatusRValue(const string& errorMsg)
-{
-  Status sts = Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+Status GetStatusRValue(const string& errorMsg) {
+  Status sts = Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+                      errorMsg.length());
 
   return sts;
 }
 
-TEST(Status, MoveConstructor)
-{
+TEST(Status, MoveConstructor) {
   string errorMsg = "Error Message.";
   //Construct Status from a rvalue object			
   Status status = GetStatusRValue(errorMsg);

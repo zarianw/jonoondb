@@ -9,14 +9,15 @@
 using namespace std;
 using namespace jonoondb_api;
 
-IndexManager::IndexManager(unique_ptr<vector<unique_ptr<Indexer>>> indexers) 
-    : m_indexers (move(indexers)) {
+IndexManager::IndexManager(unique_ptr<vector<unique_ptr<Indexer>>> indexers)
+: m_indexers (move(indexers)) {
 }
 
-Status IndexManager::Construct(const IndexInfo indexes[], size_t indexesLength,
-                               std::unordered_map<std::string, ColumnType>& columnTypes,
-                               IndexManager*& indexManager) {
-  unique_ptr<vector<unique_ptr<Indexer>>> indexers;
+Status IndexManager::Construct(
+    const IndexInfo indexes[], size_t indexesLength,
+    std::unordered_map<std::string, ColumnType>& columnTypes,
+    IndexManager*& indexManager) {
+  unique_ptr < vector<unique_ptr<Indexer>>> indexers;
 
   for (size_t i = 0; i < indexesLength; i++) {
     Indexer* indexer;
@@ -24,7 +25,7 @@ Status IndexManager::Construct(const IndexInfo indexes[], size_t indexesLength,
     if (!sts.OK()) {
       return sts;
     }
-    indexers->push_back(unique_ptr<Indexer>(indexer));
+    indexers->push_back(unique_ptr < Indexer > (indexer));
   }
 
   indexManager = new IndexManager(move(indexers));
@@ -32,15 +33,16 @@ Status IndexManager::Construct(const IndexInfo indexes[], size_t indexesLength,
   return Status();
 }
 
-Status IndexManager::CreateIndex(const IndexInfo& indexInfo,
-  std::unordered_map<std::string, ColumnType>& columnTypes) {
+Status IndexManager::CreateIndex(
+    const IndexInfo& indexInfo,
+    std::unordered_map<std::string, ColumnType>& columnTypes) {
   Indexer* indexer;
   auto sts = IndexerFactory::CreateIndexer(indexInfo, columnTypes, indexer);
   if (!sts.OK()) {
     return sts;
   }
 
-  m_indexers->push_back(unique_ptr<Indexer>(indexer));
+  m_indexers->push_back(unique_ptr < Indexer > (indexer));
   return sts;
 }
 

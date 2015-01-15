@@ -195,7 +195,8 @@ Status DatabaseMetadataManager::Open(
   return status;
 }
 
-Status DatabaseMetadataManager::AddCollection(const char* name, SchemaType schemaType,
+Status DatabaseMetadataManager::AddCollection(const char* name,
+                                              SchemaType schemaType,
                                               const char* schema,
                                               const IndexInfo indexes[],
                                               size_t indexesLength) {

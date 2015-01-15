@@ -19,12 +19,12 @@
 using namespace jonoondb_api;
 using namespace std;
 
-DocumentCollection::DocumentCollection(sqlite3* dbConnection,
-                                       unique_ptr<IndexManager> indexManager,
-                                       std::unique_ptr<DocumentSchema> documentSchema)
-                                       : m_dbConnection(dbConnection),
-                                       m_indexManager(move(indexManager)),
-                                       m_documentSchema(move(documentSchema)) {
+DocumentCollection::DocumentCollection(
+    sqlite3* dbConnection, unique_ptr<IndexManager> indexManager,
+    std::unique_ptr<DocumentSchema> documentSchema)
+    : m_dbConnection(dbConnection),
+      m_indexManager(move(indexManager)),
+      m_documentSchema(move(documentSchema)) {
 }
 
 DocumentCollection::~DocumentCollection() {
@@ -58,8 +58,9 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
 
   sqlite3* dbConnection = nullptr;
   int sqliteCode = sqlite3_open(databaseMetadataFilePath, &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
-  
-  std::unique_ptr<sqlite3, int(*)(sqlite3*)> dbConnectionUniquePtr(dbConnection, sqlite3_close);
+
+  std::unique_ptr<sqlite3, int (*)(sqlite3*)> dbConnectionUniquePtr(
+      dbConnection, sqlite3_close);
 
   if (sqliteCode != SQLITE_OK) {
     errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
@@ -86,7 +87,8 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
     return sts;
   }
 
-  sts = IndexManager::Construct(indexes, indexesLength, columnTypes, indexManager);
+  sts = IndexManager::Construct(indexes, indexesLength, columnTypes,
+                                indexManager);
   if (!sts.OK()) {
     return sts;
   }
@@ -100,11 +102,13 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
   Document* docPtr;
-  Status sts = DocumentFactory::CreateDocument(documentData, false, SchemaType::FLAT_BUFFERS, docPtr);
+  Status sts = DocumentFactory::CreateDocument(documentData, false,
+                                               SchemaType::FLAT_BUFFERS,
+                                               docPtr);
   if (!sts.OK()) {
     return sts;
   }
-  
+
   // unique_ptr will ensure that we will release memory even incase of exception.
   unique_ptr<Document> doc(docPtr);
   sts = m_indexManager->IndexDocument(*doc.get());
@@ -115,9 +119,10 @@ Status DocumentCollection::Insert(const Buffer& documentData) {
   return sts;
 }
 
-Status DocumentCollection::PopulateColumnTypes(const IndexInfo indexes[], size_t indexesLength,
-                                               const DocumentSchema& documentSchema,
-                                               std::unordered_map<string, ColumnType>& columnTypes) {
+Status DocumentCollection::PopulateColumnTypes(
+    const IndexInfo indexes[], size_t indexesLength,
+    const DocumentSchema& documentSchema,
+    std::unordered_map<string, ColumnType>& columnTypes) {
   ColumnType colType;
   for (size_t i = 0; i < indexesLength; i++) {
     for (size_t j = 0; j < indexes[i].GetColumnsLength(); j++) {
@@ -126,7 +131,7 @@ Status DocumentCollection::PopulateColumnTypes(const IndexInfo indexes[], size_t
         return sts;
       }
       columnTypes.insert(
-        pair<string, ColumnType>(string(indexes[i].GetColumn(j)), colType));
+          pair<string, ColumnType>(string(indexes[i].GetColumn(j)), colType));
     }
   }
   return Status();

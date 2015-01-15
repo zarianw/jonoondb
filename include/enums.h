@@ -3,16 +3,19 @@
 #include <cstdint>
 
 namespace jonoondb_api {
-enum class SchemaType : std::int32_t {
-  FLAT_BUFFERS = 1
+enum class SchemaType
+  : std::int32_t {
+    FLAT_BUFFERS = 1
 };
 
-enum class IndexType : std::int32_t {
-  EWAHCompressedBitmap = 1
+enum class IndexType
+  : std::int32_t {
+    EWAHCompressedBitmap = 1
 };
 
-enum class ColumnType : std::int32_t {
-  BASE_TYPE_UINT8,
+enum class ColumnType
+  : std::int32_t {
+    BASE_TYPE_UINT8,
   BASE_TYPE_UINT16,
   BASE_TYPE_UINT32,
   BASE_TYPE_UINT64,
@@ -25,4 +28,4 @@ enum class ColumnType : std::int32_t {
   BASE_TYPE_STRING,
   BASE_TYPE_COMPLEX
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

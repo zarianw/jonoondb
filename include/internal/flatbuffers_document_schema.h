@@ -6,18 +6,20 @@
 namespace jonoondb_api {
 //Forward declaration
 class Status;
-enum class ColumnType : std::int32_t;
+enum class ColumnType
+: std::int32_t;
 
 class FlatbuffersDocumentSchema final : public DocumentSchema {
-public:
+ public:
   ~FlatbuffersDocumentSchema() override;
   static Status Construct(const char* schemaText,
-                   FlatbuffersDocumentSchema*& documentSchema);
+                          FlatbuffersDocumentSchema*& documentSchema);
   virtual const char* GetSchemaText() const override;
-  virtual Status GetColumnType(const char* columnName, ColumnType& columnType) const override;
-private:
+  virtual Status GetColumnType(const char* columnName,
+                               ColumnType& columnType) const override;
+ private:
   FlatbuffersDocumentSchema(const char* schemaText);
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
 };
-} // jonoondb_api
+}  // jonoondb_api

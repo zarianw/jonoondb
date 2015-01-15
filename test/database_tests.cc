@@ -38,7 +38,8 @@ TEST(Database, Open_New) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options, db);
+  auto status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(),
+                               options, db);
   ASSERT_TRUE(status.OK());
   ASSERT_TRUE(db->Close().OK());
 }
@@ -49,11 +50,13 @@ TEST(Database, Open_Existing) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options, db);
+  auto status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(),
+                               options, db);
   ASSERT_TRUE(status.OK());
   ASSERT_TRUE(db->Close().OK());
 
-  status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options, db);
+  status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options,
+                          db);
   ASSERT_TRUE(status.OK());
 }
 
@@ -62,10 +65,11 @@ TEST(Database, Open_CreateIfMissing) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  Status sts = Database::Open(g_TestRootDirectory.c_str(), "Database_Open_CreateIfMissing", options, db);
+  Status sts = Database::Open(g_TestRootDirectory.c_str(),
+                              "Database_Open_CreateIfMissing", options, db);
   ASSERT_TRUE(db != nullptr);
   ASSERT_TRUE(sts.OK());
-  ASSERT_TRUE(db->Close().OK()); //Checking if database closed successfully			
+  ASSERT_TRUE(db->Close().OK());  //Checking if database closed successfully			
 }
 
 TEST(Database, CreateCollection_New) {
@@ -76,7 +80,8 @@ TEST(Database, CreateCollection_New) {
   Database* db;
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", nullptr, 0);
+  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
+                             "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.OK());
   ASSERT_TRUE(db->Close().OK());
 }
@@ -89,9 +94,11 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   Database* db;
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", nullptr, 0);
+  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
+                             "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", nullptr, 0);
+  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
+                             "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.CollectionAlreadyExist());
   ASSERT_TRUE(db->Close().OK());
 }

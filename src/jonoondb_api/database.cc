@@ -28,12 +28,14 @@ Status Database::Close() {
   return status;
 }
 
-Status Database::CreateCollection(const char* name, SchemaType schemaType, const char* schema,
-                                  const IndexInfo indexes[], int indexesLength) {
-  return m_databaseImpl->CreateCollection(name, schemaType, schema, indexes, indexesLength);
+Status Database::CreateCollection(const char* name, SchemaType schemaType,
+                                  const char* schema, const IndexInfo indexes[],
+                                  int indexesLength) {
+  return m_databaseImpl->CreateCollection(name, schemaType, schema, indexes,
+                                          indexesLength);
 }
 
 Status Database::Insert(const char* collectionName, Buffer& documentData) {
-  return m_databaseImpl->Insert(collectionName, documentData);  
+  return m_databaseImpl->Insert(collectionName, documentData);
 }
 

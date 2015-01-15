@@ -10,8 +10,8 @@ FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(const char* schemaText) {
 FlatbuffersDocumentSchema::~FlatbuffersDocumentSchema() {
 }
 
-Status FlatbuffersDocumentSchema::Construct(const char* schemaText,
-                                            FlatbuffersDocumentSchema*& documentSchema) {
+Status FlatbuffersDocumentSchema::Construct(
+    const char* schemaText, FlatbuffersDocumentSchema*& documentSchema) {
   documentSchema = new FlatbuffersDocumentSchema(schemaText);
   return Status();
 }
@@ -20,7 +20,8 @@ const char* FlatbuffersDocumentSchema::GetSchemaText() const {
   return "";
 }
 
-Status FlatbuffersDocumentSchema::GetColumnType(const char* columnName, ColumnType& columnType) const {
+Status FlatbuffersDocumentSchema::GetColumnType(const char* columnName,
+                                                ColumnType& columnType) const {
   return Status();
 }
 

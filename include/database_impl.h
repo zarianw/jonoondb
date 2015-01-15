@@ -13,19 +13,22 @@ class Status;
 class Options;
 class Buffer;
 class IndexInfo;
-enum class SchemaType : std::int32_t;
+enum class SchemaType
+: std::int32_t;
 
 class DatabaseImpl {
  public:
   static Status Open(const char* dbPath, const char* dbName,
                      const Options& options, DatabaseImpl*& db);
   Status Close();
-  Status CreateCollection(const char* name, SchemaType schemaType, const char* schema, const IndexInfo indexes[],
-    size_t indexesLength);
+  Status CreateCollection(const char* name, SchemaType schemaType,
+                          const char* schema, const IndexInfo indexes[],
+                          size_t indexesLength);
   Status Insert(const char* collectionName, const Buffer& documentData);
 
  private:
-  DatabaseImpl(std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager);
+  DatabaseImpl(
+      std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager);
   std::unique_ptr<DatabaseMetadataManager> m_dbMetadataMgrImpl;
   std::unordered_map<std::string, std::unique_ptr<DocumentCollection>> m_collectionContainer;
 
