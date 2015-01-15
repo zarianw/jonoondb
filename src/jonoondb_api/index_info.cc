@@ -61,7 +61,7 @@ Status IndexInfo::Validate() {
     errorMessage = "Index name is null or empty.";
     return Status(kStatusGenericErrorCode, errorMessage.c_str(),
                   (int32_t) errorMessage.length());
-  } 
+  }
 
   if (m_indexInfoData->Columns.size() < 1) {
     errorMessage = "Index columns should be greater than 0.";
@@ -107,8 +107,10 @@ const char* IndexInfo::GetColumn(size_t index) const {
 Status IndexInfo::SetColumn(size_t index, const char* column) {
   if (index >= m_indexInfoData->Columns.size()) {
     ostringstream ss;
-    ss << "Cannot set column. Index value " << index <<
-      " is more than the size of the column vector which is " << m_indexInfoData->Columns.size(); ".";
+    ss << "Cannot set column. Index value " << index
+       << " is more than the size of the column vector which is "
+       << m_indexInfoData->Columns.size();
+    ".";
     string errorMsg = ss.str();
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.size());
   }

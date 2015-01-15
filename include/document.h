@@ -11,6 +11,9 @@ class Status;
 
 class Document {
  public:
+  virtual void GetDocumentSequenceId() = 0;
+  virtual void SetDocumentSequenceId() = 0;
+
   virtual Status GetInt32(const char* fieldName, int32_t& value) = 0;
   virtual Status SetInt32(const char* fieldName, int32_t& value) = 0;
 

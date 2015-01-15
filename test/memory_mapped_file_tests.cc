@@ -16,8 +16,9 @@ TEST(MemoryMappedFile, MemoryMappedFile_OpenExistingFile) {
   pathObj += "MemoryMappedFile_OpenExistingFile";
   RemoveAndCreateFile(pathObj.string().c_str(), 1024);
 
-  Status status = MemoryMappedFile::Open(pathObj.string().c_str(), MemoryMappedFileMode::ReadWrite, 0, false,
-    &memMapFile);
+  Status status = MemoryMappedFile::Open(pathObj.string().c_str(),
+                                         MemoryMappedFileMode::ReadWrite, 0,
+                                         false, &memMapFile);
   ASSERT_TRUE(status.OK());
 }
 
@@ -26,8 +27,9 @@ TEST(MemoryMappedFile, MemoryMappedFile_OpenMissingFile) {
   path pathObj(g_TestRootDirectory);
   pathObj += "MemoryMappedFile_OpenMissingFile";
 
-  Status status = MemoryMappedFile::Open(pathObj.string().c_str(), MemoryMappedFileMode::ReadWrite, 0, false,
-    &memMapFile);
+  Status status = MemoryMappedFile::Open(pathObj.string().c_str(),
+                                         MemoryMappedFileMode::ReadWrite, 0,
+                                         false, &memMapFile);
   ASSERT_TRUE(status.FileIOError());
 }
 

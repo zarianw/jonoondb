@@ -16,7 +16,7 @@ template<class T1, class T2> class ConcurrentLRUCache {
     int64_t LastUsed;bool Evictable;
 
     LRUCacheEntry(const std::shared_ptr<U1>& value, int64_t lastUsed,
-                  bool evictable)
+    bool evictable)
         : Value(value),
           LastUsed(lastUsed),
           Evictable(evictable) {

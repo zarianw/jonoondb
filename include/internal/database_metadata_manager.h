@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 //Forward declarations
 struct sqlite3;
@@ -10,19 +11,22 @@ namespace jonoondb_api {
 //Forward declaration
 class Status;
 class IndexInfo;
+enum class SchemaType
+: std::int32_t;
 
 class DatabaseMetadataManager {
-public:
+ public:
   ~DatabaseMetadataManager();
   static Status Open(const char* dbPath, const char* dbName,
                      bool createDBIfMissing,
                      DatabaseMetadataManager*& databaseMetadataManager);
 
-  Status AddCollection(const char* name, int schemaType, const char* schema,
-                       const IndexInfo indexes[], size_t indexesLength);
+  Status AddCollection(const char* name, SchemaType schemaType,
+                       const char* schema, const IndexInfo indexes[],
+                       size_t indexesLength);
 
   const char* GetFullDBPath() const;
-  
+
  private:
   DatabaseMetadataManager(const char* dbPath, const char* dbName,
                           bool createDBIfMissing);
