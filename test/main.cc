@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <string>
 #include <memory>
+#include <fstream>
+#include <streambuf>
 #include <boost/exception/exception.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/filesystem.hpp>
@@ -14,7 +16,16 @@ using namespace boost::filesystem;
 using namespace jonoondb_test;
 
 namespace jonoondb_test {
-std::string g_TestRootDirectory;
+string g_TestRootDirectory;
+string g_SchemaFilePath;
+
+string ReadTextFile(const char* path) {
+  std::ifstream ifs(path);// "test/schemas/flatbuffers/tweet.fbs");
+  std::string schema((std::istreambuf_iterator<char>(ifs)),
+    (std::istreambuf_iterator<char>()));
+
+  return schema;
+}
 
 void RemoveAndCreateFile(const char* path, size_t fileSize) {
   std::remove(path);
@@ -50,6 +61,9 @@ int main(int argc, char **argv) {
   auto tempPath = current_path();
   tempPath += "/unittests/";
   g_TestRootDirectory = tempPath.generic_string();
+  tempPath = current_path();
+  tempPath += "/test/schemas/flatbuffers/tweet.fbs";
+  g_SchemaFilePath = tempPath.generic_string();
   if (SetUpDirectory(g_TestRootDirectory.c_str())) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

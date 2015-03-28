@@ -17,7 +17,7 @@ Status IndexManager::Construct(
     const IndexInfo indexes[], size_t indexesLength,
     std::unordered_map<std::string, ColumnType>& columnTypes,
     IndexManager*& indexManager) {
-  unique_ptr < vector<unique_ptr<Indexer>>> indexers;
+  unique_ptr<vector<unique_ptr<Indexer>>> indexers(new vector<unique_ptr<Indexer>>());
 
   for (size_t i = 0; i < indexesLength; i++) {
     Indexer* indexer;
@@ -47,14 +47,14 @@ Status IndexManager::CreateIndex(
 }
 
 Status IndexManager::IndexDocument(const Document& document) {
-  for (auto& indexer : *m_indexers) {
+  for (auto const& indexer : *m_indexers) {
     Status sts = indexer->ValidateForInsert(document);
     if (!sts.OK()) {
       return sts;
     }
   }
 
-  for (auto& indexer : *m_indexers) {
+  for (auto const& indexer : *m_indexers) {
     indexer->Insert(document);
   }
 

@@ -10,6 +10,7 @@ Status DocumentFactory::CreateDocument(const Buffer& buffer, bool deepCopy,
                                        Document*& document) {
   switch (schemaType) {
     case SchemaType::FLAT_BUFFERS:
+      document = nullptr;
       break;
     default:
       string errorMsg = "Unknown schema";
