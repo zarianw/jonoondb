@@ -10,10 +10,17 @@
 #include <boost/exception_ptr.hpp>
 #include <boost/filesystem.hpp>
 #include "test_utils.h"
+#include "status.h"
+#include "buffer.h"
+#include "enums.h"
+#include "schemas\flatbuffers\tweet_generated.h"
+
 
 using namespace std;
 using namespace boost::filesystem;
 using namespace jonoondb_test;
+using namespace jonoondb_api;
+using namespace flatbuffers;
 
 namespace jonoondb_test {
 string g_TestRootDirectory;
@@ -25,6 +32,29 @@ string ReadTextFile(const char* path) {
     (std::istreambuf_iterator<char>()));
 
   return schema;
+}
+
+Status GetTweetObject(Buffer& buffer) {
+  // create user object
+  FlatBufferBuilder fbb;
+  auto name = fbb.CreateString("Zarian");
+  auto user = CreateUser(fbb, name, 1);
+
+  // create tweet
+  auto text = fbb.CreateString("Say hello to my little friend!");
+  auto tweet = CreateTweet(fbb, 1, text, user);
+
+  fbb.Finish(tweet);
+  auto size = fbb.GetSize();
+
+  if (size > buffer.GetCapacity()) {
+    auto status = buffer.Resize(size);
+    if (!status.OK()) {
+      return status;
+    }
+  }
+
+  return buffer.Copy((char*)fbb.GetBufferPointer(), size);
 }
 
 void RemoveAndCreateFile(const char* path, size_t fileSize) {

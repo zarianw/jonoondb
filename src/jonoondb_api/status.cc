@@ -23,7 +23,8 @@ const char kStatusAPIMisuseErrorCode = 13;
 const char kStatusKeyNotFoundCode = 14;
 const char kStatusCollectionAlreadyExistCode = 15;
 const char kStatusIndexAlreadyExistCode = 16;
-const char kStatusCollectionNotFound = 17;
+const char kStatusCollectionNotFoundCode = 17;
+const char kStatusSchemaParseErrorCode = 18;
 
 const char kStatusSQLiteErrorCode = 101;
 }
@@ -248,7 +249,18 @@ bool Status::IndexAlreadyExist() const {
 bool Status::CollectionNotFound() const {
   if (m_statusData != nullptr) {
     // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusCollectionNotFound, 1)) {
+    if (!memcmp(m_statusData + sizeof(size_t), &kStatusCollectionNotFoundCode, 1)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Status::SchemaParseError() const {
+  if (m_statusData != nullptr) {
+    // Read Code
+    if (!memcmp(m_statusData + sizeof(size_t), &kStatusSchemaParseErrorCode, 1)) {
       return true;
     }
   }

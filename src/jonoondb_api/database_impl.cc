@@ -74,7 +74,7 @@ Status DatabaseImpl::Insert(const char* collectionName,
     ostringstream ss;
     ss << "Collection \"" << collectionName << "\" not found.";
     string errorMsg = ss.str();
-    return Status(kStatusCollectionNotFound, errorMsg.c_str(),
+    return Status(kStatusCollectionNotFoundCode, errorMsg.c_str(),
                   errorMsg.length());
   }
 

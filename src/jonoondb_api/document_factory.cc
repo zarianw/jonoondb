@@ -1,11 +1,14 @@
 #include <string>
 #include "document_factory.h"
+#include "flatbuffers_document.h"
 #include "status.h"
 
 using namespace std;
 using namespace jonoondb_api;
 
-Status DocumentFactory::CreateDocument(const Buffer& buffer, bool deepCopy,
+Status DocumentFactory::CreateDocument(const char* schema,
+                                       int schemaID,
+                                       const Buffer& buffer,
                                        SchemaType schemaType,
                                        Document*& document) {
   switch (schemaType) {

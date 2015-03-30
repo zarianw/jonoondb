@@ -15,30 +15,6 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
 
-Status GetTweetObject(Buffer& buffer) {
-  
-  // create user object
-  FlatBufferBuilder fbb;
-  auto name = fbb.CreateString("Zarian");
-  auto user = CreateUser(fbb, name, 1);
-
-  // create tweet
-  auto text = fbb.CreateString("Say hello to my little friend!");
-  auto tweet = CreateTweet(fbb, 1, text, user);
-
-  fbb.Finish(tweet);
-  auto size = fbb.GetSize();
-
-  if (size > buffer.GetCapacity()) {
-    auto status = buffer.Resize(size);
-    if (!status.OK()) {
-      return status;
-    }
-  }
-
-  return buffer.Copy((char*)fbb.GetBufferPointer(), size);
-}
-
 TEST(Database, Open_NullArguments) {
   Options options;
   Database* db = nullptr;

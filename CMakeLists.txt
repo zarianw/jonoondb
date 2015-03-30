@@ -92,14 +92,9 @@ add_library(
  ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${INCLUDE_INTERNAL_PATH}/document_schema_factory.h
  
  ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
- ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h)
+ ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h
+ ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document.h)
 target_link_libraries(jonoondb_api sqlite ${Boost_LIBRARIES})
-
-# flatbuffers
-SET(FLATBUFFERS_PATH "/" CACHE PATH "Path where flatbuffers is installed.")
-message("Using FLATBUFFERS_PATH = ${FLATBUFFERS_PATH}")
-#add_subdirectory(${GTEST_PATH} ${GTEST_PATH}/bin)
-include_directories(${FLATBUFFERS_PATH}/include)
 
 # gtest
 SET(GTEST_PATH "/" CACHE PATH "Path where gtest is installed.")
@@ -117,6 +112,7 @@ add_executable(
  ${TEST_PATH}/buffer_tests.cc
  ${TEST_PATH}/concurrent_lru_cache_tests.cc
  ${TEST_PATH}/memory_mapped_file_tests.cc
- ${TEST_PATH}/database_tests.cc)
+ ${TEST_PATH}/database_tests.cc
+ ${TEST_PATH}/document_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
