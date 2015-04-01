@@ -29,13 +29,14 @@ void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
   auto user = tweet->user();
   ASSERT_TRUE(user != nullptr);
   
-  Document* subDoc;
-  ASSERT_TRUE(doc->AllocateDocument(subDoc).OK());
+  Document* subDoc;  
+  ASSERT_TRUE(doc->AllocateSubDocument(subDoc).OK());  
   ASSERT_TRUE(doc->GetDocumentValue("user", subDoc).OK());
   ASSERT_TRUE(subDoc->GetScalarValueAsUInt64("id", id).OK());
   ASSERT_TRUE(id == tweet->user()->id());
   ASSERT_TRUE(subDoc->GetStringValue("name", str).OK());
   ASSERT_TRUE(strcmp(str, tweet->user()->name()->c_str()) == 0);
+  subDoc->Dispose();
 }
 
 TEST(Document, Flatbuffers_GetValues) { 
@@ -44,8 +45,8 @@ TEST(Document, Flatbuffers_GetValues) {
   ASSERT_TRUE(GetTweetObject(documentData).OK());
   Document* doc;
   Status sts = DocumentFactory::CreateDocument(schema.c_str(), 0, documentData,
-    SchemaType::FLAT_BUFFERS, doc);
-  std::unique_ptr<Document> docPtr(doc);
+    SchemaType::FLAT_BUFFERS, doc);  
   ASSERT_TRUE(sts.OK());
-  //CompareTweetObject(doc, documentData);
+  CompareTweetObject(doc, documentData);
+  doc->Dispose();
 }

@@ -15,7 +15,7 @@ Status DocumentSchemaFactory::CreateDocumentSchema(
         return sts;
       }
 
-      documentSchema = reinterpret_cast<DocumentSchema*>(fbDocSchema);
+      documentSchema = fbDocSchema;
       break;
     }
     default:

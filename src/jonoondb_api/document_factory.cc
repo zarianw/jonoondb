@@ -11,14 +11,22 @@ Status DocumentFactory::CreateDocument(const char* schema,
                                        const Buffer& buffer,
                                        SchemaType schemaType,
                                        Document*& document) {
+  Status sts;
   switch (schemaType) {
-    case SchemaType::FLAT_BUFFERS:
-      document = nullptr;
+    case SchemaType::FLAT_BUFFERS: {      
+      FlatbuffersDocument* fbDoc;
+      sts = FlatbuffersDocument::Construct(schema, schemaID, buffer, fbDoc);
+      if (!sts.OK()) {
+        return sts;
+      }
+      document = fbDoc;
       break;
+    }
     default:
-      string errorMsg = "Unknown schema";
+      string errorMsg = "Unknown schema.";
       return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                    errorMsg.length());
+        errorMsg.length());
   }
-  return Status();
+
+  return sts;
 }

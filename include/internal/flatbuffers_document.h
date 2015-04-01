@@ -12,7 +12,7 @@ class Status;
 
 class FlatbuffersDocument final : public Document {
 public:
-  static Status Construct(const char* schema, int schemaID, const Buffer* buffer,
+  static Status Construct(const char* schema, int schemaID, const Buffer& buffer,
     FlatbuffersDocument*& flatbuffersDocument);
 
   Status GetScalarValueAsInt8(const char* fieldName, int8_t& val) const override;
@@ -31,8 +31,8 @@ public:
   Status GetStringValue(const char* fieldName, char*& val) const override;
   Status GetDocumentValue(const char* fieldName,
     Document*& val) const override;
-  Status AllocateDocument(Document*& doc) const override;
-  void FreeDocument(Document*& doc) const override;
+  Status AllocateSubDocument(Document*& doc) const override;
+  void Dispose() override;
 
   std::unique_ptr<flatbuffers::DynamicTableReader> m_dynTableReader;
 

@@ -29,7 +29,7 @@ public:
   virtual Status GetStringValue(const char* fieldName, char*& val) const = 0;
   virtual Status GetDocumentValue(const char* fieldName,
     Document*& val) const = 0;
-  virtual Status AllocateDocument(Document*& doc) const = 0;
-  virtual void FreeDocument(Document*& doc) const = 0;
+  virtual Status AllocateSubDocument(Document*& doc) const = 0;
+  virtual void Dispose() = 0;
 };
 }

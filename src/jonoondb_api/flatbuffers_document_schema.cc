@@ -4,7 +4,7 @@
 
 using namespace jonoondb_api;
 
-FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(const char* schemaText) {
+FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(const char* schemaText) : m_schemaText(schemaText) {
 }
 
 FlatbuffersDocumentSchema::~FlatbuffersDocumentSchema() {
@@ -17,7 +17,7 @@ Status FlatbuffersDocumentSchema::Construct(
 }
 
 const char* FlatbuffersDocumentSchema::GetSchemaText() const {
-  return "";
+  return m_schemaText.c_str();
 }
 
 Status FlatbuffersDocumentSchema::GetColumnType(const char* columnName,

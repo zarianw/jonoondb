@@ -49,6 +49,15 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   target_link_libraries(sqlite pthread dl)
 endif()
 
+# flatbuffers
+add_library(
+ flatbuffers
+ ${INCLUDE_INTERNAL_PATH}/flatbuffers/flatbuffers.h
+ ${INCLUDE_INTERNAL_PATH}/flatbuffers/hash.h
+ ${INCLUDE_INTERNAL_PATH}/flatbuffers/idl.h
+ ${INCLUDE_INTERNAL_PATH}/flatbuffers/util.h
+ ${SRC_PATH}/flatbuffers/idl_parser.cpp)
+
 # boost
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
@@ -94,7 +103,7 @@ add_library(
  ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document.h)
-target_link_libraries(jonoondb_api sqlite ${Boost_LIBRARIES})
+target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 
 # gtest
 SET(GTEST_PATH "/" CACHE PATH "Path where gtest is installed.")
