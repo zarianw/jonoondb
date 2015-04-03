@@ -1,13 +1,17 @@
 #include <string>
 #include "gtest/gtest.h"
+#include "flatbuffers/flatbuffers.h"
 #include "test_utils.h"
 #include "database.h"
 #include "status.h"
 #include "index_info.h"
 #include "enums.h"
 #include "options.h"
+#include "buffer.h"
+#include "schemas/flatbuffers/tweet_generated.h"
 
 using namespace std;
+using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
 
@@ -95,10 +99,32 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
-                             "Schema IDL", nullptr, 0);
+    "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
-                             "Schema IDL", nullptr, 0);
+    "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.CollectionAlreadyExist());
+  ASSERT_TRUE(db->Close().OK());
+}
+
+TEST(Database, Insert_Single) {
+  string dbName = "Insert_Single";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db;
+  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
+  ASSERT_TRUE(sts.OK());
+
+  string schema = ReadTextFile(g_SchemaFilePath.c_str());
+
+  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+    schema.c_str(), nullptr, 0);
+  ASSERT_TRUE(sts.OK());
+
+  Buffer documentData;
+  ASSERT_TRUE(GetTweetObject(documentData).OK());
+  ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());  
   ASSERT_TRUE(db->Close().OK());
 }

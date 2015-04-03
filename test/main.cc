@@ -4,17 +4,58 @@
 #include <cstdio>
 #include <string>
 #include <memory>
+#include <fstream>
+#include <streambuf>
 #include <boost/exception/exception.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/filesystem.hpp>
 #include "test_utils.h"
+#include "status.h"
+#include "buffer.h"
+#include "enums.h"
+#include "schemas/flatbuffers/tweet_generated.h"
+
 
 using namespace std;
 using namespace boost::filesystem;
 using namespace jonoondb_test;
+using namespace jonoondb_api;
+using namespace flatbuffers;
 
 namespace jonoondb_test {
-std::string g_TestRootDirectory;
+string g_TestRootDirectory;
+string g_SchemaFilePath;
+
+string ReadTextFile(const char* path) {
+  std::ifstream ifs(path);// "test/schemas/flatbuffers/tweet.fbs");
+  std::string schema((std::istreambuf_iterator<char>(ifs)),
+    (std::istreambuf_iterator<char>()));
+
+  return schema;
+}
+
+Status GetTweetObject(Buffer& buffer) {
+  // create user object
+  FlatBufferBuilder fbb;
+  auto name = fbb.CreateString("Zarian");
+  auto user = CreateUser(fbb, name, 1);
+
+  // create tweet
+  auto text = fbb.CreateString("Say hello to my little friend!");
+  auto tweet = CreateTweet(fbb, 1, text, user);
+
+  fbb.Finish(tweet);
+  auto size = fbb.GetSize();
+
+  if (size > buffer.GetCapacity()) {
+    auto status = buffer.Resize(size);
+    if (!status.OK()) {
+      return status;
+    }
+  }
+
+  return buffer.Copy((char*)fbb.GetBufferPointer(), size);
+}
 
 void RemoveAndCreateFile(const char* path, size_t fileSize) {
   std::remove(path);
@@ -50,6 +91,9 @@ int main(int argc, char **argv) {
   auto tempPath = current_path();
   tempPath += "/unittests/";
   g_TestRootDirectory = tempPath.generic_string();
+  tempPath = current_path();
+  tempPath += "/test/schemas/flatbuffers/tweet.fbs";
+  g_SchemaFilePath = tempPath.generic_string();
   if (SetUpDirectory(g_TestRootDirectory.c_str())) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

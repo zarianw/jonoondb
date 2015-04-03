@@ -102,7 +102,9 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
   Document* docPtr;
-  Status sts = DocumentFactory::CreateDocument(documentData, false,
+  Status sts = DocumentFactory::CreateDocument(m_documentSchema->GetSchemaText(),
+                                               0,
+                                               documentData,
                                                SchemaType::FLAT_BUFFERS,
                                                docPtr);
   if (!sts.OK()) {

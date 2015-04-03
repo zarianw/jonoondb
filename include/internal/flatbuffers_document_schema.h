@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include "document_schema.h"
 
 namespace jonoondb_api {
@@ -21,5 +22,7 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
   FlatbuffersDocumentSchema(const char* schemaText);
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
+
+  std::string m_schemaText;
 };
 }  // jonoondb_api

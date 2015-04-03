@@ -21,7 +21,7 @@ class Database {
   Status CreateCollection(const char* name, SchemaType schemaType,
                           const char* schema, const IndexInfo indexes[],
                           int indexesLength);
-  Status Insert(const char* collectionName, Buffer& documentData);
+  Status Insert(const char* collectionName, const Buffer& documentData);
 
  private:
   Database(DatabaseImpl* databaseImpl);

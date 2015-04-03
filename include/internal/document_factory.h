@@ -10,8 +10,9 @@ class Document;
 
 class DocumentFactory {
  public:
-  static Status CreateDocument(const Buffer& buffer, bool deepCopy,
-                               SchemaType schemaType, Document*& document);
+  static Status CreateDocument(const char* schema, int schemaID,
+                               const Buffer& buffer, SchemaType schemaType,
+                               Document*& document);
  private:
   DocumentFactory() = delete;
   DocumentFactory(const DocumentFactory&) = delete;
