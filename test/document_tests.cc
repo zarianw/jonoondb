@@ -39,7 +39,7 @@ void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
   subDoc->Dispose();
 }
 
-TEST(Document, Flatbuffers_GetValues) { 
+TEST(Document, Flatbuffers_GetValues_ValidBuffer) { 
   string schema = ReadTextFile(g_SchemaFilePath.c_str());
   Buffer documentData;
   ASSERT_TRUE(GetTweetObject(documentData).OK());
