@@ -1,6 +1,6 @@
 #include <string>
 #include "gtest/gtest.h"
-#include "flatbuffers\flatbuffers.h"
+#include "flatbuffers/flatbuffers.h"
 #include "test_utils.h"
 #include "database.h"
 #include "status.h"
@@ -8,7 +8,7 @@
 #include "enums.h"
 #include "options.h"
 #include "buffer.h"
-#include "schemas\flatbuffers\tweet_generated.h"
+#include "schemas/flatbuffers/tweet_generated.h"
 
 using namespace std;
 using namespace flatbuffers;

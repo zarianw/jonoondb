@@ -1,7 +1,7 @@
 #include <string>
 #include <memory>
 #include "gtest/gtest.h"
-#include "flatbuffers\flatbuffers.h"
+#include "flatbuffers/flatbuffers.h"
 #include "test_utils.h"
 #include "document.h"
 #include "document_factory.h"
@@ -10,7 +10,7 @@
 #include "enums.h"
 #include "options.h"
 #include "buffer.h"
-#include "schemas\flatbuffers\tweet_generated.h"
+#include "schemas/flatbuffers/tweet_generated.h"
 
 using namespace std;
 using namespace flatbuffers;

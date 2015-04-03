@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "document.h"
-#include "flatbuffers\idl.h"
+#include "flatbuffers/idl.h"
 
 namespace jonoondb_api {
 

@@ -13,7 +13,7 @@
 #include "status.h"
 #include "buffer.h"
 #include "enums.h"
-#include "schemas\flatbuffers\tweet_generated.h"
+#include "schemas/flatbuffers/tweet_generated.h"
 
 
 using namespace std;
