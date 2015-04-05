@@ -6,6 +6,7 @@ set (SRC_PATH ${PROJECT_SOURCE_DIR}/src/)
 set (INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include/)
 set (INCLUDE_INTERNAL_PATH ${PROJECT_SOURCE_DIR}/include/internal)
 set (TEST_PATH ${PROJECT_SOURCE_DIR}/test/)
+set (THIRDPARTY_PATH ${PROJECT_SOURCE_DIR}/thirdparty)
 
 # The version number.
 # set (JonoonDB_VERSION_MAJOR 1)
@@ -38,25 +39,27 @@ endif()
 
 
 # add the include directories
-include_directories(${INCLUDE_PATH} ${INCLUDE_INTERNAL_PATH})
+include_directories(${INCLUDE_PATH} ${INCLUDE_INTERNAL_PATH} ${THIRDPARTY_PATH})
 
 # sqlite
 add_library(
  sqlite
- ${INCLUDE_INTERNAL_PATH}/sqlite3ext.h
- ${SRC_PATH}/sqlite_amalgamation_3080500/sqlite3.c ${INCLUDE_INTERNAL_PATH}/sqlite3.h)
+ ${THIRDPARTY_PATH}/sqlite-amalgamation-3080803/sqlite3ext.h
+ ${THIRDPARTY_PATH}/sqlite-amalgamation-3080803/sqlite3.c ${THIRDPARTY_PATH}/sqlite-amalgamation-3080803/sqlite3.h)
 if(CMAKE_COMPILER_IS_GNUCXX)
   target_link_libraries(sqlite pthread dl)
 endif()
+include_directories(${THIRDPARTY_PATH}/sqlite-amalgamation-3080803)
 
 # flatbuffers
 add_library(
  flatbuffers
- ${INCLUDE_INTERNAL_PATH}/flatbuffers/flatbuffers.h
- ${INCLUDE_INTERNAL_PATH}/flatbuffers/hash.h
- ${INCLUDE_INTERNAL_PATH}/flatbuffers/idl.h
- ${INCLUDE_INTERNAL_PATH}/flatbuffers/util.h
- ${SRC_PATH}/flatbuffers/idl_parser.cpp)
+ ${THIRDPARTY_PATH}/flatbuffers/include/flatbuffers/flatbuffers.h
+ ${THIRDPARTY_PATH}/flatbuffers/include/flatbuffers/hash.h
+ ${THIRDPARTY_PATH}/flatbuffers/include/flatbuffers/idl.h
+ ${THIRDPARTY_PATH}/flatbuffers/include/flatbuffers/util.h
+ ${THIRDPARTY_PATH}/flatbuffers/src/idl_parser.cpp)
+include_directories(${THIRDPARTY_PATH}/flatbuffers/include)
 
 # boost
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
