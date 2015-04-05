@@ -513,32 +513,32 @@ class DynamicTableReader {
         table_(nullptr) {
   }
 
-  DynamicTableReader(Table* table, StructDef* rootStruct,
-                     SymbolTable<StructDef>* childStructs)
+  DynamicTableReader(const Table* table, const StructDef* rootStruct,
+                     const SymbolTable<StructDef>* childStructs)
       : root_struct_(rootStruct),
         child_structs_(childStructs),
         table_(table) {
   }
 
-  const FieldDef* GetFieldDef(const std::string& fieldName) {
+  const FieldDef* GetFieldDef(const std::string& fieldName) const {
     return root_struct_->fields.Lookup(fieldName);
   }
 
-  const SymbolTable<FieldDef>* GetFields() {
+  const SymbolTable<FieldDef>* GetFields() const {
     return &root_struct_->fields;
   }
 
-  const StructDef* GetStructDef() {
+  const StructDef* GetStructDef() const {
     return root_struct_;
   }
 
-  template<typename T> T GetScalarValueAs(const FieldDef* field_def) {
+  template<typename T> T GetScalarValueAs(const FieldDef* field_def) const {
     assert(IsScalar(field_def->value.type.base_type));
     return table_->GetField<T>(field_def->value.offset,
                                atot<T>(field_def->value.constant.c_str()));
   }
 
-  const char* GetStringValue(const FieldDef* field_def) {
+  const char* GetStringValue(const FieldDef* field_def) const {
     assert(field_def->value.type.base_type == BaseType::BASE_TYPE_STRING);
     auto str = table_->GetPointer<const flatbuffers::String*>(
         field_def->value.offset);
@@ -546,7 +546,7 @@ class DynamicTableReader {
   }
 
   void GetTableValue(const FieldDef* field_def,
-                     DynamicTableReader& dynamic_table_reader) {
+                     DynamicTableReader& dynamic_table_reader) const {
     assert(field_def->value.type.base_type == BaseType::BASE_TYPE_STRUCT);
     auto table = const_cast<Table*>(table_->GetPointer<const Table*>(
         field_def->value.offset));
@@ -579,7 +579,7 @@ class DynamicTableReader {
   }
 
   template<typename T> T GetVectorScalarValue(const FieldDef* vector_field_def,
-                                              uoffset_t index) {
+                                              uoffset_t index) const {
     assert(
         vector_field_def->value.type.base_type == BaseType::BASE_TYPE_VECTOR);
     assert(IsScalar(vector_field_def->value.type.element));
@@ -589,7 +589,7 @@ class DynamicTableReader {
   }
 
   const char* GetVectorStringValue(const FieldDef* vector_field_def,
-                                   uoffset_t index) {
+                                   uoffset_t index) const {
     assert(
         vector_field_def->value.type.base_type == BaseType::BASE_TYPE_VECTOR);
     assert(vector_field_def->value.type.element == BaseType::BASE_TYPE_STRING);
@@ -600,7 +600,7 @@ class DynamicTableReader {
   }
 
   void GetVectorTableValue(const FieldDef* vector_field_def, uoffset_t index,
-                           DynamicTableReader& dynamic_table_reader) {
+                           DynamicTableReader& dynamic_table_reader) const {
     assert(
         vector_field_def->value.type.base_type == BaseType::BASE_TYPE_VECTOR);
     assert(vector_field_def->value.type.element == BaseType::BASE_TYPE_STRUCT);
@@ -614,20 +614,20 @@ class DynamicTableReader {
     dynamic_table_reader.SetChildStructs(child_structs_);
   }
 
-  void SetRootStruct(StructDef* val) {
+  void SetRootStruct(const StructDef* val) {
     root_struct_ = val;
   }
-  void SetChildStructs(SymbolTable<StructDef>* val) {
+  void SetChildStructs(const SymbolTable<StructDef>* val) {
     child_structs_ = val;
   }
-  void SetTable(Table* val) {
+  void SetTable(const Table* val) {
     table_ = val;
   }
 
  private:
-  StructDef* root_struct_;
-  SymbolTable<StructDef>* child_structs_;
-  Table* table_;
+  const StructDef* root_struct_;
+  const SymbolTable<StructDef>* child_structs_;
+  const Table* table_;
 };
 
 }  // namespace flatbuffers

@@ -12,17 +12,17 @@ namespace jonoondb_api {
 class Status;
 class IndexInfo;
 class Document;
-enum class ColumnType
+enum class FieldType
 : std::int32_t;
 
 class IndexManager {
  public:
   IndexManager(std::unique_ptr<std::vector<std::unique_ptr<Indexer>>>indexers);
   static Status Construct(const IndexInfo indexes[], size_t indexesLength,
-  std::unordered_map<std::string, ColumnType>& columnTypes,
+  std::unordered_map<std::string, FieldType>& columnTypes,
   IndexManager*& indexManager);
   Status CreateIndex(const IndexInfo& indexInfo,
-  std::unordered_map<std::string, ColumnType>& columnTypes);
+  std::unordered_map<std::string, FieldType>& columnTypes);
   Status IndexDocument(const Document& document);
 private:
   std::unique_ptr<std::vector<std::unique_ptr<Indexer>>> m_indexers;

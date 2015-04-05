@@ -8,10 +8,11 @@ namespace jonoondb_api {
 
 // Forward declarations
 class Status;
+class FlatbuffersDocumentSchema;
 
 class FlatbuffersDocument final : public Document {
  public:
-  static Status Construct(const char* schema, int schemaID,
+   static Status Construct(const std::shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
                           const Buffer& buffer,
                           FlatbuffersDocument*& flatbuffersDocument);
 
@@ -47,10 +48,10 @@ class FlatbuffersDocument final : public Document {
 
  private:
   FlatbuffersDocument(
-      std::shared_ptr<flatbuffers::Parser> parser,
+      const std::shared_ptr<FlatbuffersDocumentSchema> m_fbDocumentSchema,
       std::unique_ptr<flatbuffers::DynamicTableReader> dynTableReader);
   Status GetMissingFieldErrorStatus(const char* fieldName) const;
-  std::shared_ptr<flatbuffers::Parser> m_parser;
+  const std::shared_ptr<FlatbuffersDocumentSchema> m_fbDcumentSchema;
 
 };
 
