@@ -105,7 +105,7 @@ FieldType FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(BaseType flatb
     case BASE_TYPE_VECTOR: return FieldType::BASE_TYPE_VECTOR;
     case BASE_TYPE_STRUCT: return FieldType::BASE_TYPE_COMPLEX;
     // case BASE_TYPE_UNION: break; TODO: Need to handle this type
-    default: assert(0); // this should never happen
+    default: assert(0); // this should never happen. TODO: Handle it for release case as well. assert only works in debug mode.
   }
 }
 
