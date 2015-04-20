@@ -52,37 +52,58 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         std::uint8_t val;
         return document.GetScalarValueAsUInt8(m_indexInfo.GetName(), val);          
       }
-      case FieldType::BASE_TYPE_UINT16:
-        break;
-      case FieldType::BASE_TYPE_UINT32:
-        break;
-      case FieldType::BASE_TYPE_UINT64:
-        break;
-      case FieldType::BASE_TYPE_INT8:
-        break;
-      case FieldType::BASE_TYPE_INT16:
-        break;
-      case FieldType::BASE_TYPE_INT32:
-        break;
-      case FieldType::BASE_TYPE_INT64:
-        break;
-      case FieldType::BASE_TYPE_FLOAT32:
-        break;
-      case FieldType::BASE_TYPE_DOUBLE:
-        break;
-      case FieldType::BASE_TYPE_STRING:
-        break;
-      case FieldType::BASE_TYPE_VECTOR:
-        break;
-      case FieldType::BASE_TYPE_COMPLEX:
-        break;
-      default:
-        break;
-    }
-    return Status();
+      case FieldType::BASE_TYPE_UINT16: {
+        std::uint16_t val;
+        return document.GetScalarValueAsUInt16(m_indexInfo.GetName(), val);
+      }        
+      case FieldType::BASE_TYPE_UINT32: {
+        std::uint32_t val;
+        return document.GetScalarValueAsUInt32(m_indexInfo.GetName(), val);
+      }       
+      case FieldType::BASE_TYPE_UINT64: {
+        std::uint64_t val;
+        return document.GetScalarValueAsUInt64(m_indexInfo.GetName(), val);
+      }       
+      case FieldType::BASE_TYPE_INT8: {
+        std::int8_t val;
+        return document.GetScalarValueAsInt8(m_indexInfo.GetName(), val);
+      }        
+      case FieldType::BASE_TYPE_INT16: {
+        std::int16_t val;
+        return document.GetScalarValueAsInt16(m_indexInfo.GetName(), val);
+      }        
+      case FieldType::BASE_TYPE_INT32: {
+        std::int32_t val;
+        return document.GetScalarValueAsInt32(m_indexInfo.GetName(), val);
+      }
+      case FieldType::BASE_TYPE_INT64: {
+        std::int64_t val;
+        return document.GetScalarValueAsInt64(m_indexInfo.GetName(), val);
+      }        
+      case FieldType::BASE_TYPE_FLOAT32: {
+        float val;
+        return document.GetScalarValueAsFloat(m_indexInfo.GetName(), val);
+      }      
+      case FieldType::BASE_TYPE_DOUBLE: {
+        double val;
+        return document.GetScalarValueAsDouble(m_indexInfo.GetName(), val);
+      }      
+      case FieldType::BASE_TYPE_STRING: {
+        char* val;
+        return document.GetStringValue(m_indexInfo.GetName(), val);
+      }      
+      default: {
+        std::ostringstream ss;
+        ss << "FieldType " << GetFieldString(m_fieldType) << " is not valid for EWAHCompressedBitmapIndexer.";
+        std::string errorMsg = ss.str();
+        return Status(kStatusGenericErrorCode, errorMsg.c_str(), errorMsg.length());
+      }
+    }    
   }
+
   void Insert(const Document& document) override {
   }
+
  private:
   EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo, FieldType fieldType)
     : m_indexInfo(indexInfo), m_fieldType(fieldType) {
@@ -96,6 +117,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
       fieldType == FieldType::BASE_TYPE_FLOAT32 || fieldType == FieldType::BASE_TYPE_DOUBLE ||
       fieldType == FieldType::BASE_TYPE_STRING);
   }
+
   IndexInfo m_indexInfo;
   FieldType m_fieldType;
   std::map<T, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;  
