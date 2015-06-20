@@ -15,7 +15,7 @@ IndexManager::IndexManager(unique_ptr<vector<unique_ptr<Indexer>>> indexers)
 
 Status IndexManager::Construct(
     const IndexInfo indexes[], size_t indexesLength,
-    std::unordered_map<std::string, ColumnType>& columnTypes,
+    std::unordered_map<std::string, FieldType>& columnTypes,
     IndexManager*& indexManager) {
   unique_ptr<vector<unique_ptr<Indexer>>> indexers(new vector<unique_ptr<Indexer>>());
 
@@ -35,7 +35,7 @@ Status IndexManager::Construct(
 
 Status IndexManager::CreateIndex(
     const IndexInfo& indexInfo,
-    std::unordered_map<std::string, ColumnType>& columnTypes) {
+    std::unordered_map<std::string, FieldType>& columnTypes) {
   Indexer* indexer;
   auto sts = IndexerFactory::CreateIndexer(indexInfo, columnTypes, indexer);
   if (!sts.OK()) {

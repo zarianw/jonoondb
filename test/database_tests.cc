@@ -76,7 +76,7 @@ TEST(Database, Open_CreateIfMissing) {
   ASSERT_TRUE(db->Close().OK());  //Checking if database closed successfully			
 }
 
-TEST(Database, CreateCollection_New) {
+TEST(Database, CreateCollection_InvalidSchema) {
   string dbName = "CreateCollection_New";
   string dbPath = g_TestRootDirectory;
   Options options;
@@ -86,6 +86,21 @@ TEST(Database, CreateCollection_New) {
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
                              "Schema IDL", nullptr, 0);
+  ASSERT_TRUE(sts.SchemaParseError());
+  ASSERT_TRUE(db->Close().OK());
+}
+
+TEST(Database, CreateCollection_New) {
+  string dbName = "CreateCollection_New";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  string schema = ReadTextFile(g_SchemaFilePath.c_str());
+  Database* db;
+  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
+  ASSERT_TRUE(sts.OK());
+  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
+    schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
   ASSERT_TRUE(db->Close().OK());
 }
@@ -95,14 +110,15 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(true);
+  string schema = ReadTextFile(g_SchemaFilePath.c_str());
   Database* db;
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
-    "Schema IDL", nullptr, 0);
+    schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
-    "Schema IDL", nullptr, 0);
+    schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.CollectionAlreadyExist());
   ASSERT_TRUE(db->Close().OK());
 }

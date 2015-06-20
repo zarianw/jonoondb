@@ -15,7 +15,7 @@ class Status;
 class IndexInfo;
 class Buffer;
 class DocumentSchema;
-enum class ColumnType
+enum class FieldType
 : std::int32_t;
 enum class SchemaType
 : std::int32_t;
@@ -34,14 +34,14 @@ class DocumentCollection {
  private:
   explicit DocumentCollection(sqlite3* dbConnection,
                               std::unique_ptr<IndexManager> indexManager,
-                              std::unique_ptr<DocumentSchema> documentSchema);
+                              std::shared_ptr<DocumentSchema> documentSchema);
   static Status PopulateColumnTypes(
       const IndexInfo indexes[], size_t indexesLength,
       const DocumentSchema& documentSchema,
-      std::unordered_map<std::string, ColumnType>& columnTypes);
+      std::unordered_map<std::string, FieldType>& columnTypes);
   sqlite3* m_dbConnection;
   std::unique_ptr<IndexManager> m_indexManager;
-  std::unique_ptr<DocumentSchema> m_documentSchema;
+  std::shared_ptr<DocumentSchema> m_documentSchema;
 };
 }  // namespace jonoondb_api
 

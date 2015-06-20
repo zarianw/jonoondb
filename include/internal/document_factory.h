@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "enums.h"
 
 namespace jonoondb_api {
@@ -7,12 +8,13 @@ namespace jonoondb_api {
 class Status;
 class Buffer;
 class Document;
+class DocumentSchema;
 
 class DocumentFactory {
  public:
-  static Status CreateDocument(const char* schema, int schemaID,
-                               const Buffer& buffer, SchemaType schemaType,
-                               Document*& document);
+   static Status CreateDocument(const std::shared_ptr<DocumentSchema> documentSchema,
+                                const Buffer& buffer,                                
+                                Document*& document);
  private:
   DocumentFactory() = delete;
   DocumentFactory(const DocumentFactory&) = delete;

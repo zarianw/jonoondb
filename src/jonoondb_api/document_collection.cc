@@ -21,10 +21,10 @@ using namespace std;
 
 DocumentCollection::DocumentCollection(
     sqlite3* dbConnection, unique_ptr<IndexManager> indexManager,
-    std::unique_ptr<DocumentSchema> documentSchema)
+    shared_ptr<DocumentSchema> documentSchema)
     : m_dbConnection(dbConnection),
       m_indexManager(move(indexManager)),
-      m_documentSchema(move(documentSchema)) {
+      m_documentSchema(documentSchema) {
 }
 
 DocumentCollection::~DocumentCollection() {
@@ -71,7 +71,7 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   }
 
   IndexManager* indexManager;
-  unordered_map<string, ColumnType> columnTypes;
+  unordered_map<string, FieldType> columnTypes;
 
   DocumentSchema* documentSchema;
   auto sts = DocumentSchemaFactory::CreateDocumentSchema(schema, schemaType,
@@ -80,9 +80,9 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
     return sts;
   }
 
-  std::unique_ptr<DocumentSchema> documentSchemaUniquePtr(documentSchema);
+  std::shared_ptr<DocumentSchema> documentSchemaPtr(documentSchema);
   sts = PopulateColumnTypes(indexes, indexesLength,
-                            *documentSchemaUniquePtr.get(), columnTypes);
+                            *documentSchemaPtr.get(), columnTypes);
   if (!sts.OK()) {
     return sts;
   }
@@ -96,16 +96,14 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   unique_ptr<IndexManager> indexManagerUniquePtr(indexManager);
   documentCollection = new DocumentCollection(dbConnectionUniquePtr.release(),
                                               move(indexManagerUniquePtr),
-                                              move(documentSchemaUniquePtr));
+                                              move(documentSchemaPtr));
   return sts;
 }
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
   Document* docPtr;
-  Status sts = DocumentFactory::CreateDocument(m_documentSchema->GetSchemaText(),
-                                               0,
+  Status sts = DocumentFactory::CreateDocument(m_documentSchema,                                               
                                                documentData,
-                                               SchemaType::FLAT_BUFFERS,
                                                docPtr);
   if (!sts.OK()) {
     return sts;
@@ -124,16 +122,16 @@ Status DocumentCollection::Insert(const Buffer& documentData) {
 Status DocumentCollection::PopulateColumnTypes(
     const IndexInfo indexes[], size_t indexesLength,
     const DocumentSchema& documentSchema,
-    std::unordered_map<string, ColumnType>& columnTypes) {
-  ColumnType colType;
+    std::unordered_map<string, FieldType>& columnTypes) {
+  FieldType colType;
   for (size_t i = 0; i < indexesLength; i++) {
     for (size_t j = 0; j < indexes[i].GetColumnsLength(); j++) {
-      auto sts = documentSchema.GetColumnType(indexes[i].GetColumn(j), colType);
+      auto sts = documentSchema.GetFieldType(indexes[i].GetColumn(j), colType);
       if (!sts.OK()) {
         return sts;
       }
       columnTypes.insert(
-          pair<string, ColumnType>(string(indexes[i].GetColumn(j)), colType));
+          pair<string, FieldType>(string(indexes[i].GetColumn(j)), colType));
     }
   }
   return Status();

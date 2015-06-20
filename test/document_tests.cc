@@ -11,6 +11,7 @@
 #include "options.h"
 #include "buffer.h"
 #include "schemas/flatbuffers/tweet_generated.h"
+#include "document_schema_factory.h"
 
 using namespace std;
 using namespace flatbuffers;
@@ -43,9 +44,13 @@ TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
   string schema = ReadTextFile(g_SchemaFilePath.c_str());
   Buffer documentData;
   ASSERT_TRUE(GetTweetObject(documentData).OK());
+  DocumentSchema* docSchema;
+  auto sts = DocumentSchemaFactory::CreateDocumentSchema(schema.c_str(),
+    SchemaType::FLAT_BUFFERS, docSchema);
+  ASSERT_TRUE(sts.OK());
+  shared_ptr<DocumentSchema> docSchemaPtr(docSchema);
   Document* doc;
-  Status sts = DocumentFactory::CreateDocument(schema.c_str(), 0, documentData,
-    SchemaType::FLAT_BUFFERS, doc);  
+  sts = DocumentFactory::CreateDocument(docSchemaPtr, documentData, doc);
   ASSERT_TRUE(sts.OK());
   CompareTweetObject(doc, documentData);
   doc->Dispose();

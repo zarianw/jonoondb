@@ -10,7 +10,7 @@ Status DocumentSchemaFactory::CreateDocumentSchema(
   switch (schemaType) {
     case SchemaType::FLAT_BUFFERS: {
       FlatbuffersDocumentSchema* fbDocSchema;
-      auto sts = FlatbuffersDocumentSchema::Construct(schemaText, fbDocSchema);
+      auto sts = FlatbuffersDocumentSchema::Construct(schemaText, schemaType, fbDocSchema);
       if (!sts.OK()) {
         return sts;
       }

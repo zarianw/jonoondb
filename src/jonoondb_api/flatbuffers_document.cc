@@ -2,28 +2,21 @@
 #include <cstdint>
 #include <memory>
 #include "flatbuffers_document.h"
+#include "flatbuffers_document_schema.h"
 
 using namespace std;
 using namespace jonoondb_api;
 using namespace flatbuffers;
 
-Status FlatbuffersDocument::Construct(const char* schema, int schemaID,
+Status FlatbuffersDocument::Construct(const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
   const Buffer& buffer, FlatbuffersDocument*& flatbuffersDocument) {
-  shared_ptr<Parser> parser(new Parser());  
-  if (!parser->Parse(schema)) {
-    ostringstream ss;
-    ss << "Flatbuffers parser failed to parse given schema." << endl << schema;
-    string errorMsg = ss.str();
-    return Status(kStatusSchemaParseErrorCode, errorMsg.c_str(),
-      errorMsg.length());
-  }
-
+  
   Table* table = const_cast<Table*>(flatbuffers::GetRoot<Table>(
     buffer.GetData()));
   unique_ptr<DynamicTableReader> dynamicTableReader(new DynamicTableReader(table,
-    parser->root_struct_def, &parser->structs_));
+    fbDocumentSchema->GetRootStruct(), fbDocumentSchema->GetChildStructs()));
 
-  flatbuffersDocument = new FlatbuffersDocument(parser, move(dynamicTableReader));
+  flatbuffersDocument = new FlatbuffersDocument(fbDocumentSchema, move(dynamicTableReader));
 
   return Status();
 }
@@ -160,7 +153,7 @@ Status FlatbuffersDocument::GetDocumentValue(const char* fieldName, Document*& v
 }
 
 Status FlatbuffersDocument::AllocateSubDocument(Document*& doc) const {
-  doc = new FlatbuffersDocument(m_parser, move(unique_ptr<DynamicTableReader>(new DynamicTableReader())));
+  doc = new FlatbuffersDocument(m_fbDcumentSchema, move(unique_ptr<DynamicTableReader>(new DynamicTableReader())));
   return Status();
 }
 
@@ -168,8 +161,8 @@ void FlatbuffersDocument::Dispose() {
   delete this;  
 }
 
-FlatbuffersDocument::FlatbuffersDocument(shared_ptr<Parser> parser,
-  unique_ptr<DynamicTableReader> dynTableReader) : m_parser(parser), m_dynTableReader(move(dynTableReader)) {
+FlatbuffersDocument::FlatbuffersDocument(const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
+  unique_ptr<DynamicTableReader> dynTableReader) : m_fbDcumentSchema(fbDocumentSchema), m_dynTableReader(move(dynTableReader)) {
 }
 
 Status FlatbuffersDocument::GetMissingFieldErrorStatus(const char* fieldName) const {
