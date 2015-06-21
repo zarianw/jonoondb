@@ -1,6 +1,5 @@
 # C++ style guide 
-We use google's c++ style guide (http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml) for the most part.
-The places where we differ are documented below:
+We use google's c++ style guide (http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml) for the most part. The places where we differ are documented below:
 
 1) Instance/Member variables should being with "m_". It works with intellisense better as you are trying to use the member variables.
 
