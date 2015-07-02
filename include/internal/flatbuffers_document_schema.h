@@ -32,6 +32,7 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
 
   FieldType MapFlatbuffersToJonoonDBType(flatbuffers::BaseType flatbuffersType) const;
   Status GetMissingFieldErrorStatus(const char* fieldName) const;
+  Status GetInvalidStructFieldErrorStatus(const char* fieldName, const char* fullName) const;
 
   std::string m_schemaText;
   std::unique_ptr<flatbuffers::Parser> m_parser;
