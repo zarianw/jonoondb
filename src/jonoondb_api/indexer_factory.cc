@@ -11,61 +11,84 @@ using namespace jonoondb_api;
 Status CreateEWAHCompressedBitmapIndexer(const IndexInfo& indexInfo,
                                          FieldType fieldType,
                                          Indexer*& indexer) {
+  Status sts;
   switch (fieldType) {
     case jonoondb_api::FieldType::BASE_TYPE_UINT8: {
       EWAHCompressedBitmapIndexer<uint8_t>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<uint8_t>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<uint8_t>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_UINT16: {
       EWAHCompressedBitmapIndexer<uint16_t>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<uint16_t>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<uint16_t>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }    
     case jonoondb_api::FieldType::BASE_TYPE_UINT32:{
       EWAHCompressedBitmapIndexer<uint32_t>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<uint32_t>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<uint32_t>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_UINT64:{
       EWAHCompressedBitmapIndexer<uint64_t>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<uint64_t>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<uint64_t>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_INT8:{
       EWAHCompressedBitmapIndexer<int8_t>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<int8_t>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<int8_t>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_INT16:{
       EWAHCompressedBitmapIndexer<int16_t>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<int16_t>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<int16_t>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_INT32:{
       EWAHCompressedBitmapIndexer<int32_t>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<int32_t>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<int32_t>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_INT64:{
       EWAHCompressedBitmapIndexer<int64_t>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<int64_t>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<int64_t>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_FLOAT32:{
       EWAHCompressedBitmapIndexer<float>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<float>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<float>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_DOUBLE:{
       EWAHCompressedBitmapIndexer<double>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<double>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<double>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }
     case jonoondb_api::FieldType::BASE_TYPE_STRING:{
       EWAHCompressedBitmapIndexer<string>* ewahIndexer;
-      return EWAHCompressedBitmapIndexer<string>::Construct(indexInfo,
+      sts = EWAHCompressedBitmapIndexer<string>::Construct(indexInfo,
         fieldType, ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
+      break;
     }    
     default: {
       std::ostringstream ss;
@@ -75,7 +98,7 @@ Status CreateEWAHCompressedBitmapIndexer(const IndexInfo& indexInfo,
     }
   }
 
-  return Status();
+  return sts;
 }
 
 Status IndexerFactory::CreateIndexer(

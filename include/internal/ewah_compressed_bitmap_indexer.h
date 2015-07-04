@@ -10,6 +10,7 @@
 #include "string_utils.h"
 #include "document.h"
 #include "mama_jennies_bitmap.h"
+#include "exception_utils.h"
 
 namespace jonoondb_api {
 
@@ -38,7 +39,8 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
       return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
     }
 
-    obj = new EWAHCompressedBitmapIndexer(indexInfo, fieldType);
+    obj = new EWAHCompressedBitmapIndexer(indexInfo, fieldType,
+      StringUtils::Split(indexInfo.GetColumn(0), "."));
     return Status();     
   }
   
@@ -46,51 +48,96 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   }
 
   Status ValidateForInsert(const Document& document) override {    
+    Document* subDoc;
     switch (m_fieldType)
     {
       case FieldType::BASE_TYPE_UINT8: {
-        std::uint8_t val;
-        return document.GetScalarValueAsUInt8(m_indexInfo.GetName(), val);          
+        std::uint8_t val;  
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsUInt8(m_fieldNameTokens.back().c_str(), val);
       }
       case FieldType::BASE_TYPE_UINT16: {
         std::uint16_t val;
-        return document.GetScalarValueAsUInt16(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsUInt16(m_fieldNameTokens.back().c_str(), val);
       }        
       case FieldType::BASE_TYPE_UINT32: {
         std::uint32_t val;
-        return document.GetScalarValueAsUInt32(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsUInt32(m_fieldNameTokens.back().c_str(), val);
       }       
       case FieldType::BASE_TYPE_UINT64: {
         std::uint64_t val;
-        return document.GetScalarValueAsUInt64(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsUInt64(m_fieldNameTokens.back().c_str(), val);
       }       
       case FieldType::BASE_TYPE_INT8: {
         std::int8_t val;
-        return document.GetScalarValueAsInt8(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsInt8(m_fieldNameTokens.back().c_str(), val);
       }        
       case FieldType::BASE_TYPE_INT16: {
         std::int16_t val;
-        return document.GetScalarValueAsInt16(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsInt16(m_fieldNameTokens.back().c_str(), val);
       }        
       case FieldType::BASE_TYPE_INT32: {
         std::int32_t val;
-        return document.GetScalarValueAsInt32(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsInt32(m_fieldNameTokens.back().c_str(), val);
       }
       case FieldType::BASE_TYPE_INT64: {
         std::int64_t val;
-        return document.GetScalarValueAsInt64(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsInt64(m_fieldNameTokens.back().c_str(), val);
       }        
       case FieldType::BASE_TYPE_FLOAT32: {
         float val;
-        return document.GetScalarValueAsFloat(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsFloat(m_fieldNameTokens.back().c_str(), val);
       }      
       case FieldType::BASE_TYPE_DOUBLE: {
         double val;
-        return document.GetScalarValueAsDouble(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetScalarValueAsDouble(m_fieldNameTokens.back().c_str(), val);
       }      
       case FieldType::BASE_TYPE_STRING: {
         char* val;
-        return document.GetStringValue(m_indexInfo.GetName(), val);
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        if (!sts.OK()) {
+          return sts;
+        }
+        return subDoc->GetStringValue(m_fieldNameTokens.back().c_str(), val);
       }      
       default: {
         std::ostringstream ss;
@@ -105,8 +152,8 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   }
 
  private:
-  EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo, FieldType fieldType)
-    : m_indexInfo(indexInfo), m_fieldType(fieldType) {
+  EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo, FieldType fieldType, std::vector<std::string>& fieldNameTokens)
+    : m_indexInfo(indexInfo), m_fieldType(fieldType), m_fieldNameTokens(fieldNameTokens) {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
@@ -118,8 +165,31 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
       fieldType == FieldType::BASE_TYPE_STRING);
   }
 
+  Status GetSubDocumentRecursively(const Document& parentDoc, Document*& subDoc) {
+    Document* doc = nullptr;
+    Status sts = parentDoc.AllocateSubDocument(doc);
+    if (!sts.OK()) {
+      return sts;
+    }
+    
+    for (size_t i = 0; i < m_fieldNameTokens.size() - 1; i++) {
+      if (i == 0) {
+        sts = parentDoc.GetDocumentValue(m_fieldNameTokens[i].c_str(), doc);
+      } else {
+        sts = doc->GetDocumentValue(m_fieldNameTokens[i].c_str(), doc);
+      }
+      if (!sts.OK()) {
+        return sts;
+      }
+    }
+
+    subDoc = doc;
+    return sts;
+  }
+
   IndexInfo m_indexInfo;
   FieldType m_fieldType;
+  std::vector<std::string> m_fieldNameTokens;
   std::map<T, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;  
 };
 }  // namespace jonoondb_api

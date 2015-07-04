@@ -6,6 +6,7 @@
 #include "enums.h"
 #include "status.h"
 #include "string_utils.h"
+#include "exception_utils.h"
 
 
 using namespace std;
@@ -70,17 +71,17 @@ Status FlatbuffersDocumentSchema::GetFieldType(const char* fieldName,
   for (size_t i = 0; i < tokenVec.size() - 1; i++) {
     fieldDef = structDef->fields.Lookup(tokenVec[i]);
     if (fieldDef == nullptr) {
-      return GetMissingFieldErrorStatus(tokenVec[i].c_str());
+      return ExceptionUtils::GetMissingFieldErrorStatus(tokenVec[i].c_str());
     }
     if (fieldDef->value.type.base_type != BaseType::BASE_TYPE_STRUCT) {
-      return GetInvalidStructFieldErrorStatus(tokenVec[i].c_str(), fieldName);
+      return ExceptionUtils::GetInvalidStructFieldErrorStatus(tokenVec[i].c_str(), fieldName);
     }
     structDef = m_parser->structs_.Lookup(fieldDef->value.type.struct_def->name);
   }
   
   fieldDef = structDef->fields.Lookup(tokenVec[tokenVec.size() - 1]);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    return ExceptionUtils::GetMissingFieldErrorStatus(fieldName);
   }
   fieldType = MapFlatbuffersToJonoonDBType(fieldDef->value.type.base_type);
 
@@ -117,20 +118,3 @@ FieldType FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(BaseType flatb
     default: assert(0); // this should never happen. TODO: Handle it for release case as well. assert only works in debug mode.
   }
 }
-
-Status FlatbuffersDocumentSchema::GetMissingFieldErrorStatus(const char* fieldName) const {
-  ostringstream ss;
-  ss << "Field definition for " << fieldName << " not found in the parsed schema.";
-  string errorMsg = ss.str();
-  return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-    errorMsg.length());
-}
-
-Status FlatbuffersDocumentSchema::GetInvalidStructFieldErrorStatus(const char* fieldName, const char* fullName) const {
-  ostringstream ss;
-  ss << "Field " << fieldName << " is not of type struct. Full name provided was " << fullName;
-  string errorMsg = ss.str();
-  return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-    errorMsg.length());
-}
-
