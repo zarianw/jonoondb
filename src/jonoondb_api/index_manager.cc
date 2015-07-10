@@ -55,7 +55,7 @@ Status IndexManager::IndexDocument(const Document& document) {
   }
 
   for (auto const& indexer : *m_indexers) {
-    indexer->Insert(document);
+    indexer->Insert(document, 1);
   }
 
   return Status();

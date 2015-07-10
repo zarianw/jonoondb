@@ -148,7 +148,76 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
     }    
   }
 
-  void Insert(const Document& document) override {
+  void Insert(const Document& document, std::uint64_t documentID) override {
+    Document* subDoc;
+    switch (m_fieldType) {
+      case FieldType::BASE_TYPE_UINT8: {
+        std::uint8_t val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        assert(sts.OK());
+        subDoc->GetScalarValueAsUInt8(m_fieldNameTokens.back().c_str(), val);
+        auto compressedBitmap = m_compressedBitmapsUInt8.find(val);
+        if (compressedBitmap == m_compressedBitmapsUInt8.end()) {
+          auto bm = new MamaJenniesBitmap();
+          bm->Add(documentID);
+          m_compressedBitmapsUInt8[val] = shared_ptr<MamaJenniesBitmap>(bm);
+        } else {
+          compressedBitmap->second->Add(documentID);
+        }
+      }
+      case FieldType::BASE_TYPE_UINT16: {
+        std::uint16_t val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetScalarValueAsUInt16(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_UINT32: {
+        std::uint32_t val;
+        subDoc->GetScalarValueAsUInt32(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_UINT64: {
+        std::uint64_t val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetScalarValueAsUInt64(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_INT8: {
+        std::int8_t val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetScalarValueAsInt8(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_INT16: {
+        std::int16_t val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetScalarValueAsInt16(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_INT32: {
+        std::int32_t val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetScalarValueAsInt32(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_INT64: {
+        std::int64_t val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetScalarValueAsInt64(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_FLOAT32: {
+        float val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetScalarValueAsFloat(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_DOUBLE: {
+        double val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetScalarValueAsDouble(m_fieldNameTokens.back().c_str(), val);
+      }
+      case FieldType::BASE_TYPE_STRING: {
+        char* val;
+        auto sts = GetSubDocumentRecursively(document, subDoc);
+        subDoc->GetStringValue(m_fieldNameTokens.back().c_str(), val);
+      }
+      default: {
+        assert(false);
+      }
+    }
   }
 
  private:
@@ -190,6 +259,18 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   IndexInfo m_indexInfo;
   FieldType m_fieldType;
   std::vector<std::string> m_fieldNameTokens;
-  std::map<T, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;  
+  std::map<T, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
+  std::map<std::uint8_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUInt8;
+  std::map<std::uint16_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUInt16;
+  std::map<std::uint32_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUIn32;
+  std::map<std::uint64_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUIn64;
+  std::map<std::int8_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsInt8;
+  std::map<std::int16_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsInt16;
+  std::map<std::int32_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsIn32;
+  std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsIn64;
+
+  std::map<float, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsFloat32;
+  std::map<double, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsDouble;
+  std::map<std::string, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsString;
 };
 }  // namespace jonoondb_api
