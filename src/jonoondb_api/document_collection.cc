@@ -111,7 +111,7 @@ Status DocumentCollection::Insert(const Buffer& documentData) {
 
   // unique_ptr will ensure that we will release memory even incase of exception.
   unique_ptr<Document> doc(docPtr);
-  sts = m_indexManager->IndexDocument(*doc.get());
+  sts = m_indexManager->IndexDocument(m_documentIDGenerator.ReserveID(1), *doc.get());
   if (!sts.OK()) {
     return sts;
   }

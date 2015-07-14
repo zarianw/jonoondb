@@ -106,7 +106,10 @@ add_library(
  ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document.h
- ${SRC_PATH}/jonoondb_api/field_name_parser.cc ${INCLUDE_INTERNAL_PATH}/field_name_parser.h)
+ ${SRC_PATH}/jonoondb_api/field_name_parser.cc ${INCLUDE_INTERNAL_PATH}/field_name_parser.h
+ ${SRC_PATH}/jonoondb_api/document_id_generator.cc ${INCLUDE_INTERNAL_PATH}/document_id_generator.h)
+
+ 
 target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 
 # gtest

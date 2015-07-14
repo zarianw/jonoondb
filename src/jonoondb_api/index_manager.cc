@@ -46,7 +46,7 @@ Status IndexManager::CreateIndex(
   return sts;
 }
 
-Status IndexManager::IndexDocument(const Document& document) {
+Status IndexManager::IndexDocument(uint64_t documentID, const Document& document) {
   for (auto const& indexer : *m_indexers) {
     Status sts = indexer->ValidateForInsert(document);
     if (!sts.OK()) {
@@ -55,7 +55,7 @@ Status IndexManager::IndexDocument(const Document& document) {
   }
 
   for (auto const& indexer : *m_indexers) {
-    indexer->Insert(document, 1);
+    indexer->Insert(documentID, document);
   }
 
   return Status();
