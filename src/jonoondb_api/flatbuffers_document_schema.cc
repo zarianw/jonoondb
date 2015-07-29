@@ -7,6 +7,8 @@
 #include "status.h"
 #include "string_utils.h"
 #include "exception_utils.h"
+#include "flatbuffers_field.h"
+#include "field.h"
 
 
 using namespace std;
@@ -83,7 +85,45 @@ Status FlatbuffersDocumentSchema::GetFieldType(const char* fieldName,
   if (fieldDef == nullptr) {
     return ExceptionUtils::GetMissingFieldErrorStatus(fieldName);
   }
-  fieldType = MapFlatbuffersToJonoonDBType(fieldDef->value.type.base_type);
+  fieldType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(fieldDef->value.type.base_type);
+
+  return Status();
+}
+
+std::size_t FlatbuffersDocumentSchema::GetRootFieldCount() const {
+  return m_parser->root_struct_def->fields.vec.size();
+}
+
+Status FlatbuffersDocumentSchema::GetRootField(size_t index, Field*& field) const {
+  FlatbuffersField* fbField = dynamic_cast<FlatbuffersField*>(field);
+  if (fbField == nullptr) {
+    // This means that the passed in doc cannot be casted to FlatbuffersDocument    
+    string errorMsg = "Argument field cannot be casted to underlying field "
+      "implementation i.e. FlatbuffersField. "
+      "Make sure you are creating the val by calling AllocateField call.";
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+      errorMsg.length());
+  }
+
+  if (index > GetRootFieldCount() - 1 || index < 0) {
+    string errorMsg = "Index was outside the bounds of the array.";
+    return Status(kStatusIndexOutOfBoundErrorCode, errorMsg.c_str(),
+      errorMsg.length());
+  }
+
+  fbField->SetFieldDef(m_parser->root_struct_def->fields.vec[index]);
+  return Status();
+}
+
+Status FlatbuffersDocumentSchema::AllocateField(Field*& field) const {
+  try {
+    field = new FlatbuffersField();
+  } catch (bad_alloc) {
+    // Memory allocation failed
+    string errorMsg = "Memory allocation failed.";
+    return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
+      errorMsg.length());
+  }
 
   return Status();
 }
@@ -96,25 +136,25 @@ const SymbolTable<StructDef>* FlatbuffersDocumentSchema::GetChildStructs() const
   return &m_parser->structs_;
 }
 
-FieldType FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(BaseType flatbuffersType) const {
+FieldType FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(flatbuffers::BaseType flatbuffersType) {
   switch (flatbuffersType) {
-    case BASE_TYPE_NONE: return FieldType::BASE_TYPE_UINT8;
-    case BASE_TYPE_UTYPE: return FieldType::BASE_TYPE_UINT8;
-    case BASE_TYPE_BOOL: return FieldType::BASE_TYPE_UINT8;
-    case BASE_TYPE_CHAR: return FieldType::BASE_TYPE_INT8;
-    case BASE_TYPE_UCHAR: return FieldType::BASE_TYPE_UINT8;
-    case BASE_TYPE_SHORT: return FieldType::BASE_TYPE_INT16;
-    case BASE_TYPE_USHORT: return FieldType::BASE_TYPE_UINT16;
-    case BASE_TYPE_INT: return FieldType::BASE_TYPE_INT32;
-    case BASE_TYPE_UINT: return FieldType::BASE_TYPE_UINT32;
-    case BASE_TYPE_LONG: return FieldType::BASE_TYPE_INT64;
-    case BASE_TYPE_ULONG: return FieldType::BASE_TYPE_UINT64;
-    case BASE_TYPE_FLOAT: return FieldType::BASE_TYPE_FLOAT32;
-    case BASE_TYPE_DOUBLE: return FieldType::BASE_TYPE_DOUBLE;
-    case BASE_TYPE_STRING: return FieldType::BASE_TYPE_STRING;
-    case BASE_TYPE_VECTOR: return FieldType::BASE_TYPE_VECTOR;
-    case BASE_TYPE_STRUCT: return FieldType::BASE_TYPE_COMPLEX;
-    // case BASE_TYPE_UNION: break; TODO: Need to handle this type
+    case flatbuffers::BASE_TYPE_NONE: return FieldType::BASE_TYPE_UINT8;
+    case flatbuffers::BASE_TYPE_UTYPE: return FieldType::BASE_TYPE_UINT8;
+    case flatbuffers::BASE_TYPE_BOOL: return FieldType::BASE_TYPE_UINT8;
+    case flatbuffers::BASE_TYPE_CHAR: return FieldType::BASE_TYPE_INT8;
+    case flatbuffers::BASE_TYPE_UCHAR: return FieldType::BASE_TYPE_UINT8;
+    case flatbuffers::BASE_TYPE_SHORT: return FieldType::BASE_TYPE_INT16;
+    case flatbuffers::BASE_TYPE_USHORT: return FieldType::BASE_TYPE_UINT16;
+    case flatbuffers::BASE_TYPE_INT: return FieldType::BASE_TYPE_INT32;
+    case flatbuffers::BASE_TYPE_UINT: return FieldType::BASE_TYPE_UINT32;
+    case flatbuffers::BASE_TYPE_LONG: return FieldType::BASE_TYPE_INT64;
+    case flatbuffers::BASE_TYPE_ULONG: return FieldType::BASE_TYPE_UINT64;
+    case flatbuffers::BASE_TYPE_FLOAT: return FieldType::BASE_TYPE_FLOAT32;
+    case flatbuffers::BASE_TYPE_DOUBLE: return FieldType::BASE_TYPE_DOUBLE;
+    case flatbuffers::BASE_TYPE_STRING: return FieldType::BASE_TYPE_STRING;
+    case flatbuffers::BASE_TYPE_VECTOR: return FieldType::BASE_TYPE_VECTOR;
+    case flatbuffers::BASE_TYPE_STRUCT: return FieldType::BASE_TYPE_COMPLEX;
+      // case flatbuffers::BASE_TYPE_UNION: break; TODO: Need to handle this type
     default: assert(0); // this should never happen. TODO: Handle it for release case as well. assert only works in debug mode.
   }
 }

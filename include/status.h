@@ -28,6 +28,7 @@ class Status {
   bool IndexAlreadyExist() const;
   bool CollectionNotFound() const;
   bool SchemaParseError() const;
+  bool IndexOutOfBound() const;
 
  private:
   //class StatusImpl;
@@ -56,6 +57,7 @@ extern const char kStatusCollectionAlreadyExistCode;
 extern const char kStatusIndexAlreadyExistCode;
 extern const char kStatusCollectionNotFoundCode;
 extern const char kStatusSchemaParseErrorCode;
+extern const char kStatusIndexOutOfBoundErrorCode;
 
 extern const char kStatusSQLiteErrorCode;
 }  // jonoon_api

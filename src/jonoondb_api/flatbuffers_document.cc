@@ -152,8 +152,17 @@ Status FlatbuffersDocument::GetDocumentValue(const char* fieldName, Document*& v
   return Status();
 }
 
-Status FlatbuffersDocument::AllocateSubDocument(Document*& doc) const {
-  doc = new FlatbuffersDocument(m_fbDcumentSchema, move(unique_ptr<DynamicTableReader>(new DynamicTableReader())));
+Status FlatbuffersDocument::AllocateSubDocument(Document*& doc) const {  
+  try {
+    doc = new FlatbuffersDocument(m_fbDcumentSchema,
+      move(unique_ptr<DynamicTableReader>(new DynamicTableReader())));
+  } catch (bad_alloc) {
+    // Memory allocation failed
+    string errorMsg = "Memory allocation failed.";
+    return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
+      errorMsg.length());
+  }
+
   return Status();
 }
 

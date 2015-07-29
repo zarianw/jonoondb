@@ -13,6 +13,11 @@ class ExceptionUtils {
     return sqliteErrorMsg;
   }
 
+  static Status GetSQLiteErrorStatusFromSQLiteErrorCode(int errorCode) {
+    std::string sqliteErrorMsg = sqlite3_errstr(errorCode);  //Memory for sqliteError is managed internally by sqlite
+    return Status(kStatusSQLiteErrorCode, sqliteErrorMsg.c_str(), sqliteErrorMsg.length());
+  }
+
   static Status GetMissingFieldErrorStatus(const char* fieldName) {
     std::ostringstream ss;
     ss << "Field definition for " << fieldName << " not found in the parsed schema.";
