@@ -6,12 +6,13 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace std;
 
-const char* FlatbuffersField::GetName() const {  
+const char* FlatbuffersField::GetName() const {
   return m_fieldDef->name.c_str();
 }
 
 FieldType FlatbuffersField::GetType() const {
-  return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(m_fieldDef->value.type.base_type);
+  return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
+      m_fieldDef->value.type.base_type);
 }
 
 size_t FlatbuffersField::GetSubFieldCount() const {
@@ -19,7 +20,7 @@ size_t FlatbuffersField::GetSubFieldCount() const {
     return m_fieldDef->value.type.struct_def->fields.vec.size();
   } else {
     return 0;
-  }    
+  }
 }
 
 Status FlatbuffersField::GetSubField(size_t index, Field*& field) const {
@@ -27,16 +28,16 @@ Status FlatbuffersField::GetSubField(size_t index, Field*& field) const {
   if (fbField == nullptr) {
     // This means that the passed in doc cannot be casted to FlatbuffersDocument    
     string errorMsg = "Argument field cannot be casted to underlying field "
-      "implementation i.e. FlatbuffersField. "
-      "Make sure you are creating the val by calling AllocateField call.";
+        "implementation i.e. FlatbuffersField. "
+        "Make sure you are creating the val by calling AllocateField call.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-      errorMsg.length());
+                  errorMsg.length());
   }
 
-  if (index > GetSubFieldCount()-1 || index < 0) {
+  if (index > GetSubFieldCount() - 1 || index < 0) {
     string errorMsg = "Index was outside the bounds of the array.";
     return Status(kStatusIndexOutOfBoundErrorCode, errorMsg.c_str(),
-      errorMsg.length());
+                  errorMsg.length());
   }
 
   fbField->SetFieldDef(m_fieldDef->value.type.struct_def->fields.vec[index]);
@@ -50,7 +51,7 @@ Status FlatbuffersField::AllocateField(Field*& field) const {
     // Memory allocation failed
     string errorMsg = "Memory allocation failed.";
     return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-      errorMsg.length());
+                  errorMsg.length());
   }
 
   return Status();

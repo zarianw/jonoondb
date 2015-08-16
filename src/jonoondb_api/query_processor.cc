@@ -6,11 +6,11 @@
 using namespace jonoondb_api;
 
 struct sqlite3_api_routines;
-int jonoondb_vtable_init(sqlite3 *db, char **error, const sqlite3_api_routines *api);
+int jonoondb_vtable_init(sqlite3 *db, char **error,
+                         const sqlite3_api_routines *api);
 
 Status QueryProcessor::Construct(QueryProcessor*& obj) {
-  int code = sqlite3_auto_extension((void(*)(void))jonoondb_vtable_init);
-  if (code != SQLITE_OK) {
+  int code = sqlite3_auto_extension((void (*)(void))jonoondb_vtable_init);if (code != SQLITE_OK) {
     return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
   }
 
@@ -29,8 +29,7 @@ Status QueryProcessor::AddCollection(const DocumentSchema* documentSchema) {
   return Status();
 }
 
-QueryProcessor::QueryProcessor(sqlite3* db) : m_db(db) {
+QueryProcessor::QueryProcessor(sqlite3* db)
+    : m_db(db) {
 }
-
-
 

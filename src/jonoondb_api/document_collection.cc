@@ -81,8 +81,8 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   }
 
   std::shared_ptr<DocumentSchema> documentSchemaPtr(documentSchema);
-  sts = PopulateColumnTypes(indexes, indexesLength,
-                            *documentSchemaPtr.get(), columnTypes);
+  sts = PopulateColumnTypes(indexes, indexesLength, *documentSchemaPtr.get(),
+                            columnTypes);
   if (!sts.OK()) {
     return sts;
   }
@@ -102,8 +102,7 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
   Document* docPtr;
-  Status sts = DocumentFactory::CreateDocument(m_documentSchema,                                               
-                                               documentData,
+  Status sts = DocumentFactory::CreateDocument(m_documentSchema, documentData,
                                                docPtr);
   if (!sts.OK()) {
     return sts;
@@ -111,7 +110,8 @@ Status DocumentCollection::Insert(const Buffer& documentData) {
 
   // unique_ptr will ensure that we will release memory even incase of exception.
   unique_ptr<Document> doc(docPtr);
-  sts = m_indexManager->IndexDocument(m_documentIDGenerator.ReserveID(1), *doc.get());
+  sts = m_indexManager->IndexDocument(m_documentIDGenerator.ReserveID(1),
+                                      *doc.get());
   if (!sts.OK()) {
     return sts;
   }

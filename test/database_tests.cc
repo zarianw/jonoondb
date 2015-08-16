@@ -100,7 +100,7 @@ TEST(Database, CreateCollection_New) {
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
-    schema.c_str(), nullptr, 0);
+                             schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
   ASSERT_TRUE(db->Close().OK());
 }
@@ -115,10 +115,10 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
-    schema.c_str(), nullptr, 0);
+                             schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
-    schema.c_str(), nullptr, 0);
+                             schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.CollectionAlreadyExist());
   ASSERT_TRUE(db->Close().OK());
 }
@@ -136,12 +136,12 @@ TEST(Database, Insert_Single) {
   string schema = ReadTextFile(g_SchemaFilePath.c_str());
 
   sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
-    schema.c_str(), nullptr, 0);
+                             schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
 
   Buffer documentData;
   ASSERT_TRUE(GetTweetObject(documentData).OK());
-  ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());  
+  ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
   ASSERT_TRUE(db->Close().OK());
 }
 
@@ -162,9 +162,9 @@ TEST(Database, Insert_Single_Indexed) {
   indexes[0].SetIsAscending(true);
   indexes[0].SetColumnsLength(1);
   indexes[0].SetColumn(0, "user.name");
- 
+
   sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
-    schema.c_str(), indexes, 1);
+                             schema.c_str(), indexes, 1);
   ASSERT_TRUE(sts.OK());
 
   Buffer documentData;

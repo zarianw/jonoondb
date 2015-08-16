@@ -3,10 +3,11 @@
 
 namespace jonoondb_api {
 // Forward Declarations
-enum class FieldType : std::int32_t;
+enum class FieldType
+: std::int32_t;
 class Status;
 class Field {
-public:
+ public:
   virtual const char* GetName() const = 0;
   virtual FieldType GetType() const = 0;
   virtual std::size_t GetSubFieldCount() const = 0;
@@ -14,4 +15,4 @@ public:
   virtual Status AllocateField(Field*& field) const = 0;
   virtual void Dispose() = 0;
 };
-} // jonoondb_api
+}  // jonoondb_api

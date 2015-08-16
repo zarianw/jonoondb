@@ -10,8 +10,7 @@ using namespace jonoondb_api;
 
 Status IndexerFactory::CreateIndexer(
     const IndexInfo& indexInfo,
-    std::unordered_map<std::string, FieldType>& fieldType,
-    Indexer*& indexer) {
+    std::unordered_map<std::string, FieldType>& fieldType, Indexer*& indexer) {
   Status sts;
   switch (indexInfo.GetType()) {
     case IndexType::EWAHCompressedBitmap: {
@@ -26,9 +25,9 @@ Status IndexerFactory::CreateIndexer(
       }
 
       EWAHCompressedBitmapIndexer* ewahIndexer;
-      sts = EWAHCompressedBitmapIndexer::Construct(indexInfo,
-        it->second, ewahIndexer);
-      indexer = static_cast<Indexer*>(ewahIndexer);      
+      sts = EWAHCompressedBitmapIndexer::Construct(indexInfo, it->second,
+                                                   ewahIndexer);
+      indexer = static_cast<Indexer*>(ewahIndexer);
       break;
     }
     default:

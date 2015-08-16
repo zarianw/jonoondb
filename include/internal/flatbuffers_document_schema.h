@@ -11,18 +11,19 @@ class Status;
 enum class FieldType
 : std::int32_t;
 enum class SchemaType
-  : std::int32_t;
+: std::int32_t;
 
 class FlatbuffersDocumentSchema final : public DocumentSchema {
  public:
-   static FieldType MapFlatbuffersToJonoonDBType(flatbuffers::BaseType flatbuffersType);
+  static FieldType MapFlatbuffersToJonoonDBType(
+      flatbuffers::BaseType flatbuffersType);
   ~FlatbuffersDocumentSchema() override;
   static Status Construct(const char* schemaText, SchemaType schemaType,
                           FlatbuffersDocumentSchema*& documentSchema);
-  const char* GetSchemaText() const override;  
+  const char* GetSchemaText() const override;
   SchemaType GetSchemaType() const override;
-  Status GetFieldType(const char* fieldName,
-    FieldType& fieldType) const override;
+  Status GetFieldType(const char* fieldName, FieldType& fieldType) const
+      override;
   std::size_t GetRootFieldCount() const override;
   Status GetRootField(size_t index, Field*& field) const override;
   Status AllocateField(Field*& field) const override;
@@ -33,9 +34,10 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
                             std::unique_ptr<flatbuffers::Parser> parser);
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
-  
+
   Status GetMissingFieldErrorStatus(const char* fieldName) const;
-  Status GetInvalidStructFieldErrorStatus(const char* fieldName, const char* fullName) const;
+  Status GetInvalidStructFieldErrorStatus(const char* fieldName,
+                                          const char* fullName) const;
 
   std::string m_schemaText;
   std::unique_ptr<flatbuffers::Parser> m_parser;

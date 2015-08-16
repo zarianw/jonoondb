@@ -18,47 +18,53 @@ namespace jonoondb_api {
 
 class EWAHCompressedBitmapIndexer final : public Indexer {
  public:
-  static Status Construct(const IndexInfo& indexInfo, const FieldType& fieldType,
-    EWAHCompressedBitmapIndexer*& obj) {
+  static Status Construct(const IndexInfo& indexInfo,
+                          const FieldType& fieldType,
+                          EWAHCompressedBitmapIndexer*& obj) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
     if (indexInfo.GetColumnsLength() != 1) {
-      errorMsg = "Argument indexInfo can only have 1 column for IndexType EWAHCompressedBitmap.";
+      errorMsg =
+          "Argument indexInfo can only have 1 column for IndexType EWAHCompressedBitmap.";
     } else if (StringUtils::IsNullOrEmpty(indexInfo.GetName())) {
       errorMsg = "Argument indexInfo has null or empty name.";
     } else if (StringUtils::IsNullOrEmpty(indexInfo.GetColumn(0))) {
       errorMsg = "Argument indexInfo has null or empty column name.";
     } else if (indexInfo.GetType() != IndexType::EWAHCompressedBitmap) {
-      errorMsg = "Argument indexInfo can only have IndexType EWAHCompressedBitmap for EWAHCompressedBitmapIndexer.";
+      errorMsg =
+          "Argument indexInfo can only have IndexType EWAHCompressedBitmap for EWAHCompressedBitmapIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
-      ss << "Argument FieldType " << GetFieldString(fieldType) << " is not valid for EWAHCompressedBitmapIndexer.";
+      ss << "Argument FieldType " << GetFieldString(fieldType)
+         << " is not valid for EWAHCompressedBitmapIndexer.";
       errorMsg = ss.str();
     }
 
     if (errorMsg.length() > 0) {
-      return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
+      return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+                    errorMsg.length());
     }
 
-    std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumn(0), ".");
+    std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumn(0),
+                                                         ".");
     obj = new EWAHCompressedBitmapIndexer(indexInfo, fieldType, tokens);
-    return Status();     
+    return Status();
   }
-  
+
   ~EWAHCompressedBitmapIndexer() override {
   }
 
-  Status ValidateForInsert(const Document& document) override {    
+  Status ValidateForInsert(const Document& document) override {
     Document* subDoc;
-    switch (m_fieldType)
-    {
+    switch (m_fieldType) {
       case FieldType::BASE_TYPE_UINT8: {
-        std::uint8_t val;  
+        std::uint8_t val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsUInt8(m_fieldNameTokens.back().c_str(), val);
+        return subDoc->GetScalarValueAsUInt8(m_fieldNameTokens.back().c_str(),
+                                             val);
       }
       case FieldType::BASE_TYPE_UINT16: {
         std::uint16_t val;
@@ -66,47 +72,53 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsUInt16(m_fieldNameTokens.back().c_str(), val);
-      }        
+        return subDoc->GetScalarValueAsUInt16(m_fieldNameTokens.back().c_str(),
+                                              val);
+      }
       case FieldType::BASE_TYPE_UINT32: {
         std::uint32_t val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsUInt32(m_fieldNameTokens.back().c_str(), val);
-      }       
+        return subDoc->GetScalarValueAsUInt32(m_fieldNameTokens.back().c_str(),
+                                              val);
+      }
       case FieldType::BASE_TYPE_UINT64: {
         std::uint64_t val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsUInt64(m_fieldNameTokens.back().c_str(), val);
-      }       
+        return subDoc->GetScalarValueAsUInt64(m_fieldNameTokens.back().c_str(),
+                                              val);
+      }
       case FieldType::BASE_TYPE_INT8: {
         std::int8_t val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsInt8(m_fieldNameTokens.back().c_str(), val);
-      }        
+        return subDoc->GetScalarValueAsInt8(m_fieldNameTokens.back().c_str(),
+                                            val);
+      }
       case FieldType::BASE_TYPE_INT16: {
         std::int16_t val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsInt16(m_fieldNameTokens.back().c_str(), val);
-      }        
+        return subDoc->GetScalarValueAsInt16(m_fieldNameTokens.back().c_str(),
+                                             val);
+      }
       case FieldType::BASE_TYPE_INT32: {
         std::int32_t val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsInt32(m_fieldNameTokens.back().c_str(), val);
+        return subDoc->GetScalarValueAsInt32(m_fieldNameTokens.back().c_str(),
+                                             val);
       }
       case FieldType::BASE_TYPE_INT64: {
         std::int64_t val;
@@ -114,24 +126,27 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsInt64(m_fieldNameTokens.back().c_str(), val);
-      }        
+        return subDoc->GetScalarValueAsInt64(m_fieldNameTokens.back().c_str(),
+                                             val);
+      }
       case FieldType::BASE_TYPE_FLOAT32: {
         float val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsFloat(m_fieldNameTokens.back().c_str(), val);
-      }      
+        return subDoc->GetScalarValueAsFloat(m_fieldNameTokens.back().c_str(),
+                                             val);
+      }
       case FieldType::BASE_TYPE_DOUBLE: {
         double val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
         if (!sts.OK()) {
           return sts;
         }
-        return subDoc->GetScalarValueAsDouble(m_fieldNameTokens.back().c_str(), val);
-      }      
+        return subDoc->GetScalarValueAsDouble(m_fieldNameTokens.back().c_str(),
+                                              val);
+      }
       case FieldType::BASE_TYPE_STRING: {
         char* val;
         auto sts = GetSubDocumentRecursively(document, subDoc);
@@ -139,14 +154,16 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
           return sts;
         }
         return subDoc->GetStringValue(m_fieldNameTokens.back().c_str(), val);
-      }      
+      }
       default: {
         std::ostringstream ss;
-        ss << "FieldType " << GetFieldString(m_fieldType) << " is not valid for EWAHCompressedBitmapIndexer.";
+        ss << "FieldType " << GetFieldString(m_fieldType)
+           << " is not valid for EWAHCompressedBitmapIndexer.";
         std::string errorMsg = ss.str();
-        return Status(kStatusGenericErrorCode, errorMsg.c_str(), errorMsg.length());
+        return Status(kStatusGenericErrorCode, errorMsg.c_str(),
+                      errorMsg.length());
       }
-    }    
+    }
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {
@@ -159,7 +176,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsUInt8(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsUInt8.find(val);
         if (compressedBitmap == m_compressedBitmapsUInt8.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsUInt8[val] = bm;
         } else {
@@ -173,7 +190,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsUInt16(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsUInt16.find(val);
         if (compressedBitmap == m_compressedBitmapsUInt16.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsUInt16[val] = bm;
         } else {
@@ -187,13 +204,13 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsUInt32(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsUInt32.find(val);
         if (compressedBitmap == m_compressedBitmapsUInt32.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsUInt32[val] = bm;
         } else {
           compressedBitmap->second->Add(documentID);
         }
-        break;        
+        break;
       }
       case FieldType::BASE_TYPE_UINT64: {
         std::uint64_t val;
@@ -201,7 +218,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsUInt64(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsUInt64.find(val);
         if (compressedBitmap == m_compressedBitmapsUInt64.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsUInt64[val] = bm;
         } else {
@@ -215,7 +232,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsInt8(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsInt8.find(val);
         if (compressedBitmap == m_compressedBitmapsInt8.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsInt8[val] = bm;
         } else {
@@ -229,13 +246,13 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsInt16(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsInt16.find(val);
         if (compressedBitmap == m_compressedBitmapsInt16.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsInt16[val] = bm;
         } else {
           compressedBitmap->second->Add(documentID);
         }
-        break;        
+        break;
       }
       case FieldType::BASE_TYPE_INT32: {
         std::int32_t val;
@@ -243,13 +260,13 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsInt32(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsInt32.find(val);
         if (compressedBitmap == m_compressedBitmapsInt32.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsInt32[val] = bm;
         } else {
           compressedBitmap->second->Add(documentID);
         }
-        break;        
+        break;
       }
       case FieldType::BASE_TYPE_INT64: {
         std::int64_t val;
@@ -257,13 +274,13 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsInt64(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsInt64.find(val);
         if (compressedBitmap == m_compressedBitmapsInt64.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsInt64[val] = bm;
         } else {
           compressedBitmap->second->Add(documentID);
         }
-        break;        
+        break;
       }
       case FieldType::BASE_TYPE_FLOAT32: {
         float val;
@@ -271,13 +288,13 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsFloat(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsFloat32.find(val);
         if (compressedBitmap == m_compressedBitmapsFloat32.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsFloat32[val] = bm;
         } else {
           compressedBitmap->second->Add(documentID);
         }
-        break;        
+        break;
       }
       case FieldType::BASE_TYPE_DOUBLE: {
         double val;
@@ -285,13 +302,13 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetScalarValueAsDouble(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsDouble.find(val);
         if (compressedBitmap == m_compressedBitmapsDouble.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsDouble[val] = bm;
         } else {
           compressedBitmap->second->Add(documentID);
         }
-        break;        
+        break;
       }
       case FieldType::BASE_TYPE_STRING: {
         char* val;
@@ -300,7 +317,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         subDoc->GetStringValue(m_fieldNameTokens.back().c_str(), val);
         auto compressedBitmap = m_compressedBitmapsString.find(val);
         if (compressedBitmap == m_compressedBitmapsString.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          auto bm = shared_ptr < MamaJenniesBitmap > (new MamaJenniesBitmap());
           bm->Add(documentID);
           m_compressedBitmapsString[val] = bm;
         } else {
@@ -315,26 +332,36 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   }
 
  private:
-  EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo, const FieldType& fieldType, std::vector<std::string>& fieldNameTokens)
-    : m_indexInfo(indexInfo), m_fieldType(fieldType), m_fieldNameTokens(fieldNameTokens) {
+  EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo,
+                              const FieldType& fieldType,
+                              std::vector<std::string>& fieldNameTokens)
+      : m_indexInfo(indexInfo),
+        m_fieldType(fieldType),
+        m_fieldNameTokens(fieldNameTokens) {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::BASE_TYPE_INT8 || fieldType == FieldType::BASE_TYPE_INT16 ||
-      fieldType == FieldType::BASE_TYPE_INT32 || fieldType == FieldType::BASE_TYPE_INT64 ||
-      fieldType == FieldType::BASE_TYPE_UINT8 || fieldType == FieldType::BASE_TYPE_UINT16 ||
-      fieldType == FieldType::BASE_TYPE_UINT32 || fieldType == FieldType::BASE_TYPE_UINT64 ||
-      fieldType == FieldType::BASE_TYPE_FLOAT32 || fieldType == FieldType::BASE_TYPE_DOUBLE ||
-      fieldType == FieldType::BASE_TYPE_STRING);
+    return (fieldType == FieldType::BASE_TYPE_INT8
+        || fieldType == FieldType::BASE_TYPE_INT16
+        || fieldType == FieldType::BASE_TYPE_INT32
+        || fieldType == FieldType::BASE_TYPE_INT64
+        || fieldType == FieldType::BASE_TYPE_UINT8
+        || fieldType == FieldType::BASE_TYPE_UINT16
+        || fieldType == FieldType::BASE_TYPE_UINT32
+        || fieldType == FieldType::BASE_TYPE_UINT64
+        || fieldType == FieldType::BASE_TYPE_FLOAT32
+        || fieldType == FieldType::BASE_TYPE_DOUBLE
+        || fieldType == FieldType::BASE_TYPE_STRING);
   }
 
-  Status GetSubDocumentRecursively(const Document& parentDoc, Document*& subDoc) {
+  Status GetSubDocumentRecursively(const Document& parentDoc,
+                                   Document*& subDoc) {
     Document* doc = nullptr;
     Status sts = parentDoc.AllocateSubDocument(doc);
     if (!sts.OK()) {
       return sts;
     }
-    
+
     for (size_t i = 0; i < m_fieldNameTokens.size() - 1; i++) {
       if (i == 0) {
         sts = parentDoc.GetDocumentValue(m_fieldNameTokens[i].c_str(), doc);

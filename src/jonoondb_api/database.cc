@@ -35,7 +35,8 @@ Status Database::CreateCollection(const char* name, SchemaType schemaType,
                                           indexesLength);
 }
 
-Status Database::Insert(const char* collectionName, const Buffer& documentData) {
+Status Database::Insert(const char* collectionName,
+                        const Buffer& documentData) {
   return m_databaseImpl->Insert(collectionName, documentData);
 }
 

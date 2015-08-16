@@ -4,13 +4,13 @@
 
 namespace jonoondb_api {
 class FieldNameParser {
-public:
+ public:
   FieldNameParser(const char* fieldName);
   bool MoveNext();
   const char* GetCurrentFieldName();
   bool IsCurrentFieldOfTypeVector();
 
-private:
+ private:
   std::string m_fieldName;
 };
-} // jonoondb_api
+}  // jonoondb_api
