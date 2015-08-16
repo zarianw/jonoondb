@@ -12,6 +12,7 @@
 #include "buffer.h"
 #include "schemas/flatbuffers/tweet_generated.h"
 #include "document_schema_factory.h"
+#include "document_schema.h"
 
 using namespace std;
 using namespace flatbuffers;

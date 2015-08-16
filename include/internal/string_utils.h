@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <cstring>
+#include <vector>
 #include <boost/tokenizer.hpp>
 
 namespace jonoondb_api {

@@ -4,6 +4,8 @@
 #include <memory>
 #include <cstdint>
 #include <sstream>
+#include <vector>
+#include <string>
 #include "indexer.h"
 #include "index_info.h"
 #include "status.h"
@@ -16,7 +18,7 @@ namespace jonoondb_api {
 
 class EWAHCompressedBitmapIndexer final : public Indexer {
  public:
-  static Status Construct(const IndexInfo& indexInfo, FieldType fieldType,
+  static Status Construct(const IndexInfo& indexInfo, const FieldType& fieldType,
     EWAHCompressedBitmapIndexer*& obj) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
@@ -38,8 +40,8 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
       return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.length());
     }
 
-    obj = new EWAHCompressedBitmapIndexer(indexInfo, fieldType,
-      StringUtils::Split(indexInfo.GetColumn(0), "."));
+    std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumn(0), ".");
+    obj = new EWAHCompressedBitmapIndexer(indexInfo, fieldType, tokens);
     return Status();     
   }
   
@@ -313,7 +315,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   }
 
  private:
-  EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo, FieldType fieldType, std::vector<std::string>& fieldNameTokens)
+  EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo, const FieldType& fieldType, std::vector<std::string>& fieldNameTokens)
     : m_indexInfo(indexInfo), m_fieldType(fieldType), m_fieldNameTokens(fieldNameTokens) {
   }
 
