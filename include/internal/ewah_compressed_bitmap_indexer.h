@@ -14,7 +14,6 @@
 
 namespace jonoondb_api {
 
-template<typename T>
 class EWAHCompressedBitmapIndexer final : public Indexer {
  public:
   static Status Construct(const IndexInfo& indexInfo, FieldType fieldType,
@@ -352,7 +351,6 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   IndexInfo m_indexInfo;
   FieldType m_fieldType;
   std::vector<std::string> m_fieldNameTokens;
-  std::map<T, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
   std::map<std::uint8_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUInt8;
   std::map<std::uint16_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUInt16;
   std::map<std::uint32_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUInt32;
