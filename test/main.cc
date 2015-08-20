@@ -15,7 +15,6 @@
 #include "enums.h"
 #include "schemas/flatbuffers/tweet_generated.h"
 
-
 using namespace std;
 using namespace boost::filesystem;
 using namespace jonoondb_test;
@@ -27,9 +26,9 @@ string g_TestRootDirectory;
 string g_SchemaFilePath;
 
 string ReadTextFile(const char* path) {
-  std::ifstream ifs(path);// "test/schemas/flatbuffers/tweet.fbs");
+  std::ifstream ifs(path);  // "test/schemas/flatbuffers/tweet.fbs");
   std::string schema((std::istreambuf_iterator<char>(ifs)),
-    (std::istreambuf_iterator<char>()));
+                     (std::istreambuf_iterator<char>()));
 
   return schema;
 }
@@ -54,7 +53,7 @@ Status GetTweetObject(Buffer& buffer) {
     }
   }
 
-  return buffer.Copy((char*)fbb.GetBufferPointer(), size);
+  return buffer.Copy((char*) fbb.GetBufferPointer(), size);
 }
 
 void RemoveAndCreateFile(const char* path, size_t fileSize) {

@@ -255,11 +255,9 @@ TEST(Buffer, Buffer_Copy_Bytes) {
   ASSERT_TRUE(buffer1.GetCapacity() == originalCapacity);
   ASSERT_TRUE(buffer1.GetLength() == str.length());
 
+  ASSERT_TRUE(memcmp(buffer1.GetData(), str.data(), buffer1.GetLength()) == 0);
   ASSERT_TRUE(
-      memcmp(buffer1.GetData(), str.data(), buffer1.GetCapacity()) == 0);
-  ASSERT_TRUE(
-      memcmp(buffer1.GetDataForWrite(), str.data(), buffer1.GetCapacity())
-          == 0);
+      memcmp(buffer1.GetDataForWrite(), str.data(), buffer1.GetLength()) == 0);
 
   //Now do a copy for strLong
   ASSERT_TRUE(

@@ -25,6 +25,7 @@ const char kStatusCollectionAlreadyExistCode = 15;
 const char kStatusIndexAlreadyExistCode = 16;
 const char kStatusCollectionNotFoundCode = 17;
 const char kStatusSchemaParseErrorCode = 18;
+const char kStatusIndexOutOfBoundErrorCode = 19;
 
 const char kStatusSQLiteErrorCode = 101;
 }
@@ -249,7 +250,8 @@ bool Status::IndexAlreadyExist() const {
 bool Status::CollectionNotFound() const {
   if (m_statusData != nullptr) {
     // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusCollectionNotFoundCode, 1)) {
+    if (!memcmp(m_statusData + sizeof(size_t), &kStatusCollectionNotFoundCode,
+                1)) {
       return true;
     }
   }
@@ -260,7 +262,20 @@ bool Status::CollectionNotFound() const {
 bool Status::SchemaParseError() const {
   if (m_statusData != nullptr) {
     // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusSchemaParseErrorCode, 1)) {
+    if (!memcmp(m_statusData + sizeof(size_t), &kStatusSchemaParseErrorCode,
+                1)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Status::IndexOutOfBound() const {
+  if (m_statusData != nullptr) {
+    // Read Code
+    if (!memcmp(m_statusData + sizeof(size_t), &kStatusIndexOutOfBoundErrorCode,
+                1)) {
       return true;
     }
   }
