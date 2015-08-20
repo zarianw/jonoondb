@@ -28,7 +28,7 @@ Boost = D:/software/boost_1_56_0/64bit, GoogleTest = E:/code/gtest-1.7.0
 You are all set to clone and build JonoonDB. Using cmake you can generate project files for Visual Studio, Eclipse CDT and other IDEs. After that you can build using your IDE of choice. Execute the commands given below to clone and generate the solution file for VS 2013:
 
 ```sh
-git clone https://github.com/zarianw/jonoondb.git jonoondb
+git clone https://<your_username>@bitbucket.org/zarianw/jonoondb.git
 cd jonoondb/
 cmake -G "Visual Studio 12 Win64" -DGTEST_PATH=E:/code/gtest-1.7.0 -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/software/boost_1_56_0/64bit
 ```
