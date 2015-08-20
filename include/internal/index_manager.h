@@ -23,7 +23,7 @@ class IndexManager {
   IndexManager*& indexManager);
   Status CreateIndex(const IndexInfo& indexInfo,
   std::unordered_map<std::string, FieldType>& columnTypes);
-  Status IndexDocument(const Document& document);
+  Status IndexDocument(std::uint64_t documentID, const Document& document);
 private:
   std::unique_ptr<std::vector<std::unique_ptr<Indexer>>> m_indexers;
 };

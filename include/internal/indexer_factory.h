@@ -16,8 +16,7 @@ class IndexerFactory {
  public:
   static Status CreateIndexer(
       const IndexInfo& indexInfo,
-      std::unordered_map<std::string, FieldType>& fieldName,
-      Indexer*& indexer);
+      std::unordered_map<std::string, FieldType>& fieldName, Indexer*& indexer);
  private:
   IndexerFactory() = delete;
   IndexerFactory(const IndexerFactory&) = delete;

@@ -12,9 +12,9 @@ class FlatbuffersDocumentSchema;
 
 class FlatbuffersDocument final : public Document {
  public:
-   static Status Construct(const std::shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
-                          const Buffer& buffer,
-                          FlatbuffersDocument*& flatbuffersDocument);
+  static Status Construct(
+      const std::shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
+      const Buffer& buffer, FlatbuffersDocument*& flatbuffersDocument);
 
   Status GetScalarValueAsInt8(const char* fieldName, int8_t& val) const
       override;
