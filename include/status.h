@@ -12,6 +12,7 @@ class Status {
   ~Status();
   Status& operator=(Status&& other);
   Status& operator=(const Status& other);
+  bool operator!();
   const char* c_str() const;
   bool OK() const;
   bool GenericError() const;

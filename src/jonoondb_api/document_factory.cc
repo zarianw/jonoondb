@@ -9,12 +9,12 @@ using namespace std;
 using namespace jonoondb_api;
 
 Status DocumentFactory::CreateDocument(
-    const shared_ptr<DocumentSchema> documentSchema, const Buffer& buffer,
+    const shared_ptr<DocumentSchema>& documentSchema, const Buffer& buffer,
     Document*& document) {
   Status sts;
   switch (documentSchema->GetSchemaType()) {
     case SchemaType::FLAT_BUFFERS: {
-      shared_ptr<FlatbuffersDocumentSchema> fbDocSchema = dynamic_pointer_cast
+      shared_ptr<FlatbuffersDocumentSchema>& fbDocSchema = dynamic_pointer_cast
           < FlatbuffersDocumentSchema > (documentSchema);
       if (!fbDocSchema) {
         // This means that the passed in doc cannot be casted to FlatbuffersDocument    

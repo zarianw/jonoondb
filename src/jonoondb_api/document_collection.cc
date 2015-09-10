@@ -19,10 +19,11 @@
 using namespace jonoondb_api;
 using namespace std;
 
-DocumentCollection::DocumentCollection(
+DocumentCollection::DocumentCollection(const char* name,
     sqlite3* dbConnection, unique_ptr<IndexManager> indexManager,
     shared_ptr<DocumentSchema> documentSchema)
-    : m_dbConnection(dbConnection),
+    : m_name(name),
+      m_dbConnection(dbConnection),
       m_indexManager(move(indexManager)),
       m_documentSchema(documentSchema) {
 }
@@ -48,6 +49,12 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
     errorMessage = "Argument databaseMetadataFilePath is null or empty.";
     return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
                   (int32_t) errorMessage.length());
+  }
+
+  if (StringUtils::IsNullOrEmpty(name)) {
+    errorMessage = "Argument name is null or empty.";
+    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
+      (int32_t)errorMessage.length());
   }
 
   // databaseMetadataFile should exist and all the tables should exist in it
@@ -94,7 +101,8 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   }
 
   unique_ptr<IndexManager> indexManagerUniquePtr(indexManager);
-  documentCollection = new DocumentCollection(dbConnectionUniquePtr.release(),
+  documentCollection = new DocumentCollection(name,
+                                              dbConnectionUniquePtr.release(),
                                               move(indexManagerUniquePtr),
                                               move(documentSchemaPtr));
   return sts;
@@ -117,6 +125,14 @@ Status DocumentCollection::Insert(const Buffer& documentData) {
   }
 
   return sts;
+}
+
+const std::string& DocumentCollection::GetName() {
+  return m_name;
+}
+
+const std::shared_ptr<DocumentSchema>& DocumentCollection::GetDocumentSchema() {
+  return m_documentSchema;
 }
 
 Status DocumentCollection::PopulateColumnTypes(

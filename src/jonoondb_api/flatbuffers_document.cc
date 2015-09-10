@@ -9,7 +9,7 @@ using namespace jonoondb_api;
 using namespace flatbuffers;
 
 Status FlatbuffersDocument::Construct(
-    const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
+    const shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema,
     const Buffer& buffer, FlatbuffersDocument*& flatbuffersDocument) {
 
   Table* table = const_cast<Table*>(flatbuffers::GetRoot<Table>(

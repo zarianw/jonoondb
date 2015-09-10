@@ -1,11 +1,11 @@
 #pragma once
-
 #include <memory>
 #include <unordered_map>
 #include <string>
 #include <cstdint>
 #include "database_metadata_manager.h"
 #include "document_collection.h"
+#include "query_processor.h"
 
 namespace jonoondb_api {
 //Forward Declarations
@@ -28,10 +28,11 @@ class DatabaseImpl {
 
  private:
   DatabaseImpl(
-      std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager);
+      std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager,
+      std::unique_ptr<QueryProcessor> queryProcessor);
   std::unique_ptr<DatabaseMetadataManager> m_dbMetadataMgrImpl;
-  std::unordered_map<std::string, std::unique_ptr<DocumentCollection>> m_collectionContainer;
-
+  std::unordered_map<std::string, std::shared_ptr<DocumentCollection>> m_collectionContainer;
+  std::unique_ptr<QueryProcessor> m_queryProcessor;
 };
 
 }  // jonoondb_api

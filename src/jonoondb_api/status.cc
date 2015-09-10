@@ -67,6 +67,11 @@ Status::Status(const char code, const char* message,
   memcpy(m_statusData + sizetLengthInBytes + 1, message, messageLength + 1);
 }
 
+Status::~Status() {
+  delete m_statusData;
+  m_statusData = nullptr;
+}
+
 Status& Status::operator=(Status&& other) {
   if (this != &other) {
     m_statusData = other.m_statusData;
@@ -94,9 +99,8 @@ Status& Status::operator=(const Status& other) {
   return *this;
 }
 
-Status::~Status() {
-  delete m_statusData;
-  m_statusData = nullptr;
+bool Status::operator!() {
+  return !OK();
 }
 
 bool Status::OK() const {
