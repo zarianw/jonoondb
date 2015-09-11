@@ -14,7 +14,7 @@ Status DocumentFactory::CreateDocument(
   Status sts;
   switch (documentSchema->GetSchemaType()) {
     case SchemaType::FLAT_BUFFERS: {
-      shared_ptr<FlatbuffersDocumentSchema>& fbDocSchema = dynamic_pointer_cast
+      auto fbDocSchema = dynamic_pointer_cast
           < FlatbuffersDocumentSchema > (documentSchema);
       if (!fbDocSchema) {
         // This means that the passed in doc cannot be casted to FlatbuffersDocument    
