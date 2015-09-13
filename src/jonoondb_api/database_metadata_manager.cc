@@ -51,13 +51,8 @@ Status DatabaseMetadataManager::Initialize() {
 
   int sqliteCode = sqlite3_open(pathObj.string().c_str(),
                                 &m_metadataDBConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
-
-  if (sqliteCode != SQLITE_OK) {
-    errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusFailedToOpenMetadataDatabaseFileCode,
-                  errorMessage.c_str(), errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   auto status = CreateTables();
   if (!status.OK()) {
@@ -74,33 +69,19 @@ Status DatabaseMetadataManager::CreateTables() {
   int sqliteCode = 0;
   sqliteCode = sqlite3_exec(m_metadataDBConnection,
                             "PRAGMA synchronous = FULL;", 0, 0, 0);
-
-  if (sqliteCode != SQLITE_OK) {
-    string errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(),
-                  errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   sqliteCode = sqlite3_exec(m_metadataDBConnection,
                             "PRAGMA journal_mode = WAL;", 0, 0, 0);
-  if (sqliteCode != SQLITE_OK) {
-    string errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(),
-                  errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   sqliteCode = sqlite3_busy_handler(m_metadataDBConnection,
                                     SQLiteUtils::SQLiteGenericBusyHandler,
                                     nullptr);
-
-  if (sqliteCode != SQLITE_OK) {
-    string errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(),
-                  errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   // Create the necessary tables if they do not exist
   string sql =
@@ -139,12 +120,8 @@ Status DatabaseMetadataManager::PrepareStatements() {
           0  // Pointer to unused portion of stmt
           );
 
-  if (sqliteCode != SQLITE_OK) {
-    std::string errorMessage =
-        ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(),
-                  errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   sqliteCode =
       sqlite3_prepare_v2(
@@ -155,12 +132,8 @@ Status DatabaseMetadataManager::PrepareStatements() {
           0  // Pointer to unused portion of stmt
           );
 
-  if (sqliteCode != SQLITE_OK) {
-    std::string errorMessage =
-        ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMessage.c_str(),
-                  errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   return Status();
 }
@@ -203,61 +176,74 @@ Status DatabaseMetadataManager::AddCollection(const char* name,
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
   unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
+  
 
-  int sqliteCode = sqlite3_bind_text(m_insertCollectionSchemaStmt, 1,  // Index of wildcard
+  // 1. Prepare stmt to add data in CollectionSchema table
+  int code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 1,  // Index of wildcard
                                      name,  // CollectionName
                                      -1,  // length of the string is the number of bytes up to the first zero terminator
                                      SQLITE_STATIC);
 
-  if (sqliteCode != SQLITE_OK) {
-    std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
-  }
+  if (code != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);    
 
-  sqliteCode = sqlite3_bind_text(m_insertCollectionSchemaStmt, 2,  // Index of wildcard
+  code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 2,  // Index of wildcard
                                  schema,  // CollectionSchema
                                  -1,  // length of the string is the number of bytes up to the first zero terminator
                                  SQLITE_STATIC);
+  if (code != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
 
-  if (sqliteCode != SQLITE_OK) {
-    std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
-  }
-
-  sqliteCode = sqlite3_bind_int(m_insertCollectionSchemaStmt, 3,  // Index of wildcard
+  code = sqlite3_bind_int(m_insertCollectionSchemaStmt, 3,  // Index of wildcard
                                 static_cast<int>(schemaType));
+  if (code != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
 
-  if (sqliteCode != SQLITE_OK) {
-    std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
-  }
+  // 2. Start Transaction before issuing insert
+  code = sqlite3_exec(m_metadataDBConnection, "BEGIN", 0, 0, 0);
+  if (code != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
 
-  //Now insert the record
-  sqliteCode = sqlite3_step(m_insertCollectionSchemaStmt);
-  if (sqliteCode != SQLITE_DONE) {
-    if (sqliteCode == SQLITE_CONSTRAINT) {
+  code = sqlite3_step(m_insertCollectionSchemaStmt);
+  if (code != SQLITE_DONE) {
+    if (code == SQLITE_CONSTRAINT) {
       //Key already exists
       ostringstream ss;
       ss << "Collection with name \"" << name << "\" already exists.";
       std::string errorMsg = ss.str();
+      sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
       return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(),
                     errorMsg.length());
     } else {
-      std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-          sqliteCode);
-      return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+      sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
+      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
     }
   }
 
-  // Add all the collection indexes
+  // 3. Add all the collection indexes
+  Status sts;
   for (int i = 0; i < indexesLength; i++) {
-    CreateIndex(name, indexes[i]);
+    sts = CreateIndex(name, indexes[i]);
+    if (!sts) break;
   }
 
-  return Status();
+  //4. Commit or Rollback the transaction based on status of inserts
+  if (!sts) {
+    sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);    
+  } else {
+    code = sqlite3_exec(m_metadataDBConnection, "COMMIT", 0, 0, 0);
+    if (code != SQLITE_OK) {
+      // Comment copied from sqlite documentation. It is recommended that
+      // applications respond to the errors listed above by explicitly issuing
+      // a ROLLBACK command.If the transaction has already been rolled back
+      // automatically by the error response, then the ROLLBACK command will
+      // fail with an error, but no harm is caused by this.
+      sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
+      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+    }    
+  }
+
+  return sts;
 }
 
 Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
@@ -268,22 +254,14 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
   int sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 1,  // Index of wildcard
                                      indexInfo.GetName(), -1,  // length of the string is the number of bytes up to the first zero terminator
                                      SQLITE_STATIC);
-
-  if (sqliteCode != SQLITE_OK) {
-    std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 2,  // Index of wildcard
                                  collectionName, -1,  // length of the string is the number of bytes up to the first zero terminator
                                  SQLITE_STATIC);
-
-  if (sqliteCode != SQLITE_OK) {
-    std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   Buffer buffer;
   auto status = SerializerUtils::IndexInfoToBytes(indexInfo, buffer);
@@ -294,12 +272,8 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
   sqliteCode = sqlite3_bind_blob(m_insertCollectionIndexStmt, 3,  // Index of wildcard
                                  buffer.GetData(), buffer.GetLength(),
                                  SQLITE_STATIC);
-
-  if (sqliteCode != SQLITE_OK) {
-    std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   //Now insert the record
   sqliteCode = sqlite3_step(m_insertCollectionIndexStmt);
@@ -310,9 +284,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
       return Status(kStatusIndexAlreadyExistCode, errorMsg.c_str(),
                     errorMsg.length());
     } else {
-      std::string errorMsg = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-          sqliteCode);
-      return Status(kStatusSQLiteErrorCode, errorMsg.c_str(), errorMsg.length());
+      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
     }
   }
 

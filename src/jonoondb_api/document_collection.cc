@@ -69,13 +69,8 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   std::unique_ptr<sqlite3, int (*)(sqlite3*)> dbConnectionUniquePtr(
       dbConnection, sqlite3_close);
 
-  if (sqliteCode != SQLITE_OK) {
-    errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    SQLiteUtils::CloseSQLiteConnection(dbConnection);
-    return Status(kStatusFailedToOpenMetadataDatabaseFileCode,
-                  errorMessage.c_str(), errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   IndexManager* indexManager;
   unordered_map<string, FieldType> columnTypes;

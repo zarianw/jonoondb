@@ -3,15 +3,11 @@
 #include <string>
 #include <sstream>
 #include "sqlite3.h"
+#include "status.h"
 
 namespace jonoondb_api {
 class ExceptionUtils {
  public:
-
-  static std::string GetSQLiteErrorFromSQLiteErrorCode(int errorCode) {
-    std::string sqliteErrorMsg = sqlite3_errstr(errorCode);  //Memory for sqliteError is managed internally by sqlite
-    return sqliteErrorMsg;
-  }
 
   static Status GetSQLiteErrorStatusFromSQLiteErrorCode(int errorCode) {
     std::string sqliteErrorMsg = sqlite3_errstr(errorCode);  //Memory for sqliteError is managed internally by sqlite
