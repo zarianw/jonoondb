@@ -103,7 +103,7 @@ Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes,
                                       bufferCapacityInBytes, StandardDelete);
       } catch (bad_alloc) {
         if (data != nullptr) {
-          delete data;
+          delete[] data;
         }
         // Memory allocation failed
         string errorMsg = "Memory allocation failed.";
@@ -139,7 +139,7 @@ Status Buffer::Copy(const char* buffer, size_t bytesToCopy) {
                                       StandardDelete);
       } catch (bad_alloc) {
         if (data != nullptr) {
-          delete data;
+          delete[] data;
         }
         // Memory allocation failed
         string errorMsg = "Memory allocation failed.";
