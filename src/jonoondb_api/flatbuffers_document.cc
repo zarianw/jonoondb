@@ -172,7 +172,7 @@ Status FlatbuffersDocument::AllocateSubDocument(Document*& doc) const {
     doc = new FlatbuffersDocument(
         m_fbDcumentSchema,
         move(unique_ptr < DynamicTableReader > (new DynamicTableReader())));
-  } catch (bad_alloc) {
+  } catch (bad_alloc&) {
     // Memory allocation failed
     string errorMsg = "Memory allocation failed.";
     return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
