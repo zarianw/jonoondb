@@ -12,7 +12,7 @@ class ExceptionUtils {
   static Status GetSQLiteErrorStatusFromSQLiteErrorCode(int errorCode) {
     std::string sqliteErrorMsg = sqlite3_errstr(errorCode);  //Memory for sqliteError is managed internally by sqlite
     return Status(kStatusSQLiteErrorCode, sqliteErrorMsg.c_str(),
-                  sqliteErrorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   static Status GetMissingFieldErrorStatus(const char* fieldName) {
@@ -20,7 +20,7 @@ class ExceptionUtils {
     ss << "Field definition for " << fieldName
        << " not found in the parsed schema.";
     std::string errorMsg = ss.str();
-    return Status(kStatusGenericErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusGenericErrorCode, errorMsg.c_str(), __FILE__, "", __LINE__);
   }
 
   static Status GetInvalidStructFieldErrorStatus(const char* fieldName,
@@ -29,7 +29,7 @@ class ExceptionUtils {
     ss << "Field " << fieldName
        << " is not of type struct. Full name provided was " << fullName;
     std::string errorMsg = ss.str();
-    return Status(kStatusGenericErrorCode, errorMsg.c_str(), errorMsg.length());
+    return Status(kStatusGenericErrorCode, errorMsg.c_str(), __FILE__, "", __LINE__);
   }
 };
 }  // namespace jonoondb_api

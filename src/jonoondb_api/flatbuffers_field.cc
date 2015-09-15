@@ -31,13 +31,13 @@ Status FlatbuffersField::GetSubField(size_t index, Field*& field) const {
         "implementation i.e. FlatbuffersField. "
         "Make sure you are creating the val by calling AllocateField call.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   if (index > GetSubFieldCount() - 1 || index < 0) {
     string errorMsg = "Index was outside the bounds of the array.";
     return Status(kStatusIndexOutOfBoundErrorCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   fbField->SetFieldDef(m_fieldDef->value.type.struct_def->fields.vec[index]);
@@ -51,7 +51,7 @@ Status FlatbuffersField::AllocateField(Field*& field) const {
     // Memory allocation failed
     string errorMsg = "Memory allocation failed.";
     return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   return Status();

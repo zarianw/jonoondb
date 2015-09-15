@@ -32,7 +32,7 @@ Status FlatbuffersDocumentSchema::Construct(
   if (StringUtils::IsNullOrEmpty(schemaText)) {
     string errorMsg = "Argument schemaText is null or empty.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   unique_ptr<Parser> parser(new Parser());
@@ -42,7 +42,7 @@ Status FlatbuffersDocumentSchema::Construct(
        << schemaText;
     string errorMsg = ss.str();
     return Status(kStatusSchemaParseErrorCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   documentSchema = new FlatbuffersDocumentSchema(schemaText, schemaType,
@@ -64,7 +64,7 @@ Status FlatbuffersDocumentSchema::GetFieldType(const char* fieldName,
   if (StringUtils::IsNullOrEmpty(fieldName)) {
     string errorMsg = "Argument fieldName is null or empty.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   char_separator<char> sep(".");
@@ -111,13 +111,13 @@ Status FlatbuffersDocumentSchema::GetRootField(size_t index,
         "implementation i.e. FlatbuffersField. "
         "Make sure you are creating the val by calling AllocateField call.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   if (index > GetRootFieldCount() - 1 || index < 0) {
     string errorMsg = "Index was outside the bounds of the array.";
     return Status(kStatusIndexOutOfBoundErrorCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   fbField->SetFieldDef(m_parser->root_struct_def->fields.vec[index]);
@@ -131,7 +131,7 @@ Status FlatbuffersDocumentSchema::AllocateField(Field*& field) const {
     // Memory allocation failed
     string errorMsg = "Memory allocation failed.";
     return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   return Status();

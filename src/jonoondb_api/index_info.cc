@@ -60,13 +60,13 @@ Status IndexInfo::Validate() {
   if (StringUtils::IsNullOrEmpty(m_indexInfoData->Name)) {
     errorMessage = "Index name is null or empty.";
     return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   if (m_indexInfoData->Columns.size() < 1) {
     errorMessage = "Index columns should be greater than 0.";
     return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   return Status();
@@ -112,7 +112,8 @@ Status IndexInfo::SetColumn(size_t index, const char* column) {
        << m_indexInfoData->Columns.size();
     ".";
     string errorMsg = ss.str();
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.size());
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), __FILE__, "",
+                  __LINE__);
   }
 
   m_indexInfoData->Columns[index] = column;

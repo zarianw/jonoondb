@@ -24,14 +24,14 @@ class MemoryMappedFile {
       *memoryMappedFile = new MemoryMappedFile(fileName, mode, writeOffset,
                                                asynchronous);
     } catch (boost::interprocess::interprocess_exception& ex) {
-      return Status(kStatusFileIOErrorCode, ex.what(), strlen(ex.what()));
+      return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
     } catch (std::exception& ex) {
-      return Status(kStatusFileIOErrorCode, ex.what(), strlen(ex.what()));
+      return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
     } catch (...) {
       std::string errorMessage =
           "Unexpected error occured while opening mmap file.";
       return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                    errorMessage.length());
+                    __FILE__, "", __LINE__);
     }
 
     return Status();
@@ -65,14 +65,14 @@ class MemoryMappedFile {
    memcpy(destinationAddress, data, length);
    }
    catch (boost::interprocess::interprocess_exception& ex) {
-   return Status(kStatusFileIOErrorCode, ex.what(), strlen(ex.what()));
+   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
    }
    catch (std::exception& ex) {
-   return Status(kStatusFileIOErrorCode, ex.what(), strlen(ex.what()));
+   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
    }
    catch (...) {
    std::string errorMessage = "Unexpected error occured while opening mmap file.";
-   return Status(kStatusGenericErrorCode, errorMessage.c_str(), errorMessage.length());
+   return Status(kStatusGenericErrorCode, errorMessage.c_str(), __FILE__, "", __LINE__);
    }
    }*/
 
@@ -82,14 +82,14 @@ class MemoryMappedFile {
       m_currentWritePosition += length;
       m_currentWriteOffset += length;
     } catch (boost::interprocess::interprocess_exception& ex) {
-      return Status(kStatusFileIOErrorCode, ex.what(), strlen(ex.what()));
+      return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
     } catch (std::exception& ex) {
-      return Status(kStatusFileIOErrorCode, ex.what(), strlen(ex.what()));
+      return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
     } catch (...) {
       std::string errorMessage =
           "Unexpected error occured while opening memory mapped file.";
       return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                    errorMessage.length());
+                    __FILE__, "", __LINE__);
     }
 
     return Status();
@@ -100,7 +100,7 @@ class MemoryMappedFile {
       std::string errorMessage =
           "Unexpected error occured while flushing memory mapped file.";
       return Status(kStatusFileIOErrorCode, errorMessage.c_str(),
-                    errorMessage.length());
+                    __FILE__, "", __LINE__);
     }
 
     return Status();

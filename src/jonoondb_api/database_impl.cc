@@ -70,7 +70,7 @@ Status DatabaseImpl::CreateCollection(const char* name, SchemaType schemaType,
     ss << "Collection with name \"" << name << "\" already exists.";
     std::string errorMsg = ss.str();
     return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(),
-      errorMsg.length());
+      __FILE__, "", __LINE__);
   }
   
   sts = m_queryProcessor->AddCollection(documentCollection);
@@ -97,7 +97,7 @@ Status DatabaseImpl::Insert(const char* collectionName,
     ss << "Collection \"" << collectionName << "\" not found.";
     string errorMsg = ss.str();
     return Status(kStatusCollectionNotFoundCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   // Add data in collection

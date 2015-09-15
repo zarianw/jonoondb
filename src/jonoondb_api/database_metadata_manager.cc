@@ -46,7 +46,7 @@ Status DatabaseMetadataManager::Initialize() {
 
   if (!boost::filesystem::exists(pathObj) && !m_createDBIfMissing) {
     return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   int sqliteCode = sqlite3_open(pathObj.string().c_str(),
@@ -147,13 +147,13 @@ Status DatabaseMetadataManager::Open(
   if (StringUtils::IsNullOrEmpty(dbPath)) {
     errorMessage = "Argument dbPath is null or empty.";
     return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
-                  errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   if (StringUtils::IsNullOrEmpty(dbName)) {
     errorMessage = "Argument dbName is null or empty.";
     return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
-                  errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   unique_ptr<DatabaseMetadataManager> dbMetadataManager(
@@ -213,7 +213,7 @@ Status DatabaseMetadataManager::AddCollection(const char* name,
       std::string errorMsg = ss.str();
       sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
       return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(),
-                    errorMsg.length());
+                    __FILE__, "", __LINE__);
     } else {
       sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
       return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
@@ -282,7 +282,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
       //Key already exists
       std::string errorMsg = "Index with the same name already exists.";
       return Status(kStatusIndexAlreadyExistCode, errorMsg.c_str(),
-                    errorMsg.length());
+                    __FILE__, "", __LINE__);
     } else {
       return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
     }

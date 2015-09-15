@@ -22,7 +22,7 @@ Status DocumentFactory::CreateDocument(
             "underlying DocumentSchema implementation i.e. "
             "FlatbuffersDocumentSchema";
         return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                      errorMsg.length());
+                      __FILE__, "", __LINE__);
       }
       FlatbuffersDocument* fbDoc;
       sts = FlatbuffersDocument::Construct(fbDocSchema, buffer, fbDoc);
@@ -35,7 +35,7 @@ Status DocumentFactory::CreateDocument(
     default:
       string errorMsg = "Unknown schema.";
       return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                    errorMsg.length());
+                    __FILE__, "", __LINE__);
   }
 
   return sts;
