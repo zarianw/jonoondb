@@ -3,16 +3,25 @@
 #include <cstddef>
 
 namespace jonoondb_api {
+  // Forward declarations
+struct StatusData;
+
 class Status {
  public:
   Status();
   Status(const Status& other);
   Status(Status&& other);
-  Status(const char code, const char* message, const std::size_t messageLength);
+  Status(std::size_t code, const char* message, const char* srcFileName,
+    const char* funcName, std::size_t lineNum);
   ~Status();
   Status& operator=(Status&& other);
   Status& operator=(const Status& other);
-  const char* c_str() const;
+  bool operator!();
+  std::size_t GetCode() const;
+  const char* GetMessage() const;
+  const char* GetSourceFileName() const;
+  const char* GetFunctionName() const;
+  std::size_t GetLineNumber() const;
   bool OK() const;
   bool GenericError() const;
   bool InvalidArgument() const;
@@ -36,7 +45,7 @@ class Status {
   //Byte 1 to 4: Size of m_statusData
   //Byte 5: Code
   //Byte 6 onwards: Null terminated message string
-  char* m_statusData;
+  StatusData* m_statusData;
 };
 
 extern const char kStatusGenericErrorCode;

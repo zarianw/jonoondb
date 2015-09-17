@@ -42,7 +42,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
 
     if (errorMsg.length() > 0) {
       return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                    errorMsg.length());
+                    __FILE__, "", __LINE__);
     }
 
     std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumn(0),
@@ -161,7 +161,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
            << " is not valid for EWAHCompressedBitmapIndexer.";
         std::string errorMsg = ss.str();
         return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                      errorMsg.length());
+                      __FILE__, "", __LINE__);
       }
     }
   }

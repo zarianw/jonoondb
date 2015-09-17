@@ -9,7 +9,7 @@ using namespace jonoondb_api;
 using namespace flatbuffers;
 
 Status FlatbuffersDocument::Construct(
-    const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
+    const shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema,
     const Buffer& buffer, FlatbuffersDocument*& flatbuffersDocument) {
 
   Table* table = const_cast<Table*>(flatbuffers::GetRoot<Table>(
@@ -154,7 +154,7 @@ Status FlatbuffersDocument::GetDocumentValue(const char* fieldName,
         "implementation i.e. FlatbuffersDocument. "
         "Make sure you are creating the val by calling AllocateDocument call.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
@@ -172,11 +172,11 @@ Status FlatbuffersDocument::AllocateSubDocument(Document*& doc) const {
     doc = new FlatbuffersDocument(
         m_fbDcumentSchema,
         move(unique_ptr < DynamicTableReader > (new DynamicTableReader())));
-  } catch (bad_alloc) {
+  } catch (bad_alloc&) {
     // Memory allocation failed
     string errorMsg = "Memory allocation failed.";
     return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   return Status();
@@ -199,5 +199,5 @@ Status FlatbuffersDocument::GetMissingFieldErrorStatus(
   ss << "Field definition for " << fieldName
      << " not found in the parsed schema.";
   string errorMsg = ss.str();
-  return Status(kStatusGenericErrorCode, errorMsg.c_str(), errorMsg.length());
+  return Status(kStatusGenericErrorCode, errorMsg.c_str(), __FILE__, "", __LINE__);
 }

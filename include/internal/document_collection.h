@@ -31,9 +31,11 @@ class DocumentCollection {
                           DocumentCollection*& documentCollection);
 
   Status Insert(const Buffer& documentData);
+  const std::string& GetName();
+  const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
 
  private:
-  explicit DocumentCollection(sqlite3* dbConnection,
+  explicit DocumentCollection(const char* name, sqlite3* dbConnection,
                               std::unique_ptr<IndexManager> indexManager,
                               std::shared_ptr<DocumentSchema> documentSchema);
   static Status PopulateColumnTypes(
@@ -44,7 +46,7 @@ class DocumentCollection {
   std::unique_ptr<IndexManager> m_indexManager;
   std::shared_ptr<DocumentSchema> m_documentSchema;
   DocumentIDGenerator m_documentIDGenerator;
-
+  std::string m_name;
 };
 }  // namespace jonoondb_api
 

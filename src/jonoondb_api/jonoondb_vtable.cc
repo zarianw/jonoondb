@@ -1,13 +1,23 @@
-#include "sqlite3ext.h"
-SQLITE_EXTENSION_INIT1
-;
-
+#include <cstring>
+#include <string>
+#include <sstream>
 #include <stdlib.h>
 #include <stdio.h>
+#include <memory>
+#include "sqlite3ext.h"
+#include "document_collection_dictionary.h"
+#include "document_collection.h"
+
+
+using namespace jonoondb_api;
+
+SQLITE_EXTENSION_INIT1;
 
 typedef struct jonoondb_vtab_s {
   sqlite3_vtab vtab;
+  std::shared_ptr<DocumentCollection> collection;
 } jonoondb_vtab;
+
 typedef struct jonoondb_cursor_s {
   sqlite3_vtab_cursor cur;
   sqlite_int64 row;
@@ -15,23 +25,52 @@ typedef struct jonoondb_cursor_s {
 
 static int jonoondb_create(sqlite3 *db, void *udp, int argc,
                            const char * const *argv, sqlite3_vtab **vtab,
-                           char **errmsg) {
-  int i;
-  printf("CREATE:\n");
-  for (i = 0; i < argc; i++) {
-    printf("   %2d: %s\n", i, argv[i]);
+                           char **errmsg) {  
+  // Validate arguments
+  if (argc != 4) {
+    std::ostringstream errMessage;
+    errMessage << "jonnondb_vtable needs 4 arguments, but only " << argc << " arguments were provided.";
+    auto str = errMessage.str();
+    *errmsg = (char*)sqlite3_malloc(str.size()+1);
+    std::strncpy(*errmsg, str.c_str(), str.size());
+    return SQLITE_MISUSE;
   }
 
-  jonoondb_vtab *v = NULL;
+  std::string userInput = argv[argc - 1];
+  auto pos = userInput.find("$");
+  if (pos == std::string::npos) {    
+    std::string errMessage = "Delimeter $ not found in the jonnondb_vtable user argument.";
+    *errmsg = (char*)sqlite3_malloc(errMessage.size() + 1);
+    std::strncpy(*errmsg, errMessage.c_str(), errMessage.size());
+    return SQLITE_MISUSE;
+  }  
 
-  v = (jonoondb_vtab*) sqlite3_malloc(sizeof(jonoondb_vtab));
+  std::string key = userInput.substr(0, pos);
+  std::shared_ptr<DocumentCollection> col;  
+  if (!DocumentCollectionDictionary::Instance()->TryGet(key, col)) {
+    std::ostringstream errMessage;
+    errMessage << "jonnondb_vtable could not find collection " << argv[2] << " in the dictionary using key " << key << ".";
+    auto str = errMessage.str();
+    *errmsg = (char*)sqlite3_malloc(str.size() + 1);
+    std::strncpy(*errmsg, str.c_str(), str.size());
+    return SQLITE_MISUSE;
+  }
 
-  if (v == NULL)
+  jonoondb_vtab *v = new jonoondb_vtab();
+  //v = (jonoondb_vtab*) sqlite3_malloc(sizeof(jonoondb_vtab));
+  if (v == nullptr)
     return SQLITE_NOMEM;
-  v->vtab.zErrMsg = NULL;
+  v->collection = col; // set the document collection shared pointer
 
-  sqlite3_declare_vtab(db, argv[argc - 1]);
-  *vtab = (sqlite3_vtab*) v;
+  int code = sqlite3_declare_vtab(db, userInput.c_str() + pos + 1);
+  if (code != SQLITE_OK) {
+    delete v;
+    //sqlite3_free(v);
+    return code;
+  }
+
+  *vtab = (sqlite3_vtab*)v;
+
   return SQLITE_OK;
 }
 
@@ -58,16 +97,14 @@ static int jonoondb_connect(sqlite3 *db, void *udp, int argc,
 }
 
 static int jonoondb_disconnect(sqlite3_vtab *vtab) {
-  printf("DISCONNECT\n");
-
-  sqlite3_free(vtab);
+  delete vtab;
+  //sqlite3_free(vtab);
   return SQLITE_OK;
 }
 
 static int jonoondb_destroy(sqlite3_vtab *vtab) {
-  printf("DESTROY\n");
-
-  sqlite3_free(vtab);
+  delete vtab;
+  //sqlite3_free(vtab);
   return SQLITE_OK;
 }
 
@@ -202,13 +239,13 @@ static int jonoondb_begin(sqlite3_vtab *vtab) {
 }
 
 static int jonoondb_sync(sqlite3_vtab *vtab) {
-  printf("SYNC\n");
+  //printf("SYNC\n");
 
   return SQLITE_OK;
 }
 
 static int jonoondb_commit(sqlite3_vtab *vtab) {
-  printf("COMMIT\n");
+  //printf("COMMIT\n");
 
   return SQLITE_OK;
 }
@@ -253,5 +290,5 @@ jonoondb_rename /* xRename()       */
 int jonoondb_vtable_init(sqlite3 *db, char **error,
                          const sqlite3_api_routines *api) {
   SQLITE_EXTENSION_INIT2(api);
-  return sqlite3_create_module(db, "stub", &jonoondb_mod, NULL);
+  return sqlite3_create_module(db, "jonoondb_vtable", &jonoondb_mod, NULL);
 }

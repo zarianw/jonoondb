@@ -19,10 +19,11 @@
 using namespace jonoondb_api;
 using namespace std;
 
-DocumentCollection::DocumentCollection(
+DocumentCollection::DocumentCollection(const char* name,
     sqlite3* dbConnection, unique_ptr<IndexManager> indexManager,
     shared_ptr<DocumentSchema> documentSchema)
-    : m_dbConnection(dbConnection),
+    : m_name(name),
+      m_dbConnection(dbConnection),
       m_indexManager(move(indexManager)),
       m_documentSchema(documentSchema) {
 }
@@ -47,13 +48,19 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
     errorMessage = "Argument databaseMetadataFilePath is null or empty.";
     return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
+  }
+
+  if (StringUtils::IsNullOrEmpty(name)) {
+    errorMessage = "Argument name is null or empty.";
+    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
+                  __FILE__, "", __LINE__);
   }
 
   // databaseMetadataFile should exist and all the tables should exist in it
   if (!boost::filesystem::exists(databaseMetadataFilePath)) {
     return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   sqlite3* dbConnection = nullptr;
@@ -62,13 +69,8 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   std::unique_ptr<sqlite3, int (*)(sqlite3*)> dbConnectionUniquePtr(
       dbConnection, sqlite3_close);
 
-  if (sqliteCode != SQLITE_OK) {
-    errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    SQLiteUtils::CloseSQLiteConnection(dbConnection);
-    return Status(kStatusFailedToOpenMetadataDatabaseFileCode,
-                  errorMessage.c_str(), errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   IndexManager* indexManager;
   unordered_map<string, FieldType> columnTypes;
@@ -94,7 +96,8 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   }
 
   unique_ptr<IndexManager> indexManagerUniquePtr(indexManager);
-  documentCollection = new DocumentCollection(dbConnectionUniquePtr.release(),
+  documentCollection = new DocumentCollection(name,
+                                              dbConnectionUniquePtr.release(),
                                               move(indexManagerUniquePtr),
                                               move(documentSchemaPtr));
   return sts;
@@ -117,6 +120,14 @@ Status DocumentCollection::Insert(const Buffer& documentData) {
   }
 
   return sts;
+}
+
+const std::string& DocumentCollection::GetName() {
+  return m_name;
+}
+
+const std::shared_ptr<DocumentSchema>& DocumentCollection::GetDocumentSchema() {
+  return m_documentSchema;
 }
 
 Status DocumentCollection::PopulateColumnTypes(
