@@ -81,3 +81,141 @@ TEST(Status, MoveConstructor) {
   ASSERT_STREQ(status.GetMessage(), errorMsg.c_str());
   ASSERT_TRUE(status.InvalidArgument());
 }
+
+TEST(Status, GetFunctionName) {
+  Status sts(kStatusInvalidArgumentCode, "check", __FILE__, "FunctionName",
+            __LINE__);    
+  ASSERT_STREQ("FunctionName", sts.GetFunctionName());
+}
+
+TEST(Status, GetLineNumber) {
+  Status sts(kStatusInvalidArgumentCode, "get", __FILE__, "LineNumber", 86);  
+  ASSERT_EQ(86, sts.GetLineNumber());  
+}
+
+TEST(Status, GenericError) {
+  Status sts(kStatusGenericErrorCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.GenericError());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.GenericError());      
+}
+
+TEST(Status, MissingDatabaseFile) {
+  Status sts(kStatusMissingDatabaseFileCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.MissingDatabaseFile());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.MissingDatabaseFile());
+}
+
+TEST(Status, MissingDatabaseFolder) {
+  Status sts(kStatusMissingDatabaseFolderCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.MissingDatabaseFolder());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.MissingDatabaseFolder());
+}
+
+TEST(Status, InvalidArgument) {
+  Status sts(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.InvalidArgument());
+
+  Status sts2(kStatusInvalidOperationCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.InvalidArgument());
+}
+
+TEST(Status, FailedToOpenMetadataDatabaseFile) {
+  Status sts(kStatusFailedToOpenMetadataDatabaseFileCode, "IS", __FILE__,
+    "OK", __LINE__);
+  ASSERT_TRUE(sts.FailedToOpenMetadataDatabaseFile());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.FailedToOpenMetadataDatabaseFile());
+}
+
+TEST(Status, OutOfMemoryError) {
+  Status sts(kStatusOutOfMemoryErrorCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.OutOfMemoryError());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.OutOfMemoryError());
+}
+
+TEST(Status, DuplicateKeyError) {
+  Status sts(kStatusDuplicateKeyErrorCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.DuplicateKeyError());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.DuplicateKeyError());
+}
+
+TEST(Status, KeyNotFound) {
+  Status sts(kStatusKeyNotFoundCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.KeyNotFound());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.KeyNotFound());
+}
+
+TEST(Status, FileIOError) {
+  Status sts(kStatusFileIOErrorCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.FileIOError());
+  
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.FileIOError());
+}
+
+TEST(Status, APIMisuseError) {
+  Status sts(kStatusAPIMisuseErrorCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.APIMisuseError());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.APIMisuseError());
+}
+
+TEST(Status, CollectionAlreadyExist) {
+  Status sts(kStatusCollectionAlreadyExistCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.CollectionAlreadyExist());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.CollectionAlreadyExist());
+}
+
+TEST(Status, IndexAlreadyExist) {
+  Status sts(kStatusIndexAlreadyExistCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.IndexAlreadyExist());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.IndexAlreadyExist());
+}
+
+TEST(Status, CollectionNotFound) {
+  Status sts(kStatusCollectionNotFoundCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.CollectionNotFound());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.CollectionNotFound());
+}
+
+
+TEST(Status, SchemaParseError) {
+  Status sts(kStatusSchemaParseErrorCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.SchemaParseError());
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.SchemaParseError());
+}
+
+TEST(Status, IndexOutOfBound) {
+  Status sts(kStatusIndexOutOfBoundErrorCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_TRUE(sts.IndexOutOfBound());      
+
+  Status sts2(kStatusInvalidArgumentCode, "IS", __FILE__, "OK", __LINE__);
+  ASSERT_FALSE(sts2.IndexOutOfBound());
+}
+
+
+
+
+
