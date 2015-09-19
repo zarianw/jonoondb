@@ -34,8 +34,8 @@ static const std::string OKStr = "OK";
 struct StatusData {
 public:
   StatusData(size_t cd, const char* msg, const char* flName,
-    const char* fnName, size_t lineNum) : code(cd), message(msg),
-    fileName(flName), funcName(fnName) { }
+    const char* fnName, size_t lNum) : code(cd), message(msg),
+    fileName(flName), funcName(fnName), lineNum(lNum) { }
 
   std::size_t code;
   std::string message;
