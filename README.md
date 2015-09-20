@@ -17,11 +17,9 @@ JonoonDB is available and supported only as a 64bit library. JonoonDB has been t
 
 ### Build 3rd party dependencies
 1. Download Boost version 1.56.0 from [Boost's website](http://www.boost.org). Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Run either .\bootstrap.bat (on Windows), or ./bootstrap.sh (on other operating systems). Next execute the following command to build boost in 64bit.
-
   ```
   b2 install address-model=64 --prefix=64bit
-  
-  ``` 
+  ```
 2. Download and install cmake version 2.8.0 or higher from [cmake's website](http://www.cmake.org/download/). 
 3. Install Google Test version 1.7.0 or higher by following the instructions at [Google Test's website](https://code.google.com/p/googletest/)
 
