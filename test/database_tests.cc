@@ -123,8 +123,8 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   ASSERT_TRUE(db->Close().OK());
 }
 
-TEST(Database, Insert_Single) {
-  string dbName = "Insert_Single";
+TEST(Database, Insert_NoIndex) {
+  string dbName = "Insert_NoIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   Options options;
@@ -145,8 +145,8 @@ TEST(Database, Insert_Single) {
   ASSERT_TRUE(db->Close().OK());
 }
 
-TEST(Database, Insert_Single_Indexed) {
-  string dbName = "Insert_Single_Indexed";
+TEST(Database, Insert_SingleIndex) {
+  string dbName = "Insert_SingleIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   Options options;
