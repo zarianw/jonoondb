@@ -216,6 +216,26 @@ TEST(Status, IndexOutOfBound) {
 }
 
 
+TEST(Status, GetCode) {
+	//test starting with error code 1  and go onward to test all the errors
+	string errorMsg = "Error Message.";
+
+	Status status1(kStatusGenericErrorCode, errorMsg.c_str(),
+		__FILE__, "", __LINE__);
+	ASSERT_EQ(status1.GetCode(), 1);
+	ASSERT_TRUE(status1.GenericError());
 
 
+	Status status2(kStatusInvalidArgumentCode, errorMsg.c_str(),
+		__FILE__, "", __LINE__);
+	ASSERT_EQ(status2.GetCode(), 2);
+	ASSERT_TRUE(status2.InvalidArgument());
+
+
+	Status status3(kStatusMissingDatabaseFileCode, errorMsg.c_str(),
+		__FILE__, "", __LINE__);
+	ASSERT_EQ(status3.GetCode(), 3);
+	ASSERT_TRUE(status3.InvalidArgument());
+
+}
 
