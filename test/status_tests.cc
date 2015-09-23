@@ -257,7 +257,6 @@ TEST(Status, GetMessage) {
   //This is the case where status is OK and returns OK when get message is called i.e. empt contructor
   Status status2;
   ASSERT_STREQ(status2.GetMessage(), "OK");
-
 }
 
 
