@@ -236,16 +236,18 @@ TEST(Status, GetCode){
 
 TEST(Status, NotOperatorOnEmptyConstructor) {
   Status status;
-  ASSERT_FALSE(!status); // on empty params OK is true so the negation will result in false
+  // on empty params OK is true so the negation will result in false
+  ASSERT_FALSE(!status);
 }
 
 TEST(Status, NotOperatorOnNonEmptyConstructor) {
   string errorMsg = "Error Message.";
   Status status(kStatusInvalidArgumentCode, errorMsg.c_str(),
     __FILE__, "", __LINE__);
-  ASSERT_TRUE(!status); // on non empty params OK is false as there is some error, so the negation will return true
+  // on non empty params OK is false as there is some error,
+  // so the negation will return true
+  ASSERT_TRUE(!status);
 }
-
 
 TEST(Status, GetMessage) {
   string errorMsg = "Error Message.";
@@ -254,7 +256,8 @@ TEST(Status, GetMessage) {
     __FILE__, "", __LINE__);
   ASSERT_STREQ(status1.GetMessage(), errorMsg.c_str());
 
-  //This is the case where status is OK and returns OK when get message is called i.e. empt contructor
+  //This is the case where status is OK and returns OK
+  // when get message is called i.e. empty constructor
   Status status2;
   ASSERT_STREQ(status2.GetMessage(), "OK");
 }
@@ -270,5 +273,6 @@ TEST(Status, GetSourceFileNameOnSomeValidData) {
 
 TEST(Status, GetSourceFileNameOnEmptyData) {
   Status status1;
-  ASSERT_STREQ(status1.GetSourceFileName(), ""); // should be empty as m_statusdata is nullptr
+  // should be empty as m_statusdata is nullptr
+  ASSERT_STREQ(status1.GetSourceFileName(), "");
 }
