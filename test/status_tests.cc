@@ -216,6 +216,63 @@ TEST(Status, IndexOutOfBound) {
 }
 
 
+TEST(Status, GetCode){
+  //test starting with error code 1  and go onward to test all the errors
+  string errorMsg = "Error Message.";
+
+  Status status1(kStatusGenericErrorCode, errorMsg.c_str(),
+		__FILE__, "", __LINE__);
+  ASSERT_EQ(status1.GetCode(), kStatusGenericErrorCode);
 
 
+  Status status2(kStatusInvalidArgumentCode, errorMsg.c_str(),
+		__FILE__, "", __LINE__);
+  ASSERT_EQ(status2.GetCode(), kStatusInvalidArgumentCode);
 
+  Status status3(kStatusMissingDatabaseFileCode, errorMsg.c_str(),
+		__FILE__, "", __LINE__);
+  ASSERT_EQ(status3.GetCode(), kStatusMissingDatabaseFileCode);
+}
+
+TEST(Status, NotOperatorOnEmptyConstructor) {
+  Status status;
+  // on empty params OK is true so the negation will result in false
+  ASSERT_FALSE(!status);
+}
+
+TEST(Status, NotOperatorOnNonEmptyConstructor) {
+  string errorMsg = "Error Message.";
+  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+    __FILE__, "", __LINE__);
+  // on non empty params OK is false as there is some error,
+  // so the negation will return true
+  ASSERT_TRUE(!status);
+}
+
+TEST(Status, GetMessage) {
+  string errorMsg = "Error Message.";
+
+  Status status1(kStatusGenericErrorCode, errorMsg.c_str(),
+    __FILE__, "", __LINE__);
+  ASSERT_STREQ(status1.GetMessage(), errorMsg.c_str());
+
+  //This is the case where status is OK and returns OK
+  // when get message is called i.e. empty constructor
+  Status status2;
+  ASSERT_STREQ(status2.GetMessage(), "OK");
+}
+
+TEST(Status, GetSourceFileNameOnSomeValidData) {
+  string errorMsg = "Error Message.";
+  string dummySourceFileName = "/home/user/my/db";
+
+  Status status1(kStatusGenericErrorCode, errorMsg.c_str(),
+    dummySourceFileName.c_str(), "", __LINE__);
+  ASSERT_STREQ(status1.GetSourceFileName(), "/home/user/my/db");
+}
+
+TEST(Status, GetSourceFileNameOnEmptyData) {
+  Status status1;
+  // should be empty as m_statusdata is nullptr
+  ASSERT_STREQ(status1.GetSourceFileName(), "");
+}
