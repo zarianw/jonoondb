@@ -259,8 +259,6 @@ TEST(Status, GetMessage) {
   ASSERT_STREQ(status2.GetMessage(), "OK");
 }
 
-
-
 TEST(Status, GetSourceFileNameOnSomeValidData) {
   string errorMsg = "Error Message.";
   string dummySourceFileName = "/home/user/my/db";
