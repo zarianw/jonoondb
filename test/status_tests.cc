@@ -222,20 +222,74 @@ TEST(Status, GetCode) {
 
 	Status status1(kStatusGenericErrorCode, errorMsg.c_str(),
 		__FILE__, "", __LINE__);
-	ASSERT_EQ(status1.GetCode(), 1);
-	ASSERT_TRUE(status1.GenericError());
+  ASSERT_EQ(status1.GetCode(), kStatusGenericErrorCode);
 
 
 	Status status2(kStatusInvalidArgumentCode, errorMsg.c_str(),
 		__FILE__, "", __LINE__);
-	ASSERT_EQ(status2.GetCode(), 2);
-	ASSERT_TRUE(status2.InvalidArgument());
+  ASSERT_EQ(status2.GetCode(), kStatusInvalidArgumentCode);
 
 
 	Status status3(kStatusMissingDatabaseFileCode, errorMsg.c_str(),
 		__FILE__, "", __LINE__);
-	ASSERT_EQ(status3.GetCode(), 3);
-	ASSERT_TRUE(status3.InvalidArgument());
+  ASSERT_EQ(status3.GetCode(), kStatusMissingDatabaseFileCode);
 
 }
 
+TEST(Status, NotOperatorOnEmptyConstructor) {
+  string errorMsg = "Error Message.";
+  Status status;
+  ASSERT_TRUE(status.OK()); // on empty params OK is true as there is no error
+  ASSERT_FALSE(!status.OK()); // now we are negating the value so it should return false
+}
+
+TEST(Status, NotOperatorOnNonConstructor) {
+  string errorMsg = "Error Message.";
+  Status status(kStatusInvalidArgumentCode, errorMsg.c_str(),
+    __FILE__, "", __LINE__);
+  ASSERT_FALSE(status.OK()); // on non empty params OK is false as there is some error
+  ASSERT_TRUE(!status.OK()); // now we are negating the value so it should return true
+}
+
+
+TEST(Status, GetMessage) {
+  //test starting with error code 1  and go onward to test all the errors
+  string errorMsg = "Error Message.";
+
+  Status status1(kStatusGenericErrorCode, errorMsg.c_str(),
+    __FILE__, "", __LINE__);
+  ASSERT_STREQ(status1.GetMessage(), errorMsg.c_str());
+
+
+  Status status2(kStatusInvalidArgumentCode, errorMsg.c_str(),
+    __FILE__, "", __LINE__);
+  ASSERT_STREQ(status2.GetMessage(), errorMsg.c_str());
+
+  Status status3(kStatusMissingDatabaseFileCode, errorMsg.c_str(),
+    __FILE__, "", __LINE__);
+  ASSERT_STREQ(status3.GetMessage(), errorMsg.c_str());
+
+
+  //This is the case where status is OK and returns OK when get message is called i.e. empt contructor
+  Status status4;
+  ASSERT_STREQ(status4.GetMessage(), "OK");
+
+}
+
+
+
+TEST(Status, GetSourceFileNameOnSomeValidData) {
+  string errorMsg = "Error Message.";
+  string dummySourceFileName = "/home/user/my/db";
+
+  Status status1(kStatusGenericErrorCode, errorMsg.c_str(),
+    dummySourceFileName.c_str(), "", __LINE__);
+  ASSERT_STREQ(status1.GetSourceFileName(), "/home/user/my/db");
+
+}
+
+TEST(Status, GetSourceFileNameOnEmptyData) {
+  Status status1;
+  ASSERT_STREQ(status1.GetSourceFileName(), ""); // should be empty as m_statusdata is nullptr
+
+}
