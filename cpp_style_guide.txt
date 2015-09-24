@@ -10,3 +10,7 @@ We use google's c++ style guide (http://google-styleguide.googlecode.com/svn/tru
 4) Prefer using C++ headers for C functions and types e.g. prefer <cstring> over <string.h>, <cstdint> over <stdint.h> etc.
 
 5) Use #pragma once instead of header guards because all major compilers support that.
+
+6) We do not use exceptions for the following reasons:
+	i)  Exception cannot be propagated across module boundary safely.
+	ii) We can use exceptions internally and catch/return Status object at the module boundary. But this means we need wrapper for all classes that are to used across module boundary. It also means we do not have one consistent way to handle errors. In some places we would be using Status object and exceptions at other places.

@@ -6,6 +6,7 @@
 #include <cstdint>
 #include "index_manager.h"
 #include "document_id_generator.h"
+#include "blob_metadata.h"
 
 // Forward declaration
 struct sqlite3;
@@ -46,6 +47,7 @@ class DocumentCollection {
   std::unique_ptr<IndexManager> m_indexManager;
   std::shared_ptr<DocumentSchema> m_documentSchema;
   DocumentIDGenerator m_documentIDGenerator;
+  std::unordered_map<std::uint64_t, BlobMetadata> m_documentIDMap;
   std::string m_name;
 };
 }  // namespace jonoondb_api

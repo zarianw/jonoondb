@@ -42,7 +42,8 @@ void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
 }
 
 TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
-  string schema = ReadTextFile(g_SchemaFilePath.c_str());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
   Buffer documentData;
   ASSERT_TRUE(GetTweetObject(documentData).OK());
   DocumentSchema* docSchema;
