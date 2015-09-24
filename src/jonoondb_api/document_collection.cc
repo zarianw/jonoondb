@@ -105,19 +105,23 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
   Document* docPtr;
-  Status sts = DocumentFactory::CreateDocument(m_documentSchema, documentData,
+  auto sts = DocumentFactory::CreateDocument(m_documentSchema, documentData,
                                                docPtr);
-  if (!sts.OK()) {
-    return sts;
-  }
-
-  // unique_ptr will ensure that we will release memory even incase of exception.
+  if (!sts) return sts;
+  // unique_ptr will ensure that memory does not leak.
   unique_ptr<Document> doc(docPtr);
-  sts = m_indexManager->IndexDocument(m_documentIDGenerator.ReserveID(1),
-                                      *doc.get());
-  if (!sts.OK()) {
-    return sts;
-  }
+  
+  // Index the document
+  auto id = m_documentIDGenerator.ReserveID(1);
+  sts = m_indexManager->IndexDocument(id, *doc.get());
+  if (!sts) return sts;
+
+  // Add it in the documentID map
+  // Todo: Once we have the blobManager then use the real blobMetadata.
+  BlobMetadata blobMetadata;
+  blobMetadata.fileKey = 1;
+  blobMetadata.offset = 0;
+  m_documentIDMap[id] = blobMetadata;
 
   return sts;
 }
