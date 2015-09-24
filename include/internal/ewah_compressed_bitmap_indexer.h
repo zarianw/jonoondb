@@ -54,120 +54,90 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   ~EWAHCompressedBitmapIndexer() override {
   }
 
-  Status ValidateForInsert(const Document& document) override {
-    Document* subDoc;
-    switch (m_fieldType) {
+  Status CanAccessValue(const Document* subDoc, FieldType fieldType,
+    std::string fieldName) {
+    switch (fieldType) {
       case FieldType::BASE_TYPE_UINT8: {
-        std::uint8_t val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
-        return subDoc->GetScalarValueAsUInt8(m_fieldNameTokens.back().c_str(),
-                                             val);
+        std::uint8_t val;        
+        return subDoc->GetScalarValueAsUInt8(fieldName.c_str(), val);
       }
       case FieldType::BASE_TYPE_UINT16: {
         std::uint16_t val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsUInt16(m_fieldNameTokens.back().c_str(),
-                                              val);
+          val);
       }
       case FieldType::BASE_TYPE_UINT32: {
         std::uint32_t val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsUInt32(m_fieldNameTokens.back().c_str(),
-                                              val);
+          val);
       }
       case FieldType::BASE_TYPE_UINT64: {
         std::uint64_t val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsUInt64(m_fieldNameTokens.back().c_str(),
-                                              val);
+          val);
       }
       case FieldType::BASE_TYPE_INT8: {
         std::int8_t val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsInt8(m_fieldNameTokens.back().c_str(),
-                                            val);
+          val);
       }
       case FieldType::BASE_TYPE_INT16: {
         std::int16_t val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsInt16(m_fieldNameTokens.back().c_str(),
-                                             val);
+          val);
       }
       case FieldType::BASE_TYPE_INT32: {
         std::int32_t val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsInt32(m_fieldNameTokens.back().c_str(),
-                                             val);
+          val);
       }
       case FieldType::BASE_TYPE_INT64: {
         std::int64_t val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsInt64(m_fieldNameTokens.back().c_str(),
-                                             val);
+          val);
       }
       case FieldType::BASE_TYPE_FLOAT32: {
         float val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsFloat(m_fieldNameTokens.back().c_str(),
-                                             val);
+          val);
       }
       case FieldType::BASE_TYPE_DOUBLE: {
         double val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetScalarValueAsDouble(m_fieldNameTokens.back().c_str(),
-                                              val);
+          val);
       }
       case FieldType::BASE_TYPE_STRING: {
         char* val;
-        auto sts = GetSubDocumentRecursively(document, subDoc);
-        if (!sts.OK()) {
-          return sts;
-        }
         return subDoc->GetStringValue(m_fieldNameTokens.back().c_str(), val);
       }
       default: {
         std::ostringstream ss;
         ss << "FieldType " << GetFieldString(m_fieldType)
-           << " is not valid for EWAHCompressedBitmapIndexer.";
+          << " is not valid for EWAHCompressedBitmapIndexer.";
         std::string errorMsg = ss.str();
         return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                      __FILE__, "", __LINE__);
+          __FILE__, "", __LINE__);
       }
     }
   }
 
+  Status ValidateForInsert(const Document& document) override {
+    Document* subDoc;    
+    Status sts;
+    if (m_fieldNameTokens.size() > 1) {
+      sts = GetSubDocumentRecursively(document, subDoc);
+      if (!sts) return sts;
+      sts = CanAccessValue(subDoc, m_fieldType, m_fieldNameTokens.back().c_str());
+      subDoc->Dispose();
+    } else {
+      sts = CanAccessValue(&document, m_fieldType, m_fieldNameTokens.back().c_str());
+    }   
+
+    return sts;
+  }
+
   void Insert(std::uint64_t documentID, const Document& document) override {
-    Document* subDoc;
+    Document* subDoc;   
     switch (m_fieldType) {
       case FieldType::BASE_TYPE_UINT8: {
         std::uint8_t val;

@@ -1,0 +1,38 @@
+namespace jonoondb_test;
+
+table NestedAllFieldType
+{
+  field1:byte;
+  field2:ubyte;
+  field3:bool;
+  field4:short;
+  field5:ushort;
+  field6:int;
+  field7:uint;
+  field8:float;
+  field9:long;
+  field10:ulong;
+  field11:double;
+  field12:string;
+  // field13:[int]; uncomment and update test when we support vectors
+}
+
+table AllFieldType
+{
+  field1:byte;
+  field2:ubyte;
+  field3:bool;
+  field4:short;
+  field5:ushort;
+  field6:int;
+  field7:uint;
+  field8:float;
+  field9:long;
+  field10:ulong;
+  field11:double;
+  field12:string;
+  nestedField:NestedAllFieldType;
+  // field13:[int]; uncomment and update test when we support vectors
+}
+
+root_type AllFieldType;

@@ -9,6 +9,7 @@
 #include "options.h"
 #include "buffer.h"
 #include "schemas/flatbuffers/tweet_generated.h"
+#include "schemas/flatbuffers/all_field_type_generated.h"
 
 using namespace std;
 using namespace flatbuffers;
@@ -95,7 +96,8 @@ TEST(Database, CreateCollection_New) {
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(true);
-  string schema = ReadTextFile(g_SchemaFilePath.c_str());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
   Database* db;
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
@@ -110,7 +112,8 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(true);
-  string schema = ReadTextFile(g_SchemaFilePath.c_str());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
   Database* db;
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
@@ -133,8 +136,8 @@ TEST(Database, Insert_NoIndex) {
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
 
-  string schema = ReadTextFile(g_SchemaFilePath.c_str());
-
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
   sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
                              schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
@@ -155,7 +158,8 @@ TEST(Database, Insert_SingleIndex) {
   auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
   ASSERT_TRUE(sts.OK());
 
-  string schema = ReadTextFile(g_SchemaFilePath.c_str());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
   IndexInfo indexes[1];
   indexes[0].SetName("IndexName1");
   indexes[0].SetType(IndexType::EWAHCompressedBitmap);
@@ -169,6 +173,61 @@ TEST(Database, Insert_SingleIndex) {
 
   Buffer documentData;
   ASSERT_TRUE(GetTweetObject(documentData).OK());
+  ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
+  ASSERT_TRUE(db->Close().OK());
+}
+
+Status GetAllFieldTypeObject(Buffer& buffer) {
+  FlatBufferBuilder fbb;
+  // create nested object
+  auto text1 = fbb.CreateString("Say hello to my little friend!");  
+  auto nestedObj = CreateNestedAllFieldType(fbb, 1, 2, 3, 4, 5, 6, 7, 8.0f, 9,
+                                            10, 11.0, text1);
+  // create parent object
+  auto text2 = fbb.CreateString("Say hello to my little friend!");
+  auto parentObj = CreateAllFieldType(fbb, 1, 2, 3, 4, 5, 6, 7, 8.0f, 9,
+                                      10, 11.0, text2, nestedObj);
+  fbb.Finish(parentObj);
+
+  return buffer.Copy((char*)fbb.GetBufferPointer(), fbb.GetSize());
+}
+
+TEST(Database, Insert_AllIndexTypes) {
+  string dbName = "Insert_AllIndexTypes";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db;
+  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
+  ASSERT_TRUE(sts.OK());
+
+  string filePath = g_SchemaFolderPath + "all_field_type.fbs";
+  string schema = ReadTextFile(filePath.c_str());
+
+  const int indexLength = 24;
+  IndexInfo indexes[indexLength];
+  for (auto i = 0; i < indexLength; i++) {
+    auto indexName = "IndexName_" + std::to_string(i);
+    indexes[i].SetName(indexName.c_str());
+    indexes[i].SetType(IndexType::EWAHCompressedBitmap);
+    indexes[i].SetIsAscending(true);
+    indexes[i].SetColumnsLength(1);
+    string fieldName;
+    if (i < 12) {
+      fieldName = "field" + to_string(i + 1);
+    } else {
+      fieldName = "nestedField.field" + to_string(i - 11);
+    }
+    indexes[i].SetColumn(0, fieldName.c_str());
+  } 
+
+  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+    schema.c_str(), indexes, indexLength);
+  ASSERT_TRUE(sts.OK());
+
+  Buffer documentData;
+  ASSERT_TRUE(GetAllFieldTypeObject(documentData).OK());
   ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
   ASSERT_TRUE(db->Close().OK());
 }

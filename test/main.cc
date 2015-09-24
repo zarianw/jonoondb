@@ -23,7 +23,7 @@ using namespace flatbuffers;
 
 namespace jonoondb_test {
 string g_TestRootDirectory;
-string g_SchemaFilePath;
+string g_SchemaFolderPath;
 
 string ReadTextFile(const char* path) {
   std::ifstream ifs(path);  // "test/schemas/flatbuffers/tweet.fbs");
@@ -91,8 +91,8 @@ int main(int argc, char **argv) {
   tempPath += "/unittests/";
   g_TestRootDirectory = tempPath.generic_string();
   tempPath = current_path();
-  tempPath += "/test/schemas/flatbuffers/tweet.fbs";
-  g_SchemaFilePath = tempPath.generic_string();
+  tempPath += "/test/schemas/flatbuffers/";
+  g_SchemaFolderPath = tempPath.generic_string();
   if (SetUpDirectory(g_TestRootDirectory.c_str())) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
