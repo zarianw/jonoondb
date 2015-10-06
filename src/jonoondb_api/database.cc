@@ -40,3 +40,7 @@ Status Database::Insert(const char* collectionName,
   return m_databaseImpl->Insert(collectionName, documentData);
 }
 
+Status Database::ExecuteSelect(const char* selectStatement, ResultSet*& resultSet) {
+  return m_databaseImpl->ExecuteSelect(selectStatement, resultSet);
+}
+

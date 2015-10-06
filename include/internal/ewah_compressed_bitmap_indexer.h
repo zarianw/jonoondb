@@ -13,6 +13,7 @@
 #include "document.h"
 #include "mama_jennies_bitmap.h"
 #include "exception_utils.h"
+#include "index_stat.h"
 
 namespace jonoondb_api {
 
@@ -46,8 +47,9 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
     }
 
     std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumn(0),
-                                                         ".");
-    obj = new EWAHCompressedBitmapIndexer(indexInfo, fieldType, tokens);
+                                                         ".");    
+    IndexStat indexStat(indexInfo, fieldType);
+    obj = new EWAHCompressedBitmapIndexer(indexStat, tokens);
     return Status();
   }
 
@@ -60,11 +62,12 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
     if (m_fieldNameTokens.size() > 1) {
       sts = GetSubDocumentRecursively(document, subDoc);
       if (!sts) return sts;
-      sts = CanAccessValue(subDoc, m_fieldType, m_fieldNameTokens.back().c_str());
+      sts = CanAccessValue(subDoc, m_indexStat.GetFieldType(), 
+                           m_fieldNameTokens.back().c_str());
       subDoc->Dispose();
     } else {
-      sts = CanAccessValue(&document, m_fieldType, m_fieldNameTokens.back().c_str());
-    }   
+      sts = CanAccessValue(&document, m_indexStat.GetFieldType(),
+                           m_fieldNameTokens.back().c_str());    }   
 
     return sts;
   } 
@@ -81,12 +84,14 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
     }    
   }
 
+  const IndexStat& GetIndexStats() override {
+    return m_indexStat;
+  }
+
  private:
-  EWAHCompressedBitmapIndexer(const IndexInfo& indexInfo,
-                              const FieldType& fieldType,
+  EWAHCompressedBitmapIndexer(const IndexStat& indexStat,                              
                               std::vector<std::string>& fieldNameTokens)
-      : m_indexInfo(indexInfo),
-        m_fieldType(fieldType),
+      : m_indexStat(indexStat),
         m_fieldNameTokens(fieldNameTokens) {
   }
 
@@ -185,7 +190,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
       }
       default: {
         std::ostringstream ss;
-        ss << "FieldType " << GetFieldString(m_fieldType)
+        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
           << " is not valid for EWAHCompressedBitmapIndexer.";
         std::string errorMsg = ss.str();
         return Status(kStatusGenericErrorCode, errorMsg.c_str(),
@@ -195,7 +200,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   }
 
   void InsertInternal(std::uint64_t documentID, const Document* document) {
-    switch (m_fieldType) {
+    switch (m_indexStat.GetFieldType()) {
       case FieldType::BASE_TYPE_UINT8: {
         std::uint8_t val;
         document->GetScalarValueAsUInt8(m_fieldNameTokens.back().c_str(), val);
@@ -345,8 +350,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
     }
   }
 
-  IndexInfo m_indexInfo;
-  FieldType m_fieldType;
+  IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::map<std::uint8_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUInt8;
   std::map<std::uint16_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUInt16;

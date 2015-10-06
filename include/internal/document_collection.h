@@ -17,6 +17,7 @@ class Status;
 class IndexInfo;
 class Buffer;
 class DocumentSchema;
+class IndexStat;
 enum class FieldType
 : std::int32_t;
 enum class SchemaType
@@ -34,6 +35,8 @@ class DocumentCollection {
   Status Insert(const Buffer& documentData);
   const std::string& GetName();
   const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
+  bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
+                       IndexStat& indexStat);
 
  private:
   explicit DocumentCollection(const char* name, sqlite3* dbConnection,

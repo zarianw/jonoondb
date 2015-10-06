@@ -10,11 +10,33 @@
 #include "buffer.h"
 #include "schemas/flatbuffers/tweet_generated.h"
 #include "schemas/flatbuffers/all_field_type_generated.h"
+#include "resultset.h"
 
 using namespace std;
 using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
+
+void CreateInsertTweet(Database* db, std::string& collectionName, bool createIndexes, int numToInsert) {
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
+  IndexInfo indexes[1];
+  indexes[0].SetName("IndexName1");
+  indexes[0].SetType(IndexType::EWAHCompressedBitmap);
+  indexes[0].SetIsAscending(true);
+  indexes[0].SetColumnsLength(1);
+  indexes[0].SetColumn(0, "user.name");
+
+  int indexLength = createIndexes ? 1 : 0;
+
+  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+    schema.c_str(), indexes, indexLength);
+  ASSERT_TRUE(sts.OK());
+
+  Buffer documentData;
+  ASSERT_TRUE(GetTweetObject(documentData).OK());
+  ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
+}
 
 TEST(Database, Open_NullArguments) {
   Options options;
@@ -229,5 +251,68 @@ TEST(Database, Insert_AllIndexTypes) {
   Buffer documentData;
   ASSERT_TRUE(GetAllFieldTypeObject(documentData).OK());
   ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
+  ASSERT_TRUE(db->Close().OK());
+}
+
+TEST(Database, ExecuteSelect_MissingCollection) {
+  string dbName = "ExecuteSelect_MissingCollection";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db;
+  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
+  ASSERT_TRUE(sts.OK());
+
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
+
+  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+    schema.c_str(), nullptr, 0);
+  ASSERT_TRUE(sts.OK());
+
+  ResultSet* rs;
+  sts = db->ExecuteSelect("select * from missingTable where text = 'hello'", rs);
+  ASSERT_FALSE(sts.OK());  
+  ASSERT_TRUE(db->Close().OK());
+}
+
+TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
+  string dbName = "ExecuteSelect_EmptyDB_NoIndex";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db;
+  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
+  ASSERT_TRUE(sts.OK());
+
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
+
+  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+    schema.c_str(), nullptr, 0);
+  ASSERT_TRUE(sts.OK());
+
+  ResultSet* rs;
+  sts = db->ExecuteSelect("select * from tweet where text = 'hello'", rs);
+  ASSERT_TRUE(sts.OK());
+  ASSERT_TRUE(db->Close().OK());
+}
+
+TEST(Database, ExecuteSelect_NonEmptyDB_NoIndex) {
+  string dbName = "ExecuteSelect_NonEmptyDB_NoIndex";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db;
+  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
+  ASSERT_TRUE(sts.OK());
+
+  CreateInsertTweet(db, collectionName, true, 1);
+  ResultSet* rs;
+  sts = db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'", rs);
+  ASSERT_TRUE(sts.OK());
   ASSERT_TRUE(db->Close().OK());
 }

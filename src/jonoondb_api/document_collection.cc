@@ -134,6 +134,11 @@ const std::shared_ptr<DocumentSchema>& DocumentCollection::GetDocumentSchema() {
   return m_documentSchema;
 }
 
+bool DocumentCollection::TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
+  IndexStat& indexStat) {
+  return m_indexManager->TryGetBestIndex(columnName, op, indexStat);
+}
+
 Status DocumentCollection::PopulateColumnTypes(
     const IndexInfo indexes[], size_t indexesLength,
     const DocumentSchema& documentSchema,
