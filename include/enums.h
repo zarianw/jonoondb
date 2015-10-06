@@ -40,4 +40,14 @@ static const char* FieldTypeStrings[] = { "BASE_TYPE_UINT8", "BASE_TYPE_UINT16",
 static const char* GetFieldString(FieldType fieldType) {
   return FieldTypeStrings[static_cast<int32_t>(fieldType)];
 }
+
+enum class IndexConstraintOperator
+  : std::int32_t {
+  EQUAL,
+  LESS_THAN,
+  LESS_THAN_EQUAL,
+  GREATER_THAN,
+  GREATER_THAN_EQUAL,
+  MATCH
+};
 }  // namespace jonoondb_api

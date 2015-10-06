@@ -54,6 +54,21 @@ IndexInfo::~IndexInfo() {
   delete m_indexInfoData;
 }
 
+IndexInfo& IndexInfo::operator=(const IndexInfo& other) {
+  if (this != &other) {
+    m_indexInfoData->Name = other.GetName();
+    m_indexInfoData->IsAscending = other.GetIsAscending();
+    m_indexInfoData->Type = other.GetType();
+    size_t length = other.GetColumnsLength();
+    SetColumnsLength(length);
+    for (size_t i = 0; i < length; i++) {
+      m_indexInfoData->Columns[i] = other.GetColumn(i);
+    }
+  }
+
+  return *this;
+}
+
 Status IndexInfo::Validate() {
   string errorMessage;
 

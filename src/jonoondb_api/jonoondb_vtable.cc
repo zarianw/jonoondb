@@ -13,6 +13,7 @@
 #include "status.h"
 #include "enums.h"
 #include "document_schema.h"
+#include "index_stat.h"
 
 
 using namespace jonoondb_api;
@@ -77,7 +78,8 @@ Status BuildCreateTableStatement(const Field* complexField,
     if (field->GetType() == FieldType::BASE_TYPE_COMPLEX) {
       prefix.append(field->GetName());
       prefix.append(".");
-      BuildCreateTableStatement(field, prefix, stringStream, columnNames);
+      sts = BuildCreateTableStatement(field, prefix, stringStream, columnNames);
+      if (!sts) return sts;
     } else {
       auto fullName = prefix;
       fullName.append(field->GetName());
@@ -222,18 +224,49 @@ static char* op(unsigned char op) {
   return "?";
 }
 
-static int jonoondb_bestindex(sqlite3_vtab *vtab, sqlite3_index_info *info) {
-  /*int i;
-  printf("BEST INDEX:\n");
-  for (i = 0; i < info->nConstraint; i++) {
-    printf("   CONST[%d]: %d %s %s\n", i, info->aConstraint[i].iColumn,
-           op(info->aConstraint[i].op),
-           info->aConstraint[i].usable ? "Usable" : "Unusable");
+static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
+  switch (op) {
+    case SQLITE_INDEX_CONSTRAINT_EQ:
+      return IndexConstraintOperator::EQUAL;
+    case SQLITE_INDEX_CONSTRAINT_GT:
+      return IndexConstraintOperator::GREATER_THAN;
+    case SQLITE_INDEX_CONSTRAINT_LE:
+      return IndexConstraintOperator::LESS_THAN_EQUAL;
+    case SQLITE_INDEX_CONSTRAINT_LT:
+      return IndexConstraintOperator::LESS_THAN;
+    case SQLITE_INDEX_CONSTRAINT_GE:
+      return IndexConstraintOperator::GREATER_THAN_EQUAL;
+    case SQLITE_INDEX_CONSTRAINT_MATCH:
+      return IndexConstraintOperator::MATCH;
+    default:
+      break;
   }
-  for (i = 0; i < info->nOrderBy; i++) {
+
+  assert(false && "Invalid SQL operator encountered.");
+}
+
+static int jonoondb_bestindex(sqlite3_vtab *vtab, sqlite3_index_info *info) {
+  int i;
+  printf("BEST INDEX:\n");
+  jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
+  IndexStat indexStat;
+  for (i = 0; i < info->nConstraint; i++) {
+    if (info->aConstraint[i].usable) {
+      if (jdbVtab->collection->TryGetBestIndex(jdbVtab->columnNames[info->aConstraint[i].iColumn],
+                                               MapSQLiteToJonoonDBOperator(info->aConstraint[i].op),
+                                               indexStat)) {
+        info->aConstraintUsage[i].argvIndex = 1;
+        info->aConstraintUsage[i].omit = 1;                        
+      }
+    }
+
+    info->orderByConsumed = 0;    
+  }
+
+  /*for (i = 0; i < info->nOrderBy; i++) {
     printf("   ORDER[%d]: %d %s\n", i, info->aOrderBy[i].iColumn,
            info->aOrderBy[i].desc ? "DESC" : "ASC");
-  }*/
+  }*/     
 
   return SQLITE_OK;
 }
