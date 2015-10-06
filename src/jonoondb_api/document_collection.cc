@@ -19,10 +19,11 @@
 using namespace jonoondb_api;
 using namespace std;
 
-DocumentCollection::DocumentCollection(
+DocumentCollection::DocumentCollection(const char* name,
     sqlite3* dbConnection, unique_ptr<IndexManager> indexManager,
     shared_ptr<DocumentSchema> documentSchema)
-    : m_dbConnection(dbConnection),
+    : m_name(name),
+      m_dbConnection(dbConnection),
       m_indexManager(move(indexManager)),
       m_documentSchema(documentSchema) {
 }
@@ -47,13 +48,19 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
     errorMessage = "Argument databaseMetadataFilePath is null or empty.";
     return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
+  }
+
+  if (StringUtils::IsNullOrEmpty(name)) {
+    errorMessage = "Argument name is null or empty.";
+    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
+                  __FILE__, "", __LINE__);
   }
 
   // databaseMetadataFile should exist and all the tables should exist in it
   if (!boost::filesystem::exists(databaseMetadataFilePath)) {
     return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   sqlite3* dbConnection = nullptr;
@@ -62,13 +69,8 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   std::unique_ptr<sqlite3, int (*)(sqlite3*)> dbConnectionUniquePtr(
       dbConnection, sqlite3_close);
 
-  if (sqliteCode != SQLITE_OK) {
-    errorMessage = ExceptionUtils::GetSQLiteErrorFromSQLiteErrorCode(
-        sqliteCode);
-    SQLiteUtils::CloseSQLiteConnection(dbConnection);
-    return Status(kStatusFailedToOpenMetadataDatabaseFileCode,
-                  errorMessage.c_str(), errorMessage.length());
-  }
+  if (sqliteCode != SQLITE_OK)
+    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   IndexManager* indexManager;
   unordered_map<string, FieldType> columnTypes;
@@ -94,7 +96,8 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
   }
 
   unique_ptr<IndexManager> indexManagerUniquePtr(indexManager);
-  documentCollection = new DocumentCollection(dbConnectionUniquePtr.release(),
+  documentCollection = new DocumentCollection(name,
+                                              dbConnectionUniquePtr.release(),
                                               move(indexManagerUniquePtr),
                                               move(documentSchemaPtr));
   return sts;
@@ -102,21 +105,38 @@ Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
   Document* docPtr;
-  Status sts = DocumentFactory::CreateDocument(m_documentSchema, documentData,
+  auto sts = DocumentFactory::CreateDocument(m_documentSchema, documentData,
                                                docPtr);
-  if (!sts.OK()) {
-    return sts;
-  }
-
-  // unique_ptr will ensure that we will release memory even incase of exception.
+  if (!sts) return sts;
+  // unique_ptr will ensure that memory does not leak.
   unique_ptr<Document> doc(docPtr);
-  sts = m_indexManager->IndexDocument(m_documentIDGenerator.ReserveID(1),
-                                      *doc.get());
-  if (!sts.OK()) {
-    return sts;
-  }
+  
+  // Index the document
+  auto id = m_documentIDGenerator.ReserveID(1);
+  sts = m_indexManager->IndexDocument(id, *doc.get());
+  if (!sts) return sts;
+
+  // Add it in the documentID map
+  // Todo: Once we have the blobManager then use the real blobMetadata.
+  BlobMetadata blobMetadata;
+  blobMetadata.fileKey = 1;
+  blobMetadata.offset = 0;
+  m_documentIDMap[id] = blobMetadata;
 
   return sts;
+}
+
+const std::string& DocumentCollection::GetName() {
+  return m_name;
+}
+
+const std::shared_ptr<DocumentSchema>& DocumentCollection::GetDocumentSchema() {
+  return m_documentSchema;
+}
+
+bool DocumentCollection::TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
+  IndexStat& indexStat) {
+  return m_indexManager->TryGetBestIndex(columnName, op, indexStat);
 }
 
 Status DocumentCollection::PopulateColumnTypes(

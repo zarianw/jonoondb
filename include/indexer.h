@@ -6,6 +6,7 @@ namespace jonoondb_api {
 class Status;
 class IndexInfo;
 class Document;
+class IndexStat;
 
 class Indexer {
  public:
@@ -15,5 +16,6 @@ class Indexer {
   // If this function returns OK status then the insert function call on the same document must succeed.
   virtual Status ValidateForInsert(const Document& document) = 0;
   virtual void Insert(std::uint64_t documentID, const Document& document) = 0;
+  virtual const IndexStat& GetIndexStats() = 0;
 };
 }

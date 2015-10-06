@@ -17,6 +17,7 @@ class IndexInfo {
   IndexInfo();
   IndexInfo(const IndexInfo& other);
   ~IndexInfo();
+  IndexInfo& operator=(const IndexInfo& other);
   Status Validate();
   void SetName(const char* value);
   const char* GetName() const;

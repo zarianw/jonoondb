@@ -6,6 +6,7 @@
 #include <cstdint>
 #include "index_manager.h"
 #include "document_id_generator.h"
+#include "blob_metadata.h"
 
 // Forward declaration
 struct sqlite3;
@@ -16,6 +17,7 @@ class Status;
 class IndexInfo;
 class Buffer;
 class DocumentSchema;
+class IndexStat;
 enum class FieldType
 : std::int32_t;
 enum class SchemaType
@@ -31,9 +33,13 @@ class DocumentCollection {
                           DocumentCollection*& documentCollection);
 
   Status Insert(const Buffer& documentData);
+  const std::string& GetName();
+  const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
+  bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
+                       IndexStat& indexStat);
 
  private:
-  explicit DocumentCollection(sqlite3* dbConnection,
+  explicit DocumentCollection(const char* name, sqlite3* dbConnection,
                               std::unique_ptr<IndexManager> indexManager,
                               std::shared_ptr<DocumentSchema> documentSchema);
   static Status PopulateColumnTypes(
@@ -44,7 +50,8 @@ class DocumentCollection {
   std::unique_ptr<IndexManager> m_indexManager;
   std::shared_ptr<DocumentSchema> m_documentSchema;
   DocumentIDGenerator m_documentIDGenerator;
-
+  std::unordered_map<std::uint64_t, BlobMetadata> m_documentIDMap;
+  std::string m_name;
 };
 }  // namespace jonoondb_api
 

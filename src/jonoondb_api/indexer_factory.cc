@@ -21,7 +21,7 @@ Status IndexerFactory::CreateIndexer(
            << " could not be determined.";
         auto errorMsg = ss.str();
         return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                      errorMsg.length());
+                      __FILE__, "", __LINE__);
       }
 
       EWAHCompressedBitmapIndexer* ewahIndexer;

@@ -10,6 +10,7 @@ class Status;
 class Options;
 class IndexInfo;
 class Buffer;
+class ResultSet;
 enum class SchemaType
 : std::int32_t;
 
@@ -22,6 +23,7 @@ class Database {
                           const char* schema, const IndexInfo indexes[],
                           int indexesLength);
   Status Insert(const char* collectionName, const Buffer& documentData);
+  Status ExecuteSelect(const char* selectStatement, ResultSet*& resultSet);
 
  private:
   Database(DatabaseImpl* databaseImpl);

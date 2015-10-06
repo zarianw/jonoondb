@@ -13,7 +13,7 @@ class DocumentSchema;
 class DocumentFactory {
  public:
   static Status CreateDocument(
-      const std::shared_ptr<DocumentSchema> documentSchema,
+      const std::shared_ptr<DocumentSchema>& documentSchema,
       const Buffer& buffer, Document*& document);
  private:
   DocumentFactory() = delete;

@@ -28,10 +28,24 @@ const char kStatusSchemaParseErrorCode = 18;
 const char kStatusIndexOutOfBoundErrorCode = 19;
 
 const char kStatusSQLiteErrorCode = 101;
+
+static const std::string OKStr = "OK";
+
+struct StatusData {
+public:
+  StatusData(size_t cd, const char* msg, const char* flName,
+    const char* fnName, size_t lNum) : code(cd), message(msg),
+    fileName(flName), funcName(fnName), lineNum(lNum) { }
+
+  std::size_t code;
+  std::string message;
+  std::string fileName;
+  std::string funcName;
+  size_t lineNum;  
+};
 }
 
-Status::Status() {
-  m_statusData = nullptr;
+Status::Status() : m_statusData (nullptr) {
 }
 
 Status::Status(const Status& other) {
@@ -39,11 +53,8 @@ Status::Status(const Status& other) {
     m_statusData = nullptr;
 
     if (other.m_statusData) {
-      size_t size;
-      memcpy(&size, other.m_statusData, sizeof(size_t));
-      m_statusData = new char[size];
-
-      memcpy(m_statusData, other.m_statusData, size);
+      m_statusData = new StatusData(other.GetCode(), other.GetMessage(),
+        other.GetSourceFileName(), other.GetFunctionName(), other.GetLineNumber());
     }
   }
 }
@@ -56,21 +67,19 @@ Status::Status(Status&& other) {
   }
 }
 
-Status::Status(const char code, const char* message,
-               const size_t messageLength) {
-  size_t sizetLengthInBytes = sizeof(size_t);
-  size_t size = sizetLengthInBytes + 1 + messageLength + 1;  // StatusDataSize + Code + Message + NullCharacter
-  m_statusData = new char[size];
+Status::Status(std::size_t code, const char* message, const char* srcFileName,
+  const char* funcName, std::size_t lineNum) {
+  m_statusData = new StatusData(code, message, srcFileName, funcName, lineNum);  
+}
 
-  memcpy(m_statusData, &size, sizetLengthInBytes);
-  memcpy(m_statusData + sizetLengthInBytes, &code, 1);
-  memcpy(m_statusData + sizetLengthInBytes + 1, message, messageLength + 1);
+Status::~Status() {
+  delete m_statusData;
+  m_statusData = nullptr;
 }
 
 Status& Status::operator=(Status&& other) {
   if (this != &other) {
     m_statusData = other.m_statusData;
-
     other.m_statusData = nullptr;
   }
 
@@ -82,21 +91,57 @@ Status& Status::operator=(const Status& other) {
     delete m_statusData;
     m_statusData = nullptr;
 
-    if (other.m_statusData) {
-      size_t size;
-      memcpy(&size, other.m_statusData, sizeof(size_t));
-      m_statusData = new char[size];
-
-      memcpy(m_statusData, other.m_statusData, size);
+    if (other.m_statusData) {      
+      m_statusData = new StatusData(other.GetCode(), other.GetMessage(),
+        other.GetSourceFileName(), other.GetFunctionName(), other.GetLineNumber());
     }
   }
 
   return *this;
 }
 
-Status::~Status() {
-  delete m_statusData;
-  m_statusData = nullptr;
+bool Status::operator!() {
+  return !OK();
+}
+
+std::size_t Status::GetCode() const {
+  if (m_statusData == nullptr) {
+    return 0;
+  }
+
+  return m_statusData->code;
+}
+
+const char* Status::GetMessage() const {
+  if (m_statusData == nullptr) {    
+    return OKStr.c_str();
+  }
+
+  return m_statusData->message.c_str();
+}
+
+const char* Status::GetSourceFileName() const {
+  if (m_statusData == nullptr) {
+    return "";
+  }
+
+  return m_statusData->fileName.c_str();
+}
+
+const char* Status::GetFunctionName() const {
+  if (m_statusData == nullptr) {
+    return "";
+  }
+
+  return m_statusData->funcName.c_str();
+}
+
+std::size_t Status::GetLineNumber() const {
+  if (m_statusData == nullptr) {
+    return 0;
+  }
+
+  return m_statusData->lineNum;
 }
 
 bool Status::OK() const {
@@ -108,186 +153,136 @@ bool Status::OK() const {
 }
 
 bool Status::InvalidArgument() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusInvalidArgumentCode,
-                1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusInvalidArgumentCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::MissingDatabaseFile() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusMissingDatabaseFileCode,
-                1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusMissingDatabaseFileCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::MissingDatabaseFolder() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t),
-                &kStatusMissingDatabaseFolderCode, 1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusMissingDatabaseFolderCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::FailedToOpenMetadataDatabaseFile() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t),
-                &kStatusFailedToOpenMetadataDatabaseFileCode, 1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusFailedToOpenMetadataDatabaseFileCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::OutOfMemoryError() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusOutOfMemoryErrorCode,
-                1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusOutOfMemoryErrorCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::DuplicateKeyError() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusDuplicateKeyErrorCode,
-                1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusDuplicateKeyErrorCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::GenericError() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusGenericErrorCode, 1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusGenericErrorCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::KeyNotFound() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusKeyNotFoundCode, 1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusKeyNotFoundCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::FileIOError() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusFileIOErrorCode, 1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusFileIOErrorCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::APIMisuseError() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusAPIMisuseErrorCode, 1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusAPIMisuseErrorCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::CollectionAlreadyExist() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t),
-                &kStatusCollectionAlreadyExistCode, 1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusCollectionAlreadyExistCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::IndexAlreadyExist() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusIndexAlreadyExistCode,
-                1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusIndexAlreadyExistCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::CollectionNotFound() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusCollectionNotFoundCode,
-                1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusCollectionNotFoundCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::SchemaParseError() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusSchemaParseErrorCode,
-                1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusSchemaParseErrorCode) {
+    return true;
   }
 
   return false;
 }
 
 bool Status::IndexOutOfBound() const {
-  if (m_statusData != nullptr) {
-    // Read Code
-    if (!memcmp(m_statusData + sizeof(size_t), &kStatusIndexOutOfBoundErrorCode,
-                1)) {
-      return true;
-    }
+  if (m_statusData != nullptr &&
+    m_statusData->code == kStatusIndexOutOfBoundErrorCode) {   
+      return true;    
   }
 
   return false;
-}
-
-const char* Status::c_str() const {
-  if (m_statusData == nullptr) {
-    static const string OKStr = "OK";
-    return OKStr.c_str();
-  }
-
-  return &m_statusData[sizeof(size_t) + 1];
 }

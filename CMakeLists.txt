@@ -111,7 +111,11 @@ add_library(
  ${SRC_PATH}/jonoondb_api/field_name_parser.cc ${INCLUDE_INTERNAL_PATH}/field_name_parser.h
  ${SRC_PATH}/jonoondb_api/document_id_generator.cc ${INCLUDE_INTERNAL_PATH}/document_id_generator.h 
  ${SRC_PATH}/jonoondb_api/query_processor.cc ${INCLUDE_INTERNAL_PATH}/query_processor.h
- ${SRC_PATH}/jonoondb_api/flatbuffers_field.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_field.h)
+ ${SRC_PATH}/jonoondb_api/flatbuffers_field.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_field.h
+ ${SRC_PATH}/jonoondb_api/document_collection_dictionary.cc ${INCLUDE_INTERNAL_PATH}/document_collection_dictionary.h
+ ${SRC_PATH}/jonoondb_api/guard_funcs.cc ${INCLUDE_INTERNAL_PATH}/guard_funcs.h
+ ${SRC_PATH}/jonoondb_api/resultset.cc ${INCLUDE_PATH}/resultset.h
+ ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_INTERNAL_PATH}/index_stat.h)
  
 target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 

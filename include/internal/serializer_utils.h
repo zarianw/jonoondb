@@ -36,7 +36,7 @@ class SerializerUtils {
     } catch (exception& ex) {
       string errorMessage(ex.what());
       return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                    errorMessage.length());
+                    __FILE__, "", __LINE__);
     }
 
     return Status();

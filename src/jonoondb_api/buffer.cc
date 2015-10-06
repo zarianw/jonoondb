@@ -49,13 +49,12 @@ Status Buffer::Assign(char* buffer, size_t bufferLengthInBytes,
     // Capacity cannot be less than length
     string errorMsg =
         "Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), __FILE__, "", __LINE__);
   } else if (customDeleterFunc == nullptr) {
     // Capacity cannot be less than length
     string errorMsg = "Argument customDeleterFunc is nullptr.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   } else {
     try {
       m_bufferImpl = new BufferImpl(buffer, bufferLengthInBytes,
@@ -64,7 +63,7 @@ Status Buffer::Assign(char* buffer, size_t bufferLengthInBytes,
       // Memory allocation failed
       string errorMsg = "Memory allocation failed.";
       return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                    errorMsg.length());
+                    __FILE__, "", __LINE__);
     }
   }
 
@@ -80,7 +79,7 @@ Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes,
   if (buffer == nullptr) {
     string errorMsg = "Argument buffer is nullptr.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   } else if (bufferCapacityInBytes == 0) {
     Reset();
   } else if (bufferCapacityInBytes < bufferLengthInBytes) {
@@ -88,7 +87,7 @@ Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes,
     string errorMsg =
         "Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   } else {
     // First check if our existing buffer has the same capacity
     if (GetCapacity() != bufferCapacityInBytes) {
@@ -103,12 +102,12 @@ Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes,
                                       bufferCapacityInBytes, StandardDelete);
       } catch (bad_alloc) {
         if (data != nullptr) {
-          delete data;
+          delete[] data;
         }
         // Memory allocation failed
         string errorMsg = "Memory allocation failed.";
         return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                      errorMsg.length());
+                      __FILE__, "", __LINE__);
       }
     } else {
       // Our capacity is the same so no need to reallocate the buffer
@@ -124,7 +123,7 @@ Status Buffer::Copy(const char* buffer, size_t bytesToCopy) {
   if (buffer == nullptr) {
     string errorMsg = "Argument buffer is nullptr.";
     return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   } else if (bytesToCopy > 0) {
     // First check if our existing buffer is big enough
     if (GetCapacity() < bytesToCopy) {
@@ -139,12 +138,12 @@ Status Buffer::Copy(const char* buffer, size_t bytesToCopy) {
                                       StandardDelete);
       } catch (bad_alloc) {
         if (data != nullptr) {
-          delete data;
+          delete[] data;
         }
         // Memory allocation failed
         string errorMsg = "Memory allocation failed.";
         return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                      errorMsg.length());
+                      __FILE__, "", __LINE__);
       }
     } else {
       // Our existing bufer is big enough, no need to reallocate
@@ -225,7 +224,7 @@ Status Buffer::Resize(size_t newBufferCapacityInBytes) {
                                     newBufferCapacityInBytes, StandardDelete);
     } catch (bad_alloc& ex) {
       // Memory allocation failed
-      return Status(kStatusOutOfMemoryErrorCode, ex.what(), strlen(ex.what()));
+      return Status(kStatusOutOfMemoryErrorCode, ex.what(), __FILE__, "", __LINE__);
     }
   }
 
@@ -276,14 +275,14 @@ Status Buffer::SetLength(size_t value) {
     if (value != 0) {
       string errorMsg = "Specified length is not between 0 and buffer capacity.";
       return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                    errorMsg.length());
+                    __FILE__, "", __LINE__);
     }
   } else {
     if (value > m_bufferImpl->BufferCapacity) {
       string errorMsg =
           "Specified buffer length is not between 0 and buffer capacity.";
       return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                    errorMsg.length());
+                    __FILE__, "", __LINE__);
     } else {
       m_bufferImpl->BufferLength = value;
     }

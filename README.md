@@ -13,10 +13,13 @@ All active development happens on the develop branch. Changes from develop are m
 
 ## Build Instructions
 
-JonoonDB uses features from C++ 11. So make sure your C++ compiler supports C++ 11. JonoonDB is available and supported only as a 64bit library. JonoonDB has been tested with MSVC VS2013 compiler on Windows 7 and g++ version 4.8 compiler on Ubuntu 14.04. Before building JonoonDB, you have to build its 3rd party dependencies.
+JonoonDB is available and supported only as a 64bit library. JonoonDB has been tested with MSVC VS2013 compiler on Windows 10 and gcc version 4.8 compiler on Ubuntu 14.04. Before building JonoonDB, you have to build its 3rd party dependencies.
 
 ### Build 3rd party dependencies
-1. Download Boost version 1.56.0 or higher from [Boost's website](http://www.boost.org) and install it by using the instructions provided at their [installation page](http://www.boost.org/doc/libs/1_55_0/doc/html/bbv2/installation.html). Make sure you specify address-model=64 while building boost because JonnonDB requires the 64bit libraries. A sample command to build boost would be something like "b2 install address-model=64 --prefix=64bit". The --prefix is useful because later you can install 32 bit version of boost (in a separate directory) as well if the need arises.
+1. Download Boost version 1.56.0 from [Boost's website](http://www.boost.org). Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Run either .\bootstrap.bat (on Windows), or ./bootstrap.sh (on other operating systems). Next execute the following command to build boost in 64bit.
+  ```
+  b2 install address-model=64 --prefix=64bit
+  ```  
 2. Download and install cmake version 2.8.0 or higher from [cmake's website](http://www.cmake.org/download/). 
 3. Install Google Test version 1.7.0 or higher by following the instructions at [Google Test's website](https://code.google.com/p/googletest/)
 

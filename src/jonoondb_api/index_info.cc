@@ -54,19 +54,34 @@ IndexInfo::~IndexInfo() {
   delete m_indexInfoData;
 }
 
+IndexInfo& IndexInfo::operator=(const IndexInfo& other) {
+  if (this != &other) {
+    m_indexInfoData->Name = other.GetName();
+    m_indexInfoData->IsAscending = other.GetIsAscending();
+    m_indexInfoData->Type = other.GetType();
+    size_t length = other.GetColumnsLength();
+    SetColumnsLength(length);
+    for (size_t i = 0; i < length; i++) {
+      m_indexInfoData->Columns[i] = other.GetColumn(i);
+    }
+  }
+
+  return *this;
+}
+
 Status IndexInfo::Validate() {
   string errorMessage;
 
   if (StringUtils::IsNullOrEmpty(m_indexInfoData->Name)) {
     errorMessage = "Index name is null or empty.";
     return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   if (m_indexInfoData->Columns.size() < 1) {
     errorMessage = "Index columns should be greater than 0.";
     return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                  (int32_t) errorMessage.length());
+                  __FILE__, "", __LINE__);
   }
 
   return Status();
@@ -112,7 +127,8 @@ Status IndexInfo::SetColumn(size_t index, const char* column) {
        << m_indexInfoData->Columns.size();
     ".";
     string errorMsg = ss.str();
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), errorMsg.size());
+    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), __FILE__, "",
+                  __LINE__);
   }
 
   m_indexInfoData->Columns[index] = column;

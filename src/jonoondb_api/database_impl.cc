@@ -9,31 +9,43 @@
 #include "index_manager.h"
 #include "document_collection.h"
 #include "enums.h"
+#include "query_processor.h"
+#include "resultset.h"
 
 using namespace std;
 using namespace jonoondb_api;
 
 DatabaseImpl::DatabaseImpl(
-    unique_ptr<DatabaseMetadataManager> databaseMetadataManager)
-    : m_dbMetadataMgrImpl(move(databaseMetadataManager)) {
+    unique_ptr<DatabaseMetadataManager> databaseMetadataManager,
+    unique_ptr<QueryProcessor> queryProcessor)
+    : m_dbMetadataMgrImpl(move(databaseMetadataManager)),
+      m_queryProcessor(move(queryProcessor)) {
 }
 
 Status DatabaseImpl::Open(const char* dbPath, const char* dbName,
                           const Options& options, DatabaseImpl*& db) {
+  // Initialize query processor
+  QueryProcessor* qpPtr;
+  Status sts = QueryProcessor::Construct(qpPtr);
+  if (!sts.OK()) {
+    return sts;
+  }
+  unique_ptr<QueryProcessor> qp(qpPtr);
+  
   // Initialize DatabaseMetadataManager
   DatabaseMetadataManager* databaseMetadataManagerPtr;
-  Status status = DatabaseMetadataManager::Open(dbPath, dbName,
+  sts = DatabaseMetadataManager::Open(dbPath, dbName,
                                                 options.GetCreateDBIfMissing(),
                                                 databaseMetadataManagerPtr);
-  if (!status.OK()) {
-    return status;
+  if (!sts.OK()) {
+    return sts;
   }
   unique_ptr<DatabaseMetadataManager> databaseMetadataManager(
       databaseMetadataManagerPtr);
 
-  db = new DatabaseImpl(move(databaseMetadataManager));
+  db = new DatabaseImpl(move(databaseMetadataManager), move(qp));
 
-  return status;
+  return sts;
 }
 
 Status DatabaseImpl::Close() {
@@ -46,24 +58,35 @@ Status DatabaseImpl::CreateCollection(const char* name, SchemaType schemaType,
                                       const IndexInfo indexes[],
                                       size_t indexesLength) {
   DocumentCollection* documentCollectionPtr;
-  Status status = DocumentCollection::Construct(
+  auto sts = DocumentCollection::Construct(
       m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes,
       indexesLength, documentCollectionPtr);
-  if (!status.OK()) {
-    return status;
-  }
-  unique_ptr<DocumentCollection> documentCollection(documentCollectionPtr);
+  if (!sts) return sts;
+  shared_ptr<DocumentCollection> documentCollection(documentCollectionPtr);
 
-  status = m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes,
-                                              indexesLength);
-  if (!status.OK()) {
-    return status;
+  //check if collection already exists
+  string colName = name;
+  if (m_collectionContainer.find(colName) != m_collectionContainer.end()) {
+    ostringstream ss;
+    ss << "Collection with name \"" << name << "\" already exists.";
+    std::string errorMsg = ss.str();
+    return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(),
+      __FILE__, "", __LINE__);
   }
-  m_collectionContainer.insert(
-      make_pair<string, unique_ptr<DocumentCollection>>(
-          string(name), move(documentCollection)));
+  
+  sts = m_queryProcessor->AddCollection(documentCollection);
+  if (!sts) return sts;
+  
+  sts = m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes,
+                                           indexesLength);
+  if (!sts) {
+    // TODO: we need to call m_queryProcessor->RemoveCollection here.
+    return sts;
+  }
 
-  return Status();
+  m_collectionContainer[colName] = documentCollection;
+
+  return sts;
 }
 
 Status DatabaseImpl::Insert(const char* collectionName,
@@ -75,7 +98,7 @@ Status DatabaseImpl::Insert(const char* collectionName,
     ss << "Collection \"" << collectionName << "\" not found.";
     string errorMsg = ss.str();
     return Status(kStatusCollectionNotFoundCode, errorMsg.c_str(),
-                  errorMsg.length());
+                  __FILE__, "", __LINE__);
   }
 
   // Add data in collection
@@ -87,3 +110,6 @@ Status DatabaseImpl::Insert(const char* collectionName,
   return status;
 }
 
+Status DatabaseImpl::ExecuteSelect(const char* selectStatement, ResultSet*& resultSet) {
+  return m_queryProcessor->ExecuteSelect(selectStatement, resultSet);
+}
