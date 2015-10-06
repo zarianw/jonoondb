@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <memory>
 #include <vector>
+#include <assert.h>
 #include "sqlite3ext.h"
 #include "document_collection_dictionary.h"
 #include "document_collection.h"
