@@ -248,7 +248,7 @@ static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
 
 static int jonoondb_bestindex(sqlite3_vtab *vtab, sqlite3_index_info *info) {
   int i;
-  printf("BEST INDEX:\n");
+  // printf("BEST INDEX:\n");
   jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
   IndexStat indexStat;
   for (i = 0; i < info->nConstraint; i++) {
