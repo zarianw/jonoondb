@@ -90,6 +90,7 @@ add_library(
  ${INCLUDE_PATH}/constants.h
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h 
  ${INCLUDE_PATH}/field.h
+ ${INCLUDE_PATH}/jonoondb_exceptions.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/database.cc ${INCLUDE_PATH}/database.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
@@ -136,6 +137,7 @@ add_executable(
  ${TEST_PATH}/concurrent_lru_cache_tests.cc
  ${TEST_PATH}/memory_mapped_file_tests.cc
  ${TEST_PATH}/database_tests.cc
- ${TEST_PATH}/document_tests.cc)
+ ${TEST_PATH}/document_tests.cc
+ ${TEST_PATH}/jonoondb_exception_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
