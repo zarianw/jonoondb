@@ -91,6 +91,9 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h 
  ${INCLUDE_PATH}/field.h
  ${INCLUDE_PATH}/jonoondb_exceptions.h
+ ${INCLUDE_PATH}/cdatabase.h
+ ${INCLUDE_PATH}/ex_database.h
+ ${SRC_PATH}/jonoondb_api/cdatabase.cc
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/database.cc ${INCLUDE_PATH}/database.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h

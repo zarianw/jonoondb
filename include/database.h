@@ -2,6 +2,8 @@
 
 #include <memory>
 #include <cstdint>
+#include <string>
+#include <cdatabase.h>
 
 namespace jonoondb_api {
 //Forward Declarations
@@ -17,7 +19,7 @@ enum class SchemaType
 class Database {
  public:
   static Status Open(const char* dbPath, const char* dbName,
-                     const Options& options, Database*& db);
+                     const Options& options, Database*& db);  
   Status Close();
   Status CreateCollection(const char* name, SchemaType schemaType,
                           const char* schema, const IndexInfo indexes[],
