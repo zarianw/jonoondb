@@ -20,8 +20,8 @@ void status_destruct(status_ptr sts);
 // Options Functions
 //
 typedef struct options* options_ptr;
-void options_construct(bool createDBIfMissing, int64_t maxDataFileSize,
-                       bool compressionEnabled, bool isSynchronous);
+options_ptr options_construct(bool createDBIfMissing, int64_t maxDataFileSize,
+  bool compressionEnabled, bool isSynchronous, status_ptr* sts);
 
 bool get_createdbifmissing(options_ptr opt);
 void set_createdbifmissing(options_ptr opt, bool value);

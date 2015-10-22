@@ -7,7 +7,7 @@ using namespace jonoondb_api;
 extern "C" {
 
 //
-// Status Functions
+// Status
 //
 struct status {
   Status impl;
@@ -22,35 +22,70 @@ const char* status_message(status_ptr sts) {
 }
 
 //
-// Options Functions
+// Options
 //
 struct options {
-  template<typename... Args>
-  options(Args&&... args) : impl(std::forward<Args>(args)...) {
+  options(bool createDBIfMissing, int64_t maxDataFileSize,
+    bool compressionEnabled, bool synchronous) :
+    impl(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous) {
   }
 
   Options impl;
 };
 
-void options_construct(bool createDBIfMissing, int64_t maxDataFileSize,
-  bool compressionEnabled, bool isSynchronous) {
-   
+options_ptr options_construct(bool createDBIfMissing, int64_t maxDataFileSize,
+  bool compressionEnabled, bool synchronous, status_ptr* sts) {
+  return new options(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous);
 }
 
-bool get_createdbifmissing(options_ptr opt);
-void set_createdbifmissing(options_ptr opt, bool value);
+void options_destruct(options_ptr opt) {
+  delete opt;
+}
 
-bool get_compressionenabled(options_ptr opt);
-void set_compressionenabled(options_ptr opt, bool value);
+bool get_createdbifmissing(options_ptr opt) {
+  return opt->impl.GetCreateDBIfMissing();
+}
 
-size_t get_maxdatafilesize();
-void set_maxdatafilesize(int64_t value);
+void set_createdbifmissing(options_ptr opt, bool value) {
+  return opt->impl.SetCreateDBIfMissing(value);
+}
 
-void set_synchronous(bool value);
-bool get_synchronous();
+bool get_compressionenabled(options_ptr opt) {
+  return opt->impl.GetCompressionEnabled();
+}
 
-void options_destruct(options_ptr opt);
+void set_compressionenabled(options_ptr opt, bool value) {
+  return opt->impl.SetCompressionEnabled(value);
+}
 
+size_t get_maxdatafilesize(options_ptr opt) {
+  return opt->impl.GetMaxDataFileSize();
+}
+
+void set_maxdatafilesize(options_ptr opt, int64_t value) {
+  return opt->impl.SetMaxDataFileSize(value);
+}
+
+void set_synchronous(options_ptr opt, bool value) {
+  return opt->impl.SetSynchronous(value);
+}
+
+bool get_synchronous(options_ptr opt) {
+  return opt->impl.GetSynchronous();
+}
+
+//
+// Database
+//
+struct database {
+  database(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
+
+  }
+};
+
+database_ptr database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
+
+}
   
 
 } // extern "C"
