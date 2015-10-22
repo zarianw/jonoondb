@@ -20,8 +20,9 @@ void status_destruct(status_ptr sts);
 // Options Functions
 //
 typedef struct options* options_ptr;
-options_ptr options_construct(bool createDBIfMissing, int64_t maxDataFileSize,
+options_ptr options_construct(bool createDBIfMissing, uint64_t maxDataFileSize,
   bool compressionEnabled, bool isSynchronous, status_ptr* sts);
+void options_destruct(options_ptr opt);
 
 bool get_createdbifmissing(options_ptr opt);
 void set_createdbifmissing(options_ptr opt, bool value);
@@ -29,13 +30,13 @@ void set_createdbifmissing(options_ptr opt, bool value);
 bool get_compressionenabled(options_ptr opt);
 void set_compressionenabled(options_ptr opt, bool value);
 
-size_t get_maxdatafilesize();
-void set_maxdatafilesize(int64_t value);
+/*int64_t get_maxdatafilesize((options_ptr opt);
+void set_maxdatafilesize((options_ptr opt, int64_t value);
 
-void set_synchronous(bool value);
-bool get_synchronous();
+bool get_synchronous((options_ptr opt);
+void set_synchronous((options_ptr opt, bool value);*/
 
-void options_destruct(options_ptr opt);
+
 
 //
 // Database Functions
