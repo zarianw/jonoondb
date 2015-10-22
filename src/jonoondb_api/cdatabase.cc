@@ -1,6 +1,7 @@
 #include "cdatabase.h"
 #include "status.h"
 #include "options.h"
+#include "database_impl.h"
 #include "jonoondb_exceptions.h"
 
 using namespace jonoondb_api;
@@ -95,7 +96,7 @@ struct options {
   Options impl;
 };
 
-options_ptr options_construct(bool createDBIfMissing, int64_t maxDataFileSize,
+options_ptr options_construct(bool createDBIfMissing, uint64_t maxDataFileSize,
   bool compressionEnabled, bool synchronous, status_ptr* sts) {
   return new options(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous);
 }
@@ -120,7 +121,7 @@ void set_compressionenabled(options_ptr opt, bool value) {
   return opt->impl.SetCompressionEnabled(value);
 }
 
-size_t get_maxdatafilesize(options_ptr opt) {
+int64_t get_maxdatafilesize(options_ptr opt) {
   return opt->impl.GetMaxDataFileSize();
 }
 
@@ -128,26 +129,27 @@ void set_maxdatafilesize(options_ptr opt, int64_t value) {
   return opt->impl.SetMaxDataFileSize(value);
 }
 
-void set_synchronous(options_ptr opt, bool value) {
-  return opt->impl.SetSynchronous(value);
-}
-
 bool get_synchronous(options_ptr opt) {
   return opt->impl.GetSynchronous();
+}
+
+void set_synchronous(options_ptr opt, bool value) {
+  return opt->impl.SetSynchronous(value);
 }
 
 //
 // Database
 //
 struct database {
-  database(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
-
+  database(const char* dbPath, const char* dbName, const Options& opt) {
+    DatabaseImpl::Open(dbPath, dbName, opt, impl);
   }
+
+  DatabaseImpl* impl;
 };
 
 database_ptr database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
-
+  return new database(dbPath, dbName, opt->impl);
 }
   
-
 } // extern "C"
