@@ -3,6 +3,7 @@
 #include "flatbuffers/flatbuffers.h"
 #include "test_utils.h"
 #include "database.h"
+#include "ex_database.h"
 #include "status.h"
 #include "index_info.h"
 #include "enums.h"
@@ -62,13 +63,11 @@ TEST(Database, Open_MissingDatabaseFile) {
 TEST(Database, Open_New) {
   string dbName = "Database_Open_New";
   string dbPath = g_TestRootDirectory;
-  Options options;
+  ex_Options options;
   options.SetCreateDBIfMissing(true);
-  Database* db;
-  auto status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(),
-                               options, db);
-  ASSERT_TRUE(status.OK());
-  ASSERT_TRUE(db->Close().OK());
+  ex_Database* db = ex_Database::Open(g_TestRootDirectory, dbName,
+                               options);
+  //db.Close();
 }
 
 TEST(Database, Open_Existing) {

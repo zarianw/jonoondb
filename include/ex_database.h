@@ -34,39 +34,71 @@ private:
 class ex_Options {
 public:
   //Default constructor that sets all the options to their default value
-  ex_Options();
+  ex_Options() {
+    m_opaque = options_construct();
+  }
   ex_Options(bool createDBIfMissing, size_t maxDataFileSize,
-    bool compressionEnabled, bool synchronous);
+    bool compressionEnabled, bool synchronous) {    
+    m_opaque = options_construct2(createDBIfMissing, maxDataFileSize, compressionEnabled,
+      synchronous, ThrowOnError{});
+  }
+
   ex_Options(ex_Options&& other);
 
-  ~ex_Options();
+  ~ex_Options() {
+    options_destruct(m_opaque);
+  }
 
-  void SetCreateDBIfMissing(bool value);
-  bool GetCreateDBIfMissing() const;
+  void SetCreateDBIfMissing(bool value) {
+    options_setcreatedbifmissing(m_opaque, value);
+  }
+  bool GetCreateDBIfMissing() const {
+    options_getcreatedbifmissing(m_opaque);
+  }
 
-  void SetCompressionEnabled(bool value);
-  bool GetCompressionEnabled() const;
+  void SetCompressionEnabled(bool value) {
+    options_setcompressionenabled(m_opaque, value);
+  }
 
-  void SetMaxDataFileSize(size_t value);
-  size_t GetMaxDataFileSize() const;
+  bool GetCompressionEnabled() const {
+    return options_getcompressionenabled(m_opaque);
+  }
 
-  void SetSynchronous(bool value);
-  bool GetSynchronous() const;
+  void SetMaxDataFileSize(size_t value) {
+    options_setmaxdatafilesize(m_opaque, value);
+  }
+
+  size_t GetMaxDataFileSize() const {
+    return options_getmaxdatafilesize(m_opaque);
+  }
+
+  void SetSynchronous(bool value) {
+    options_setsynchronous(m_opaque, value);
+  }
+
+  bool GetSynchronous() const {
+    return options_getsynchronous(m_opaque);
+  }
 
   const options_ptr GetOpaquePtr() const {
-    return m_options;
+    return m_opaque;
   }
 
 private:  
-  options_ptr m_options;
+  options_ptr m_opaque;
 };
 
 class ex_Database {
 public:
   static ex_Database* Open(const std::string& dbPath, const std::string& dbName,
     const ex_Options& opt) {
-    auto p = database_open(dbPath.c_str(), dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{});
+    auto db = database_open(dbPath.c_str(), dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{});
+    return new ex_Database(db);
   }
+
+private:
+  ex_Database(database_ptr db) : m_db(db) {}
+  database_ptr m_db;
 };
 
 }  // jonoondb_api

@@ -12,7 +12,7 @@ using namespace jonoondb_api;
 // Returns true if fn executed without throwing an error, false otherwise.
 // If calling fn threw an error, capture it in *out_error.
 template<typename Fn>
-bool translateExceptions(Fn&& fn, status_ptr& sts) {
+bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
   bool retVal = false;
   try {
     fn();
@@ -54,10 +54,9 @@ bool translateExceptions(Fn&& fn, status_ptr& sts) {
     sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const std::exception& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
-      ex.GetFunctionName(), ex.GetLineNumber());
+    sts = new status(kStatusInvalidArgumentCode, ex.what(), "", "", 0);
   } catch (...) {
-    sts = new status(kStatusInvalidArgumentCode, "Unknown Error.", "", "", "");
+    sts = new status(kStatusInvalidArgumentCode, "Unknown Error.", "", "", 0);
   }
 
   return retVal;
@@ -88,6 +87,8 @@ const char* status_message(status_ptr sts) {
 // Options
 //
 struct options {
+  options() : impl() {}
+
   options(bool createDBIfMissing, int64_t maxDataFileSize,
     bool compressionEnabled, bool synchronous) :
     impl(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous) {
@@ -96,7 +97,11 @@ struct options {
   Options impl;
 };
 
-options_ptr options_construct(bool createDBIfMissing, uint64_t maxDataFileSize,
+options_ptr options_construct() {
+  return new options();
+}
+
+options_ptr options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
   bool compressionEnabled, bool synchronous, status_ptr* sts) {
   return new options(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous);
 }
@@ -105,35 +110,35 @@ void options_destruct(options_ptr opt) {
   delete opt;
 }
 
-bool get_createdbifmissing(options_ptr opt) {
+bool options_getcreatedbifmissing(options_ptr opt) {
   return opt->impl.GetCreateDBIfMissing();
 }
 
-void set_createdbifmissing(options_ptr opt, bool value) {
+void options_setcreatedbifmissing(options_ptr opt, bool value) {
   return opt->impl.SetCreateDBIfMissing(value);
 }
 
-bool get_compressionenabled(options_ptr opt) {
+bool options_getcompressionenabled(options_ptr opt) {
   return opt->impl.GetCompressionEnabled();
 }
 
-void set_compressionenabled(options_ptr opt, bool value) {
+void options_setcompressionenabled(options_ptr opt, bool value) {
   return opt->impl.SetCompressionEnabled(value);
 }
 
-int64_t get_maxdatafilesize(options_ptr opt) {
+uint64_t options_getmaxdatafilesize(options_ptr opt) {
   return opt->impl.GetMaxDataFileSize();
 }
 
-void set_maxdatafilesize(options_ptr opt, int64_t value) {
+void options_setmaxdatafilesize(options_ptr opt, uint64_t value) {
   return opt->impl.SetMaxDataFileSize(value);
 }
 
-bool get_synchronous(options_ptr opt) {
+bool options_getsynchronous(options_ptr opt) {
   return opt->impl.GetSynchronous();
 }
 
-void set_synchronous(options_ptr opt, bool value) {
+void options_setsynchronous(options_ptr opt, bool value) {
   return opt->impl.SetSynchronous(value);
 }
 
@@ -149,7 +154,12 @@ struct database {
 };
 
 database_ptr database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
-  return new database(dbPath, dbName, opt->impl);
+  database_ptr db = nullptr;
+  TranslateExceptions([&]{
+    db = new database(dbPath, dbName, opt->impl);
+  }, *sts);
+  
+  return db;
 }
   
 } // extern "C"
