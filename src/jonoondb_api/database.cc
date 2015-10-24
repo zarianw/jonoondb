@@ -10,16 +10,11 @@ Database::Database(DatabaseImpl* databaseImpl)
     : m_databaseImpl(databaseImpl) {
 }
 
-Status Database::Open(const char* dbPath, const char* dbName,
+void Database::Open(const std::string& dbPath, const std::string& dbName,
                       const Options& options, Database*& db) {
-  DatabaseImpl* dbImpl;
-  Status status = DatabaseImpl::Open(dbPath, dbName, options, dbImpl);
-  if (!status.OK()) {
-    return status;
-  }
-  db = new Database(dbImpl);
-
-  return status;
+  DatabaseImpl* dbImpl = DatabaseImpl::Open(dbPath, dbName, options);
+  
+  db = new Database(dbImpl); 
 }
 
 Status Database::Close() {

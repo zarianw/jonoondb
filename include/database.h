@@ -18,7 +18,7 @@ enum class SchemaType
 
 class Database {
  public:
-  static Status Open(const char* dbPath, const char* dbName,
+  static void Open(const std::string& dbPath, const std::string& dbName,
                      const Options& options, Database*& db);  
   Status Close();
   Status CreateCollection(const char* name, SchemaType schemaType,

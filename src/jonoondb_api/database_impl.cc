@@ -22,30 +22,16 @@ DatabaseImpl::DatabaseImpl(
       m_queryProcessor(move(queryProcessor)) {
 }
 
-Status DatabaseImpl::Open(const char* dbPath, const char* dbName,
-                          const Options& options, DatabaseImpl*& db) {
+DatabaseImpl* DatabaseImpl::Open(const std::string& dbPath, const std::string& dbName,
+                          const Options& options) {
   // Initialize query processor
-  QueryProcessor* qpPtr;
-  Status sts = QueryProcessor::Construct(qpPtr);
-  if (!sts.OK()) {
-    return sts;
-  }
-  unique_ptr<QueryProcessor> qp(qpPtr);
+  unique_ptr<QueryProcessor> qp = std::make_unique<QueryProcessor>();
   
   // Initialize DatabaseMetadataManager
-  DatabaseMetadataManager* databaseMetadataManagerPtr;
-  sts = DatabaseMetadataManager::Open(dbPath, dbName,
-                                                options.GetCreateDBIfMissing(),
-                                                databaseMetadataManagerPtr);
-  if (!sts.OK()) {
-    return sts;
-  }
-  unique_ptr<DatabaseMetadataManager> databaseMetadataManager(
-      databaseMetadataManagerPtr);
+  std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager =
+    std::make_unique<DatabaseMetadataManager>(dbPath, dbName, options.GetCreateDBIfMissing()); 
 
-  db = new DatabaseImpl(move(databaseMetadataManager), move(qp));
-
-  return sts;
+  return new DatabaseImpl(move(databaseMetadataManager), move(qp));
 }
 
 Status DatabaseImpl::Close() {

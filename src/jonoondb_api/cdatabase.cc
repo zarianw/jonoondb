@@ -1,4 +1,5 @@
 #include "cdatabase.h"
+#include "cenums.h"
 #include "status.h"
 #include "options.h"
 #include "database_impl.h"
@@ -18,45 +19,45 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
     fn();
     retVal = true;
   } catch (const InvalidArgumentException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_invalidargumentcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const MissingDatabaseFileException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_missingdatabasefilecode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const MissingDatabaseFolderException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_missingdatabasefoldercode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const OutOfMemoryException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_outofmemoryerrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const DuplicateKeyException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_duplicatekeyerrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const CollectionAlreadyExistException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_collectionalreadyexistcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const IndexAlreadyExistException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_indexalreadyexistcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const CollectionNotFoundException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_collectionnotfoundcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const SchemaParseException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_schemaparseerrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const IndexOutOfBoundException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_indexoutofbounderrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const SQLException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_sqlerrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const JonoonDBException& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), ex.GetSourceFileName(),
+    sts = new status(jonoondb_status_codes::status_genericerrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const std::exception& ex) {
-    sts = new status(kStatusInvalidArgumentCode, ex.what(), "", "", 0);
+    sts = new status(jonoondb_status_codes::status_genericerrorcode, ex.what(), "", "", 0);
   } catch (...) {
-    sts = new status(kStatusInvalidArgumentCode, "Unknown Error.", "", "", 0);
+    sts = new status(jonoondb_status_codes::status_genericerrorcode, "Unknown Error.", "", "", 0);
   }
 
   return retVal;
@@ -75,13 +76,30 @@ struct status {
   Status impl;
 };
 
-void status_destruct(status_ptr sts) {
+void jonoondb_status_destruct(status_ptr sts) {
   delete sts;
 }
 
-const char* status_message(status_ptr sts) {
+const char* jonoondb_status_message(status_ptr sts) {
   return sts->impl.GetMessage();
 }
+
+uint64_t jonoondb_status_code(status_ptr sts) {
+  return sts->impl.GetCode();
+}
+
+const char* jonoondb_status_file(status_ptr sts) {
+  return sts->impl.GetSourceFileName();
+}
+
+const char* jonoondb_status_function(status_ptr sts) {
+  return sts->impl.GetFunctionName();
+}
+
+uint64_t jonoondb_status_line(status_ptr sts) {
+  return sts->impl.GetLineNumber();
+}
+
 
 //
 // Options
@@ -97,48 +115,48 @@ struct options {
   Options impl;
 };
 
-options_ptr options_construct() {
+options_ptr jonoondb_options_construct() {
   return new options();
 }
 
-options_ptr options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
+options_ptr jonoondb_options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
   bool compressionEnabled, bool synchronous, status_ptr* sts) {
   return new options(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous);
 }
 
-void options_destruct(options_ptr opt) {
+void jonoondb_options_destruct(options_ptr opt) {
   delete opt;
 }
 
-bool options_getcreatedbifmissing(options_ptr opt) {
+bool jonoondb_options_getcreatedbifmissing(options_ptr opt) {
   return opt->impl.GetCreateDBIfMissing();
 }
 
-void options_setcreatedbifmissing(options_ptr opt, bool value) {
+void jonoondb_options_setcreatedbifmissing(options_ptr opt, bool value) {
   return opt->impl.SetCreateDBIfMissing(value);
 }
 
-bool options_getcompressionenabled(options_ptr opt) {
+bool jonoondb_options_getcompressionenabled(options_ptr opt) {
   return opt->impl.GetCompressionEnabled();
 }
 
-void options_setcompressionenabled(options_ptr opt, bool value) {
+void jonoondb_options_setcompressionenabled(options_ptr opt, bool value) {
   return opt->impl.SetCompressionEnabled(value);
 }
 
-uint64_t options_getmaxdatafilesize(options_ptr opt) {
+uint64_t jonoondb_options_getmaxdatafilesize(options_ptr opt) {
   return opt->impl.GetMaxDataFileSize();
 }
 
-void options_setmaxdatafilesize(options_ptr opt, uint64_t value) {
+void jonoondb_options_setmaxdatafilesize(options_ptr opt, uint64_t value) {
   return opt->impl.SetMaxDataFileSize(value);
 }
 
-bool options_getsynchronous(options_ptr opt) {
+bool jonoondb_options_getsynchronous(options_ptr opt) {
   return opt->impl.GetSynchronous();
 }
 
-void options_setsynchronous(options_ptr opt, bool value) {
+void jonoondb_options_setsynchronous(options_ptr opt, bool value) {
   return opt->impl.SetSynchronous(value);
 }
 
@@ -147,19 +165,25 @@ void options_setsynchronous(options_ptr opt, bool value) {
 //
 struct database {
   database(const char* dbPath, const char* dbName, const Options& opt) {
-    DatabaseImpl::Open(dbPath, dbName, opt, impl);
+    impl = DatabaseImpl::Open(dbPath, dbName, opt);
   }
 
   DatabaseImpl* impl;
 };
 
-database_ptr database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
+database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
   database_ptr db = nullptr;
   TranslateExceptions([&]{
     db = new database(dbPath, dbName, opt->impl);
   }, *sts);
   
   return db;
+}
+
+void jonoondb_database_close(database_ptr db, status_ptr* sts) {
+  TranslateExceptions([&]{
+    db->impl->Close();
+  }, *sts);
 }
   
 } // extern "C"

@@ -39,25 +39,31 @@ void CreateInsertTweet(Database* db, std::string& collectionName, bool createInd
   ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
 }
 
-TEST(Database, Open_NullArguments) {
-  Options options;
-  Database* db = nullptr;
-
-  Status sts = Database::Open(nullptr, "", options, db);
-  ASSERT_TRUE(sts.InvalidArgument());
-
-  sts = Database::Open("", nullptr, options, db);
-  ASSERT_TRUE(db == nullptr);
-  ASSERT_TRUE(sts.InvalidArgument());
+TEST(Database, Open_InvalidArguments) {
+  ex_Options options;
+  ex_Database* db = nullptr;
+  ASSERT_THROW(db = ex_Database::Open("somePath", "", options), InvalidArgumentException);
+  ASSERT_EQ(db, nullptr);
+  ASSERT_THROW(db = ex_Database::Open("", "someDbName", options), InvalidArgumentException);
+  ASSERT_EQ(db, nullptr);
 }
 
 TEST(Database, Open_MissingDatabaseFile) {
-  Options options;
-  Database* db = nullptr;
+  string dbName = "Database_Open_New";
+  string dbPath = g_TestRootDirectory;
+  ex_Options options;
+  ex_Database* db = nullptr;
+  ASSERT_THROW(db = ex_Database::Open(g_TestRootDirectory, dbName, options), MissingDatabaseFileException);
+  ASSERT_EQ(db, nullptr);
+}
 
-  Status sts = Database::Open(g_TestRootDirectory.c_str(), "name", options, db);
-  ASSERT_TRUE(db == nullptr);
-  ASSERT_TRUE(sts.MissingDatabaseFile());
+TEST(Database, Open_MissingDatabaseFolder) {
+  string dbName = "Database_Open_New";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db = nullptr;
+  ASSERT_THROW(Database::Open(g_TestRootDirectory + "missing_folder", dbName, options, db), MissingDatabaseFolderException);
 }
 
 TEST(Database, Open_New) {
@@ -76,25 +82,22 @@ TEST(Database, Open_Existing) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(),
-                               options, db);
-  ASSERT_TRUE(status.OK());
+  Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(),
+                               options, db); 
   ASSERT_TRUE(db->Close().OK());
 
-  status = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options,
-                          db);
-  ASSERT_TRUE(status.OK());
+  Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options,
+                 db);  
 }
 
 TEST(Database, Open_CreateIfMissing) {
   //First remove the file if it exists
   Options options;
   options.SetCreateDBIfMissing(true);
-  Database* db;
-  Status sts = Database::Open(g_TestRootDirectory.c_str(),
+  Database* db = nullptr;
+  Database::Open(g_TestRootDirectory.c_str(),
                               "Database_Open_CreateIfMissing", options, db);
-  ASSERT_TRUE(db != nullptr);
-  ASSERT_TRUE(sts.OK());
+  ASSERT_TRUE(db != nullptr);  
   ASSERT_TRUE(db->Close().OK());  //Checking if database closed successfully			
 }
 
@@ -104,9 +107,8 @@ TEST(Database, CreateCollection_InvalidSchema) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
+  Database::Open(dbPath, dbName, options, db);
+  auto sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
                              "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.SchemaParseError());
   ASSERT_TRUE(db->Close().OK());
@@ -120,9 +122,8 @@ TEST(Database, CreateCollection_New) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
+  Database::Open(dbPath, dbName, options, db);
+  auto sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
                              schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
   ASSERT_TRUE(db->Close().OK());
@@ -136,9 +137,8 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
-  sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
+  Database::Open(dbPath, dbName, options, db);
+  auto sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
                              schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
@@ -154,12 +154,11 @@ TEST(Database, Insert_NoIndex) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
+  Database::Open(dbPath, dbName, options, db);  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
                              schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
 
@@ -176,8 +175,7 @@ TEST(Database, Insert_SingleIndex) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
+  Database::Open(dbPath, dbName, options, db);  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -188,7 +186,7 @@ TEST(Database, Insert_SingleIndex) {
   indexes[0].SetColumnsLength(1);
   indexes[0].SetColumn(0, "user.name");
 
-  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
                              schema.c_str(), indexes, 1);
   ASSERT_TRUE(sts.OK());
 
@@ -220,8 +218,7 @@ TEST(Database, Insert_AllIndexTypes) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
+  Database::Open(dbPath, dbName, options, db);  
 
   string filePath = g_SchemaFolderPath + "all_field_type.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -243,7 +240,7 @@ TEST(Database, Insert_AllIndexTypes) {
     indexes[i].SetColumn(0, fieldName.c_str());
   } 
 
-  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
     schema.c_str(), indexes, indexLength);
   ASSERT_TRUE(sts.OK());
 
@@ -260,13 +257,12 @@ TEST(Database, ExecuteSelect_MissingCollection) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
+  Database::Open(dbPath, dbName, options, db);  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
 
-  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
     schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
 
@@ -283,13 +279,12 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
+  Database::Open(dbPath, dbName, options, db);  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
 
-  sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
     schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
 
@@ -306,12 +301,11 @@ TEST(Database, ExecuteSelect_NonEmptyDB_NoIndex) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  auto sts = Database::Open(dbPath.c_str(), dbName.c_str(), options, db);
-  ASSERT_TRUE(sts.OK());
+  Database::Open(dbPath, dbName, options, db);  
 
   CreateInsertTweet(db, collectionName, true, 1);
   ResultSet* rs;
-  sts = db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'", rs);
+  auto sts = db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'", rs);
   ASSERT_TRUE(sts.OK());
   ASSERT_TRUE(db->Close().OK());
 }

@@ -92,6 +92,7 @@ add_library(
  ${INCLUDE_PATH}/field.h
  ${INCLUDE_PATH}/jonoondb_exceptions.h
  ${INCLUDE_PATH}/cdatabase.h
+ ${INCLUDE_PATH}/cenums.h
  ${INCLUDE_PATH}/ex_database.h
  ${SRC_PATH}/jonoondb_api/cdatabase.cc
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc

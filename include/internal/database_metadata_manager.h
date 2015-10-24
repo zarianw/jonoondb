@@ -14,25 +14,25 @@ class IndexInfo;
 enum class SchemaType
 : std::int32_t;
 
-class DatabaseMetadataManager {
+class DatabaseMetadataManager final {
  public:
+   DatabaseMetadataManager(const DatabaseMetadataManager&) = delete;
+   DatabaseMetadataManager(DatabaseMetadataManager&&) = delete;
+   DatabaseMetadataManager& operator=(const DatabaseMetadataManager&) = delete;
+   DatabaseMetadataManager(const std::string& dbPath,
+                           const std::string& dbName,
+                           bool createDBIfMissing);
   ~DatabaseMetadataManager();
-  static Status Open(const char* dbPath, const char* dbName,
-                     bool createDBIfMissing,
-                     DatabaseMetadataManager*& databaseMetadataManager);
-
   Status AddCollection(const char* name, SchemaType schemaType,
                        const char* schema, const IndexInfo indexes[],
                        size_t indexesLength);
-
   const char* GetFullDBPath() const;
 
  private:
-  DatabaseMetadataManager(const char* dbPath, const char* dbName,
-                          bool createDBIfMissing);
-  Status Initialize();
-  Status CreateTables();
-  Status PrepareStatements();
+  
+  void Initialize(bool createDBIfMissing);
+  void CreateTables();
+  void PrepareStatements();
   Status CreateIndex(const char* collectionName, const IndexInfo& indexInfo);
 
   std::string m_dbName;
@@ -41,7 +41,6 @@ class DatabaseMetadataManager {
   sqlite3* m_metadataDBConnection;
   sqlite3_stmt* m_insertCollectionSchemaStmt;
   sqlite3_stmt* m_insertCollectionIndexStmt;
-  bool m_createDBIfMissing;
 };
 }
 

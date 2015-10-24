@@ -17,10 +17,13 @@ class ResultSet;
 enum class SchemaType
 : std::int32_t;
 
-class DatabaseImpl {
+class DatabaseImpl final {
  public:
-  static Status Open(const char* dbPath, const char* dbName,
-                     const Options& options, DatabaseImpl*& db);
+  DatabaseImpl(const DatabaseImpl&) = delete;
+  DatabaseImpl(DatabaseImpl&&) = delete;
+  DatabaseImpl& operator=(const DatabaseImpl&) = delete;
+  static DatabaseImpl* Open(const std::string& dbPath, const std::string& dbName,
+                      const Options& options);
   Status Close();
   Status CreateCollection(const char* name, SchemaType schemaType,
                           const char* schema, const IndexInfo indexes[],

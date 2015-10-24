@@ -1,6 +1,8 @@
 #include <string>
 #include "cdatabase.h"
+#include "cenums.h"
 #include "jonoondb_exceptions.h"
+
 
 namespace jonoondb_api {
 class ex_Status {
@@ -10,7 +12,7 @@ public:
 
   ~ex_Status() {
     if (opaque) {
-      status_destruct(opaque);
+      jonoondb_status_destruct(opaque);
     }
   }
 
@@ -21,7 +23,83 @@ class ThrowOnError {
 public:
   ~ThrowOnError() {
     if (m_status.opaque) {
-      throw std::runtime_error(status_message(m_status.opaque));
+      switch (jonoondb_status_code(m_status.opaque)) {
+        case status_genericerrorcode:
+          throw JonoonDBException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_invalidargumentcode:
+          throw InvalidArgumentException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_missingdatabasefilecode:
+          throw MissingDatabaseFileException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_missingdatabasefoldercode:
+          throw MissingDatabaseFolderException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_outofmemoryerrorcode:
+          throw OutOfMemoryException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_duplicatekeyerrorcode:
+          throw DuplicateKeyException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;                
+        case status_collectionalreadyexistcode:
+          throw CollectionAlreadyExistException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_indexalreadyexistcode:
+          throw IndexAlreadyExistException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_collectionnotfoundcode:
+          throw CollectionNotFoundException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_schemaparseerrorcode:
+          throw SchemaParseException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_indexoutofbounderrorcode:
+          throw IndexOutOfBoundException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        case status_sqlerrorcode:
+          throw SQLException(jonoondb_status_message(m_status.opaque),
+            jonoondb_status_file(m_status.opaque),
+            jonoondb_status_function(m_status.opaque),
+            jonoondb_status_line(m_status.opaque));
+          break;
+        default:          
+          throw std::runtime_error(jonoondb_status_message(m_status.opaque));
+          break;
+      }      
     }
   }
 
@@ -35,49 +113,49 @@ class ex_Options {
 public:
   //Default constructor that sets all the options to their default value
   ex_Options() {
-    m_opaque = options_construct();
+    m_opaque = jonoondb_options_construct();
   }
   ex_Options(bool createDBIfMissing, size_t maxDataFileSize,
     bool compressionEnabled, bool synchronous) {    
-    m_opaque = options_construct2(createDBIfMissing, maxDataFileSize, compressionEnabled,
+    m_opaque = jonoondb_options_construct2(createDBIfMissing, maxDataFileSize, compressionEnabled,
       synchronous, ThrowOnError{});
   }
 
   ex_Options(ex_Options&& other);
 
   ~ex_Options() {
-    options_destruct(m_opaque);
+    jonoondb_options_destruct(m_opaque);
   }
 
   void SetCreateDBIfMissing(bool value) {
-    options_setcreatedbifmissing(m_opaque, value);
+    jonoondb_options_setcreatedbifmissing(m_opaque, value);
   }
   bool GetCreateDBIfMissing() const {
-    options_getcreatedbifmissing(m_opaque);
+    jonoondb_options_getcreatedbifmissing(m_opaque);
   }
 
   void SetCompressionEnabled(bool value) {
-    options_setcompressionenabled(m_opaque, value);
+    jonoondb_options_setcompressionenabled(m_opaque, value);
   }
 
   bool GetCompressionEnabled() const {
-    return options_getcompressionenabled(m_opaque);
+    return jonoondb_options_getcompressionenabled(m_opaque);
   }
 
   void SetMaxDataFileSize(size_t value) {
-    options_setmaxdatafilesize(m_opaque, value);
+    jonoondb_options_setmaxdatafilesize(m_opaque, value);
   }
 
   size_t GetMaxDataFileSize() const {
-    return options_getmaxdatafilesize(m_opaque);
+    return jonoondb_options_getmaxdatafilesize(m_opaque);
   }
 
   void SetSynchronous(bool value) {
-    options_setsynchronous(m_opaque, value);
+    jonoondb_options_setsynchronous(m_opaque, value);
   }
 
   bool GetSynchronous() const {
-    return options_getsynchronous(m_opaque);
+    return jonoondb_options_getsynchronous(m_opaque);
   }
 
   const options_ptr GetOpaquePtr() const {
@@ -92,13 +170,17 @@ class ex_Database {
 public:
   static ex_Database* Open(const std::string& dbPath, const std::string& dbName,
     const ex_Options& opt) {
-    auto db = database_open(dbPath.c_str(), dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{});
+    auto db = jonoondb_database_open(dbPath.c_str(), dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{});
     return new ex_Database(db);
   }
 
+  void Close() {
+    jonoondb_database_close(m_opaque, ThrowOnError{});
+  }
+
 private:
-  ex_Database(database_ptr db) : m_db(db) {}
-  database_ptr m_db;
+  ex_Database(database_ptr db) : m_opaque(db) {}
+  database_ptr m_opaque;
 };
 
 }  // jonoondb_api

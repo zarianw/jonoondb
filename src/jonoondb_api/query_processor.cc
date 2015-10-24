@@ -14,6 +14,7 @@
 #include "enums.h"
 #include "guard_funcs.h"
 #include "resultset.h"
+#include "jonoondb_exceptions.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -22,21 +23,22 @@ struct sqlite3_api_routines;
 int jonoondb_vtable_init(sqlite3 *db, char **error,
                          const sqlite3_api_routines *api);
 
-Status QueryProcessor::Construct(QueryProcessor*& obj) {
-  int code = sqlite3_auto_extension((void (*)(void))jonoondb_vtable_init);
+QueryProcessor::QueryProcessor() : m_db(nullptr, GuardFuncs::SQLite3Close) {
+  int code = sqlite3_auto_extension((void(*)(void))jonoondb_vtable_init);
   if (code != SQLITE_OK) {
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+    std::string msg = sqlite3_errstr(code);
+    throw SQLException(msg, __FILE__, "", __LINE__);
   }
 
   sqlite3* db = nullptr;
-  code = sqlite3_open(":memory:", &db);
+  code = sqlite3_open(":memory:", &db);  
+  std::unique_ptr<sqlite3, void(*)(sqlite3*)> dbPtr(db, GuardFuncs::SQLite3Close);
   if (code != SQLITE_OK) {
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+    std::string msg = sqlite3_errstr(code);
+    throw SQLException(msg, __FILE__, "", __LINE__);
   }
 
-  obj = new QueryProcessor(std::unique_ptr<sqlite3, void(*)(sqlite3*)>(db, GuardFuncs::SQLite3Close));
-
-  return Status();
+  m_db = move(dbPtr);
 }
 
 Status QueryProcessor::AddCollection(const shared_ptr<DocumentCollection>& collection) {
@@ -84,8 +86,4 @@ Status QueryProcessor::ExecuteSelect(const char* selectStatement, ResultSet*& re
   }
 
   return Status();
-}
-
-QueryProcessor::QueryProcessor(std::unique_ptr<sqlite3, void(*)(sqlite3*)> db)
-    : m_db(move(db)) {
 }
