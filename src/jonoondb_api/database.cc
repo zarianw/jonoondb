@@ -17,10 +17,9 @@ void Database::Open(const std::string& dbPath, const std::string& dbName,
   db = new Database(dbImpl); 
 }
 
-Status Database::Close() {
-  Status status = m_databaseImpl->Close();
+void Database::Close() {
+  m_databaseImpl->Close();
   delete this;
-  return status;
 }
 
 Status Database::CreateCollection(const char* name, SchemaType schemaType,

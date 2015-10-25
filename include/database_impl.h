@@ -24,7 +24,7 @@ class DatabaseImpl final {
   DatabaseImpl& operator=(const DatabaseImpl&) = delete;
   static DatabaseImpl* Open(const std::string& dbPath, const std::string& dbName,
                       const Options& options);
-  Status Close();
+  void Close();
   Status CreateCollection(const char* name, SchemaType schemaType,
                           const char* schema, const IndexInfo indexes[],
                           size_t indexesLength);

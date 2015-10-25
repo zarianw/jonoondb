@@ -20,7 +20,7 @@ class Database {
  public:
   static void Open(const std::string& dbPath, const std::string& dbName,
                      const Options& options, Database*& db);  
-  Status Close();
+  void Close();
   Status CreateCollection(const char* name, SchemaType schemaType,
                           const char* schema, const IndexInfo indexes[],
                           int indexesLength);

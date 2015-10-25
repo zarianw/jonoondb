@@ -84,7 +84,7 @@ TEST(Database, Open_Existing) {
   Database* db;
   Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(),
                                options, db); 
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 
   Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options,
                  db);  
@@ -98,7 +98,7 @@ TEST(Database, Open_CreateIfMissing) {
   Database::Open(g_TestRootDirectory.c_str(),
                               "Database_Open_CreateIfMissing", options, db);
   ASSERT_TRUE(db != nullptr);  
-  ASSERT_TRUE(db->Close().OK());  //Checking if database closed successfully			
+  db->Close();	
 }
 
 TEST(Database, CreateCollection_InvalidSchema) {
@@ -111,7 +111,7 @@ TEST(Database, CreateCollection_InvalidSchema) {
   auto sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
                              "Schema IDL", nullptr, 0);
   ASSERT_TRUE(sts.SchemaParseError());
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }
 
 TEST(Database, CreateCollection_New) {
@@ -126,7 +126,7 @@ TEST(Database, CreateCollection_New) {
   auto sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
                              schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.OK());
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }
 
 TEST(Database, CreateCollection_CollectionAlreadyExist) {
@@ -144,7 +144,7 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   sts = db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS,
                              schema.c_str(), nullptr, 0);
   ASSERT_TRUE(sts.CollectionAlreadyExist());
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }
 
 TEST(Database, Insert_NoIndex) {
@@ -165,7 +165,7 @@ TEST(Database, Insert_NoIndex) {
   Buffer documentData;
   ASSERT_TRUE(GetTweetObject(documentData).OK());
   ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }
 
 TEST(Database, Insert_SingleIndex) {
@@ -193,7 +193,7 @@ TEST(Database, Insert_SingleIndex) {
   Buffer documentData;
   ASSERT_TRUE(GetTweetObject(documentData).OK());
   ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }
 
 Status GetAllFieldTypeObject(Buffer& buffer) {
@@ -247,7 +247,7 @@ TEST(Database, Insert_AllIndexTypes) {
   Buffer documentData;
   ASSERT_TRUE(GetAllFieldTypeObject(documentData).OK());
   ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {
@@ -269,7 +269,7 @@ TEST(Database, ExecuteSelect_MissingCollection) {
   ResultSet* rs;
   sts = db->ExecuteSelect("select * from missingTable where text = 'hello'", rs);
   ASSERT_FALSE(sts.OK());  
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }
 
 TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
@@ -291,7 +291,7 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   ResultSet* rs;
   sts = db->ExecuteSelect("select * from tweet where text = 'hello'", rs);
   ASSERT_TRUE(sts.OK());
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }
 
 TEST(Database, ExecuteSelect_NonEmptyDB_NoIndex) {
@@ -307,5 +307,5 @@ TEST(Database, ExecuteSelect_NonEmptyDB_NoIndex) {
   ResultSet* rs;
   auto sts = db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'", rs);
   ASSERT_TRUE(sts.OK());
-  ASSERT_TRUE(db->Close().OK());
+  db->Close();
 }

@@ -34,9 +34,8 @@ DatabaseImpl* DatabaseImpl::Open(const std::string& dbPath, const std::string& d
   return new DatabaseImpl(move(databaseMetadataManager), move(qp));
 }
 
-Status DatabaseImpl::Close() {
-  // Todo (zarian): Close all sub components and report any issues in status
-  return Status();
+void DatabaseImpl::Close() {
+  // Todo (zarian): Close all sub components and report any issues in status  
 }
 
 Status DatabaseImpl::CreateCollection(const char* name, SchemaType schemaType,
