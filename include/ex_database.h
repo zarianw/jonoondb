@@ -1,7 +1,9 @@
 #include <string>
+#include <vector>
 #include "cdatabase.h"
 #include "cenums.h"
 #include "jonoondb_exceptions.h"
+#include "enums.h"
 
 
 namespace jonoondb_api {
@@ -166,6 +168,36 @@ private:
   options_ptr m_opaque;
 };
 
+//
+// IndexInfo Functions
+//
+class ex_IndexInfo {
+public:
+  ex_IndexInfo() {
+    m_opaque = jonoondb_indexinfo_construct();
+  }
+
+  ex_IndexInfo(const std::string& indexName, IndexType type, const std::string& columnName, bool isAscending) {
+    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), 0, columnName.c_str(), isAscending, ThrowOnError{});
+  }
+    
+  ex_IndexInfo(const ex_IndexInfo& other);
+  ~ex_IndexInfo();
+  ex_IndexInfo& operator=(const ex_IndexInfo& other);
+  
+  const std::string& GetIndexName() const;
+  void SetIndexName(const std::string& value);
+  IndexType GetType() const;
+  void SetType(IndexType value);
+  const std::string& GetColumnName() const;
+  void SetColumnName(const std::string& columnName);  
+  void SetIsAscending(bool value);
+  bool GetIsAscending() const;  
+
+private:
+  indexinfo_ptr m_opaque;
+};
+
 class ex_Database {
 public:
   static ex_Database* Open(const std::string& dbPath, const std::string& dbName,
@@ -176,6 +208,11 @@ public:
 
   void Close() {
     jonoondb_database_close(m_opaque, ThrowOnError{});
+  }
+
+  void CreateCollection(const std::string& name, SchemaType schemaType,
+    const std::string& schema, const std::vector<IndexInfo> indexes) {
+
   }
 
 private:

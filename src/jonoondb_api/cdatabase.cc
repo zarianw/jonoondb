@@ -4,6 +4,7 @@
 #include "options.h"
 #include "database_impl.h"
 #include "jonoondb_exceptions.h"
+#include "index_info.h"
 
 using namespace jonoondb_api;
 
@@ -159,6 +160,21 @@ bool jonoondb_options_getsynchronous(options_ptr opt) {
 void jonoondb_options_setsynchronous(options_ptr opt, bool value) {
   return opt->impl.SetSynchronous(value);
 }
+
+//
+// IndexInfo
+//
+struct indexinfo {
+  indexinfo() : impl() {
+  }
+
+  indexinfo(const char* indexName, IndexType type, const char* columnName,
+    std::size_t columnsLength, bool isAscending) {
+
+  } 
+
+  IndexInfo impl;
+};
 
 //
 // Database
