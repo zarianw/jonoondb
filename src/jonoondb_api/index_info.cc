@@ -8,28 +8,21 @@
 #include "enums.h"
 
 using namespace jonoondb_api;
-using namespace std;
 
 struct IndexInfo::IndexInfoData {
-  string Name;
-  vector<string> Columns;
+  std::string Name;
+  std::string ColumnName;
   bool IsAscending;
   IndexType Type;
 };
 
-IndexInfo::IndexInfo(const char* name, IndexType type, const char* columns[],
-                     size_t columnsLength, bool isAscending) {
+IndexInfo::IndexInfo(const std::string& name, IndexType type, const std::string& columnName,
+                     bool isAscending) {
   m_indexInfoData = new IndexInfoData();
-  if (name != nullptr) {
-    m_indexInfoData->Name = name;
-  }
+  m_indexInfoData->Name = name;  
   m_indexInfoData->IsAscending = isAscending;
   m_indexInfoData->Type = type;
-  for (size_t i = 0; i < columnsLength; i++) {
-    if (columns[i] != nullptr) {
-      m_indexInfoData->Columns.push_back(string(columns[i]));
-    }
-  }
+  m_indexInfoData->ColumnName = columnName;
 }
 
 IndexInfo::IndexInfo()
@@ -42,11 +35,7 @@ IndexInfo::IndexInfo(const IndexInfo& other) {
     m_indexInfoData->Name = other.GetName();
     m_indexInfoData->IsAscending = other.GetIsAscending();
     m_indexInfoData->Type = other.GetType();
-    size_t length = other.GetColumnsLength();
-    SetColumnsLength(length);
-    for (size_t i = 0; i < length; i++) {
-      m_indexInfoData->Columns[i] = other.GetColumn(i);
-    }
+    m_indexInfoData->ColumnName = other.GetColumnName();
   }
 }
 
@@ -59,32 +48,10 @@ IndexInfo& IndexInfo::operator=(const IndexInfo& other) {
     m_indexInfoData->Name = other.GetName();
     m_indexInfoData->IsAscending = other.GetIsAscending();
     m_indexInfoData->Type = other.GetType();
-    size_t length = other.GetColumnsLength();
-    SetColumnsLength(length);
-    for (size_t i = 0; i < length; i++) {
-      m_indexInfoData->Columns[i] = other.GetColumn(i);
-    }
-  }
+    m_indexInfoData->ColumnName = other.GetColumnName();
+  }  
 
   return *this;
-}
-
-Status IndexInfo::Validate() {
-  string errorMessage;
-
-  if (StringUtils::IsNullOrEmpty(m_indexInfoData->Name)) {
-    errorMessage = "Index name is null or empty.";
-    return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
-  if (m_indexInfoData->Columns.size() < 1) {
-    errorMessage = "Index columns should be greater than 0.";
-    return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
-  return Status();
 }
 
 void IndexInfo::SetIsAscending(bool value) {
@@ -111,36 +78,10 @@ const char* IndexInfo::GetName() const {
   return m_indexInfoData->Name.c_str();
 }
 
-const char* IndexInfo::GetColumn(size_t index) const {
-  if (index < m_indexInfoData->Columns.size()) {
-    return m_indexInfoData->Columns[index].c_str();
-  } else {
-    return nullptr;
-  }
+const std::string& IndexInfo::GetColumnName() const {
+  return m_indexInfoData->ColumnName;
 }
 
-Status IndexInfo::SetColumn(size_t index, const char* column) {
-  if (index >= m_indexInfoData->Columns.size()) {
-    ostringstream ss;
-    ss << "Cannot set column. Index value " << index
-       << " is more than the size of the column vector which is "
-       << m_indexInfoData->Columns.size();
-    ".";
-    string errorMsg = ss.str();
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), __FILE__, "",
-                  __LINE__);
-  }
-
-  m_indexInfoData->Columns[index] = column;
-
-  return Status();
+void IndexInfo::SetColumnName(const std::string& value) {
+  m_indexInfoData->ColumnName = value;
 }
-
-size_t IndexInfo::GetColumnsLength() const {
-  return m_indexInfoData->Columns.size();
-}
-
-void IndexInfo::SetColumnsLength(size_t length) {
-  m_indexInfoData->Columns.resize(length);
-}
-

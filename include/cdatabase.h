@@ -46,14 +46,14 @@ void jonoondb_options_setsynchronous(options_ptr opt, bool value);
 //
 typedef struct indexinfo* indexinfo_ptr;
 indexinfo_ptr jonoondb_indexinfo_construct();
-indexinfo_ptr jonoondb_indexinfo_construct2(const char* indexName, IndexType type, const char* columnName,
+indexinfo_ptr jonoondb_indexinfo_construct2(const char* indexName, int32_t type, const char* columnName,
                                    bool isAscending, status_ptr* sts);
 void jonoondb_indexinfo_destruct(indexinfo_ptr indexInfo);
 
 const char* jonoondb_indexinfo_getindexname();
 void jonoondb_indexinfo_setindexname(const char* value);
-uint32_t jonoondb_indexinfo_gettype();
-void jonoondb_indexinfo_settype(uint32_t value);
+int32_t jonoondb_indexinfo_gettype();
+void jonoondb_indexinfo_settype(int32_t value);
 const const char* jonoondb_indexinfo_getcolumnname();
 void jonoondb_indexinfo_setcolumnname(const char* columnName);
 void jonoondb_indexinfo_setisascending(bool value);

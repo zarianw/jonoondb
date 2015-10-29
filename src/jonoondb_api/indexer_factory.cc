@@ -14,10 +14,10 @@ Status IndexerFactory::CreateIndexer(
   Status sts;
   switch (indexInfo.GetType()) {
     case IndexType::EWAHCompressedBitmap: {
-      auto it = fieldType.find(indexInfo.GetColumn(0));
+      auto it = fieldType.find(indexInfo.GetColumnName());
       if (it == fieldType.end()) {
         ostringstream ss;
-        ss << "The column type for " << indexInfo.GetColumn(0)
+        ss << "The column type for " << indexInfo.GetColumnName()
            << " could not be determined.";
         auto errorMsg = ss.str();
         return Status(kStatusGenericErrorCode, errorMsg.c_str(),

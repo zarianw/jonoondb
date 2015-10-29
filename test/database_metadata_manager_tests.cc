@@ -25,11 +25,9 @@ TEST(DatabaseMetadataManager, AddCollection_NewSingleIndex) {
   string dbPath = g_TestRootDirectory;
   ASSERT_NO_THROW({
     std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager =
-    std::make_unique<DatabaseMetadataManager>(g_TestRootDirectory, dbName, true);
+      std::make_unique<DatabaseMetadataManager>(g_TestRootDirectory, dbName, true);
 
-    const char* columns[] = { "MyColumn" };
-    IndexInfo indexInfo(string("MyIndex").c_str(),
-      IndexType::EWAHCompressedBitmap, columns, 1, true);
+    IndexInfo indexInfo("MyIndex", IndexType::EWAHCompressedBitmap, "MyColumn", true);
     auto status = databaseMetadataManager->AddCollection("MyCollection", SchemaType::FLAT_BUFFERS, "",
       &indexInfo, 1);
     ASSERT_TRUE(status.OK());

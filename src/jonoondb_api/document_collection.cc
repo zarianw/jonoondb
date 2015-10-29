@@ -140,19 +140,17 @@ bool DocumentCollection::TryGetBestIndex(const std::string& columnName, IndexCon
 }
 
 Status DocumentCollection::PopulateColumnTypes(
-    const IndexInfo indexes[], size_t indexesLength,
-    const DocumentSchema& documentSchema,
-    std::unordered_map<string, FieldType>& columnTypes) {
+  const IndexInfo indexes[], size_t indexesLength,
+  const DocumentSchema& documentSchema,
+  std::unordered_map<string, FieldType>& columnTypes) {
   FieldType colType;
   for (size_t i = 0; i < indexesLength; i++) {
-    for (size_t j = 0; j < indexes[i].GetColumnsLength(); j++) {
-      auto sts = documentSchema.GetFieldType(indexes[i].GetColumn(j), colType);
-      if (!sts.OK()) {
-        return sts;
-      }
-      columnTypes.insert(
-          pair<string, FieldType>(string(indexes[i].GetColumn(j)), colType));
+    auto sts = documentSchema.GetFieldType(indexes[i].GetColumnName().c_str(), colType);
+    if (!sts.OK()) {
+      return sts;
     }
+    columnTypes.insert(
+      pair<string, FieldType>(indexes[i].GetColumnName(), colType));
   }
   return Status();
 }

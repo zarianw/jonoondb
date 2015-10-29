@@ -28,7 +28,7 @@ Status IndexManager::Construct(
       return sts;
     }
     
-    std::string columnName = indexes[i].GetColumn(0);
+    std::string columnName = indexes[i].GetColumnName();
     (*columnIndexerMap)[columnName].push_back(unique_ptr<Indexer>(indexer));
   }
 
@@ -46,7 +46,7 @@ Status IndexManager::CreateIndex(
     return sts;
   }
 
-  std::string columnName = indexInfo.GetColumn(0);
+  std::string columnName = indexInfo.GetColumnName();
   (*m_columnIndexerMap)[columnName].push_back(unique_ptr<Indexer>(indexer));
 
   return sts;

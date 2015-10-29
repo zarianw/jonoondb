@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <string>
 
 namespace jonoondb_api {
 // Forward declaration
@@ -12,23 +13,20 @@ enum class IndexType
 
 class IndexInfo {
  public:
-  IndexInfo(const char* name, IndexType type, const char* columns[],
-            std::size_t columnsLength, bool isAscending);
+  IndexInfo(const std::string& name, IndexType type, const std::string& columnName,
+            bool isAscending);
   IndexInfo();
   IndexInfo(const IndexInfo& other);
   ~IndexInfo();
-  IndexInfo& operator=(const IndexInfo& other);
-  Status Validate();
+  IndexInfo& operator=(const IndexInfo& other);  
   void SetName(const char* value);
   const char* GetName() const;
   void SetIsAscending(bool value);
   bool GetIsAscending() const;
   void SetType(IndexType value);
-  IndexType GetType() const;
-  std::size_t GetColumnsLength() const;
-  void SetColumnsLength(std::size_t value);
-  const char* GetColumn(std::size_t index) const;
-  Status SetColumn(std::size_t index, const char* column);
+  IndexType GetType() const;  
+  const std::string& GetColumnName() const;
+  void SetColumnName(const std::string& value);
 
  private:
   // Forward declaration

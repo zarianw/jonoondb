@@ -25,8 +25,7 @@ void CreateInsertTweet(Database* db, std::string& collectionName, bool createInd
   indexes[0].SetName("IndexName1");
   indexes[0].SetType(IndexType::EWAHCompressedBitmap);
   indexes[0].SetIsAscending(true);
-  indexes[0].SetColumnsLength(1);
-  indexes[0].SetColumn(0, "user.name");
+  indexes[0].SetColumnName("user.name");
 
   int indexLength = createIndexes ? 1 : 0;
 
@@ -183,8 +182,7 @@ TEST(Database, Insert_SingleIndex) {
   indexes[0].SetName("IndexName1");
   indexes[0].SetType(IndexType::EWAHCompressedBitmap);
   indexes[0].SetIsAscending(true);
-  indexes[0].SetColumnsLength(1);
-  indexes[0].SetColumn(0, "user.name");
+  indexes[0].SetColumnName("user.name");
 
   auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
                              schema.c_str(), indexes, 1);
@@ -230,14 +228,13 @@ TEST(Database, Insert_AllIndexTypes) {
     indexes[i].SetName(indexName.c_str());
     indexes[i].SetType(IndexType::EWAHCompressedBitmap);
     indexes[i].SetIsAscending(true);
-    indexes[i].SetColumnsLength(1);
     string fieldName;
     if (i < 12) {
       fieldName = "field" + to_string(i + 1);
     } else {
       fieldName = "nestedField.field" + to_string(i - 11);
     }
-    indexes[i].SetColumn(0, fieldName.c_str());
+    indexes[i].SetColumnName(fieldName.c_str());
   } 
 
   auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,

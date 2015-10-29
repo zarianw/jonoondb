@@ -1,3 +1,4 @@
+#include <sstream>
 #include "cdatabase.h"
 #include "cenums.h"
 #include "status.h"
@@ -5,6 +6,7 @@
 #include "database_impl.h"
 #include "jonoondb_exceptions.h"
 #include "index_info.h"
+#include "enums.h"
 
 using namespace jonoondb_api;
 
@@ -62,6 +64,19 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
   }
 
   return retVal;
+}
+
+//
+// Helper funcs
+//
+IndexType ToIndexType(int32_t type) {
+  switch (static_cast<IndexType>(type)) {
+    case jonoondb_api::IndexType::EWAHCompressedBitmap:
+      return static_cast<IndexType>(type);
+    default:
+      throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAHCompressedBitmap = 1}.",
+        __FILE__, "", __LINE__);
+  }
 }
 
 extern "C" {
@@ -164,17 +179,44 @@ void jonoondb_options_setsynchronous(options_ptr opt, bool value) {
 //
 // IndexInfo
 //
+
 struct indexinfo {
   indexinfo() : impl() {
   }
 
-  indexinfo(const char* indexName, IndexType type, const char* columnName,
-    std::size_t columnsLength, bool isAscending) {
-
+  indexinfo(const char* indexName, IndexType type, const char* columnName, bool isAscending) {
   } 
 
   IndexInfo impl;
 };
+
+indexinfo_ptr jonoondb_indexinfo_construct() {
+  return new indexinfo();
+}
+
+indexinfo_ptr jonoondb_indexinfo_construct2(const char* indexName, int32_t type, const char* columnName,
+  bool isAscending, status_ptr* sts) {
+  indexinfo_ptr indexInfo = nullptr;
+  TranslateExceptions([&]{
+    indexInfo = new indexinfo(indexName, ToIndexType(type), columnName, isAscending);
+  }, *sts);
+
+  return indexInfo;
+}
+
+void jonoondb_indexinfo_destruct(indexinfo_ptr indexInfo) {
+  delete indexInfo;
+}
+
+const char* jonoondb_indexinfo_getindexname();
+void jonoondb_indexinfo_setindexname(const char* value);
+int32_t jonoondb_indexinfo_gettype();
+void jonoondb_indexinfo_settype(int32_t value);
+const const char* jonoondb_indexinfo_getcolumnname();
+void jonoondb_indexinfo_setcolumnname(const char* columnName);
+void jonoondb_indexinfo_setisascending(bool value);
+bool jonoondb_indexinfo_getisascending();
+
 
 //
 // Database

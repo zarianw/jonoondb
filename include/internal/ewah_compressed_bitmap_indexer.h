@@ -24,12 +24,9 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
                           EWAHCompressedBitmapIndexer*& obj) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
-    if (indexInfo.GetColumnsLength() != 1) {
-      errorMsg =
-          "Argument indexInfo can only have 1 column for IndexType EWAHCompressedBitmap.";
-    } else if (StringUtils::IsNullOrEmpty(indexInfo.GetName())) {
+    if (StringUtils::IsNullOrEmpty(indexInfo.GetName())) {
       errorMsg = "Argument indexInfo has null or empty name.";
-    } else if (StringUtils::IsNullOrEmpty(indexInfo.GetColumn(0))) {
+    } else if (StringUtils::IsNullOrEmpty(indexInfo.GetColumnName())) {
       errorMsg = "Argument indexInfo has null or empty column name.";
     } else if (indexInfo.GetType() != IndexType::EWAHCompressedBitmap) {
       errorMsg =
@@ -46,7 +43,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
                     __FILE__, "", __LINE__);
     }
 
-    std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumn(0),
+    std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumnName(),
                                                          ".");    
     IndexStat indexStat(indexInfo, fieldType);
     obj = new EWAHCompressedBitmapIndexer(indexStat, tokens);
