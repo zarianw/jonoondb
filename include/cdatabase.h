@@ -66,6 +66,8 @@ bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo);
 typedef struct database* database_ptr;
 database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts);
 void jonoondb_database_close(database_ptr db, status_ptr* sts);
+void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
+  const indexinfo_ptr indexes, int indexesLength, status_ptr* sts);
 
 #ifdef __cplusplus
 } // extern "C"

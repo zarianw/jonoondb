@@ -269,5 +269,18 @@ void jonoondb_database_close(database_ptr db, status_ptr* sts) {
     db->impl->Close();
   }, *sts);
 }
+
+void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
+  const indexinfo_ptr indexes, int indexesLength,
+  status_ptr* sts) {
+  TranslateExceptions([&]{
+    // Todo: Maybe replace the array and vector of indexes by a SafeVector implementation
+    // for better performance.
+    std::vector<IndexInfo> indexInfos;
+    for (size_t i = 0; i < indexesLength; i++) {
+      
+    }
+  }, *sts);
+}
   
 } // extern "C"
