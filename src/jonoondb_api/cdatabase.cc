@@ -10,6 +10,7 @@
 
 using namespace jonoondb_api;
 
+namespace jonoondb_api {
 //
 // Error Handling
 //
@@ -69,7 +70,7 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
 //
 // Helper funcs
 //
-IndexType ToIndexType(int32_t type) {
+IndexType ToIndexType(std::int32_t type) {
   switch (static_cast<IndexType>(type)) {
     case jonoondb_api::IndexType::EWAHCompressedBitmap:
       return static_cast<IndexType>(type);
@@ -78,6 +79,8 @@ IndexType ToIndexType(int32_t type) {
         __FILE__, "", __LINE__);
   }
 }
+
+} // jonoondb_api
 
 extern "C" {
 //
@@ -198,7 +201,7 @@ indexinfo_ptr jonoondb_indexinfo_construct2(const char* indexName, int32_t type,
   bool isAscending, status_ptr* sts) {
   indexinfo_ptr indexInfo = nullptr;
   TranslateExceptions([&]{
-    indexInfo = new indexinfo(indexName, ToIndexType(type), columnName, isAscending);
+    indexInfo = new indexinfo(indexName, jonoondb_api::ToIndexType(type), columnName, isAscending);
   }, *sts);
 
   return indexInfo;
@@ -208,14 +211,37 @@ void jonoondb_indexinfo_destruct(indexinfo_ptr indexInfo) {
   delete indexInfo;
 }
 
-const char* jonoondb_indexinfo_getindexname();
-void jonoondb_indexinfo_setindexname(const char* value);
-int32_t jonoondb_indexinfo_gettype();
-void jonoondb_indexinfo_settype(int32_t value);
-const const char* jonoondb_indexinfo_getcolumnname();
-void jonoondb_indexinfo_setcolumnname(const char* columnName);
-void jonoondb_indexinfo_setisascending(bool value);
-bool jonoondb_indexinfo_getisascending();
+const char* jonoondb_indexinfo_getindexname(indexinfo_ptr indexInfo) {
+  return indexInfo->impl.GetIndexName().c_str();
+}
+
+void jonoondb_indexinfo_setindexname(indexinfo_ptr indexInfo, const char* value) {
+  indexInfo->impl.SetIndexName(value);
+}
+
+int32_t jonoondb_indexinfo_gettype(indexinfo_ptr indexInfo) {
+  return static_cast<int32_t>(indexInfo->impl.GetType());
+}
+
+void jonoondb_indexinfo_settype(indexinfo_ptr indexInfo, int32_t value) {
+  indexInfo->impl.SetType(ToIndexType(value));
+}
+
+const const char* jonoondb_indexinfo_getcolumnname(indexinfo_ptr indexInfo) {
+  return indexInfo->impl.GetColumnName().c_str();
+}
+
+void jonoondb_indexinfo_setcolumnname(indexinfo_ptr indexInfo, const char* value) {
+  indexInfo->impl.SetColumnName(value);
+}
+
+void jonoondb_indexinfo_setisascending(indexinfo_ptr indexInfo, bool value) {
+  indexInfo->impl.SetIsAscending(value);
+}
+
+bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo) {
+  return indexInfo->impl.GetIsAscending();
+}
 
 
 //

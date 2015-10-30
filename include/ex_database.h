@@ -182,17 +182,43 @@ public:
   }
     
   ex_IndexInfo(const ex_IndexInfo& other);
-  ~ex_IndexInfo();
+  ~ex_IndexInfo() {
+    jonoondb_indexinfo_destruct(m_opaque);
+  }
+
   ex_IndexInfo& operator=(const ex_IndexInfo& other);
   
-  const std::string& GetIndexName() const;
-  void SetIndexName(const std::string& value);
-  IndexType GetType() const;
-  void SetType(IndexType value);
-  const std::string& GetColumnName() const;
-  void SetColumnName(const std::string& columnName);  
-  void SetIsAscending(bool value);
-  bool GetIsAscending() const;  
+  const char* GetIndexName() const {
+    return jonoondb_indexinfo_getindexname(m_opaque);
+  }
+
+  void SetIndexName(const std::string& value) {
+    jonoondb_indexinfo_setindexname(m_opaque, value.c_str());
+  }
+
+  IndexType GetType() const {
+    return ToIndexType(jonoondb_indexinfo_gettype(m_opaque));
+  }
+
+  void SetType(IndexType value) {
+    jonoondb_indexinfo_settype(m_opaque, static_cast<int32_t>(value));
+  }
+
+  const char* GetColumnName() const {
+    return jonoondb_indexinfo_getcolumnname(m_opaque);
+  }
+
+  void SetColumnName(const std::string& value) {
+    jonoondb_indexinfo_setcolumnname(m_opaque, value.c_str());
+  }
+
+  void SetIsAscending(bool value) {
+    jonoondb_indexinfo_setisascending(m_opaque, value);
+  }
+
+  bool GetIsAscending() const {
+    jonoondb_indexinfo_getisascending(m_opaque);
+  }
 
 private:
   indexinfo_ptr m_opaque;
@@ -211,7 +237,7 @@ public:
   }
 
   void CreateCollection(const std::string& name, SchemaType schemaType,
-    const std::string& schema, const std::vector<IndexInfo> indexes) {
+    const std::string& schema, const std::vector<ex_IndexInfo>& indexes) {
 
   }
 

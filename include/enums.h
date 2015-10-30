@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
 enum class SchemaType
@@ -12,6 +13,8 @@ enum class IndexType
   : std::int32_t {
     EWAHCompressedBitmap = 1
 };
+
+extern IndexType ToIndexType(std::int32_t type);
 
 enum class FieldType
   : std::int32_t {

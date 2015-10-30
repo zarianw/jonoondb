@@ -50,14 +50,14 @@ indexinfo_ptr jonoondb_indexinfo_construct2(const char* indexName, int32_t type,
                                    bool isAscending, status_ptr* sts);
 void jonoondb_indexinfo_destruct(indexinfo_ptr indexInfo);
 
-const char* jonoondb_indexinfo_getindexname();
-void jonoondb_indexinfo_setindexname(const char* value);
-int32_t jonoondb_indexinfo_gettype();
-void jonoondb_indexinfo_settype(int32_t value);
-const const char* jonoondb_indexinfo_getcolumnname();
-void jonoondb_indexinfo_setcolumnname(const char* columnName);
-void jonoondb_indexinfo_setisascending(bool value);
-bool jonoondb_indexinfo_getisascending();
+const char* jonoondb_indexinfo_getindexname(indexinfo_ptr indexInfo);
+void jonoondb_indexinfo_setindexname(indexinfo_ptr indexInfo, const char* value);
+int32_t jonoondb_indexinfo_gettype(indexinfo_ptr indexInfo);
+void jonoondb_indexinfo_settype(indexinfo_ptr indexInfo, int32_t value);
+const const char* jonoondb_indexinfo_getcolumnname(indexinfo_ptr indexInfo);
+void jonoondb_indexinfo_setcolumnname(indexinfo_ptr indexInfo, const char* columnName);
+void jonoondb_indexinfo_setisascending(indexinfo_ptr indexInfo, bool value);
+bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo);
 
 
 //

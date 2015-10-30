@@ -17,7 +17,7 @@ class SerializerUtils {
   static Status IndexInfoToBytes(const IndexInfo& indexInfo, Buffer& buffer) {
     try {
       FlatBufferBuilder fbb;
-      auto name = fbb.CreateString(indexInfo.GetName());
+      auto name = fbb.CreateString(indexInfo.GetIndexName());
       auto mloc = CreateIndexInfoFB(fbb, name, 0, indexInfo.GetIsAscending(),
                                     (int16_t) indexInfo.GetType());
       fbb.Finish(mloc);

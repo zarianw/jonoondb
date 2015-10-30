@@ -244,7 +244,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
       m_insertCollectionIndexStmt, SQLiteUtils::ClearAndResetStatement);
 
   int sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 1,  // Index of wildcard
-                                     indexInfo.GetName(), -1,  // length of the string is the number of bytes up to the first zero terminator
+                                     indexInfo.GetIndexName().c_str(), -1,  // length of the string is the number of bytes up to the first zero terminator
                                      SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
     return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);

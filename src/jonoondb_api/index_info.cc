@@ -32,7 +32,7 @@ IndexInfo::IndexInfo()
 IndexInfo::IndexInfo(const IndexInfo& other) {
   if (this != &other) {
     m_indexInfoData = new IndexInfoData();
-    m_indexInfoData->Name = other.GetName();
+    m_indexInfoData->Name = other.GetIndexName();
     m_indexInfoData->IsAscending = other.GetIsAscending();
     m_indexInfoData->Type = other.GetType();
     m_indexInfoData->ColumnName = other.GetColumnName();
@@ -45,7 +45,7 @@ IndexInfo::~IndexInfo() {
 
 IndexInfo& IndexInfo::operator=(const IndexInfo& other) {
   if (this != &other) {
-    m_indexInfoData->Name = other.GetName();
+    m_indexInfoData->Name = other.GetIndexName();
     m_indexInfoData->IsAscending = other.GetIsAscending();
     m_indexInfoData->Type = other.GetType();
     m_indexInfoData->ColumnName = other.GetColumnName();
@@ -70,12 +70,12 @@ IndexType IndexInfo::GetType() const {
   return m_indexInfoData->Type;
 }
 
-void IndexInfo::SetName(const char* value) {
+void IndexInfo::SetIndexName(const std::string& value) {
   m_indexInfoData->Name = value;
 }
 
-const char* IndexInfo::GetName() const {
-  return m_indexInfoData->Name.c_str();
+const std::string& IndexInfo::GetIndexName() const {
+  return m_indexInfoData->Name;
 }
 
 const std::string& IndexInfo::GetColumnName() const {

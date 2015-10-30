@@ -19,8 +19,8 @@ class IndexInfo {
   IndexInfo(const IndexInfo& other);
   ~IndexInfo();
   IndexInfo& operator=(const IndexInfo& other);  
-  void SetName(const char* value);
-  const char* GetName() const;
+  void SetIndexName(const std::string& value);
+  const std::string& GetIndexName() const;
   void SetIsAscending(bool value);
   bool GetIsAscending() const;
   void SetType(IndexType value);

@@ -24,7 +24,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
                           EWAHCompressedBitmapIndexer*& obj) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
-    if (StringUtils::IsNullOrEmpty(indexInfo.GetName())) {
+    if (StringUtils::IsNullOrEmpty(indexInfo.GetIndexName())) {
       errorMsg = "Argument indexInfo has null or empty name.";
     } else if (StringUtils::IsNullOrEmpty(indexInfo.GetColumnName())) {
       errorMsg = "Argument indexInfo has null or empty column name.";

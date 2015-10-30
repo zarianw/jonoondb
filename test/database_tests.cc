@@ -22,7 +22,7 @@ void CreateInsertTweet(Database* db, std::string& collectionName, bool createInd
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   IndexInfo indexes[1];
-  indexes[0].SetName("IndexName1");
+  indexes[0].SetIndexName("IndexName1");
   indexes[0].SetType(IndexType::EWAHCompressedBitmap);
   indexes[0].SetIsAscending(true);
   indexes[0].SetColumnName("user.name");
@@ -179,7 +179,7 @@ TEST(Database, Insert_SingleIndex) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   IndexInfo indexes[1];
-  indexes[0].SetName("IndexName1");
+  indexes[0].SetIndexName("IndexName1");
   indexes[0].SetType(IndexType::EWAHCompressedBitmap);
   indexes[0].SetIsAscending(true);
   indexes[0].SetColumnName("user.name");
@@ -225,7 +225,7 @@ TEST(Database, Insert_AllIndexTypes) {
   IndexInfo indexes[indexLength];
   for (auto i = 0; i < indexLength; i++) {
     auto indexName = "IndexName_" + std::to_string(i);
-    indexes[i].SetName(indexName.c_str());
+    indexes[i].SetIndexName(indexName);
     indexes[i].SetType(IndexType::EWAHCompressedBitmap);
     indexes[i].SetIsAscending(true);
     string fieldName;
