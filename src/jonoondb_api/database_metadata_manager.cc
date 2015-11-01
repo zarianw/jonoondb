@@ -160,11 +160,8 @@ void DatabaseMetadataManager::PrepareStatements() {
   }
 }
 
-Status DatabaseMetadataManager::AddCollection(const char* name,
-                                              SchemaType schemaType,
-                                              const char* schema,
-                                              const IndexInfo indexes[],
-                                              size_t indexesLength) {
+void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType schemaType,
+  const std::string& schema, const std::vector<IndexInfo*>& indexes) {
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
   unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
@@ -172,29 +169,33 @@ Status DatabaseMetadataManager::AddCollection(const char* name,
 
   // 1. Prepare stmt to add data in CollectionSchema table
   int code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 1,  // Index of wildcard
-                                     name,  // CollectionName
+                                     name.c_str(),  // CollectionName
                                      -1,  // length of the string is the number of bytes up to the first zero terminator
                                      SQLITE_STATIC);
 
-  if (code != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);    
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
 
   code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 2,  // Index of wildcard
-                                 schema,  // CollectionSchema
+                                 schema.c_str(),  // CollectionSchema
                                  -1,  // length of the string is the number of bytes up to the first zero terminator
                                  SQLITE_STATIC);
-  if (code != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
 
   code = sqlite3_bind_int(m_insertCollectionSchemaStmt, 3,  // Index of wildcard
                                 static_cast<int>(schemaType));
-  if (code != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
 
   // 2. Start Transaction before issuing insert
   code = sqlite3_exec(m_metadataDBConnection, "BEGIN", 0, 0, 0);
-  if (code != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
 
   code = sqlite3_step(m_insertCollectionSchemaStmt);
   if (code != SQLITE_DONE) {
@@ -204,18 +205,17 @@ Status DatabaseMetadataManager::AddCollection(const char* name,
       ss << "Collection with name \"" << name << "\" already exists.";
       std::string errorMsg = ss.str();
       sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
-      return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
+      throw CollectionAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
     } else {
       sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+      throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
     }
   }
 
   // 3. Add all the collection indexes
   Status sts;
-  for (int i = 0; i < indexesLength; i++) {
-    sts = CreateIndex(name, indexes[i]);
+  for (int i = 0; i < indexes.size(); i++) {
+    sts = CreateIndex(name.c_str(), *indexes[i]);
     if (!sts) break;
   }
 
@@ -231,11 +231,9 @@ Status DatabaseMetadataManager::AddCollection(const char* name,
       // automatically by the error response, then the ROLLBACK command will
       // fail with an error, but no harm is caused by this.
       sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+      throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
     }    
   }
-
-  return sts;
 }
 
 Status DatabaseMetadataManager::CreateIndex(const char* collectionName,

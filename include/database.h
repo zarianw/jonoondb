@@ -21,9 +21,6 @@ class Database {
   static void Open(const std::string& dbPath, const std::string& dbName,
                      const Options& options, Database*& db);  
   void Close();
-  Status CreateCollection(const char* name, SchemaType schemaType,
-                          const char* schema, const IndexInfo indexes[],
-                          int indexesLength);
   Status Insert(const char* collectionName, const Buffer& documentData);
   Status ExecuteSelect(const char* selectStatement, ResultSet*& resultSet);
 

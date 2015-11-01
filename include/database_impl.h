@@ -25,9 +25,8 @@ class DatabaseImpl final {
   static DatabaseImpl* Open(const std::string& dbPath, const std::string& dbName,
                       const Options& options);
   void Close();
-  Status CreateCollection(const char* name, SchemaType schemaType,
-                          const char* schema, const IndexInfo indexes[],
-                          size_t indexesLength);
+  void CreateCollection(const std::string& name, SchemaType schemaType,
+                          const std::string& schema, const std::vector<IndexInfo*>& indexes);
   Status Insert(const char* collectionName, const Buffer& documentData);
   Status ExecuteSelect(const char* selectStatement, ResultSet*& resultSet);
 

@@ -38,40 +38,27 @@ void DatabaseImpl::Close() {
   // Todo (zarian): Close all sub components and report any issues in status  
 }
 
-Status DatabaseImpl::CreateCollection(const char* name, SchemaType schemaType,
-                                      const char* schema,
-                                      const IndexInfo indexes[],
-                                      size_t indexesLength) {
-  DocumentCollection* documentCollectionPtr;
-  auto sts = DocumentCollection::Construct(
-      m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes,
-      indexesLength, documentCollectionPtr);
-  if (!sts) return sts;
-  shared_ptr<DocumentCollection> documentCollection(documentCollectionPtr);
+void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,
+  const std::string& schema, const std::vector<IndexInfo*>& indexes) {
+  shared_ptr<DocumentCollection> documentCollection =
+    make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes);
 
   //check if collection already exists
   string colName = name;
   if (m_collectionContainer.find(colName) != m_collectionContainer.end()) {
     ostringstream ss;
     ss << "Collection with name \"" << name << "\" already exists.";
-    std::string errorMsg = ss.str();
-    return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(),
-      __FILE__, "", __LINE__);
+    throw CollectionAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
   }
   
-  sts = m_queryProcessor->AddCollection(documentCollection);
-  if (!sts) return sts;
+  auto sts = m_queryProcessor->AddCollection(documentCollection);  
   
-  sts = m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes,
-                                           indexesLength);
+  m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes);
   if (!sts) {
-    // TODO: we need to call m_queryProcessor->RemoveCollection here.
-    return sts;
+    // TODO: we need to call m_queryProcessor->RemoveCollection here.    
   }
 
   m_collectionContainer[colName] = documentCollection;
-
-  return sts;
 }
 
 Status DatabaseImpl::Insert(const char* collectionName,

@@ -20,14 +20,10 @@ enum class IndexConstraintOperator
 
 class IndexManager {
  public:
-   typedef std::unordered_map<std::string, std::vector<std::unique_ptr<Indexer>>> ColumnIndexderMap;
+  typedef std::unordered_map<std::string, std::vector<std::unique_ptr<Indexer>>> ColumnIndexderMap;  
   
-  IndexManager(std::unique_ptr<ColumnIndexderMap> indexers);
-  static Status Construct(const IndexInfo indexes[], size_t indexesLength,
-  std::unordered_map<std::string, FieldType>& columnTypes,
-  IndexManager*& indexManager);
-  Status CreateIndex(const IndexInfo& indexInfo,
-  std::unordered_map<std::string, FieldType>& columnTypes);
+  IndexManager(const std::vector<IndexInfo*>& indexes, const std::unordered_map<std::string, FieldType>& columnTypes);
+  Status CreateIndex(const IndexInfo& indexInfo, std::unordered_map<std::string, FieldType>& columnTypes);
   Status IndexDocument(std::uint64_t documentID, const Document& document);
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
     IndexStat& indexStat);

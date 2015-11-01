@@ -14,9 +14,9 @@ enum class FieldType
 
 class IndexerFactory {
  public:
-  static Status CreateIndexer(
+   static Indexer* CreateIndexer(
       const IndexInfo& indexInfo,
-      std::unordered_map<std::string, FieldType>& fieldName, Indexer*& indexer);
+      const std::unordered_map<std::string, FieldType>& fieldName);
  private:
   IndexerFactory() = delete;
   IndexerFactory(const IndexerFactory&) = delete;

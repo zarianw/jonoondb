@@ -25,12 +25,10 @@ enum class SchemaType
 
 class DocumentCollection {
  public:
+   DocumentCollection(const std::string& databaseMetadataFilePath,
+     const std::string& name, SchemaType schemaType,
+     const std::string& schema, const std::vector<IndexInfo*>& indexes);
   ~DocumentCollection();
-  static Status Construct(const char* databaseMetadataFilePath,
-                          const char* name, SchemaType schemaType,
-                          const char* schema, const IndexInfo indexes[],
-                          size_t indexesLength,
-                          DocumentCollection*& documentCollection);
 
   Status Insert(const Buffer& documentData);
   const std::string& GetName();
@@ -39,11 +37,8 @@ class DocumentCollection {
                        IndexStat& indexStat);
 
  private:
-  explicit DocumentCollection(const char* name, sqlite3* dbConnection,
-                              std::unique_ptr<IndexManager> indexManager,
-                              std::shared_ptr<DocumentSchema> documentSchema);
-  static Status PopulateColumnTypes(
-      const IndexInfo indexes[], size_t indexesLength,
+  void PopulateColumnTypes(
+      const std::vector<IndexInfo*>& indexes,
       const DocumentSchema& documentSchema,
       std::unordered_map<std::string, FieldType>& columnTypes);
   sqlite3* m_dbConnection;

@@ -235,25 +235,25 @@ public:
     for (auto& item : vec) {
       opaqueVec.push_back(item.GetOpaqueType());
     }
-    jonoondb_indexinfo_vectorview_construct(opaqueVec[0], opaqueVec.size(), ThrowOnError{});
+    jonoondb_indexinfo_vectorview_ptrconstruct(opaqueVec[0], opaqueVec.size(), ThrowOnError{});
   }
 
-  IndexInfoVectorView() : m_opaque(jonoondb_indexinfo_vectorview_construct2()) {}
+  IndexInfoVectorView() : m_opaque(jonoondb_indexinfo_vectorview_ptrconstruct2()) {}
 
   void push_back(const ex_IndexInfo& val) {
-    jonoondb_indexinfo_vectorview_push_back(m_opaque, val.GetOpaqueType(), ThrowOnError{});
+    jonoondb_indexinfo_vectorview_ptrpush_back(m_opaque, val.GetOpaqueType(), ThrowOnError{});
   }
 
   ~IndexInfoVectorView() {
-    jonoondb_indexinfo_vectorview_destruct(m_opaque);
+    jonoondb_indexinfo_vectorview_ptrdestruct(m_opaque);
   }
 
-  indexinfo_vectorview_t* GetOpaqueType() {
+  indexinfo_vectorview_ptr GetOpaqueType() {
     return m_opaque;
   }
 
 private:
-  indexinfo_vectorview_t* m_opaque;
+  indexinfo_vectorview_ptr m_opaque;
 };
 
 class ex_Database {
@@ -269,8 +269,8 @@ public:
   }
 
   void CreateCollection(const std::string& name, SchemaType schemaType,
-    const std::string& schema, const IndexInfoVectorView& indexes) {
-
+                        const std::string& schema, const IndexInfoVectorView& indexes) {
+        
   }
 
 private:

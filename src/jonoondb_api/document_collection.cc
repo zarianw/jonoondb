@@ -15,17 +15,49 @@
 #include "document_schema.h"
 #include "document_schema_factory.h"
 #include "enums.h"
+#include "jonoondb_exceptions.h"
 
 using namespace jonoondb_api;
 using namespace std;
 
-DocumentCollection::DocumentCollection(const char* name,
-    sqlite3* dbConnection, unique_ptr<IndexManager> indexManager,
-    shared_ptr<DocumentSchema> documentSchema)
-    : m_name(name),
-      m_dbConnection(dbConnection),
-      m_indexManager(move(indexManager)),
-      m_documentSchema(documentSchema) {
+DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePath,
+  const std::string& name, SchemaType schemaType,
+  const std::string& schema, const std::vector<IndexInfo*>& indexes) :
+    m_name(name) {
+  // Validate function arguments
+  if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
+    throw InvalidArgumentException("Argument databaseMetadataFilePath is null or empty.", __FILE__, "", __LINE__);
+  }
+
+  if (StringUtils::IsNullOrEmpty(name)) {
+    throw InvalidArgumentException("Argument name is null or empty.", __FILE__, "", __LINE__);
+  }
+
+  // databaseMetadataFile should exist and all the tables should exist in it
+  if (!boost::filesystem::exists(databaseMetadataFilePath)) {
+    std::ostringstream ss;
+    ss << "Database file " << databaseMetadataFilePath << " does not exist.";
+    throw MissingDatabaseFileException(ss.str(), __FILE__, "", __LINE__);
+  }
+
+  sqlite3* dbConnection = nullptr;
+  int sqliteCode = sqlite3_open(databaseMetadataFilePath.c_str(), &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+
+  std::unique_ptr<sqlite3, int (*)(sqlite3*)> dbConnectionUniquePtr(
+      dbConnection, sqlite3_close);
+
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
+  }
+
+  m_documentSchema.reset(DocumentSchemaFactory::CreateDocumentSchema(schema, schemaType));
+  
+  unordered_map<string, FieldType> columnTypes;
+  PopulateColumnTypes(indexes, *m_documentSchema.get(), columnTypes);
+  m_indexManager.reset(new IndexManager(indexes, columnTypes));  
+  
+  m_dbConnection = dbConnectionUniquePtr.release();
 }
 
 DocumentCollection::~DocumentCollection() {
@@ -35,72 +67,6 @@ DocumentCollection::~DocumentCollection() {
     }
     m_dbConnection = nullptr;
   }
-}
-
-Status DocumentCollection::Construct(const char* databaseMetadataFilePath,
-                                     const char* name, SchemaType schemaType,
-                                     const char* schema,
-                                     const IndexInfo indexes[],
-                                     size_t indexesLength,
-                                     DocumentCollection*& documentCollection) {
-  string errorMessage;
-  // Validate function arguments
-  if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
-    errorMessage = "Argument databaseMetadataFilePath is null or empty.";
-    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
-  if (StringUtils::IsNullOrEmpty(name)) {
-    errorMessage = "Argument name is null or empty.";
-    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
-  // databaseMetadataFile should exist and all the tables should exist in it
-  if (!boost::filesystem::exists(databaseMetadataFilePath)) {
-    return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
-  sqlite3* dbConnection = nullptr;
-  int sqliteCode = sqlite3_open(databaseMetadataFilePath, &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
-
-  std::unique_ptr<sqlite3, int (*)(sqlite3*)> dbConnectionUniquePtr(
-      dbConnection, sqlite3_close);
-
-  if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
-
-  IndexManager* indexManager;
-  unordered_map<string, FieldType> columnTypes;
-
-  DocumentSchema* documentSchema;
-  auto sts = DocumentSchemaFactory::CreateDocumentSchema(schema, schemaType,
-                                                         documentSchema);
-  if (!sts.OK()) {
-    return sts;
-  }
-
-  std::shared_ptr<DocumentSchema> documentSchemaPtr(documentSchema);
-  sts = PopulateColumnTypes(indexes, indexesLength, *documentSchemaPtr.get(),
-                            columnTypes);
-  if (!sts.OK()) {
-    return sts;
-  }
-
-  sts = IndexManager::Construct(indexes, indexesLength, columnTypes,
-                                indexManager);
-  if (!sts.OK()) {
-    return sts;
-  }
-
-  unique_ptr<IndexManager> indexManagerUniquePtr(indexManager);
-  documentCollection = new DocumentCollection(name,
-                                              dbConnectionUniquePtr.release(),
-                                              move(indexManagerUniquePtr),
-                                              move(documentSchemaPtr));
-  return sts;
 }
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
@@ -139,18 +105,14 @@ bool DocumentCollection::TryGetBestIndex(const std::string& columnName, IndexCon
   return m_indexManager->TryGetBestIndex(columnName, op, indexStat);
 }
 
-Status DocumentCollection::PopulateColumnTypes(
-  const IndexInfo indexes[], size_t indexesLength,
+void DocumentCollection::PopulateColumnTypes(
+  const std::vector<IndexInfo*>& indexes,
   const DocumentSchema& documentSchema,
   std::unordered_map<string, FieldType>& columnTypes) {
   FieldType colType;
-  for (size_t i = 0; i < indexesLength; i++) {
-    auto sts = documentSchema.GetFieldType(indexes[i].GetColumnName().c_str(), colType);
-    if (!sts.OK()) {
-      return sts;
-    }
+  for (size_t i = 0; i < indexes.size(); i++) {
+    auto sts = documentSchema.GetFieldType(indexes[i]->GetColumnName().c_str(), colType);    
     columnTypes.insert(
-      pair<string, FieldType>(indexes[i].GetColumnName(), colType));
+      pair<string, FieldType>(indexes[i]->GetColumnName(), colType));
   }
-  return Status();
 }

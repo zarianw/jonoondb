@@ -15,39 +15,21 @@ using namespace jonoondb_api;
 using namespace flatbuffers;
 using namespace boost;
 
-FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(const char* schemaText,
-                                                     SchemaType schemaType,
-                                                     unique_ptr<Parser> parser)
-    : m_schemaText(schemaText),
-      m_schemaType(schemaType),
-      m_parser(move(parser)) {
-}
-
 FlatbuffersDocumentSchema::~FlatbuffersDocumentSchema() {
 }
 
-Status FlatbuffersDocumentSchema::Construct(
-    const char* schemaText, SchemaType schemaType,
-    FlatbuffersDocumentSchema*& documentSchema) {
+FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(const std::string& schemaText, SchemaType schemaType) :
+  m_schemaText(schemaText), m_schemaType(schemaType), m_parser(new Parser()) {
   if (StringUtils::IsNullOrEmpty(schemaText)) {
-    string errorMsg = "Argument schemaText is null or empty.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+    throw InvalidArgumentException("Argument schemaText is null or empty.", __FILE__, "", __LINE__);
   }
 
-  unique_ptr<Parser> parser(new Parser());
-  if (!parser->Parse(schemaText)) {
+  if (!m_parser->Parse(m_schemaText.c_str())) {
     ostringstream ss;
     ss << "Flatbuffers parser failed to parse the given schema." << endl
-       << schemaText;
-    string errorMsg = ss.str();
-    return Status(kStatusSchemaParseErrorCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
-  documentSchema = new FlatbuffersDocumentSchema(schemaText, schemaType,
-                                                 move(parser));
-  return Status();
+      << m_schemaText;    
+    throw SchemaParseException(ss.str(), __FILE__, "", __LINE__);
+  }  
 }
 
 const char* FlatbuffersDocumentSchema::GetSchemaText() const {

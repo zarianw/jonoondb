@@ -22,13 +22,6 @@ void Database::Close() {
   delete this;
 }
 
-Status Database::CreateCollection(const char* name, SchemaType schemaType,
-                                  const char* schema, const IndexInfo indexes[],
-                                  int indexesLength) {
-  return m_databaseImpl->CreateCollection(name, schemaType, schema, indexes,
-                                          indexesLength);
-}
-
 Status Database::Insert(const char* collectionName,
                         const Buffer& documentData) {
   return m_databaseImpl->Insert(collectionName, documentData);

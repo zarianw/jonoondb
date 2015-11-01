@@ -4,13 +4,14 @@
 #include "index_info.h"
 #include "enums.h"
 #include "ewah_compressed_bitmap_indexer.h"
+#include "jonoondb_exceptions.h"
 
 using namespace std;
 using namespace jonoondb_api;
 
-Status IndexerFactory::CreateIndexer(
+Indexer* IndexerFactory::CreateIndexer(
     const IndexInfo& indexInfo,
-    std::unordered_map<std::string, FieldType>& fieldType, Indexer*& indexer) {
+    const std::unordered_map<std::string, FieldType>& fieldType) {
   Status sts;
   switch (indexInfo.GetType()) {
     case IndexType::EWAHCompressedBitmap: {
@@ -18,21 +19,16 @@ Status IndexerFactory::CreateIndexer(
       if (it == fieldType.end()) {
         ostringstream ss;
         ss << "The column type for " << indexInfo.GetColumnName()
-           << " could not be determined.";
-        auto errorMsg = ss.str();
-        return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                      __FILE__, "", __LINE__);
+           << " could not be determined.";        
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
       }
 
       EWAHCompressedBitmapIndexer* ewahIndexer;
       sts = EWAHCompressedBitmapIndexer::Construct(indexInfo, it->second,
                                                    ewahIndexer);
-      indexer = static_cast<Indexer*>(ewahIndexer);
-      break;
+      return static_cast<Indexer*>(ewahIndexer);      
     }
     default:
       break;
   }
-
-  return sts;
 }

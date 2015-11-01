@@ -258,8 +258,8 @@ struct indexinfo_vectorview {
   std::vector<IndexInfo*> indexInfoVecView;
 };
 
-indexinfo_vectorview_t* jonoondb_indexinfo_vectorview_construct(indexinfo_ptr indexes, uint64_t indexesLength, status_ptr* sts) {
-  indexinfo_vectorview_t* vecView = nullptr;
+indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct(indexinfo_ptr indexes, uint64_t indexesLength, status_ptr* sts) {
+  indexinfo_vectorview_ptr vecView = nullptr;
   TranslateExceptions([&]{
     vecView = new indexinfo_vectorview(indexes, indexesLength);
   }, *sts);
@@ -267,15 +267,15 @@ indexinfo_vectorview_t* jonoondb_indexinfo_vectorview_construct(indexinfo_ptr in
   return vecView;
 }
 
-indexinfo_vectorview_t* jonoondb_indexinfo_vectorview_construct2() {
+indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct2() {
   return new indexinfo_vectorview();
 }
 
-void jonoondb_indexinfo_vectorview_destruct(indexinfo_vectorview_t* vecView) {
+void jonoondb_indexinfo_vectorview_ptrdestruct(indexinfo_vectorview_ptr vecView) {
   delete vecView;
 }
 
-void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_t* vecView, 
+void jonoondb_indexinfo_vectorview_ptrpush_back(indexinfo_vectorview_ptr vecView, 
                                                                 indexinfo_ptr val, status_ptr* sts) {
   TranslateExceptions([&]{
     vecView->indexInfoVecView.push_back(&val->impl);
@@ -309,15 +309,11 @@ void jonoondb_database_close(database_ptr db, status_ptr* sts) {
 }
 
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
-  const indexinfo_ptr indexes, int indexesLength,
-  status_ptr* sts) {
+                                        indexinfo_vectorview_ptr indexes, status_ptr* sts) {
   TranslateExceptions([&]{
     // Todo: Maybe replace the array and vector of indexes by a SafeVector implementation
     // for better performance.
-    std::vector<IndexInfo> indexInfos;
-    for (size_t i = 0; i < indexesLength; i++) {
-      
-    }
+    
   }, *sts);
 }
   
