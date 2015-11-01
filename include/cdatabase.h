@@ -54,11 +54,19 @@ const char* jonoondb_indexinfo_getindexname(indexinfo_ptr indexInfo);
 void jonoondb_indexinfo_setindexname(indexinfo_ptr indexInfo, const char* value);
 int32_t jonoondb_indexinfo_gettype(indexinfo_ptr indexInfo);
 void jonoondb_indexinfo_settype(indexinfo_ptr indexInfo, int32_t value);
-const const char* jonoondb_indexinfo_getcolumnname(indexinfo_ptr indexInfo);
+const char* jonoondb_indexinfo_getcolumnname(indexinfo_ptr indexInfo);
 void jonoondb_indexinfo_setcolumnname(indexinfo_ptr indexInfo, const char* columnName);
 void jonoondb_indexinfo_setisascending(indexinfo_ptr indexInfo, bool value);
 bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo);
 
+//
+// IndexInfoVectorView Functions
+//
+typedef struct indexinfo_vectorview indexinfo_vectorview_t;
+indexinfo_vectorview_t* jonoondb_indexinfo_vectorview_construct(indexinfo_ptr indexes, uint64_t indexesLength, status_ptr* sts);
+indexinfo_vectorview_t* jonoondb_indexinfo_vectorview_construct2();
+void jonoondb_indexinfo_vectorview_destruct(indexinfo_vectorview_t* vecView);
+void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_t* vecView, indexinfo_ptr val, status_ptr* sts);
 
 //
 // Database Functions
