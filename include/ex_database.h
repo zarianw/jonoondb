@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include "cdatabase.h"
@@ -6,6 +8,10 @@
 #include "enums.h"
 
 namespace jonoondb_api {
+
+//
+// Status
+//
 class ex_Status {
 public:
   ex_Status() : opaque(nullptr) {
@@ -23,6 +29,9 @@ public:
   status_ptr opaque;
 };
 
+//
+// ThrowOnError
+//
 class ThrowOnError {
 public:
   ~ThrowOnError() {
@@ -113,6 +122,9 @@ private:
   ex_Status m_status;
 };
 
+//
+// Options
+//
 class ex_Options {
 public:
   //Default constructor that sets all the options to their default value
@@ -171,7 +183,7 @@ private:
 };
 
 //
-// IndexInfo Functions
+// IndexInfo
 //
 class ex_IndexInfo {
 public:
@@ -230,6 +242,9 @@ private:
   indexinfo_ptr m_opaque;
 };
 
+//
+// IndexInfoVectorView
+//
 class IndexInfoVectorView {
 public:
   IndexInfoVectorView(const std::vector<ex_IndexInfo>& vec) {
@@ -258,6 +273,63 @@ private:
   indexinfo_vectorview_ptr m_opaque;
 };
 
+//
+// Buffer
+//
+class ex_Buffer {
+public:
+  //ex_Buffer(const ex_Buffer& other);
+  //ex_Buffer& operator=(const ex_Buffer& other);
+  ex_Buffer() {
+    m_opaque = jonoondb_buffer_construct();
+  }
+  
+  ex_Buffer(ex_Buffer&& other) {
+    if (this != &other) {
+      this->m_opaque = other.m_opaque;
+      other.m_opaque = nullptr;
+    }
+  }
+  
+  ~ex_Buffer() {
+    if (m_opaque != nullptr) {
+      jonoondb_buffer_destruct(m_opaque);
+    }
+  }
+  /*ex_Buffer& operator=(ex_Buffer&& other);
+  bool operator<(const ex_Buffer& other) const;
+
+  Status Assign(char* buffer, size_t bufferLengthInBytes,
+    size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
+  Status Assign(Buffer& buffer, DeleterFuncPtr customDeleterFunc);
+
+  Status Copy(const char* buffer, size_t bufferLengthInBytes,
+    size_t bufferCapacityInBytes);
+  Status Copy(const Buffer& buffer);*/
+  void Copy(const char* srcBuffer, size_t bytesToCopy) {
+    jonoondb_buffer_copy(m_opaque, srcBuffer, bytesToCopy, ThrowOnError{});
+  }
+
+  void Resize(size_t newBufferCapacityInBytes) {
+    jonoondb_buffer_resize(m_opaque, newBufferCapacityInBytes, ThrowOnError{});
+  }
+
+  //void Reset();
+  //const char* GetData() const;
+  //char* GetDataForWrite();
+  const size_t GetCapacity() const {
+    return jonoondb_buffer_getcapacity(m_opaque);
+  }
+  //const size_t GetLength() const;
+  //Status SetLength(size_t value);*/
+  jonoondb_buffer_ptr GetOpaqueType() const {
+    return m_opaque;
+  }
+
+private:
+  jonoondb_buffer_ptr m_opaque;
+};
+
 class Database {
 public:
   static Database* Open(const std::string& dbPath, const std::string& dbName,
@@ -284,6 +356,12 @@ public:
                                        indexes.GetOpaqueType(),
                                        ThrowOnError{});
   }
+
+  void Insert(const std::string& collectionName, const ex_Buffer& documentData) {
+    jonoondb_database_insert(m_opaque, collectionName.c_str(), documentData.GetOpaqueType(), ThrowOnError{});
+  }
+
+  
 
 private:
   Database(database_ptr db) : m_opaque(db) {}

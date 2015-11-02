@@ -7,6 +7,7 @@
 #include "jonoondb_exceptions.h"
 #include "index_info.h"
 #include "enums.h"
+#include "buffer.h"
 
 using namespace jonoondb_api;
 
@@ -293,6 +294,40 @@ void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_ptr vecView,
 }
 
 //
+// Buffer
+//
+struct jonoondb_buffer {
+  jonoondb_buffer() {}
+
+  Buffer impl;
+};
+
+jonoondb_buffer_ptr jonoondb_buffer_construct() {
+  return new jonoondb_buffer();
+}
+
+void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf) {
+  delete buf;
+}
+
+void jonoondb_buffer_copy(jonoondb_buffer_ptr buf, const char* srcBuf, uint64_t bytesToCopy, status_ptr* sts) {
+  TranslateExceptions([&]{
+    buf->impl.Copy(srcBuf, bytesToCopy);
+  }, *sts);
+}
+
+void jonoondb_buffer_resize(jonoondb_buffer_ptr buf, uint64_t newBufferCapacityInBytes, status_ptr* sts) {
+  TranslateExceptions([&]{
+    buf->impl.Resize(newBufferCapacityInBytes);
+  }, *sts);
+}
+
+uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf) {
+  return buf->impl.GetCapacity();
+}
+
+
+//
 // Database
 //
 struct database {
@@ -328,6 +363,12 @@ void jonoondb_database_createcollection(database_ptr db, const char* name, int32
                                         indexinfo_vectorview_ptr indexes, status_ptr* sts) {
   TranslateExceptions([&]{
     db->impl->CreateCollection(name, ToSchemaType(schemaType), schema, indexes->indexInfoVecView);
+  }, *sts);
+}
+
+void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts) {
+  TranslateExceptions([&]{
+    db->impl->Insert(collectionName, documentData->impl);
   }, *sts);
 }
   

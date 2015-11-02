@@ -130,24 +130,22 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
 }
 
 TEST(Database, Insert_NoIndex) {
-  /*string dbName = "Insert_NoIndex";
+  string dbName = "Insert_NoIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   ex_Options options;
   options.SetCreateDBIfMissing(true);
-  Database* db;
-  Database::Open(dbPath, dbName, options, db);  
+  Database* db = Database::Open(dbPath, dbName, options);  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
-                             schema.c_str(), nullptr, 0);
-  ASSERT_TRUE(sts.OK());
+  
+  IndexInfoVectorView vv;
+  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, vv);  
 
-  Buffer documentData;
-  ASSERT_TRUE(GetTweetObject(documentData).OK());
-  ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
-  db->Close();*/
+  ex_Buffer documentData = GetTweetObject2();
+  db->Insert(collectionName, documentData);
+  db->Close();
 }
 
 TEST(Database, Insert_SingleIndex) {

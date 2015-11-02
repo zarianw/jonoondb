@@ -71,11 +71,22 @@ void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_ptr vecView, i
 //
 // Database Functions
 //
+typedef struct jonoondb_buffer* jonoondb_buffer_ptr;
+jonoondb_buffer_ptr jonoondb_buffer_construct();
+void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf);
+void jonoondb_buffer_copy(jonoondb_buffer_ptr buf, const char* srcBuf, uint64_t bytesToCopy, status_ptr* sts);
+void jonoondb_buffer_resize(jonoondb_buffer_ptr buf, uint64_t newBufferCapacityInBytes, status_ptr* sts);
+uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf);
+
+//
+// Database Functions
+//
 typedef struct database* database_ptr;
 database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts);
 void jonoondb_database_close(database_ptr db, status_ptr* sts);
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
                                         indexinfo_vectorview_ptr indexes, status_ptr* sts);
+void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts);
 
 #ifdef __cplusplus
 } // extern "C"
