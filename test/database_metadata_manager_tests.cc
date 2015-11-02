@@ -1,5 +1,6 @@
 #include <string>
 #include <memory>
+#include <vector>
 #include "gtest/gtest.h"
 #include "test_utils.h"
 #include "database_metadata_manager.h"
@@ -28,8 +29,8 @@ TEST(DatabaseMetadataManager, AddCollection_NewSingleIndex) {
       std::make_unique<DatabaseMetadataManager>(g_TestRootDirectory, dbName, true);
 
     IndexInfo indexInfo("MyIndex", IndexType::EWAHCompressedBitmap, "MyColumn", true);
-    auto status = databaseMetadataManager->AddCollection("MyCollection", SchemaType::FLAT_BUFFERS, "",
-      &indexInfo, 1);
-    ASSERT_TRUE(status.OK());
+    std::vector<IndexInfo*> vec;
+    vec.push_back(&indexInfo);
+    databaseMetadataManager->AddCollection("MyCollection", SchemaType::FLAT_BUFFERS, "", vec);    
   }); 
 }

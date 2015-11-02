@@ -29,6 +29,8 @@ Indexer* IndexerFactory::CreateIndexer(
       return static_cast<Indexer*>(ewahIndexer);      
     }
     default:
-      break;
+      std::ostringstream ss;
+      ss << "Cannot create Indexer. Index type '" << static_cast<int32_t>(indexInfo.GetType()) << "' is unknown.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);      
   }
 }

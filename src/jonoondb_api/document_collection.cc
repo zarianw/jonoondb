@@ -70,16 +70,11 @@ DocumentCollection::~DocumentCollection() {
 }
 
 Status DocumentCollection::Insert(const Buffer& documentData) {
-  Document* docPtr;
-  auto sts = DocumentFactory::CreateDocument(m_documentSchema, documentData,
-                                               docPtr);
-  if (!sts) return sts;
-  // unique_ptr will ensure that memory does not leak.
-  unique_ptr<Document> doc(docPtr);
+  unique_ptr<Document> doc(DocumentFactory::CreateDocument(m_documentSchema, documentData));
   
   // Index the document
   auto id = m_documentIDGenerator.ReserveID(1);
-  sts = m_indexManager->IndexDocument(id, *doc.get());
+  auto sts = m_indexManager->IndexDocument(id, *doc.get());
   if (!sts) return sts;
 
   // Add it in the documentID map

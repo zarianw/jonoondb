@@ -46,14 +46,10 @@ TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
   string schema = ReadTextFile(filePath.c_str());
   Buffer documentData;
   ASSERT_TRUE(GetTweetObject(documentData).OK());
-  DocumentSchema* docSchema;
-  auto sts = DocumentSchemaFactory::CreateDocumentSchema(
-      schema.c_str(), SchemaType::FLAT_BUFFERS, docSchema);
-  ASSERT_TRUE(sts.OK());
-  shared_ptr<DocumentSchema> docSchemaPtr(docSchema);
-  Document* doc;
-  sts = DocumentFactory::CreateDocument(docSchemaPtr, documentData, doc);
-  ASSERT_TRUE(sts.OK());
+  shared_ptr<DocumentSchema> docSchemaPtr(DocumentSchemaFactory::CreateDocumentSchema(
+    schema.c_str(), SchemaType::FLAT_BUFFERS));
+  
+  auto doc = DocumentFactory::CreateDocument(docSchemaPtr, documentData);
   CompareTweetObject(doc, documentData);
   doc->Dispose();
 }

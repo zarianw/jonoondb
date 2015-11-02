@@ -12,9 +12,9 @@ class DocumentSchema;
 
 class DocumentFactory {
  public:
-  static Status CreateDocument(
+  static Document* CreateDocument(
       const std::shared_ptr<DocumentSchema>& documentSchema,
-      const Buffer& buffer, Document*& document);
+      const Buffer& buffer);
  private:
   DocumentFactory() = delete;
   DocumentFactory(const DocumentFactory&) = delete;

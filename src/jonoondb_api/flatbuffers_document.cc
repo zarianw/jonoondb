@@ -8,20 +8,13 @@ using namespace std;
 using namespace jonoondb_api;
 using namespace flatbuffers;
 
-Status FlatbuffersDocument::Construct(
-    const shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema,
-    const Buffer& buffer, FlatbuffersDocument*& flatbuffersDocument) {
-
-  Table* table = const_cast<Table*>(flatbuffers::GetRoot<Table>(
-      buffer.GetData()));
-  unique_ptr<DynamicTableReader> dynamicTableReader(
-      new DynamicTableReader(table, fbDocumentSchema->GetRootStruct(),
-                             fbDocumentSchema->GetChildStructs()));
-
-  flatbuffersDocument = new FlatbuffersDocument(fbDocumentSchema,
-                                                move(dynamicTableReader));
-
-  return Status();
+FlatbuffersDocument::FlatbuffersDocument(
+  const std::shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema, const Buffer& buffer) :
+  m_fbDcumentSchema(fbDocumentSchema) {
+  Table* table = const_cast<Table*>(flatbuffers::GetRoot<Table>(buffer.GetData()));
+  m_dynTableReader.reset(new DynamicTableReader(table,
+                                                m_fbDcumentSchema->GetRootStruct(),
+                                                m_fbDcumentSchema->GetChildStructs()));
 }
 
 Status FlatbuffersDocument::GetScalarValueAsInt8(const char* fieldName,
@@ -187,10 +180,10 @@ void FlatbuffersDocument::Dispose() {
 }
 
 FlatbuffersDocument::FlatbuffersDocument(
-    const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
-    unique_ptr<DynamicTableReader> dynTableReader)
-    : m_fbDcumentSchema(fbDocumentSchema),
-      m_dynTableReader(move(dynTableReader)) {
+  const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
+  unique_ptr<DynamicTableReader> dynTableReader)
+  : m_fbDcumentSchema(fbDocumentSchema),
+  m_dynTableReader(move(dynTableReader)) {
 }
 
 Status FlatbuffersDocument::GetMissingFieldErrorStatus(

@@ -63,10 +63,10 @@ bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo);
 // IndexInfoVectorView Functions
 //
 typedef struct indexinfo_vectorview* indexinfo_vectorview_ptr;
-indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_ptrconstruct(indexinfo_ptr indexes, uint64_t indexesLength, status_ptr* sts);
-indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_ptrconstruct2();
-void jonoondb_indexinfo_vectorview_ptrdestruct(indexinfo_vectorview_ptr vecView);
-void jonoondb_indexinfo_vectorview_ptrpush_back(indexinfo_vectorview_ptr vecView, indexinfo_ptr val, status_ptr* sts);
+indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct(indexinfo_ptr indexes, uint64_t indexesLength, status_ptr* sts);
+indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct2();
+void jonoondb_indexinfo_vectorview_destruct(indexinfo_vectorview_ptr vecView);
+void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_ptr vecView, indexinfo_ptr val, status_ptr* sts);
 
 //
 // Database Functions

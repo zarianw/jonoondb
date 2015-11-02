@@ -72,10 +72,20 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
 //
 IndexType ToIndexType(std::int32_t type) {
   switch (static_cast<IndexType>(type)) {
-    case jonoondb_api::IndexType::EWAHCompressedBitmap:
+    case IndexType::EWAHCompressedBitmap:
       return static_cast<IndexType>(type);
     default:
       throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAHCompressedBitmap = 1}.",
+        __FILE__, "", __LINE__);
+  }
+}
+
+SchemaType ToSchemaType(std::int32_t type) {
+  switch (static_cast<SchemaType>(type)) {
+    case SchemaType::FLAT_BUFFERS:
+      return static_cast<SchemaType>(type);
+    default:
+      throw InvalidArgumentException("Argument type is not valid. Allowed values are {FLAT_BUFFERS = 1}.",
         __FILE__, "", __LINE__);
   }
 }
@@ -271,12 +281,12 @@ indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct2() {
   return new indexinfo_vectorview();
 }
 
-void jonoondb_indexinfo_vectorview_ptrdestruct(indexinfo_vectorview_ptr vecView) {
+void jonoondb_indexinfo_vectorview_destruct(indexinfo_vectorview_ptr vecView) {
   delete vecView;
 }
 
-void jonoondb_indexinfo_vectorview_ptrpush_back(indexinfo_vectorview_ptr vecView, 
-                                                                indexinfo_ptr val, status_ptr* sts) {
+void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_ptr vecView, 
+                                             indexinfo_ptr val, status_ptr* sts) {
   TranslateExceptions([&]{
     vecView->indexInfoVecView.push_back(&val->impl);
   }, *sts);
@@ -288,6 +298,10 @@ void jonoondb_indexinfo_vectorview_ptrpush_back(indexinfo_vectorview_ptr vecView
 struct database {
   database(const char* dbPath, const char* dbName, const Options& opt) {
     impl = DatabaseImpl::Open(dbPath, dbName, opt);
+  }
+
+  ~database() {
+    delete impl;
   }
 
   DatabaseImpl* impl;
@@ -305,15 +319,15 @@ database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, cons
 void jonoondb_database_close(database_ptr db, status_ptr* sts) {
   TranslateExceptions([&]{
     db->impl->Close();
+    // Todo: Handle exceptions that can happen on close
+    delete db;
   }, *sts);
 }
 
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
                                         indexinfo_vectorview_ptr indexes, status_ptr* sts) {
   TranslateExceptions([&]{
-    // Todo: Maybe replace the array and vector of indexes by a SafeVector implementation
-    // for better performance.
-    
+    db->impl->CreateCollection(name, ToSchemaType(schemaType), schema, indexes->indexInfoVecView);
   }, *sts);
 }
   

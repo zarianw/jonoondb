@@ -5,11 +5,13 @@
 #include "jonoondb_exceptions.h"
 #include "enums.h"
 
-
 namespace jonoondb_api {
 class ex_Status {
 public:
   ex_Status() : opaque(nullptr) {
+  }
+
+  ex_Status(status_ptr sts) : opaque(sts) {
   }
 
   ~ex_Status() {
@@ -235,20 +237,20 @@ public:
     for (auto& item : vec) {
       opaqueVec.push_back(item.GetOpaqueType());
     }
-    jonoondb_indexinfo_vectorview_ptrconstruct(opaqueVec[0], opaqueVec.size(), ThrowOnError{});
+    jonoondb_indexinfo_vectorview_construct(opaqueVec[0], opaqueVec.size(), ThrowOnError{});
   }
 
-  IndexInfoVectorView() : m_opaque(jonoondb_indexinfo_vectorview_ptrconstruct2()) {}
+  IndexInfoVectorView() : m_opaque(jonoondb_indexinfo_vectorview_construct2()) {}
 
   void push_back(const ex_IndexInfo& val) {
-    jonoondb_indexinfo_vectorview_ptrpush_back(m_opaque, val.GetOpaqueType(), ThrowOnError{});
+    jonoondb_indexinfo_vectorview_push_back(m_opaque, val.GetOpaqueType(), ThrowOnError{});
   }
 
   ~IndexInfoVectorView() {
-    jonoondb_indexinfo_vectorview_ptrdestruct(m_opaque);
+    jonoondb_indexinfo_vectorview_destruct(m_opaque);
   }
 
-  indexinfo_vectorview_ptr GetOpaqueType() {
+  indexinfo_vectorview_ptr GetOpaqueType() const {
     return m_opaque;
   }
 
@@ -256,25 +258,35 @@ private:
   indexinfo_vectorview_ptr m_opaque;
 };
 
-class ex_Database {
+class Database {
 public:
-  static ex_Database* Open(const std::string& dbPath, const std::string& dbName,
+  static Database* Open(const std::string& dbPath, const std::string& dbName,
     const ex_Options& opt) {
     auto db = jonoondb_database_open(dbPath.c_str(), dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{});
-    return new ex_Database(db);
+    return new Database(db);
   }
 
   void Close() {
-    jonoondb_database_close(m_opaque, ThrowOnError{});
+    status_ptr sts = nullptr;
+    jonoondb_database_close(m_opaque, &sts);
+    if (sts != nullptr) {
+      //Todo: Handle errors that can happen on shutdown
+    }
+
+    delete this;
   }
 
   void CreateCollection(const std::string& name, SchemaType schemaType,
                         const std::string& schema, const IndexInfoVectorView& indexes) {
-        
+    jonoondb_database_createcollection(m_opaque, name.c_str(),
+                                       static_cast<int32_t>(schemaType),
+                                       schema.c_str(),
+                                       indexes.GetOpaqueType(),
+                                       ThrowOnError{});
   }
 
 private:
-  ex_Database(database_ptr db) : m_opaque(db) {}
+  Database(database_ptr db) : m_opaque(db) {}
   database_ptr m_opaque;
 };
 

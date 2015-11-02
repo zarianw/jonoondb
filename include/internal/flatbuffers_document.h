@@ -12,9 +12,9 @@ class FlatbuffersDocumentSchema;
 
 class FlatbuffersDocument final : public Document {
  public:
-  static Status Construct(
+  FlatbuffersDocument(
       const std::shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema,
-      const Buffer& buffer, FlatbuffersDocument*& flatbuffersDocument);
+      const Buffer& buffer);
 
   Status GetScalarValueAsInt8(const char* fieldName, int8_t& val) const
       override;
@@ -48,8 +48,8 @@ class FlatbuffersDocument final : public Document {
 
  private:
   FlatbuffersDocument(
-      const std::shared_ptr<FlatbuffersDocumentSchema> m_fbDocumentSchema,
-      std::unique_ptr<flatbuffers::DynamicTableReader> dynTableReader);
+     const std::shared_ptr<FlatbuffersDocumentSchema> m_fbDocumentSchema,
+     std::unique_ptr<flatbuffers::DynamicTableReader> dynTableReader);
   Status GetMissingFieldErrorStatus(const char* fieldName) const;
   const std::shared_ptr<FlatbuffersDocumentSchema> m_fbDcumentSchema;
 
