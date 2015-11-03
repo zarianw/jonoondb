@@ -85,7 +85,7 @@ typedef struct database* database_ptr;
 database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts);
 void jonoondb_database_close(database_ptr db, status_ptr* sts);
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
-                                        indexinfo_vectorview_ptr indexes, status_ptr* sts);
+                                        indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts);
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts);
 
 #ifdef __cplusplus

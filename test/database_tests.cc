@@ -97,8 +97,8 @@ TEST(Database, CreateCollection_InvalidSchema) {
   ex_Options options;
   options.SetCreateDBIfMissing(true);
   Database* db = Database::Open(dbPath, dbName, options);
-  IndexInfoVectorView vv;
-  ASSERT_THROW(db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", vv), SchemaParseException);
+  std::vector<ex_IndexInfo> indexes;
+  ASSERT_THROW(db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", indexes), SchemaParseException);
   db->Close();
 }
 
@@ -110,8 +110,8 @@ TEST(Database, CreateCollection_New) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   Database* db = Database::Open(dbPath, dbName, options);
-  IndexInfoVectorView vv;
-  db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, vv);  
+  std::vector<ex_IndexInfo> indexes;
+  db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
   db->Close();
 }
 
@@ -123,9 +123,9 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   Database* db = Database::Open(dbPath, dbName, options);
-  IndexInfoVectorView vv;
-  db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, vv);  
-  ASSERT_THROW(db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, vv), CollectionAlreadyExistException);  
+  std::vector<ex_IndexInfo> indexes;
+  db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
+  ASSERT_THROW(db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes), CollectionAlreadyExistException);  
   db->Close();
 }
 
@@ -140,8 +140,8 @@ TEST(Database, Insert_NoIndex) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   
-  IndexInfoVectorView vv;
-  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, vv);  
+  std::vector<ex_IndexInfo> indexes;
+  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);  
 
   ex_Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
@@ -149,33 +149,33 @@ TEST(Database, Insert_NoIndex) {
 }
 
 TEST(Database, Insert_SingleIndex) {
-  /*string dbName = "Insert_SingleIndex";
+  string dbName = "Insert_SingleIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   ex_Options options;
   options.SetCreateDBIfMissing(true);
-  Database* db;
-  Database::Open(dbPath, dbName, options, db);  
+  Database* db = Database::Open(dbPath, dbName, options);  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  IndexInfo indexes[1];
-  indexes[0].SetIndexName("IndexName1");
-  indexes[0].SetType(IndexType::EWAHCompressedBitmap);
-  indexes[0].SetIsAscending(true);
-  indexes[0].SetColumnName("user.name");
+  ex_IndexInfo index;
+  index.SetIndexName("IndexName1");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("user.name");
+  std::vector<ex_IndexInfo> indexes;
+  indexes.push_back(index);
 
-  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
-                             schema.c_str(), indexes, 1);
-  ASSERT_TRUE(sts.OK());
-
-  Buffer documentData;
-  ASSERT_TRUE(GetTweetObject(documentData).OK());
-  ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
-  db->Close();*/
+  db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+                                  schema.c_str(), indexes);
+  
+  ex_Buffer documentData = GetTweetObject2();
+  db->Insert(collectionName, documentData);
+  db->Close();
 }
 
-Status GetAllFieldTypeObject(Buffer& buffer) {
+ex_Buffer GetAllFieldTypeObject() {
+  ex_Buffer buffer;
   FlatBufferBuilder fbb;
   // create nested object
   auto text1 = fbb.CreateString("Say hello to my little friend!");  
@@ -187,45 +187,45 @@ Status GetAllFieldTypeObject(Buffer& buffer) {
                                       10, 11.0, text2, nestedObj);
   fbb.Finish(parentObj);
 
-  return buffer.Copy((char*)fbb.GetBufferPointer(), fbb.GetSize());
+  buffer.Copy((char*)fbb.GetBufferPointer(), fbb.GetSize());
+  return buffer;
 }
 
 TEST(Database, Insert_AllIndexTypes) {
-  /*string dbName = "Insert_AllIndexTypes";
+  string dbName = "Insert_AllIndexTypes";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   ex_Options options;
   options.SetCreateDBIfMissing(true);
-  Database* db;
-  Database::Open(dbPath, dbName, options, db);  
+  Database* db = Database::Open(dbPath, dbName, options);  
 
   string filePath = g_SchemaFolderPath + "all_field_type.fbs";
   string schema = ReadTextFile(filePath.c_str());
 
   const int indexLength = 24;
-  IndexInfo indexes[indexLength];
-  for (auto i = 0; i < indexLength; i++) {
+  std::vector<ex_IndexInfo> indexes;
+  ex_IndexInfo index;
+  for (auto i = 0; i < indexLength; i++) {    
     auto indexName = "IndexName_" + std::to_string(i);
-    indexes[i].SetIndexName(indexName);
-    indexes[i].SetType(IndexType::EWAHCompressedBitmap);
-    indexes[i].SetIsAscending(true);
+    index.SetIndexName(indexName);
+    index.SetType(IndexType::EWAHCompressedBitmap);
+    index.SetIsAscending(true);
     string fieldName;
     if (i < 12) {
       fieldName = "field" + to_string(i + 1);
     } else {
       fieldName = "nestedField.field" + to_string(i - 11);
     }
-    indexes[i].SetColumnName(fieldName.c_str());
+    index.SetColumnName(fieldName.c_str());
+
+    indexes.push_back(index);
   } 
 
-  auto sts = db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
-    schema.c_str(), indexes, indexLength);
-  ASSERT_TRUE(sts.OK());
+  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
-  Buffer documentData;
-  ASSERT_TRUE(GetAllFieldTypeObject(documentData).OK());
-  ASSERT_TRUE(db->Insert(collectionName.c_str(), documentData).OK());
-  db->Close();*/
+  ex_Buffer documentData = GetAllFieldTypeObject();
+  db->Insert(collectionName, documentData);
+  db->Close();
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {

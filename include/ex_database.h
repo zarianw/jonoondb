@@ -20,6 +20,13 @@ public:
   ex_Status(status_ptr sts) : opaque(sts) {
   }
 
+  ex_Status(ex_Status&& other) {
+    if (this != &other) {
+      this->opaque = other.opaque;
+      other.opaque = nullptr;
+    }
+  }
+
   ~ex_Status() {
     if (opaque) {
       jonoondb_status_destruct(opaque);
@@ -137,10 +144,17 @@ public:
       synchronous, ThrowOnError{});
   }
 
-  ex_Options(ex_Options&& other);
+  ex_Options(ex_Options&& other) {
+    if (this != &other) {
+      this->m_opaque = other.m_opaque;
+      other.m_opaque = nullptr;
+    }
+  }
 
   ~ex_Options() {
-    jonoondb_options_destruct(m_opaque);
+    if (m_opaque != nullptr) {
+      jonoondb_options_destruct(m_opaque);
+    }
   }
 
   void SetCreateDBIfMissing(bool value) {
@@ -194,13 +208,41 @@ public:
   ex_IndexInfo(const std::string& indexName, IndexType type, const std::string& columnName, bool isAscending) {
     m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), 0, columnName.c_str(), isAscending, ThrowOnError{});
   }
+
+  ex_IndexInfo(ex_IndexInfo&& other) {
+    if (this != &other) {
+      this->m_opaque = other.m_opaque;
+      other.m_opaque = nullptr;
+    }
+  }
     
-  ex_IndexInfo(const ex_IndexInfo& other);
-  ~ex_IndexInfo() {
-    jonoondb_indexinfo_destruct(m_opaque);
+  ex_IndexInfo(const ex_IndexInfo& other) {
+    if (this != &other) {
+      m_opaque = jonoondb_indexinfo_construct();
+      this->SetIndexName(other.GetIndexName());
+      this->SetColumnName(other.GetColumnName());
+      this->SetIsAscending(other.GetIsAscending());
+      this->SetType(other.GetType());
+    }
   }
 
-  ex_IndexInfo& operator=(const ex_IndexInfo& other);
+  ~ex_IndexInfo() {
+    if (m_opaque != nullptr) {
+      jonoondb_indexinfo_destruct(m_opaque);
+    }
+  }
+
+  ex_IndexInfo& operator=(const ex_IndexInfo& other) {
+    if (this != &other) {
+      m_opaque = jonoondb_indexinfo_construct();
+      this->SetIndexName(other.GetIndexName());
+      this->SetColumnName(other.GetColumnName());
+      this->SetIsAscending(other.GetIsAscending());
+      this->SetType(other.GetType());
+    }
+
+    return *this;
+  }
   
   const char* GetIndexName() const {
     return jonoondb_indexinfo_getindexname(m_opaque);
@@ -231,7 +273,7 @@ public:
   }
 
   bool GetIsAscending() const {
-    jonoondb_indexinfo_getisascending(m_opaque);
+    return jonoondb_indexinfo_getisascending(m_opaque);
   }
 
   indexinfo_ptr GetOpaqueType() const {
@@ -349,11 +391,17 @@ public:
   }
 
   void CreateCollection(const std::string& name, SchemaType schemaType,
-                        const std::string& schema, const IndexInfoVectorView& indexes) {
+                        const std::string& schema, const std::vector<ex_IndexInfo>& indexes) {
+    std::vector<indexinfo_ptr> vec;
+    for (auto& item : indexes) {
+      vec.push_back(item.GetOpaqueType());
+    }
+
     jonoondb_database_createcollection(m_opaque, name.c_str(),
                                        static_cast<int32_t>(schemaType),
                                        schema.c_str(),
-                                       indexes.GetOpaqueType(),
+                                       vec.data(),
+                                       vec.size(),
                                        ThrowOnError{});
   }
 

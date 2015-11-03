@@ -360,9 +360,14 @@ void jonoondb_database_close(database_ptr db, status_ptr* sts) {
 }
 
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
-                                        indexinfo_vectorview_ptr indexes, status_ptr* sts) {
+                                        indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts) {
   TranslateExceptions([&]{
-    db->impl->CreateCollection(name, ToSchemaType(schemaType), schema, indexes->indexInfoVecView);
+    // Todo: We should use array_view here from GSL. That can speedup this and will also be more clean.
+    std::vector<IndexInfo*> vec;
+    for (uint64_t i = 0; i < indexesLength; i++) {
+      vec.push_back(&indexes[i]->impl);
+    }
+    db->impl->CreateCollection(name, ToSchemaType(schemaType), schema, vec);
   }, *sts);
 }
 
