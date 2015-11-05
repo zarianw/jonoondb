@@ -3,7 +3,7 @@
 #include <string>
 #include "status.h"
 #include "buffer.h"
-#include "ex_database.h"
+#include "database.h"
 
 namespace jonoondb_test {
 extern std::string g_TestRootDirectory;

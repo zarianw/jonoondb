@@ -9,7 +9,7 @@ namespace jonoondb_api {
 class Status;
 class DocumentCollection;
 class DocumentSchema;
-class ResultSet;
+class ResultSetImpl;
 
 class QueryProcessor final {
 public:
@@ -18,7 +18,7 @@ public:
   QueryProcessor& operator=(const QueryProcessor&) = delete;
   QueryProcessor();  
   Status AddCollection(const std::shared_ptr<DocumentCollection>& collection);
-  Status ExecuteSelect(const char* selectStatement, ResultSet*& resultSet);
+  ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
 private:  
   std::unique_ptr<sqlite3, void(*)(sqlite3*)> m_db;

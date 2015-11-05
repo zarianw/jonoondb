@@ -8,6 +8,7 @@
 #include "index_info.h"
 #include "enums.h"
 #include "buffer.h"
+#include "resultset_impl.h"
 
 using namespace jonoondb_api;
 
@@ -326,6 +327,19 @@ uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf) {
   return buf->impl.GetCapacity();
 }
 
+//
+// ResultSet Functions
+//
+struct resultset {
+  resultset(ResultSetImpl&& val) : impl(std::move(val)) {
+  }
+
+  ResultSetImpl impl;
+};
+
+void jonoondb_resultset_destruct(resultset_ptr rs) {
+  delete rs;
+}
 
 //
 // Database
@@ -375,6 +389,16 @@ void jonoondb_database_insert(database_ptr db, const char* collectionName, const
   TranslateExceptions([&]{
     db->impl->Insert(collectionName, documentData->impl);
   }, *sts);
+}
+
+resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selectStatement, status_ptr* sts) {
+  resultset_ptr val;
+  // Todo: Use string_view for performance improvement
+  TranslateExceptions([&]{
+    val = new resultset(db->impl->ExecuteSelect(selectStatement));
+  }, *sts);
+
+  return val;  
 }
   
 } // extern "C"

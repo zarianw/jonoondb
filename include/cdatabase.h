@@ -69,7 +69,7 @@ void jonoondb_indexinfo_vectorview_destruct(indexinfo_vectorview_ptr vecView);
 void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_ptr vecView, indexinfo_ptr val, status_ptr* sts);
 
 //
-// Database Functions
+// Buffer Functions
 //
 typedef struct jonoondb_buffer* jonoondb_buffer_ptr;
 jonoondb_buffer_ptr jonoondb_buffer_construct();
@@ -77,6 +77,26 @@ void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf);
 void jonoondb_buffer_copy(jonoondb_buffer_ptr buf, const char* srcBuf, uint64_t bytesToCopy, status_ptr* sts);
 void jonoondb_buffer_resize(jonoondb_buffer_ptr buf, uint64_t newBufferCapacityInBytes, status_ptr* sts);
 uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf);
+
+//
+// ResultSet Functions
+//
+typedef struct resultset* resultset_ptr;
+void jonoondb_resultset_destruct(resultset_ptr rs);
+int32_t next(resultset_ptr rs);
+int8_t jonoondb_resultset_getint8(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+int16_t jonoondb_resultset_getint16(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+int32_t jonoondb_resultset_getint32(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+int64_t jonoondb_resultset_getint64(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+
+uint8_t jonoondb_resultset_getuint8(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+uint16_t jonoondb_resultset_getuint16(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+uint32_t jonoondb_resultset_getuint32(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+uint64_t jonoondb_resultset_getuint64(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+
+float jonoondb_resultset_getfloat(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+double jonoondb_resultset_getdouble(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+const char* jonoondb_resultset_getstringvalue(resultset_ptr rs, const char* fieldName, status_ptr* sts);
 
 //
 // Database Functions
@@ -87,6 +107,7 @@ void jonoondb_database_close(database_ptr db, status_ptr* sts);
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
                                         indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts);
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts);
+resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selectStatement, status_ptr* sts);
 
 #ifdef __cplusplus
 } // extern "C"

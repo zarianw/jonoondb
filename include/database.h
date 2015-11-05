@@ -243,6 +243,15 @@ public:
 
     return *this;
   }
+
+  ex_IndexInfo& operator=(ex_IndexInfo&& other) {
+    if (this != &other) {
+      this->m_opaque = other.m_opaque;
+      other.m_opaque = nullptr;
+    }
+
+    return *this;
+  }
   
   const char* GetIndexName() const {
     return jonoondb_indexinfo_getindexname(m_opaque);
@@ -372,6 +381,55 @@ private:
   jonoondb_buffer_ptr m_opaque;
 };
 
+class ResultSet {
+public:
+  ResultSet(resultset_ptr opaque) : m_opaque(opaque) {
+  }
+
+  ResultSet(const ResultSet& other) = delete;
+  ResultSet(ResultSet&& other) {
+    if (this != &other) {
+      this->m_opaque = other.m_opaque;
+      other.m_opaque = nullptr;
+    }
+  }
+
+  ~ResultSet() {
+    if (m_opaque != nullptr) {
+      jonoondb_resultset_destruct(m_opaque);
+    }
+  }
+
+  ResultSet& operator=(const ResultSet& other) = delete;
+  ResultSet& operator=(ResultSet&& other) {
+    if (this != &other) {
+      this->m_opaque = other.m_opaque;
+      other.m_opaque = nullptr;
+    }
+
+    return *this;
+  }
+
+  bool Next();
+
+  std::int8_t GetInt8(const std::string& fieldName) const;
+  std::int16_t GetInt16(const std::string& fieldName) const;
+  std::int32_t GetInt32(const std::string& fieldName) const;
+  std::int64_t GetInt64(const std::string& fieldName) const;
+
+  std::uint8_t GetUInt8(const std::string& fieldName) const;
+  std::uint16_t GetUInt16(const std::string& fieldName) const;
+  std::uint32_t GetUInt32(const std::string& fieldName) const;
+  std::uint64_t GetUInt64(const std::string& fieldName) const;
+
+  float GetFloat(const std::string& fieldName) const;
+  double GetDouble(const std::string& fieldName) const;
+
+  const char* GetStringValue(const std::string& fieldName) const;
+private:
+  resultset_ptr m_opaque;
+};
+
 class Database {
 public:
   static Database* Open(const std::string& dbPath, const std::string& dbName,
@@ -407,6 +465,11 @@ public:
 
   void Insert(const std::string& collectionName, const ex_Buffer& documentData) {
     jonoondb_database_insert(m_opaque, collectionName.c_str(), documentData.GetOpaqueType(), ThrowOnError{});
+  }
+
+  ResultSet ExecuteSelect(const std::string& selectStatement) {
+    auto rs = jonoondb_database_executeselect(m_opaque, selectStatement.c_str(), ThrowOnError{});
+    return ResultSet(rs);
   }
 
   

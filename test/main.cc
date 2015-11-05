@@ -14,7 +14,7 @@
 #include "buffer.h"
 #include "enums.h"
 #include "schemas/flatbuffers/tweet_generated.h"
-#include "ex_database.h"
+#include "database.h"
 
 using namespace std;
 using namespace boost::filesystem;

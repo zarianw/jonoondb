@@ -10,7 +10,7 @@
 #include "document_collection.h"
 #include "enums.h"
 #include "query_processor.h"
-#include "resultset.h"
+#include "resultset_impl.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -82,6 +82,6 @@ Status DatabaseImpl::Insert(const char* collectionName,
   return status;
 }
 
-Status DatabaseImpl::ExecuteSelect(const char* selectStatement, ResultSet*& resultSet) {
-  return m_queryProcessor->ExecuteSelect(selectStatement, resultSet);
+ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {
+  return m_queryProcessor->ExecuteSelect(selectStatement);
 }
