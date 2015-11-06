@@ -44,8 +44,7 @@ void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
 TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  Buffer documentData;
-  ASSERT_TRUE(GetTweetObject(documentData).OK());
+  Buffer documentData = GetTweetObject();
   shared_ptr<DocumentSchema> docSchemaPtr(DocumentSchemaFactory::CreateDocumentSchema(
     schema.c_str(), SchemaType::FLAT_BUFFERS));
   

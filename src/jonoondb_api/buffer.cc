@@ -1,10 +1,11 @@
 #include <memory>
 #include <string>
 #include <cstring>
+#include <sstream>
 #include "buffer.h"
 #include "constants.h"
 #include "standard_deleters.h"
-#include "status.h"
+#include "jonoondb_exceptions.h"
 
 using namespace std;
 
@@ -12,20 +13,25 @@ using namespace jonoondb_api;
 
 struct Buffer::BufferImpl {
  public:
-  BufferImpl(char* bufferData, size_t bufferLength, size_t bufferCapacity,
-             DeleterFuncPtr DeleterFuncPtr)
-      : BufferData(bufferData, DeleterFuncPtr),
+  BufferImpl(std::unique_ptr<char, DeleterFuncPtr> bufferData, size_t bufferLength, size_t bufferCapacity)
+      : BufferData(std::move(bufferData)),
         BufferLength(bufferLength),
         BufferCapacity(bufferCapacity) {
   }
 
-  unique_ptr<char, DeleterFuncPtr> BufferData;
+  std::unique_ptr<char, DeleterFuncPtr> BufferData;
   size_t BufferLength;
   size_t BufferCapacity;
 };
 
-Buffer::Buffer() {
-  m_bufferImpl = nullptr;
+Buffer::Buffer() : m_bufferImpl(nullptr) {
+}
+
+Buffer::Buffer(size_t capacity) : m_bufferImpl(nullptr) {
+  if (capacity > 0) {
+    std::unique_ptr<char, DeleterFuncPtr> data(new char[capacity], StandardDelete);
+    m_bufferImpl = new BufferImpl(std::move(data), 0, capacity);
+  }
 }
 
 Buffer::Buffer(Buffer&& other) {
@@ -35,128 +41,89 @@ Buffer::Buffer(Buffer&& other) {
   }
 }
 
-Status Buffer::Assign(Buffer& buffer, DeleterFuncPtr customDeleterFunc) {
-  return Assign(buffer.GetDataForWrite(), buffer.GetLength(),
-                buffer.GetCapacity(), customDeleterFunc);
+Buffer::Buffer(const Buffer& other) : m_bufferImpl(nullptr) {
+  if (this != &other) {
+    if (other.GetData() != nullptr) {
+      std::unique_ptr<char, DeleterFuncPtr> data(new char[other.GetCapacity()], StandardDelete);
+      memcpy(data.get(), other.GetData(), other.GetCapacity());      
+      m_bufferImpl = new BufferImpl(std::move(data), other.GetLength(), other.GetCapacity());      
+    }
+  }
 }
 
-Status Buffer::Assign(char* buffer, size_t bufferLengthInBytes,
-                      size_t bufferCapacityInBytes,
-                      DeleterFuncPtr customDeleterFunc) {
-  if (bufferCapacityInBytes == 0 || buffer == nullptr) {
-    Reset();
+Buffer::Buffer(char* buffer, size_t bufferLengthInBytes,
+  size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc) {
+  if (buffer == nullptr && bufferLengthInBytes == 0 && bufferCapacityInBytes == 0) {
+    // This is a special case, this kind of buffer is created by default ctor
+    m_bufferImpl = nullptr;
+  } else if (buffer == nullptr) {
+    throw InvalidArgumentException("Argument buffer is nullptr whereas bufferLengthInBytes or bufferCapacityInBytes are greater than 0.",
+      __FILE__, "", __LINE__);
+  } else if (bufferLengthInBytes == 0 || bufferCapacityInBytes == 0) {
+    throw InvalidArgumentException("Argument buffer is a valid pointer but bufferLengthInBytes or bufferCapacityInBytes are 0.",
+      __FILE__, "", __LINE__);
   } else if (bufferCapacityInBytes < bufferLengthInBytes) {
-    // Capacity cannot be less than length
-    string errorMsg =
-        "Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(), __FILE__, "", __LINE__);
-  } else if (customDeleterFunc == nullptr) {
-    // Capacity cannot be less than length
-    string errorMsg = "Argument customDeleterFunc is nullptr.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+    // Capacity cannot be less than length    
+    throw InvalidArgumentException("Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.",
+      __FILE__, "", __LINE__);
+  } else if (customDeleterFunc == nullptr) {    
+    throw InvalidArgumentException("Argument customDeleterFunc is nullptr.",
+      __FILE__, "", __LINE__);
   } else {
-    try {
-      m_bufferImpl = new BufferImpl(buffer, bufferLengthInBytes,
-                                    bufferCapacityInBytes, customDeleterFunc);
-    } catch (bad_alloc) {
-      // Memory allocation failed
-      string errorMsg = "Memory allocation failed.";
-      return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
-    }
+    m_bufferImpl = new BufferImpl(std::unique_ptr<char, DeleterFuncPtr>(buffer, customDeleterFunc),
+      bufferLengthInBytes, bufferCapacityInBytes);
   }
-
-  return Status();
 }
 
-Status Buffer::Copy(const Buffer& buffer) {
-  return Copy(buffer.GetData(), buffer.GetLength(), buffer.GetCapacity());
-}
-
-Status Buffer::Copy(const char* buffer, size_t bufferLengthInBytes,
-                    size_t bufferCapacityInBytes) {
-  if (buffer == nullptr) {
-    string errorMsg = "Argument buffer is nullptr.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
-  } else if (bufferCapacityInBytes == 0) {
-    Reset();
+Buffer::Buffer(const char* buffer, size_t bufferLengthInBytes,
+  size_t bufferCapacityInBytes) : m_bufferImpl(nullptr) {
+  if (buffer == nullptr && bufferLengthInBytes == 0 && bufferCapacityInBytes == 0) {
+    // This is a special case, this kind of buffer is created by default ctor
+    m_bufferImpl = nullptr;
+  } else if (buffer == nullptr) {
+    throw InvalidArgumentException("Argument buffer is nullptr whereas bufferLengthInBytes or bufferCapacityInBytes are greater than 0.",
+      __FILE__, "", __LINE__);
+  } else if (bufferLengthInBytes == 0 || bufferCapacityInBytes == 0) {
+    throw InvalidArgumentException("Argument buffer is a valid pointer but bufferLengthInBytes or bufferCapacityInBytes are 0.",
+      __FILE__, "", __LINE__);
   } else if (bufferCapacityInBytes < bufferLengthInBytes) {
-    // Capacity cannot be less than length
-    string errorMsg =
-        "Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+    // Capacity cannot be less than length    
+    throw InvalidArgumentException("Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.",
+      __FILE__, "", __LINE__);
   } else {
-    // First check if our existing buffer has the same capacity
-    if (GetCapacity() != bufferCapacityInBytes) {
-      // We have to delete existing buffer, create a new buffer and then copy
-      Reset();
-
-      char* data = nullptr;
-      try {
-        data = new char[bufferCapacityInBytes];
-        memcpy(data, buffer, bufferCapacityInBytes);
-        m_bufferImpl = new BufferImpl(data, bufferLengthInBytes,
-                                      bufferCapacityInBytes, StandardDelete);
-      } catch (bad_alloc) {
-        if (data != nullptr) {
-          delete[] data;
-        }
-        // Memory allocation failed
-        string errorMsg = "Memory allocation failed.";
-        return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                      __FILE__, "", __LINE__);
-      }
-    } else {
-      // Our capacity is the same so no need to reallocate the buffer
-      memcpy(m_bufferImpl->BufferData.get(), buffer, bufferCapacityInBytes);
-      m_bufferImpl->BufferLength = bufferLengthInBytes;
-    }
+    std::unique_ptr<char, DeleterFuncPtr> data(new char[bufferCapacityInBytes], StandardDelete);
+    memcpy(data.get(), buffer, bufferCapacityInBytes);
+    m_bufferImpl = new BufferImpl(std::move(data), bufferLengthInBytes, bufferCapacityInBytes);    
   }
-
-  return Status();
-}
-
-Status Buffer::Copy(const char* buffer, size_t bytesToCopy) {
-  if (buffer == nullptr) {
-    string errorMsg = "Argument buffer is nullptr.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
-  } else if (bytesToCopy > 0) {
-    // First check if our existing buffer is big enough
-    if (GetCapacity() < bytesToCopy) {
-      // We have to delete existing buffer, create a new buffer and then copy
-      Reset();
-
-      char* data = nullptr;
-      try {
-        data = new char[bytesToCopy];
-        memcpy(data, buffer, bytesToCopy);
-        m_bufferImpl = new BufferImpl(data, bytesToCopy, bytesToCopy,
-                                      StandardDelete);
-      } catch (bad_alloc) {
-        if (data != nullptr) {
-          delete[] data;
-        }
-        // Memory allocation failed
-        string errorMsg = "Memory allocation failed.";
-        return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                      __FILE__, "", __LINE__);
-      }
-    } else {
-      // Our existing bufer is big enough, no need to reallocate
-      memcpy(m_bufferImpl->BufferData.get(), buffer, bytesToCopy);
-      m_bufferImpl->BufferLength = bytesToCopy;
-    }
-  }
-
-  return Status();
 }
 
 Buffer::~Buffer() {
   Reset();
+}
+
+Buffer& Buffer::operator=(const Buffer& other) {
+  if (this != &other) {
+    if (other.GetData() == nullptr) {
+      Reset();
+    } else {
+      // We have to delete existing buffer, create a new buffer and then copy
+      // First check if our existing buffer has the same capacity
+      if (GetCapacity() != other.GetCapacity()) {
+        std::unique_ptr<char, DeleterFuncPtr> data(new char[other.GetCapacity()], StandardDelete);
+        memcpy(data.get(), other.GetData(), other.GetCapacity());
+        // We have to delete existing buffer, create a new buffer and then copy
+        Reset();
+        m_bufferImpl = new BufferImpl(std::move(data), other.GetLength(), other.GetCapacity());
+      } else {
+        // Our capacity is the same so no need to reallocate the buffer
+        memcpy(m_bufferImpl->BufferData.get(), other.GetData(), other.GetCapacity());
+        m_bufferImpl->BufferLength = other.GetLength();
+      }
+
+    }
+  }
+
+  return *this;
 }
 
 Buffer& Buffer::operator=(Buffer&& other) {
@@ -167,6 +134,31 @@ Buffer& Buffer::operator=(Buffer&& other) {
   }
 
   return *this;
+}
+
+void Buffer::Copy(const char* buffer, size_t bufferLengthInBytes,
+                  size_t bufferCapacityInBytes) {
+  if (buffer == nullptr) {
+    throw InvalidArgumentException("Argument buffer is nullptr.",
+      __FILE__, "", __LINE__);  
+  } else if (bufferCapacityInBytes < bufferLengthInBytes) {
+    // Capacity cannot be less than length    
+    throw InvalidArgumentException("Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.",
+      __FILE__, "", __LINE__);
+  } else {
+    // First check if our existing buffer has the same capacity
+    if (GetCapacity() != bufferCapacityInBytes) {
+      std::unique_ptr<char, DeleterFuncPtr> data(new char[bufferCapacityInBytes], StandardDelete);      
+      memcpy(data.get(), buffer, bufferCapacityInBytes);
+      // We have to delete existing buffer, create a new buffer and then copy
+      Reset();
+      m_bufferImpl = new BufferImpl(std::move(data), bufferLengthInBytes, bufferCapacityInBytes);
+    } else {
+      // Our capacity is the same so no need to reallocate the buffer
+      memcpy(m_bufferImpl->BufferData.get(), buffer, bufferCapacityInBytes);
+      m_bufferImpl->BufferLength = bufferLengthInBytes;
+    }
+  }  
 }
 
 bool Buffer::operator<(const Buffer& other) const {
@@ -213,22 +205,17 @@ bool Buffer::operator<(const Buffer& other) const {
   }
 }
 
-Status Buffer::Resize(size_t newBufferCapacityInBytes) {
-  Reset();
+void Buffer::Resize(size_t newBufferCapacityInBytes) {
   if (newBufferCapacityInBytes == 0) {
-    m_bufferImpl = nullptr;
-  } else {
-    try {
-      char* data = new char[newBufferCapacityInBytes];
-      m_bufferImpl = new BufferImpl(data, newBufferCapacityInBytes,
-                                    newBufferCapacityInBytes, StandardDelete);
-    } catch (bad_alloc& ex) {
-      // Memory allocation failed
-      return Status(kStatusOutOfMemoryErrorCode, ex.what(), __FILE__, "", __LINE__);
-    }
+    Reset();    
+  } else if (newBufferCapacityInBytes == GetCapacity()) {
+    return; // no op
+  } else {    
+      std::unique_ptr<char, DeleterFuncPtr> data(new char[newBufferCapacityInBytes], StandardDelete);
+      Reset();
+      m_bufferImpl = new BufferImpl(std::move(data), 0,
+                                    newBufferCapacityInBytes);         
   }
-
-  return Status();
 }
 
 void Buffer::Reset() {
@@ -270,23 +257,36 @@ const size_t Buffer::GetLength() const {
   }
 }
 
-Status Buffer::SetLength(size_t value) {
+void Buffer::SetLength(size_t value) {
   if (m_bufferImpl == nullptr) {
     if (value != 0) {
-      string errorMsg = "Specified length is not between 0 and buffer capacity.";
-      return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
+      throw JonoonDBException("Specified length is not between 0 and buffer capacity.",
+                              __FILE__, "", __LINE__);
     }
   } else {
-    if (value > m_bufferImpl->BufferCapacity) {
-      string errorMsg =
-          "Specified buffer length is not between 0 and buffer capacity.";
-      return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
+    if (value > m_bufferImpl->BufferCapacity) {      
+      throw JonoonDBException("Specified length is not between 0 and buffer capacity.",
+                              __FILE__, "", __LINE__);
     } else {
       m_bufferImpl->BufferLength = value;
     }
   }
+}
 
-  return Status();
+void Buffer::Copy(const char* buffer, size_t bytesToCopy) {
+  if (buffer == nullptr) {
+    throw InvalidArgumentException("Argument buffer is nullptr.", __FILE__, "", __LINE__);
+  } else if (bytesToCopy > 0) {
+    // First check if our existing buffer is big enough
+    if (GetCapacity() < bytesToCopy) {
+      // Our internal buffer is not big enough
+      ostringstream ss;
+      ss << "Cannot copy " << bytesToCopy << " bytes into a buffer of capacity " << GetCapacity() << " bytes.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    } else {
+      // Our existing bufer is big enough, no need to reallocate
+      memcpy(m_bufferImpl->BufferData.get(), buffer, bytesToCopy);
+      m_bufferImpl->BufferLength = bytesToCopy;
+    }
+  }
 }

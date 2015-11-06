@@ -55,7 +55,7 @@ ex_Buffer GetTweetObject2() {
   return buffer;
 }
 
-Status GetTweetObject(Buffer& buffer) {
+Buffer GetTweetObject() {
   // create user object
   FlatBufferBuilder fbb;
   auto name = fbb.CreateString("Zarian");
@@ -67,15 +67,13 @@ Status GetTweetObject(Buffer& buffer) {
 
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
-
+  Buffer buffer;
   if (size > buffer.GetCapacity()) {
-    auto status = buffer.Resize(size);
-    if (!status.OK()) {
-      return status;
-    }
+    buffer.Resize(size);    
   }
-
-  return buffer.Copy((char*) fbb.GetBufferPointer(), size);
+  buffer.Copy((char*) fbb.GetBufferPointer(), size);
+  
+  return buffer;
 }
 
 void RemoveAndCreateFile(const char* path, size_t fileSize) {

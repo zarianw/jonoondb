@@ -254,11 +254,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
     return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
 
   Buffer buffer;
-  auto status = SerializerUtils::IndexInfoToBytes(indexInfo, buffer);
-  if (!status.OK()) {
-    return status;
-  }
-
+  SerializerUtils::IndexInfoToBytes(indexInfo, buffer);
   sqliteCode = sqlite3_bind_blob(m_insertCollectionIndexStmt, 3,  // Index of wildcard
                                  buffer.GetData(), buffer.GetLength(),
                                  SQLITE_STATIC);

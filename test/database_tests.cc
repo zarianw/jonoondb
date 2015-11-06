@@ -184,6 +184,7 @@ ex_Buffer GetAllFieldTypeObject() {
   auto parentObj = CreateAllFieldType(fbb, 1, 2, 3, 4, 5, 6, 7, 8.0f, 9,
                                       10, 11.0, text2, nestedObj);
   fbb.Finish(parentObj);
+  buffer.Resize(fbb.GetSize());
 
   buffer.Copy((char*)fbb.GetBufferPointer(), fbb.GetSize());
   return buffer;
