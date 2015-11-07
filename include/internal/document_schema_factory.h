@@ -9,7 +9,7 @@ class DocumentSchema;
 
 class DocumentSchemaFactory {
  public:
-   static DocumentSchema* DocumentSchemaFactory::CreateDocumentSchema(
+   static DocumentSchema* CreateDocumentSchema(
      const std::string& schemaText, SchemaType schemaType);
  private:
   DocumentSchemaFactory() = delete;

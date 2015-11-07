@@ -1,6 +1,7 @@
 #include <string>
 #include <stdio.h>
 #include <sstream>
+#include <memory>
 #include "database_impl.h"
 #include "status.h"
 #include "database_metadata_manager.h"

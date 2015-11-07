@@ -11,10 +11,48 @@
 
 using namespace jonoondb_api;
 
-namespace jonoondb_api {
 //
 // Error Handling
 //
+extern "C" {
+//
+// Status
+//
+struct status {
+  status(std::size_t code, const char* message, const char* srcFileName,
+    const char* funcName, std::size_t lineNum) :
+    impl(code, message, srcFileName, funcName, lineNum) {
+  }
+
+  Status impl;
+};
+
+void jonoondb_status_destruct(status_ptr sts) {
+  delete sts;
+}
+
+const char* jonoondb_status_message(status_ptr sts) {
+  return sts->impl.GetMessage();
+}
+
+uint64_t jonoondb_status_code(status_ptr sts) {
+  return sts->impl.GetCode();
+}
+
+const char* jonoondb_status_file(status_ptr sts) {
+  return sts->impl.GetSourceFileName();
+}
+
+const char* jonoondb_status_function(status_ptr sts) {
+  return sts->impl.GetFunctionName();
+}
+
+uint64_t jonoondb_status_line(status_ptr sts) {
+  return sts->impl.GetLineNumber();
+}
+} // extern "C"
+
+namespace jonoondb_api {
 // Returns true if fn executed without throwing an error, false otherwise.
 // If calling fn threw an error, capture it in *out_error.
 template<typename Fn>
@@ -95,43 +133,6 @@ SchemaType ToSchemaType(std::int32_t type) {
 
 extern "C" {
 //
-// Status
-//
-struct status {
-  status(std::size_t code, const char* message, const char* srcFileName,
-    const char* funcName, std::size_t lineNum) :
-    impl(code, message, srcFileName, funcName, lineNum) {
-  }
-
-  Status impl;
-};
-
-void jonoondb_status_destruct(status_ptr sts) {
-  delete sts;
-}
-
-const char* jonoondb_status_message(status_ptr sts) {
-  return sts->impl.GetMessage();
-}
-
-uint64_t jonoondb_status_code(status_ptr sts) {
-  return sts->impl.GetCode();
-}
-
-const char* jonoondb_status_file(status_ptr sts) {
-  return sts->impl.GetSourceFileName();
-}
-
-const char* jonoondb_status_function(status_ptr sts) {
-  return sts->impl.GetFunctionName();
-}
-
-uint64_t jonoondb_status_line(status_ptr sts) {
-  return sts->impl.GetLineNumber();
-}
-
-
-//
 // Options
 //
 struct options {
@@ -193,7 +194,6 @@ void jonoondb_options_setsynchronous(options_ptr opt, bool value) {
 //
 // IndexInfo
 //
-
 struct indexinfo {
   indexinfo() : impl() {
   }
