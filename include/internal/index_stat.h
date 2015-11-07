@@ -1,6 +1,6 @@
 #pragma once
 
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "enums.h"
 
 namespace jonoondb_api {

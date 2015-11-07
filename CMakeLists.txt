@@ -92,18 +92,17 @@ add_library(
  ${INCLUDE_PATH}/field.h
  ${INCLUDE_PATH}/jonoondb_exceptions.h
  ${INCLUDE_PATH}/cdatabase.h
- ${INCLUDE_PATH}/cenums.h
- ${INCLUDE_PATH}/ex_database.h
+ ${INCLUDE_PATH}/database.h
  ${SRC_PATH}/jonoondb_api/cdatabase.cc
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
  ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
- ${SRC_PATH}/jonoondb_api/options.cc ${INCLUDE_PATH}/options.h
+ ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/options_impl.h
  ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${INCLUDE_INTERNAL_PATH}/database_metadata_manager.h
  ${SRC_PATH}/jonoondb_api/document_collection.cc ${INCLUDE_INTERNAL_PATH}/document_collection.h
- ${SRC_PATH}/jonoondb_api/index_info.cc ${INCLUDE_PATH}/index_info.h
+ ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_PATH}/index_info_impl.h
  ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
- ${SRC_PATH}/jonoondb_api/buffer.cc ${INCLUDE_PATH}/buffer.h
+ ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${INCLUDE_PATH}/buffer_impl.h
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
  ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h

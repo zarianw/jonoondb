@@ -5,7 +5,7 @@
 #include "test_utils.h"
 #include "database_metadata_manager.h"
 #include "status.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "enums.h"
 
 using namespace std;

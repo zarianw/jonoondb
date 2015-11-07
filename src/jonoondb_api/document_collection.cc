@@ -11,7 +11,7 @@
 #include "document.h"
 #include "document_factory.h"
 #include "index_manager.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "document_schema.h"
 #include "document_schema_factory.h"
 #include "enums.h"

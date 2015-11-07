@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>  // NOLINT
-#include "buffer.h"
+#include "buffer_impl.h"
 #include "status.h"
 #include "memory_mapped_file.h"
 #include "test_utils.h"

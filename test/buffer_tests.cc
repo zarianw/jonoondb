@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "buffer.h"
+#include "buffer_impl.h"
 #include "standard_deleters.h"
 #include "status.h"
 #include "jonoondb_exceptions.h"

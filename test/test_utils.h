@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "buffer.h"
+#include "buffer_impl.h"
 #include "database.h"
 
 namespace jonoondb_test {

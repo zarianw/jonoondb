@@ -5,7 +5,7 @@
 #include "document.h"
 #include "indexer.h"
 #include "indexer_factory.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "index_stat.h"
 
 using namespace std;

@@ -1,12 +1,12 @@
 #include <sstream>
 #include "cdatabase.h"
 #include "status.h"
-#include "options.h"
+#include "options_impl.h"
 #include "database_impl.h"
 #include "jonoondb_exceptions.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "enums.h"
-#include "buffer.h"
+#include "buffer_impl.h"
 #include "resultset_impl.h"
 
 using namespace jonoondb_api;

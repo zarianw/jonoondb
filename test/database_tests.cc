@@ -4,7 +4,7 @@
 #include "test_utils.h"
 #include "database.h"
 #include "enums.h"
-#include "buffer.h"
+#include "buffer_impl.h"
 #include "schemas/flatbuffers/tweet_generated.h"
 #include "schemas/flatbuffers/all_field_type_generated.h"
 

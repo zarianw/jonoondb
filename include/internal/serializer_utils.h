@@ -1,9 +1,9 @@
 #pragma once
 
 #include "flatbuffers/flatbuffers.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "index_info_fb_generated.h"
-#include "buffer.h"
+#include "buffer_impl.h"
 
 namespace jonoondb_api {
 class SerializerUtils {

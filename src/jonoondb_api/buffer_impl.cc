@@ -2,7 +2,7 @@
 #include <string>
 #include <cstring>
 #include <sstream>
-#include "buffer.h"
+#include "buffer_impl.h"
 #include "constants.h"
 #include "standard_deleters.h"
 #include "jonoondb_exceptions.h"

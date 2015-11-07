@@ -9,7 +9,7 @@
 #include "exception_utils.h"
 #include "sqlite_utils.h"
 #include "exception_utils.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "serializer_utils.h"
 #include "enums.h"
 #include "jonoondb_exceptions.h"

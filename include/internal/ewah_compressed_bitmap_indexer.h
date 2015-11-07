@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 #include "indexer.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "status.h"
 #include "string_utils.h"
 #include "document.h"
