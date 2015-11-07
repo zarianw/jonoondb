@@ -1,6 +1,5 @@
 #include <sstream>
 #include "cdatabase.h"
-#include "cenums.h"
 #include "status.h"
 #include "options.h"
 #include "database_impl.h"
@@ -256,51 +255,12 @@ bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo) {
 }
 
 //
-// IndexInfoVectorView
-//
-struct indexinfo_vectorview {
-  indexinfo_vectorview(indexinfo_ptr indexes, uint64_t indexesLength) {
-    for (uint64_t i = 0; i < indexesLength; i++) {
-      indexInfoVecView.push_back(&indexes[0].impl);
-    }
-  }
-
-  indexinfo_vectorview() {}
-
-  std::vector<IndexInfo*> indexInfoVecView;
-};
-
-indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct(indexinfo_ptr indexes, uint64_t indexesLength, status_ptr* sts) {
-  indexinfo_vectorview_ptr vecView = nullptr;
-  TranslateExceptions([&]{
-    vecView = new indexinfo_vectorview(indexes, indexesLength);
-  }, *sts);
-
-  return vecView;
-}
-
-indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct2() {
-  return new indexinfo_vectorview();
-}
-
-void jonoondb_indexinfo_vectorview_destruct(indexinfo_vectorview_ptr vecView) {
-  delete vecView;
-}
-
-void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_ptr vecView, 
-                                             indexinfo_ptr val, status_ptr* sts) {
-  TranslateExceptions([&]{
-    vecView->indexInfoVecView.push_back(&val->impl);
-  }, *sts);
-}
-
-//
-// Buffer
+// BufferImpl
 //
 struct jonoondb_buffer {
   jonoondb_buffer() {}
 
-  Buffer impl;
+  BufferImpl impl;
 };
 
 jonoondb_buffer_ptr jonoondb_buffer_construct() {

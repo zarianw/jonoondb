@@ -15,7 +15,7 @@ namespace jonoondb_api {
 // Forward Declaration
 class Status;
 class IndexInfo;
-class Buffer;
+class BufferImpl;
 class DocumentSchema;
 class IndexStat;
 enum class FieldType
@@ -30,7 +30,7 @@ class DocumentCollection {
      const std::string& schema, const std::vector<IndexInfo*>& indexes);
   ~DocumentCollection();
 
-  Status Insert(const Buffer& documentData);
+  Status Insert(const BufferImpl& documentData);
   const std::string& GetName();
   const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,

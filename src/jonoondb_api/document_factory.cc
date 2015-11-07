@@ -9,7 +9,7 @@ using namespace std;
 using namespace jonoondb_api;
 
 Document* DocumentFactory::CreateDocument(
-    const shared_ptr<DocumentSchema>& documentSchema, const Buffer& buffer) {
+    const shared_ptr<DocumentSchema>& documentSchema, const BufferImpl& buffer) {
   switch (documentSchema->GetSchemaType()) {
     case SchemaType::FLAT_BUFFERS: {
       auto fbDocSchema = dynamic_pointer_cast

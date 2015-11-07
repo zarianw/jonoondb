@@ -3,19 +3,19 @@
 #include "constants.h"
 
 namespace jonoondb_api {
-class Buffer {
+class BufferImpl {
  public:
-  Buffer();
-  Buffer(size_t capacity);
-  Buffer(Buffer&& other);
-  Buffer(const Buffer& other);
-  ~Buffer();
-  Buffer& operator=(const Buffer& other);
-  Buffer& operator=(Buffer&& other);
-  bool operator<(const Buffer& other) const;
-  Buffer(char* buffer, size_t bufferLengthInBytes,
+  BufferImpl();
+  BufferImpl(size_t capacity);
+  BufferImpl(BufferImpl&& other);
+  BufferImpl(const BufferImpl& other);
+  ~BufferImpl();
+  BufferImpl& operator=(const BufferImpl& other);
+  BufferImpl& operator=(BufferImpl&& other);
+  bool operator<(const BufferImpl& other) const;
+  BufferImpl(char* buffer, size_t bufferLengthInBytes,
     size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
-  Buffer(const char* buffer, size_t bufferLengthInBytes,
+  BufferImpl(const char* buffer, size_t bufferLengthInBytes,
     size_t bufferCapacityInBytes);  
 
   void Resize(size_t newBufferCapacityInBytes);
@@ -30,8 +30,8 @@ private:
   void Copy(const char* buffer, size_t bufferLengthInBytes,
     size_t bufferCapacityInBytes);
   //Forward Declarations
-  struct BufferImpl;
-  BufferImpl* m_bufferImpl;
+  struct BufferData;
+  BufferData* m_bufferImpl;
 };
 }  // jonoondb_api
 

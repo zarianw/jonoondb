@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include "cdatabase.h"
-#include "cenums.h"
 #include "jonoondb_exceptions.h"
 #include "enums.h"
 
@@ -294,61 +293,30 @@ private:
 };
 
 //
-// IndexInfoVectorView
-//
-class IndexInfoVectorView {
-public:
-  IndexInfoVectorView(const std::vector<ex_IndexInfo>& vec) {
-    std::vector<indexinfo_ptr> opaqueVec;
-    for (auto& item : vec) {
-      opaqueVec.push_back(item.GetOpaqueType());
-    }
-    jonoondb_indexinfo_vectorview_construct(opaqueVec[0], opaqueVec.size(), ThrowOnError{});
-  }
-
-  IndexInfoVectorView() : m_opaque(jonoondb_indexinfo_vectorview_construct2()) {}
-
-  void push_back(const ex_IndexInfo& val) {
-    jonoondb_indexinfo_vectorview_push_back(m_opaque, val.GetOpaqueType(), ThrowOnError{});
-  }
-
-  ~IndexInfoVectorView() {
-    jonoondb_indexinfo_vectorview_destruct(m_opaque);
-  }
-
-  indexinfo_vectorview_ptr GetOpaqueType() const {
-    return m_opaque;
-  }
-
-private:
-  indexinfo_vectorview_ptr m_opaque;
-};
-
-//
 // Buffer
 //
-class ex_Buffer {
+class Buffer {
 public:
-  //ex_Buffer(const ex_Buffer& other);
-  //ex_Buffer& operator=(const ex_Buffer& other);
-  ex_Buffer() {
+  //Buffer(const Buffer& other);
+  //Buffer& operator=(const Buffer& other);
+  Buffer() {
     m_opaque = jonoondb_buffer_construct();
   }
   
-  ex_Buffer(ex_Buffer&& other) {
+  Buffer(Buffer&& other) {
     if (this != &other) {
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
     }
   }
   
-  ~ex_Buffer() {
+  ~Buffer() {
     if (m_opaque != nullptr) {
       jonoondb_buffer_destruct(m_opaque);
     }
   }
-  /*ex_Buffer& operator=(ex_Buffer&& other);
-  bool operator<(const ex_Buffer& other) const;
+  /*Buffer& operator=(Buffer&& other);
+  bool operator<(const Buffer& other) const;
 
   Status Assign(char* buffer, size_t bufferLengthInBytes,
     size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
@@ -463,7 +431,7 @@ public:
                                        ThrowOnError{});
   }
 
-  void Insert(const std::string& collectionName, const ex_Buffer& documentData) {
+  void Insert(const std::string& collectionName, const Buffer& documentData) {
     jonoondb_database_insert(m_opaque, collectionName.c_str(), documentData.GetOpaqueType(), ThrowOnError{});
   }
 

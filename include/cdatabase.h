@@ -11,6 +11,22 @@ extern "C" {
 //
 // Status Functions
 //
+
+typedef enum jonoondb_status_codes {
+  status_genericerrorcode = 1,
+  status_invalidargumentcode = 2,
+  status_missingdatabasefilecode = 3,
+  status_missingdatabasefoldercode = 4,
+  status_outofmemoryerrorcode = 5,
+  status_duplicatekeyerrorcode = 6,
+  status_collectionalreadyexistcode = 7,
+  status_indexalreadyexistcode = 8,
+  status_collectionnotfoundcode = 9,
+  status_schemaparseerrorcode = 10,
+  status_indexoutofbounderrorcode = 11,
+  status_sqlerrorcode = 12,
+} jonoondb_status_codes;
+
 typedef struct status* status_ptr;
 
 void jonoondb_status_destruct(status_ptr sts);
@@ -58,15 +74,6 @@ const char* jonoondb_indexinfo_getcolumnname(indexinfo_ptr indexInfo);
 void jonoondb_indexinfo_setcolumnname(indexinfo_ptr indexInfo, const char* columnName);
 void jonoondb_indexinfo_setisascending(indexinfo_ptr indexInfo, bool value);
 bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo);
-
-//
-// IndexInfoVectorView Functions
-//
-typedef struct indexinfo_vectorview* indexinfo_vectorview_ptr;
-indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct(indexinfo_ptr indexes, uint64_t indexesLength, status_ptr* sts);
-indexinfo_vectorview_ptr jonoondb_indexinfo_vectorview_construct2();
-void jonoondb_indexinfo_vectorview_destruct(indexinfo_vectorview_ptr vecView);
-void jonoondb_indexinfo_vectorview_push_back(indexinfo_vectorview_ptr vecView, indexinfo_ptr val, status_ptr* sts);
 
 //
 // Buffer Functions

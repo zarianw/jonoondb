@@ -19,7 +19,7 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
 
-void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
+void CompareTweetObject(const Document* doc, const BufferImpl& tweetObject) {
   auto tweet = GetTweet(tweetObject.GetData());
   ASSERT_TRUE(tweet != nullptr);
   uint64_t id;
@@ -44,7 +44,7 @@ void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
 TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  Buffer documentData = GetTweetObject();
+  BufferImpl documentData = GetTweetObject();
   shared_ptr<DocumentSchema> docSchemaPtr(DocumentSchemaFactory::CreateDocumentSchema(
     schema.c_str(), SchemaType::FLAT_BUFFERS));
   

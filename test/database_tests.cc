@@ -28,7 +28,7 @@ void CreateInsertTweet(Database* db, std::string& collectionName, bool createInd
 
   db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
   
-  ex_Buffer documentData = GetTweetObject2();
+  Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
 }
 
@@ -141,7 +141,7 @@ TEST(Database, Insert_NoIndex) {
   std::vector<ex_IndexInfo> indexes;
   db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);  
 
-  ex_Buffer documentData = GetTweetObject2();
+  Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
   db->Close();
 }
@@ -167,13 +167,13 @@ TEST(Database, Insert_SingleIndex) {
   db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
                                   schema.c_str(), indexes);
   
-  ex_Buffer documentData = GetTweetObject2();
+  Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
   db->Close();
 }
 
-ex_Buffer GetAllFieldTypeObject() {
-  ex_Buffer buffer;
+Buffer GetAllFieldTypeObject() {
+  Buffer buffer;
   FlatBufferBuilder fbb;
   // create nested object
   auto text1 = fbb.CreateString("Say hello to my little friend!");  
@@ -222,7 +222,7 @@ TEST(Database, Insert_AllIndexTypes) {
 
   db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
-  ex_Buffer documentData = GetAllFieldTypeObject();
+  Buffer documentData = GetAllFieldTypeObject();
   db->Insert(collectionName, documentData);
   db->Close();
 }
@@ -267,7 +267,6 @@ TEST(Database, ExecuteSelect_NonEmptyDB_NoIndex) {
   Database* db = Database::Open(dbPath, dbName, options);
 
   CreateInsertTweet(db, collectionName, true, 1);
-  ResultSet* rs;
-  db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'");  
+  ResultSet rs = db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'");  
   db->Close();
 }

@@ -8,7 +8,7 @@
 namespace jonoondb_api {
 class SerializerUtils {
 public:
-  static void IndexInfoToBytes(const IndexInfo& indexInfo, Buffer& buffer) {
+  static void IndexInfoToBytes(const IndexInfo& indexInfo, BufferImpl& buffer) {
     flatbuffers::FlatBufferBuilder fbb;
     auto name = fbb.CreateString(indexInfo.GetIndexName());
     auto mloc = CreateIndexInfoFB(fbb, name, 0, indexInfo.GetIsAscending(),
@@ -22,7 +22,7 @@ public:
     buffer.Copy((char*)fbb.GetBufferPointer(), size);
   }
 
-  static Status IndexInfoFromBytes(const Buffer& buffer, IndexInfo& indexInfo) {
+  static Status IndexInfoFromBytes(const BufferImpl& buffer, IndexInfo& indexInfo) {
     auto ptr = GetIndexInfoFB(0);
   }
 };

@@ -34,28 +34,7 @@ string ReadTextFile(const char* path) {
   return schema;
 }
 
-ex_Buffer GetTweetObject2() {
-  // create user object
-  FlatBufferBuilder fbb;
-  auto name = fbb.CreateString("Zarian");
-  auto user = CreateUser(fbb, name, 1);
-
-  // create tweet
-  auto text = fbb.CreateString("Say hello to my little friend!");
-  auto tweet = CreateTweet(fbb, 1, text, user);
-
-  fbb.Finish(tweet);
-  auto size = fbb.GetSize();
-  ex_Buffer buffer;
-  if (size > buffer.GetCapacity()) {
-    buffer.Resize(size);   
-  }
-
-  buffer.Copy((char*)fbb.GetBufferPointer(), size);
-  return buffer;
-}
-
-Buffer GetTweetObject() {
+Buffer GetTweetObject2() {
   // create user object
   FlatBufferBuilder fbb;
   auto name = fbb.CreateString("Zarian");
@@ -68,6 +47,27 @@ Buffer GetTweetObject() {
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
   Buffer buffer;
+  if (size > buffer.GetCapacity()) {
+    buffer.Resize(size);   
+  }
+
+  buffer.Copy((char*)fbb.GetBufferPointer(), size);
+  return buffer;
+}
+
+BufferImpl GetTweetObject() {
+  // create user object
+  FlatBufferBuilder fbb;
+  auto name = fbb.CreateString("Zarian");
+  auto user = CreateUser(fbb, name, 1);
+
+  // create tweet
+  auto text = fbb.CreateString("Say hello to my little friend!");
+  auto tweet = CreateTweet(fbb, 1, text, user);
+
+  fbb.Finish(tweet);
+  auto size = fbb.GetSize();
+  BufferImpl buffer;
   if (size > buffer.GetCapacity()) {
     buffer.Resize(size);    
   }

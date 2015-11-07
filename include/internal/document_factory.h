@@ -6,7 +6,7 @@
 namespace jonoondb_api {
 // Forward Declaration
 class Status;
-class Buffer;
+class BufferImpl;
 class Document;
 class DocumentSchema;
 
@@ -14,7 +14,7 @@ class DocumentFactory {
  public:
   static Document* CreateDocument(
       const std::shared_ptr<DocumentSchema>& documentSchema,
-      const Buffer& buffer);
+      const BufferImpl& buffer);
  private:
   DocumentFactory() = delete;
   DocumentFactory(const DocumentFactory&) = delete;

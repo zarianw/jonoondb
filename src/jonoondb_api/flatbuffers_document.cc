@@ -9,7 +9,7 @@ using namespace jonoondb_api;
 using namespace flatbuffers;
 
 FlatbuffersDocument::FlatbuffersDocument(
-  const std::shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema, const Buffer& buffer) :
+  const std::shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema, const BufferImpl& buffer) :
   m_fbDcumentSchema(fbDocumentSchema) {
   Table* table = const_cast<Table*>(flatbuffers::GetRoot<Table>(buffer.GetData()));
   m_dynTableReader.reset(new DynamicTableReader(table,

@@ -7,7 +7,7 @@
 namespace jonoondb_api {
 // Forward declaration
 class Status;
-class Buffer;
+class BufferImpl;
 enum class IndexType
 : std::int32_t;
 

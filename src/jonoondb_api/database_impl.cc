@@ -62,7 +62,7 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
 }
 
 Status DatabaseImpl::Insert(const char* collectionName,
-                            const Buffer& documentData) {
+                            const BufferImpl& documentData) {
   // Todo (zarian): Check what is a clean way to avoid the string copy from char * to string
   auto item = m_collectionContainer.find(collectionName);
   if (item == m_collectionContainer.end()) {

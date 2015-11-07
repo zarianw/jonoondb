@@ -69,7 +69,7 @@ DocumentCollection::~DocumentCollection() {
   }
 }
 
-Status DocumentCollection::Insert(const Buffer& documentData) {
+Status DocumentCollection::Insert(const BufferImpl& documentData) {
   unique_ptr<Document> doc(DocumentFactory::CreateDocument(m_documentSchema, documentData));
   
   // Index the document

@@ -14,7 +14,7 @@ class FlatbuffersDocument final : public Document {
  public:
   FlatbuffersDocument(
       const std::shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema,
-      const Buffer& buffer);
+      const BufferImpl& buffer);
 
   Status GetScalarValueAsInt8(const char* fieldName, int8_t& val) const
       override;
