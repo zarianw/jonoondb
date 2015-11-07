@@ -131,26 +131,26 @@ private:
 //
 // Options
 //
-class ex_Options {
+class Options {
 public:
   //Default constructor that sets all the options to their default value
-  ex_Options() {
+  Options() {
     m_opaque = jonoondb_options_construct();
   }
-  ex_Options(bool createDBIfMissing, size_t maxDataFileSize,
+  Options(bool createDBIfMissing, size_t maxDataFileSize,
     bool compressionEnabled, bool synchronous) {    
     m_opaque = jonoondb_options_construct2(createDBIfMissing, maxDataFileSize, compressionEnabled,
       synchronous, ThrowOnError{});
   }
 
-  ex_Options(ex_Options&& other) {
+  Options(Options&& other) {
     if (this != &other) {
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
     }
   }
 
-  ~ex_Options() {
+  ~Options() {
     if (m_opaque != nullptr) {
       jonoondb_options_destruct(m_opaque);
     }
@@ -198,24 +198,24 @@ private:
 //
 // IndexInfo
 //
-class ex_IndexInfo {
+class IndexInfo {
 public:
-  ex_IndexInfo() {
+  IndexInfo() {
     m_opaque = jonoondb_indexinfo_construct();
   }
 
-  ex_IndexInfo(const std::string& indexName, IndexType type, const std::string& columnName, bool isAscending) {
+  IndexInfo(const std::string& indexName, IndexType type, const std::string& columnName, bool isAscending) {
     m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), 0, columnName.c_str(), isAscending, ThrowOnError{});
   }
 
-  ex_IndexInfo(ex_IndexInfo&& other) {
+  IndexInfo(IndexInfo&& other) {
     if (this != &other) {
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
     }
   }
     
-  ex_IndexInfo(const ex_IndexInfo& other) {
+  IndexInfo(const IndexInfo& other) {
     if (this != &other) {
       m_opaque = jonoondb_indexinfo_construct();
       this->SetIndexName(other.GetIndexName());
@@ -225,13 +225,13 @@ public:
     }
   }
 
-  ~ex_IndexInfo() {
+  ~IndexInfo() {
     if (m_opaque != nullptr) {
       jonoondb_indexinfo_destruct(m_opaque);
     }
   }
 
-  ex_IndexInfo& operator=(const ex_IndexInfo& other) {
+  IndexInfo& operator=(const IndexInfo& other) {
     if (this != &other) {
       m_opaque = jonoondb_indexinfo_construct();
       this->SetIndexName(other.GetIndexName());
@@ -243,7 +243,7 @@ public:
     return *this;
   }
 
-  ex_IndexInfo& operator=(ex_IndexInfo&& other) {
+  IndexInfo& operator=(IndexInfo&& other) {
     if (this != &other) {
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
@@ -401,7 +401,7 @@ private:
 class Database {
 public:
   static Database* Open(const std::string& dbPath, const std::string& dbName,
-    const ex_Options& opt) {
+    const Options& opt) {
     auto db = jonoondb_database_open(dbPath.c_str(), dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{});
     return new Database(db);
   }
@@ -417,7 +417,7 @@ public:
   }
 
   void CreateCollection(const std::string& name, SchemaType schemaType,
-                        const std::string& schema, const std::vector<ex_IndexInfo>& indexes) {
+                        const std::string& schema, const std::vector<IndexInfo>& indexes) {
     std::vector<indexinfo_ptr> vec;
     for (auto& item : indexes) {
       vec.push_back(item.GetOpaqueType());

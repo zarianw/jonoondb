@@ -10,7 +10,7 @@ struct sqlite3_stmt;
 namespace jonoondb_api {
 //Forward declaration
 class Status;
-class IndexInfo;
+class IndexInfoImpl;
 enum class SchemaType
 : std::int32_t;
 
@@ -24,7 +24,7 @@ class DatabaseMetadataManager final {
                            bool createDBIfMissing);
   ~DatabaseMetadataManager();
   void AddCollection(const std::string& name, SchemaType schemaType,
-                       const std::string& schema, const std::vector<IndexInfo*>& indexes);
+                       const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
   const char* GetFullDBPath() const;
 
  private:
@@ -32,7 +32,7 @@ class DatabaseMetadataManager final {
   void Initialize(bool createDBIfMissing);
   void CreateTables();
   void PrepareStatements();
-  Status CreateIndex(const char* collectionName, const IndexInfo& indexInfo);
+  Status CreateIndex(const char* collectionName, const IndexInfoImpl& indexInfo);
 
   std::string m_dbName;
   std::string m_dbPath;

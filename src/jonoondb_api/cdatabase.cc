@@ -142,7 +142,7 @@ struct options {
     impl(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous) {
   }
 
-  Options impl;
+  OptionsImpl impl;
 };
 
 options_ptr jonoondb_options_construct() {
@@ -201,7 +201,7 @@ struct indexinfo {
   indexinfo(const char* indexName, IndexType type, const char* columnName, bool isAscending) {
   } 
 
-  IndexInfo impl;
+  IndexInfoImpl impl;
 };
 
 indexinfo_ptr jonoondb_indexinfo_construct() {
@@ -305,7 +305,7 @@ void jonoondb_resultset_destruct(resultset_ptr rs) {
 // Database
 //
 struct database {
-  database(const char* dbPath, const char* dbName, const Options& opt) {
+  database(const char* dbPath, const char* dbName, const OptionsImpl& opt) {
     impl = DatabaseImpl::Open(dbPath, dbName, opt);
   }
 
@@ -337,7 +337,7 @@ void jonoondb_database_createcollection(database_ptr db, const char* name, int32
                                         indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts) {
   TranslateExceptions([&]{
     // Todo: We should use array_view here from GSL. That can speedup this and will also be more clean.
-    std::vector<IndexInfo*> vec;
+    std::vector<IndexInfoImpl*> vec;
     for (uint64_t i = 0; i < indexesLength; i++) {
       vec.push_back(&indexes[i]->impl);
     }

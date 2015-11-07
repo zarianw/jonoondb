@@ -23,7 +23,7 @@ DatabaseImpl::DatabaseImpl(
 }
 
 DatabaseImpl* DatabaseImpl::Open(const std::string& dbPath, const std::string& dbName,
-                          const Options& options) {
+                          const OptionsImpl& options) {
   // Initialize query processor
   unique_ptr<QueryProcessor> qp = std::make_unique<QueryProcessor>();
   
@@ -39,7 +39,7 @@ void DatabaseImpl::Close() {
 }
 
 void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,
-  const std::string& schema, const std::vector<IndexInfo*>& indexes) {
+  const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
   shared_ptr<DocumentCollection> documentCollection =
     make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes);
 

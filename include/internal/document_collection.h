@@ -14,7 +14,7 @@ struct sqlite3;
 namespace jonoondb_api {
 // Forward Declaration
 class Status;
-class IndexInfo;
+class IndexInfoImpl;
 class BufferImpl;
 class DocumentSchema;
 class IndexStat;
@@ -27,7 +27,7 @@ class DocumentCollection {
  public:
    DocumentCollection(const std::string& databaseMetadataFilePath,
      const std::string& name, SchemaType schemaType,
-     const std::string& schema, const std::vector<IndexInfo*>& indexes);
+     const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
   ~DocumentCollection();
 
   Status Insert(const BufferImpl& documentData);
@@ -38,7 +38,7 @@ class DocumentCollection {
 
  private:
   void PopulateColumnTypes(
-      const std::vector<IndexInfo*>& indexes,
+      const std::vector<IndexInfoImpl*>& indexes,
       const DocumentSchema& documentSchema,
       std::unordered_map<std::string, FieldType>& columnTypes);
   sqlite3* m_dbConnection;

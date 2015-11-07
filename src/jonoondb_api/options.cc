@@ -3,14 +3,14 @@
 
 using namespace jonoondb_api;
 
-struct Options::OptionsData {
+struct OptionsImpl::OptionsData {
   bool CreateDBIfMissing;
   size_t MaxDataFileSize;
   bool CompressionEnabled;
   bool Synchronous;
 };
 
-Options::Options() {
+OptionsImpl::OptionsImpl() {
   m_optionsData = new OptionsData();
   m_optionsData->CreateDBIfMissing = false;
   m_optionsData->MaxDataFileSize = MAX_DATA_FILE_SIZE;
@@ -18,14 +18,14 @@ Options::Options() {
   m_optionsData->Synchronous = true;
 }
 
-Options::Options(Options&& other) {
+OptionsImpl::OptionsImpl(OptionsImpl&& other) {
   if (this != &other) {
     m_optionsData = other.m_optionsData;
     other.m_optionsData = nullptr;
   }
 }
 
-Options::Options(bool createDBIfMissing, size_t maxDataFileSize,
+OptionsImpl::OptionsImpl(bool createDBIfMissing, size_t maxDataFileSize,
                  bool compressionEnabled, bool synchronous) {
   m_optionsData = new OptionsData();
   m_optionsData->CreateDBIfMissing = createDBIfMissing;
@@ -34,39 +34,39 @@ Options::Options(bool createDBIfMissing, size_t maxDataFileSize,
   m_optionsData->Synchronous = synchronous;
 }
 
-Options::~Options() {
+OptionsImpl::~OptionsImpl() {
   delete m_optionsData;
   m_optionsData = nullptr;
 }
 
-void Options::SetCreateDBIfMissing(bool value) {
+void OptionsImpl::SetCreateDBIfMissing(bool value) {
   m_optionsData->CreateDBIfMissing = value;
 }
 
-bool Options::GetCreateDBIfMissing() const {
+bool OptionsImpl::GetCreateDBIfMissing() const {
   return m_optionsData->CreateDBIfMissing;
 }
 
-void Options::SetCompressionEnabled(bool value) {
+void OptionsImpl::SetCompressionEnabled(bool value) {
   m_optionsData->CompressionEnabled = value;
 }
 
-bool Options::GetCompressionEnabled() const {
+bool OptionsImpl::GetCompressionEnabled() const {
   return m_optionsData->CompressionEnabled;
 }
 
-void Options::SetMaxDataFileSize(size_t value) {
+void OptionsImpl::SetMaxDataFileSize(size_t value) {
   m_optionsData->MaxDataFileSize = value;
 }
 
-size_t Options::GetMaxDataFileSize() const {
+size_t OptionsImpl::GetMaxDataFileSize() const {
   return m_optionsData->MaxDataFileSize;
 }
 
-void Options::SetSynchronous(bool value) {
+void OptionsImpl::SetSynchronous(bool value) {
   m_optionsData->Synchronous = value;
 }
 
-bool Options::GetSynchronous() const {
+bool OptionsImpl::GetSynchronous() const {
   return m_optionsData->Synchronous;
 }

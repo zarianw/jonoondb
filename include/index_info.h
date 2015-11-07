@@ -11,14 +11,14 @@ class BufferImpl;
 enum class IndexType
 : std::int32_t;
 
-class IndexInfo {
+class IndexInfoImpl {
  public:
-  IndexInfo(const std::string& name, IndexType type, const std::string& columnName,
+  IndexInfoImpl(const std::string& name, IndexType type, const std::string& columnName,
             bool isAscending);
-  IndexInfo();
-  IndexInfo(const IndexInfo& other);
-  ~IndexInfo();
-  IndexInfo& operator=(const IndexInfo& other);  
+  IndexInfoImpl();
+  IndexInfoImpl(const IndexInfoImpl& other);
+  ~IndexInfoImpl();
+  IndexInfoImpl& operator=(const IndexInfoImpl& other);  
   void SetIndexName(const std::string& value);
   const std::string& GetIndexName() const;
   void SetIsAscending(bool value);

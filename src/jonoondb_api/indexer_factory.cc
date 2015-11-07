@@ -10,7 +10,7 @@ using namespace std;
 using namespace jonoondb_api;
 
 Indexer* IndexerFactory::CreateIndexer(
-    const IndexInfo& indexInfo,
+    const IndexInfoImpl& indexInfo,
     const std::unordered_map<std::string, FieldType>& fieldType) {
   Status sts;
   switch (indexInfo.GetType()) {

@@ -6,11 +6,11 @@ using namespace jonoondb_api;
 IndexStat::IndexStat() : m_fieldType(FieldType::BASE_TYPE_INT32) {
 }
 
-IndexStat::IndexStat(const IndexInfo& indexInfo, FieldType fieldType) :
+IndexStat::IndexStat(const IndexInfoImpl& indexInfo, FieldType fieldType) :
   m_indexInfo(indexInfo), m_fieldType(fieldType) { 
 }
 
-const IndexInfo& IndexStat::GetIndexInfo() const {
+const IndexInfoImpl& IndexStat::GetIndexInfo() const {
   return m_indexInfo;
 }
 

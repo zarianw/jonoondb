@@ -19,7 +19,7 @@ namespace jonoondb_api {
 
 class EWAHCompressedBitmapIndexer final : public Indexer {
  public:
-  static Status Construct(const IndexInfo& indexInfo,
+  static Status Construct(const IndexInfoImpl& indexInfo,
                           const FieldType& fieldType,
                           EWAHCompressedBitmapIndexer*& obj) {
     // TODO: Add index name in the error message as well

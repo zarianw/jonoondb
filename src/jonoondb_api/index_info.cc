@@ -9,14 +9,14 @@
 
 using namespace jonoondb_api;
 
-struct IndexInfo::IndexInfoData {
+struct IndexInfoImpl::IndexInfoData {
   std::string Name;
   std::string ColumnName;
   bool IsAscending;
   IndexType Type;
 };
 
-IndexInfo::IndexInfo(const std::string& name, IndexType type, const std::string& columnName,
+IndexInfoImpl::IndexInfoImpl(const std::string& name, IndexType type, const std::string& columnName,
                      bool isAscending) {
   m_indexInfoData = new IndexInfoData();
   m_indexInfoData->Name = name;  
@@ -25,11 +25,11 @@ IndexInfo::IndexInfo(const std::string& name, IndexType type, const std::string&
   m_indexInfoData->ColumnName = columnName;
 }
 
-IndexInfo::IndexInfo()
+IndexInfoImpl::IndexInfoImpl()
     : m_indexInfoData(new IndexInfoData()) {
 }
 
-IndexInfo::IndexInfo(const IndexInfo& other) {
+IndexInfoImpl::IndexInfoImpl(const IndexInfoImpl& other) {
   if (this != &other) {
     m_indexInfoData = new IndexInfoData();
     m_indexInfoData->Name = other.GetIndexName();
@@ -39,11 +39,11 @@ IndexInfo::IndexInfo(const IndexInfo& other) {
   }
 }
 
-IndexInfo::~IndexInfo() {
+IndexInfoImpl::~IndexInfoImpl() {
   delete m_indexInfoData;
 }
 
-IndexInfo& IndexInfo::operator=(const IndexInfo& other) {
+IndexInfoImpl& IndexInfoImpl::operator=(const IndexInfoImpl& other) {
   if (this != &other) {
     m_indexInfoData->Name = other.GetIndexName();
     m_indexInfoData->IsAscending = other.GetIsAscending();
@@ -54,34 +54,34 @@ IndexInfo& IndexInfo::operator=(const IndexInfo& other) {
   return *this;
 }
 
-void IndexInfo::SetIsAscending(bool value) {
+void IndexInfoImpl::SetIsAscending(bool value) {
   m_indexInfoData->IsAscending = value;
 }
 
-bool IndexInfo::GetIsAscending() const {
+bool IndexInfoImpl::GetIsAscending() const {
   return m_indexInfoData->IsAscending;
 }
 
-void IndexInfo::SetType(IndexType value) {
+void IndexInfoImpl::SetType(IndexType value) {
   m_indexInfoData->Type = value;
 }
 
-IndexType IndexInfo::GetType() const {
+IndexType IndexInfoImpl::GetType() const {
   return m_indexInfoData->Type;
 }
 
-void IndexInfo::SetIndexName(const std::string& value) {
+void IndexInfoImpl::SetIndexName(const std::string& value) {
   m_indexInfoData->Name = value;
 }
 
-const std::string& IndexInfo::GetIndexName() const {
+const std::string& IndexInfoImpl::GetIndexName() const {
   return m_indexInfoData->Name;
 }
 
-const std::string& IndexInfo::GetColumnName() const {
+const std::string& IndexInfoImpl::GetColumnName() const {
   return m_indexInfoData->ColumnName;
 }
 
-void IndexInfo::SetColumnName(const std::string& value) {
+void IndexInfoImpl::SetColumnName(const std::string& value) {
   m_indexInfoData->ColumnName = value;
 }

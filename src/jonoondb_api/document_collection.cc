@@ -22,7 +22,7 @@ using namespace std;
 
 DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePath,
   const std::string& name, SchemaType schemaType,
-  const std::string& schema, const std::vector<IndexInfo*>& indexes) :
+  const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) :
     m_name(name) {
   // Validate function arguments
   if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
@@ -101,7 +101,7 @@ bool DocumentCollection::TryGetBestIndex(const std::string& columnName, IndexCon
 }
 
 void DocumentCollection::PopulateColumnTypes(
-  const std::vector<IndexInfo*>& indexes,
+  const std::vector<IndexInfoImpl*>& indexes,
   const DocumentSchema& documentSchema,
   std::unordered_map<string, FieldType>& columnTypes) {
   FieldType colType;

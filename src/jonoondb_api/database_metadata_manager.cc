@@ -161,7 +161,7 @@ void DatabaseMetadataManager::PrepareStatements() {
 }
 
 void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType schemaType,
-  const std::string& schema, const std::vector<IndexInfo*>& indexes) {
+  const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
   unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
@@ -237,7 +237,7 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
 }
 
 Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
-                                            const IndexInfo& indexInfo) {
+                                            const IndexInfoImpl& indexInfo) {
   unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionIndexStmt, SQLiteUtils::ClearAndResetStatement);
 

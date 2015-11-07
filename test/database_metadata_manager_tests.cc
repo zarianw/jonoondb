@@ -28,8 +28,8 @@ TEST(DatabaseMetadataManager, AddCollection_NewSingleIndex) {
     std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager =
       std::make_unique<DatabaseMetadataManager>(g_TestRootDirectory, dbName, true);
 
-    IndexInfo indexInfo("MyIndex", IndexType::EWAHCompressedBitmap, "MyColumn", true);
-    std::vector<IndexInfo*> vec;
+    IndexInfoImpl indexInfo("MyIndex", IndexType::EWAHCompressedBitmap, "MyColumn", true);
+    std::vector<IndexInfoImpl*> vec;
     vec.push_back(&indexInfo);
     databaseMetadataManager->AddCollection("MyCollection", SchemaType::FLAT_BUFFERS, "", vec);    
   }); 

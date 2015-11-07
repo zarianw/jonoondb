@@ -3,15 +3,15 @@
 #include <cstddef>
 
 namespace jonoondb_api {
-class Options {
+class OptionsImpl {
  public:
   //Default constructor that sets all the options to their default value
-  Options();
-  Options(bool createDBIfMissing, size_t maxDataFileSize,
+  OptionsImpl();
+  OptionsImpl(bool createDBIfMissing, size_t maxDataFileSize,
           bool compressionEnabled, bool synchronous);
-  Options(Options&& other);
+  OptionsImpl(OptionsImpl&& other);
 
-  ~Options();
+  ~OptionsImpl();
 
   void SetCreateDBIfMissing(bool value);
   bool GetCreateDBIfMissing() const;
