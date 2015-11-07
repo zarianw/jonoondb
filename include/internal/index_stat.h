@@ -1,17 +1,17 @@
 #pragma once
 
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "enums.h"
 
 namespace jonoondb_api {
 class IndexStat {
 public:
   IndexStat();
-  IndexStat(const IndexInfo& indexInfo, FieldType fieldType);
-  const IndexInfo& GetIndexInfo() const;
+  IndexStat(const IndexInfoImpl& indexInfo, FieldType fieldType);
+  const IndexInfoImpl& GetIndexInfo() const;
   FieldType GetFieldType() const;
 private:
-  IndexInfo m_indexInfo;
+  IndexInfoImpl m_indexInfo;
   FieldType m_fieldType;
   // In future add selectivity, avgEntrySizeInBytes etc.
 };

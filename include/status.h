@@ -40,11 +40,6 @@ class Status {
   bool IndexOutOfBound() const;
 
  private:
-  //class StatusImpl;
-  //std::unique_ptr<StatusImpl> m_statusImpl;
-  //Byte 1 to 4: Size of m_statusData
-  //Byte 5: Code
-  //Byte 6 onwards: Null terminated message string
   StatusData* m_statusData;
 };
 

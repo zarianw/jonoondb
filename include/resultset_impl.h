@@ -6,7 +6,7 @@
 namespace jonoondb_api {
 class Status;
 
-class ResultSet {
+class ResultSetImpl {
 public:
   Status Next();
   Status GetInt8(const char* columnName, std::int8_t& val) const;    

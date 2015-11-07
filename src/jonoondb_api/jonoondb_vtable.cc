@@ -209,22 +209,6 @@ static int jonoondb_destroy(sqlite3_vtab *vtab) {
   return SQLITE_OK;
 }
 
-static char* op(unsigned char op) {
-  if (op == SQLITE_INDEX_CONSTRAINT_EQ)
-    return "=";
-  if (op == SQLITE_INDEX_CONSTRAINT_GT)
-    return ">";
-  if (op == SQLITE_INDEX_CONSTRAINT_LE)
-    return "<=";
-  if (op == SQLITE_INDEX_CONSTRAINT_LT)
-    return "<";
-  if (op == SQLITE_INDEX_CONSTRAINT_GE)
-    return ">=";
-  if (op == SQLITE_INDEX_CONSTRAINT_MATCH)
-    return "MATCH";
-  return "?";
-}
-
 static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
   switch (op) {
     case SQLITE_INDEX_CONSTRAINT_EQ:

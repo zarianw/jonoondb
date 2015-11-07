@@ -5,51 +5,25 @@
 #include "document.h"
 #include "indexer.h"
 #include "indexer_factory.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "index_stat.h"
 
 using namespace std;
 using namespace jonoondb_api;
 
-IndexManager::IndexManager(std::unique_ptr<ColumnIndexderMap> columnIndexderMap)
-  : m_columnIndexerMap(move(columnIndexderMap)) {
+IndexManager::IndexManager(const std::vector<IndexInfoImpl*>& indexes, const std::unordered_map<std::string, FieldType>& columnTypes) :
+    m_columnIndexerMap(new ColumnIndexderMap()) {
+  for (size_t i = 0; i < indexes.size(); i++) {    
+    unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(*indexes[i], columnTypes));
+    (*m_columnIndexerMap)[indexes[i]->GetColumnName()].push_back(move(indexer));
+  }
 }
 
-Status IndexManager::Construct(
-    const IndexInfo indexes[], size_t indexesLength,
-    std::unordered_map<std::string, FieldType>& columnTypes,
-    IndexManager*& indexManager) {
-  std::unique_ptr<ColumnIndexderMap> columnIndexerMap(new ColumnIndexderMap());
-
-  for (size_t i = 0; i < indexesLength; i++) {    
-    Indexer* indexer;
-    auto sts = IndexerFactory::CreateIndexer(indexes[i], columnTypes, indexer);
-    if (!sts.OK()) {
-      return sts;
-    }
-    
-    std::string columnName = indexes[i].GetColumn(0);
-    (*columnIndexerMap)[columnName].push_back(unique_ptr<Indexer>(indexer));
-  }
-
-  indexManager = new IndexManager(move(columnIndexerMap));
-
+Status IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
+                                 std::unordered_map<std::string, FieldType>& columnTypes) {
+  unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(indexInfo, columnTypes));  
+  (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));
   return Status();
-}
-
-Status IndexManager::CreateIndex(
-    const IndexInfo& indexInfo,
-    std::unordered_map<std::string, FieldType>& columnTypes) {
-  Indexer* indexer;
-  auto sts = IndexerFactory::CreateIndexer(indexInfo, columnTypes, indexer);
-  if (!sts.OK()) {
-    return sts;
-  }
-
-  std::string columnName = indexInfo.GetColumn(0);
-  (*m_columnIndexerMap)[columnName].push_back(unique_ptr<Indexer>(indexer));
-
-  return sts;
 }
 
 Status IndexManager::IndexDocument(uint64_t documentID,

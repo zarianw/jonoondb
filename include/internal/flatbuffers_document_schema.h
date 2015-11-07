@@ -18,8 +18,7 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
   static FieldType MapFlatbuffersToJonoonDBType(
       flatbuffers::BaseType flatbuffersType);
   ~FlatbuffersDocumentSchema() override;
-  static Status Construct(const char* schemaText, SchemaType schemaType,
-                          FlatbuffersDocumentSchema*& documentSchema);
+  FlatbuffersDocumentSchema(const std::string& schemaText, SchemaType schemaType);
   const char* GetSchemaText() const override;
   SchemaType GetSchemaType() const override;
   Status GetFieldType(const char* fieldName, FieldType& fieldType) const
@@ -29,9 +28,7 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
   Status AllocateField(Field*& field) const override;
   const flatbuffers::StructDef* GetRootStruct() const;
   const flatbuffers::SymbolTable<flatbuffers::StructDef>* GetChildStructs() const;
- private:
-  FlatbuffersDocumentSchema(const char* schemaText, SchemaType schemaType,
-                            std::unique_ptr<flatbuffers::Parser> parser);
+ private:  
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
 

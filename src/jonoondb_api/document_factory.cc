@@ -8,10 +8,8 @@
 using namespace std;
 using namespace jonoondb_api;
 
-Status DocumentFactory::CreateDocument(
-    const shared_ptr<DocumentSchema>& documentSchema, const Buffer& buffer,
-    Document*& document) {
-  Status sts;
+Document* DocumentFactory::CreateDocument(
+    const shared_ptr<DocumentSchema>& documentSchema, const BufferImpl& buffer) {
   switch (documentSchema->GetSchemaType()) {
     case SchemaType::FLAT_BUFFERS: {
       auto fbDocSchema = dynamic_pointer_cast
@@ -21,22 +19,14 @@ Status DocumentFactory::CreateDocument(
         string errorMsg = "Argument documentSchema cannot be casted to "
             "underlying DocumentSchema implementation i.e. "
             "FlatbuffersDocumentSchema";
-        return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                      __FILE__, "", __LINE__);
+        throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
       }
-      FlatbuffersDocument* fbDoc;
-      sts = FlatbuffersDocument::Construct(fbDocSchema, buffer, fbDoc);
-      if (!sts.OK()) {
-        return sts;
-      }
-      document = fbDoc;
-      break;
+
+      return new FlatbuffersDocument(fbDocSchema, buffer);     
     }
     default:
-      string errorMsg = "Unknown schema.";
-      return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
-  }
-
-  return sts;
+      std::ostringstream ss;
+      ss << "Cannot create Document. Schema type '" << static_cast<int32_t>(documentSchema->GetSchemaType()) << "' is unknown.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+  }  
 }

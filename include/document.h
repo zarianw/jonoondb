@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "buffer.h"
+#include "buffer_impl.h"
 #include "enums.h"
 
 namespace jonoondb_api {

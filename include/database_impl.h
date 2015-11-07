@@ -10,23 +10,25 @@
 namespace jonoondb_api {
 //Forward Declarations
 class Status;
-class Options;
-class Buffer;
-class IndexInfo;
-class ResultSet;
+class OptionsImpl;
+class BufferImpl;
+class IndexInfoImpl;
+class ResultSetImpl;
 enum class SchemaType
 : std::int32_t;
 
-class DatabaseImpl {
+class DatabaseImpl final {
  public:
-  static Status Open(const char* dbPath, const char* dbName,
-                     const Options& options, DatabaseImpl*& db);
-  Status Close();
-  Status CreateCollection(const char* name, SchemaType schemaType,
-                          const char* schema, const IndexInfo indexes[],
-                          size_t indexesLength);
-  Status Insert(const char* collectionName, const Buffer& documentData);
-  Status ExecuteSelect(const char* selectStatement, ResultSet*& resultSet);
+  DatabaseImpl(const DatabaseImpl&) = delete;
+  DatabaseImpl(DatabaseImpl&&) = delete;
+  DatabaseImpl& operator=(const DatabaseImpl&) = delete;
+  static DatabaseImpl* Open(const std::string& dbPath, const std::string& dbName,
+                      const OptionsImpl& options);
+  void Close();
+  void CreateCollection(const std::string& name, SchemaType schemaType,
+                          const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
+  Status Insert(const char* collectionName, const BufferImpl& documentData);
+  ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
  private:
   DatabaseImpl(

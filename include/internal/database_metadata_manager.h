@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include <vector>
 
 //Forward declarations
 struct sqlite3;
@@ -10,30 +11,29 @@ struct sqlite3_stmt;
 namespace jonoondb_api {
 //Forward declaration
 class Status;
-class IndexInfo;
+class IndexInfoImpl;
 enum class SchemaType
 : std::int32_t;
 
-class DatabaseMetadataManager {
+class DatabaseMetadataManager final {
  public:
+   DatabaseMetadataManager(const DatabaseMetadataManager&) = delete;
+   DatabaseMetadataManager(DatabaseMetadataManager&&) = delete;
+   DatabaseMetadataManager& operator=(const DatabaseMetadataManager&) = delete;
+   DatabaseMetadataManager(const std::string& dbPath,
+                           const std::string& dbName,
+                           bool createDBIfMissing);
   ~DatabaseMetadataManager();
-  static Status Open(const char* dbPath, const char* dbName,
-                     bool createDBIfMissing,
-                     DatabaseMetadataManager*& databaseMetadataManager);
-
-  Status AddCollection(const char* name, SchemaType schemaType,
-                       const char* schema, const IndexInfo indexes[],
-                       size_t indexesLength);
-
+  void AddCollection(const std::string& name, SchemaType schemaType,
+                       const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
   const char* GetFullDBPath() const;
 
  private:
-  DatabaseMetadataManager(const char* dbPath, const char* dbName,
-                          bool createDBIfMissing);
-  Status Initialize();
-  Status CreateTables();
-  Status PrepareStatements();
-  Status CreateIndex(const char* collectionName, const IndexInfo& indexInfo);
+  
+  void Initialize(bool createDBIfMissing);
+  void CreateTables();
+  void PrepareStatements();
+  Status CreateIndex(const char* collectionName, const IndexInfoImpl& indexInfo);
 
   std::string m_dbName;
   std::string m_dbPath;
@@ -41,7 +41,6 @@ class DatabaseMetadataManager {
   sqlite3* m_metadataDBConnection;
   sqlite3_stmt* m_insertCollectionSchemaStmt;
   sqlite3_stmt* m_insertCollectionIndexStmt;
-  bool m_createDBIfMissing;
 };
 }
 

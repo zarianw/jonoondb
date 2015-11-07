@@ -6,10 +6,10 @@
 #include "document.h"
 #include "document_factory.h"
 #include "status.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "enums.h"
-#include "options.h"
-#include "buffer.h"
+#include "options_impl.h"
+#include "buffer_impl.h"
 #include "schemas/flatbuffers/tweet_generated.h"
 #include "document_schema_factory.h"
 #include "document_schema.h"
@@ -19,7 +19,7 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
 
-void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
+void CompareTweetObject(const Document* doc, const BufferImpl& tweetObject) {
   auto tweet = GetTweet(tweetObject.GetData());
   ASSERT_TRUE(tweet != nullptr);
   uint64_t id;
@@ -44,16 +44,11 @@ void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
 TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  Buffer documentData;
-  ASSERT_TRUE(GetTweetObject(documentData).OK());
-  DocumentSchema* docSchema;
-  auto sts = DocumentSchemaFactory::CreateDocumentSchema(
-      schema.c_str(), SchemaType::FLAT_BUFFERS, docSchema);
-  ASSERT_TRUE(sts.OK());
-  shared_ptr<DocumentSchema> docSchemaPtr(docSchema);
-  Document* doc;
-  sts = DocumentFactory::CreateDocument(docSchemaPtr, documentData, doc);
-  ASSERT_TRUE(sts.OK());
+  BufferImpl documentData = GetTweetObject();
+  shared_ptr<DocumentSchema> docSchemaPtr(DocumentSchemaFactory::CreateDocumentSchema(
+    schema.c_str(), SchemaType::FLAT_BUFFERS));
+  
+  auto doc = DocumentFactory::CreateDocument(docSchemaPtr, documentData);
   CompareTweetObject(doc, documentData);
   doc->Dispose();
 }
