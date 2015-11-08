@@ -245,13 +245,13 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
                                      indexInfo.GetIndexName().c_str(), -1,  // length of the string is the number of bytes up to the first zero terminator
                                      SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
   sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 2,  // Index of wildcard
                                  collectionName, -1,  // length of the string is the number of bytes up to the first zero terminator
                                  SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
   BufferImpl buffer;
   SerializerUtils::IndexInfoToBytes(indexInfo, buffer);
@@ -259,18 +259,18 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
                                  buffer.GetData(), buffer.GetLength(),
                                  SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
   //Now insert the record
   sqliteCode = sqlite3_step(m_insertCollectionIndexStmt);
   if (sqliteCode != SQLITE_DONE) {
     if (sqliteCode == SQLITE_CONSTRAINT) {
       //Key already exists
-      std::string errorMsg = "Index with the same name already exists.";
-      return Status(kStatusIndexAlreadyExistCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
+      ostringstream ss;
+      ss << "Index with name " << indexInfo.GetIndexName() << " already exists.";
+      throw IndexAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
     } else {
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
     }
   }
 

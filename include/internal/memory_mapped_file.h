@@ -2,40 +2,46 @@
 
 #include <memory>
 #include <string>
+#include <sstream>
+#include <cstdint>
 #include <boost/interprocess/file_mapping.hpp> // NOLINT
 #include <boost/interprocess/mapped_region.hpp> // NOLINT
 #include "status.h"
+#include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
 // Forward declarations
 class Status;
 
-enum MemoryMappedFileMode {
-  ReadOnly,
-  ReadWrite
+enum class MemoryMappedFileMode : std::int32_t {
+  ReadOnly = 1,
+  ReadWrite = 2
 };
 
-class MemoryMappedFile {
- public:
-  static Status Open(const char* fileName, MemoryMappedFileMode mode,
-                     size_t writeOffset, bool asynchronous,
-                     MemoryMappedFile** memoryMappedFile) {
-    try {
-      *memoryMappedFile = new MemoryMappedFile(fileName, mode, writeOffset,
-                                               asynchronous);
-    } catch (boost::interprocess::interprocess_exception& ex) {
-      return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
-    } catch (std::exception& ex) {
-      return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
-    } catch (...) {
-      std::string errorMessage =
-          "Unexpected error occured while opening mmap file.";
-      return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                    __FILE__, "", __LINE__);
-    }
+class MemoryMappedFile final {
+public:
+  MemoryMappedFile(const std::string& fileName, MemoryMappedFileMode mode,
+    size_t writeOffset, bool asynchronous)
+    : m_currentWritePosition(nullptr),
+    m_currentWriteOffset(0),
+    m_asynchronous(asynchronous) {
+    auto internalMode = GetInternalMode(mode);
+    m_fileMapping = boost::interprocess::file_mapping(fileName.c_str(), internalMode);
+    m_mappedRegion = boost::interprocess::mapped_region(m_fileMapping,
+      internalMode);
 
-    return Status();
+    if (mode == MemoryMappedFileMode::ReadWrite) {
+      m_currentWriteOffset = writeOffset;
+      m_currentWritePosition = reinterpret_cast<char*>(GetBaseAddress());
+      m_currentWritePosition += m_currentWriteOffset;
+    }
   }
+
+  MemoryMappedFile(const MemoryMappedFile&) = delete;
+  MemoryMappedFile(MemoryMappedFile&&) = delete;
+  MemoryMappedFile& operator=(const MemoryMappedFile&) = delete;
+  MemoryMappedFile& operator=(MemoryMappedFile&&) = delete;
+
 
   void* GetBaseAddress() {
     return m_mappedRegion.get_address();
@@ -76,53 +82,20 @@ class MemoryMappedFile {
    }
    }*/
 
-  Status WriteAtCurrentPosition(const void* data, const size_t length) {
-    try {
-      memcpy(m_currentWritePosition, data, length);
-      m_currentWritePosition += length;
-      m_currentWriteOffset += length;
-    } catch (boost::interprocess::interprocess_exception& ex) {
-      return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
-    } catch (std::exception& ex) {
-      return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
-    } catch (...) {
-      std::string errorMessage =
-          "Unexpected error occured while opening memory mapped file.";
-      return Status(kStatusGenericErrorCode, errorMessage.c_str(),
-                    __FILE__, "", __LINE__);
-    }
-
-    return Status();
+  void WriteAtCurrentPosition(const void* data, const size_t length) {
+    memcpy(m_currentWritePosition, data, length);
+    m_currentWritePosition += length;
+    m_currentWriteOffset += length;    
   }
 
-  Status Flush(size_t offset, size_t numBytes) {
-    if (!m_mappedRegion.flush(offset, numBytes, m_asynchronous)) {
-      std::string errorMessage =
-          "Unexpected error occured while flushing memory mapped file.";
-      return Status(kStatusFileIOErrorCode, errorMessage.c_str(),
-                    __FILE__, "", __LINE__);
-    }
-
-    return Status();
+  void Flush(size_t offset, size_t numBytes) {
+    if (!m_mappedRegion.flush(offset, numBytes, m_asynchronous)) {      
+      throw FileIOException("Unexpected error occured while flushing memory mapped file.",
+        __FILE__, "", __LINE__);
+    }    
   }
 
  private:
-  MemoryMappedFile(const char* fileName, MemoryMappedFileMode mode,
-                   size_t writeOffset, bool asynchronous)
-      : m_currentWritePosition(nullptr),
-        m_currentWriteOffset(0),
-        m_asynchronous(asynchronous) {
-    auto internalMode = GetInternalMode(mode);
-    m_fileMapping = boost::interprocess::file_mapping(fileName, internalMode);
-    m_mappedRegion = boost::interprocess::mapped_region(m_fileMapping,
-                                                        internalMode);
-    if (mode == MemoryMappedFileMode::ReadWrite) {
-      m_currentWriteOffset = writeOffset;
-      m_currentWritePosition = reinterpret_cast<char*>(GetBaseAddress());
-      m_currentWritePosition += m_currentWriteOffset;
-    }
-  }
-
   boost::interprocess::mode_t GetInternalMode(MemoryMappedFileMode mode) {
     switch (mode) {
       case MemoryMappedFileMode::ReadOnly:
@@ -130,14 +103,9 @@ class MemoryMappedFile {
       case MemoryMappedFileMode::ReadWrite:
         return boost::interprocess::read_write;
       default:
-        char message[100];
-        sprintf(message,
-                "mode value %d is not supported for memory mapped files.",
-                mode);
-        // Normally throwing exceptions is not the error handling mechanism but in this class we are using boost
-        // which throws exceptions for error handling. Throwing exception in this one function is ok because the callee
-        // upstream is catching the exception.
-        throw std::invalid_argument(message);
+        std::ostringstream ss;
+        ss << "Mode value " << static_cast<int32_t>(mode) << "is not supported for memory mapped files.";        
+        throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);
         break;
     }
   }

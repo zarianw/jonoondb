@@ -68,10 +68,8 @@ Status DatabaseImpl::Insert(const char* collectionName,
   auto item = m_collectionContainer.find(collectionName);
   if (item == m_collectionContainer.end()) {
     ostringstream ss;
-    ss << "Collection \"" << collectionName << "\" not found.";
-    string errorMsg = ss.str();
-    return Status(kStatusCollectionNotFoundCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+    ss << "Collection \"" << collectionName << "\" not found.";    
+    throw CollectionNotFoundException(ss.str(), __FILE__, "", __LINE__);
   }
 
   // Add data in collection

@@ -44,9 +44,8 @@ Status FlatbuffersDocumentSchema::GetFieldType(const char* fieldName,
                                                FieldType& fieldType) const {
   // The fieldName is dot(.) sperated e.g. Field1.Field2.Field3
   if (StringUtils::IsNullOrEmpty(fieldName)) {
-    string errorMsg = "Argument fieldName is null or empty.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+    throw InvalidArgumentException("Argument fieldName is null or empty.",
+      __FILE__, "", __LINE__);
   }
 
   char_separator<char> sep(".");
@@ -60,11 +59,12 @@ Status FlatbuffersDocumentSchema::GetFieldType(const char* fieldName,
   for (size_t i = 0; i < tokenVec.size() - 1; i++) {
     fieldDef = structDef->fields.Lookup(tokenVec[i]);
     if (fieldDef == nullptr) {
-      return ExceptionUtils::GetMissingFieldErrorStatus(tokenVec[i].c_str());
+      throw JonoonDBException(ExceptionUtils::GetMissingFieldErrorString(tokenVec[i]),
+        __FILE__, "", __LINE__);
     }
     if (fieldDef->value.type.base_type != BaseType::BASE_TYPE_STRUCT) {
-      return ExceptionUtils::GetInvalidStructFieldErrorStatus(
-          tokenVec[i].c_str(), fieldName);
+      throw JonoonDBException(ExceptionUtils::GetInvalidStructFieldErrorString(
+        tokenVec[i], fieldName), __FILE__, "", __LINE__);      
     }
     structDef = m_parser->structs_.Lookup(
         fieldDef->value.type.struct_def->name);
@@ -72,7 +72,8 @@ Status FlatbuffersDocumentSchema::GetFieldType(const char* fieldName,
 
   fieldDef = structDef->fields.Lookup(tokenVec[tokenVec.size() - 1]);
   if (fieldDef == nullptr) {
-    return ExceptionUtils::GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(ExceptionUtils::GetMissingFieldErrorString(fieldName),
+      __FILE__, "", __LINE__);    
   }
   fieldType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
       fieldDef->value.type.base_type);
@@ -92,14 +93,11 @@ Status FlatbuffersDocumentSchema::GetRootField(size_t index,
     string errorMsg = "Argument field cannot be casted to underlying field "
         "implementation i.e. FlatbuffersField. "
         "Make sure you are creating the val by calling AllocateField call.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+    throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
   }
 
   if (index > GetRootFieldCount() - 1 || index < 0) {
-    string errorMsg = "Index was outside the bounds of the array.";
-    return Status(kStatusIndexOutOfBoundErrorCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+    throw IndexOutOfBoundException("Index was outside the bounds of the array.", __FILE__, "", __LINE__);
   }
 
   fbField->SetFieldDef(m_parser->root_struct_def->fields.vec[index]);
@@ -107,15 +105,7 @@ Status FlatbuffersDocumentSchema::GetRootField(size_t index,
 }
 
 Status FlatbuffersDocumentSchema::AllocateField(Field*& field) const {
-  try {
-    field = new FlatbuffersField();
-  } catch (bad_alloc) {
-    // Memory allocation failed
-    string errorMsg = "Memory allocation failed.";
-    return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
+  field = new FlatbuffersField();
   return Status();
 }
 

@@ -94,6 +94,9 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
   } catch (const SQLException& ex) {
     sts = new status(jonoondb_status_codes::status_sqlerrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
+  } catch (const FileIOException& ex) {
+    sts = new status(jonoondb_status_codes::status_fileioerrorcode, ex.what(), ex.GetSourceFileName(),
+      ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const JonoonDBException& ex) {
     sts = new status(jonoondb_status_codes::status_genericerrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());

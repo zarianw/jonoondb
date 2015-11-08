@@ -39,8 +39,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
     }
 
     if (errorMsg.length() > 0) {
-      return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
+      throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
     }
 
     std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumnName(),
@@ -188,10 +187,8 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
       default: {
         std::ostringstream ss;
         ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-          << " is not valid for EWAHCompressedBitmapIndexer.";
-        std::string errorMsg = ss.str();
-        return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-          __FILE__, "", __LINE__);
+          << " is not valid for EWAHCompressedBitmapIndexer.";        
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);        
       }
     }
   }

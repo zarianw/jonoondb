@@ -50,7 +50,7 @@ class FlatbuffersDocument final : public Document {
   FlatbuffersDocument(
      const std::shared_ptr<FlatbuffersDocumentSchema> m_fbDocumentSchema,
      std::unique_ptr<flatbuffers::DynamicTableReader> dynTableReader);
-  Status GetMissingFieldErrorStatus(const char* fieldName) const;
+  std::string GetMissingFieldErrorString(const std::string& fieldName) const;
   const std::shared_ptr<FlatbuffersDocumentSchema> m_fbDcumentSchema;
 
 };

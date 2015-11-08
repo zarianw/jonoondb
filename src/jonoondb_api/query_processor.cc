@@ -59,11 +59,10 @@ Status QueryProcessor::AddCollection(const shared_ptr<DocumentCollection>& colle
     if (errMsg != nullptr) {
       string sqliteErrorMsg = errMsg;
       sqlite3_free(errMsg);
-      return Status(kStatusSQLiteErrorCode, sqliteErrorMsg.c_str(),
-        __FILE__, "", __LINE__);      
+      throw SQLException(sqliteErrorMsg, __FILE__, "", __LINE__);      
     }
 
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
   }
 
   return Status();
