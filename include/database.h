@@ -40,7 +40,8 @@ public:
 //
 class ThrowOnError {
 public:
-  ~ThrowOnError() noexcept(false) {
+  // TODO: change the throw to noexcept(false) when we move to vs2015
+  ~ThrowOnError() throw(std::exception) {
     if (m_status.opaque) {
       switch (jonoondb_status_code(m_status.opaque)) {
         case status_genericerrorcode:
