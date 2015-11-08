@@ -40,7 +40,7 @@ public:
 //
 class ThrowOnError {
 public:
-  ~ThrowOnError() {
+  ~ThrowOnError() noexcept(false) {
     if (m_status.opaque) {
       switch (jonoondb_status_code(m_status.opaque)) {
         case status_genericerrorcode:
