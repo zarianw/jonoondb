@@ -8,7 +8,7 @@
 using namespace std;
 using namespace jonoondb_api;
 
-Document* DocumentFactory::CreateDocument(
+std::unique_ptr<Document> DocumentFactory::CreateDocument(
     const shared_ptr<DocumentSchema>& documentSchema, const BufferImpl& buffer) {
   switch (documentSchema->GetSchemaType()) {
     case SchemaType::FLAT_BUFFERS: {
@@ -22,7 +22,7 @@ Document* DocumentFactory::CreateDocument(
         throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
       }
 
-      return new FlatbuffersDocument(fbDocSchema, buffer);     
+      return std::unique_ptr<Document>(new FlatbuffersDocument(fbDocSchema, buffer));
     }
     default:
       std::ostringstream ss;

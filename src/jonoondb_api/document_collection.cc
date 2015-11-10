@@ -70,7 +70,7 @@ DocumentCollection::~DocumentCollection() {
 }
 
 Status DocumentCollection::Insert(const BufferImpl& documentData) {
-  unique_ptr<Document> doc(DocumentFactory::CreateDocument(m_documentSchema, documentData));
+  auto doc = DocumentFactory::CreateDocument(m_documentSchema, documentData);
   
   // Index the document
   auto id = m_documentIDGenerator.ReserveID(1);

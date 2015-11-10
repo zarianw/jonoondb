@@ -24,7 +24,7 @@ Indexer* IndexerFactory::CreateIndexer(
       }
 
       EWAHCompressedBitmapIndexer* ewahIndexer;
-      sts = EWAHCompressedBitmapIndexer::Construct(indexInfo, it->second,
+      EWAHCompressedBitmapIndexer::Construct(indexInfo, it->second,
                                                    ewahIndexer);
       return static_cast<Indexer*>(ewahIndexer);      
     }

@@ -30,10 +30,7 @@ Status IndexManager::IndexDocument(uint64_t documentID,
                                    const Document& document) {
   for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
     for (const auto& indexer : columnIndexerMapPair.second) {
-      Status sts = indexer->ValidateForInsert(document);
-      if (!sts.OK()) {
-        return sts;
-      }
+      indexer->ValidateForInsert(document);      
     }
   }
 
