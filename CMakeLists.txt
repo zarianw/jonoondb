@@ -89,6 +89,7 @@ add_library(
  ${INCLUDE_PATH}/jonoondb_exceptions.h
  ${INCLUDE_PATH}/cdatabase.h
  ${INCLUDE_PATH}/database.h
+ ${INCLUDE_INTERNAL_PATH}/concurrent_map.h
  ${SRC_PATH}/jonoondb_api/cdatabase.cc
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
@@ -103,6 +104,7 @@ add_library(
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
  ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
  ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${INCLUDE_INTERNAL_PATH}/document_schema_factory.h
+ ${SRC_PATH}/jonoondb_api/filename_manager.cc ${INCLUDE_INTERNAL_PATH}/filename_manager.h 
  
  ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h
