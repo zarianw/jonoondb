@@ -14,28 +14,26 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
   bool createDBIfMissing)
   : m_dbPath(dbPath), m_dbName(dbName), m_db(nullptr, GuardFuncs::SQLite3Close),
   m_getFileNameStatement(nullptr), m_getLastFileKeyStatement(nullptr),
-  m_putStatement(nullptr), m_updateStatement(nullptr) {
-
-  boost::filesystem::path pathObj(m_dbPath);
+  m_putStatement(nullptr), m_updateStatement(nullptr) {  
 
   // check if the db folder exists
-  if (!boost::filesystem::exists(pathObj)) {
+  if (!boost::filesystem::exists(m_dbPath)) {
     std::ostringstream ss;
-    ss << "Database folder " << pathObj.string() << " does not exist.";
+    ss << "Database folder " << m_dbPath.generic_string() << " does not exist.";
     throw MissingDatabaseFolderException(ss.str(), __FILE__, "", __LINE__);
   }
 
-  pathObj += m_dbName;
-  pathObj += ".dat";
+  boost::filesystem::path pathObj(m_dbPath);
+  pathObj /= (m_dbName + ".dat");   
 
   if (!boost::filesystem::exists(pathObj) && !createDBIfMissing) {
     std::ostringstream ss;
-    ss << "Database file " << pathObj.string() << " does not exist.";
+    ss << "Database file " << pathObj.generic_string() << " does not exist.";
     throw MissingDatabaseFileException(ss.str(), __FILE__, "", __LINE__);
   }
 
   sqlite3* db = nullptr;
-  int sqliteCode = sqlite3_open(pathObj.string().c_str(), &db);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+  int sqliteCode = sqlite3_open(pathObj.generic_string().c_str(), &db);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
   m_db.reset(db);
 
   if (sqliteCode != SQLITE_OK) {
@@ -138,8 +136,9 @@ void FileNameManager::GetCurrentDataFileInfo(bool createIfMissing, FileInfo& fil
         AddFileRecord(fileKey, newFileName);
 
         fileInfo.fileKey = fileKey;
-        fileInfo.fileName = newFileName;
-        fileInfo.fileNameWithPath = m_dbPath + newFileName;
+        fileInfo.fileName = newFileName;        
+        auto path = m_dbPath / newFileName;
+        fileInfo.fileNameWithPath = path.generic_string();
         fileInfo.dataLength = -1;
       } else {
         throw JonoonDBException("Cannot get the current FileInfo because there are no FileInfo records in the database.",
@@ -157,7 +156,8 @@ void FileNameManager::GetCurrentDataFileInfo(bool createIfMissing, FileInfo& fil
 
     fileInfo.fileKey = fileKey;
     fileInfo.fileName = newFileName;
-    fileInfo.fileNameWithPath = m_dbPath + newFileName;
+    auto path = m_dbPath / newFileName;
+    fileInfo.fileNameWithPath = path.generic_string();
     fileInfo.dataLength = sqlite3_column_int64(m_getLastFileKeyStatement, 1);
   }
 }
@@ -197,7 +197,8 @@ void FileNameManager::GetNextDataFileInfo(FileInfo& fileInfo) {
 
   fileInfo.fileKey = fileKey;
   fileInfo.fileName = newFileName;
-  fileInfo.fileNameWithPath = m_dbPath + newFileName;
+  auto path = m_dbPath / newFileName;
+  fileInfo.fileNameWithPath = path.generic_string();
   fileInfo.dataLength = -1;
 }
 
@@ -272,7 +273,8 @@ void FileNameManager::GetFileInfo(const int fileKey, std::shared_ptr<FileInfo>& 
     fileInfo.reset(new FileInfo());
     fileInfo->fileKey = fileKey;
     fileInfo->fileName = (const char *)sqlite3_column_text(m_getFileNameStatement, 0);
-    fileInfo->fileNameWithPath = m_dbPath + fileInfo->fileName;
+    auto path = m_dbPath / fileInfo->fileName;
+    fileInfo->fileNameWithPath = path.generic_string();
 
     //Add it in the map for future lookups
     m_fileInfoMap.Add(fileKey, fileInfo);

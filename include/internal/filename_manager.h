@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <boost/filesystem.hpp>
 #include "concurrent_map.h"
 
 //Forward declarations
@@ -28,7 +29,7 @@ private:
   void AddFileRecord(int fileKey, const std::string& fileName);
   void FinalizeStatements();
   std::string m_dbName;
-  std::string m_dbPath;
+  boost::filesystem::path m_dbPath;
   std::unique_ptr<sqlite3, void(*)(sqlite3*)> m_db;
   sqlite3_stmt* m_putStatement;
   sqlite3_stmt* m_getFileNameStatement;

@@ -1,3 +1,4 @@
+#include <boost/filesystem.hpp>
 #include "gtest/gtest.h"
 #include "test_utils.h"
 #include "filename_manager.h"
@@ -16,7 +17,7 @@ TEST(FileNameManager, FileNameManager_Initialize_MissingDatabaseFile) {
 
 TEST(FileNameManager, FileNameManager_GetCurrentDataFileInfo) {
   string dbName = "FileNameManager_GetCurrentDataFileInfo";
-  string dbPath = g_TestRootDirectory;
+  string dbPath = g_TestRootDirectory;  
   FileNameManager fileNameManager(dbPath, dbName, true);
 
   FileInfo fileInfo;
@@ -41,7 +42,7 @@ TEST(FileNameManager, FileNameManager_GetNextDataFileInfo) {
 
   FileInfo fileInfo;
   string fileNamePattern = "FileNameManager_GetNextDataFileInfo.%d";
-  string fileNameWithPathPattern = dbPath + fileNamePattern;
+  string fileNameWithPathPattern = (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
 
@@ -74,8 +75,9 @@ TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined) {
 
   ASSERT_EQ(fileInfo.fileKey, 0);
   ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined.0");
-  std::string completePath = dbPath + "FileNameManager_GetCurrentAndNextFileInfoCombined.0";
-  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.c_str());
+  boost::filesystem::path completePath(dbPath);
+  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined.0";
+  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.generic_string().c_str());
 
   //Again get the same thing and make sure we get the same file
   FileInfo fileInfo2;
@@ -85,7 +87,47 @@ TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined) {
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
 
   string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined.%d";
-  string fileNameWithPathPattern = dbPath + fileNamePattern;
+  string fileNameWithPathPattern = (completePath.parent_path() / fileNamePattern).generic_string();
+  char fileName[200];
+  char fileNameWithPath[1024];
+
+  //Get next file in a loop
+  for (int i = 1; i < 11; i++) {
+    fileNameManager.GetNextDataFileInfo(fileInfo);
+
+    ASSERT_EQ(fileInfo.fileKey, i);
+
+    sprintf(fileName, fileNamePattern.c_str(), i);
+    sprintf(fileNameWithPath, fileNameWithPathPattern.c_str(), i);
+
+    ASSERT_STREQ(fileInfo.fileName.c_str(), fileName);
+    ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileNameWithPath);
+  }
+}
+
+TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd) {
+  string dbName = "FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd";
+  string dbPath = g_TestRootDirectory.substr(0, g_TestRootDirectory.size()-1);  
+  FileNameManager fileNameManager(dbPath, dbName, true);
+
+  FileInfo fileInfo;
+  fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
+
+  ASSERT_EQ(fileInfo.fileKey, 0);
+  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd.0");
+  boost::filesystem::path completePath(dbPath);
+  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd.0";
+  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.generic_string().c_str());
+
+  //Again get the same thing and make sure we get the same file
+  FileInfo fileInfo2;
+  fileNameManager.GetCurrentDataFileInfo(true, fileInfo2);
+  ASSERT_EQ(fileInfo.fileKey, fileInfo2.fileKey);
+  ASSERT_STREQ(fileInfo.fileName.c_str(), fileInfo2.fileName.c_str());
+  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
+
+  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd.%d";
+  string fileNameWithPathPattern = (completePath.parent_path() / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
 
@@ -110,7 +152,7 @@ TEST(FileNameManager, FileNameManager_GetDataFileInfo) {
 
   FileInfo fileInfo;
   string fileNamePattern = "FileNameManager_GetDataFileInfo.%d";
-  string fileNameWithPathPattern = dbPath + fileNamePattern;
+  string fileNameWithPathPattern = (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
 
