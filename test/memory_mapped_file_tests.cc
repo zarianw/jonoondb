@@ -11,7 +11,6 @@ using namespace jonoondb_api;
 using namespace jonoondb_test;
 
 TEST(MemoryMappedFile, MemoryMappedFile_OpenExistingFile) {
-  MemoryMappedFile* memMapFile;
   path pathObj(g_TestRootDirectory);
   pathObj += "MemoryMappedFile_OpenExistingFile";
   RemoveAndCreateFile(pathObj.string().c_str(), 1024);
@@ -21,8 +20,7 @@ TEST(MemoryMappedFile, MemoryMappedFile_OpenExistingFile) {
 }
 
 TEST(MemoryMappedFile, MemoryMappedFile_OpenMissingFile) {
-  MemoryMappedFile* memMapFile;
-  path pathObj(g_TestRootDirectory);
+ path pathObj(g_TestRootDirectory);
   pathObj += "MemoryMappedFile_OpenMissingFile";
 
   ASSERT_ANY_THROW({
