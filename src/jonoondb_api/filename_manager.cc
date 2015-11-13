@@ -2,7 +2,6 @@
 #include <sstream>
 #include <boost/filesystem.hpp>
 #include "filename_manager.h"
-#include "Status.h"
 #include "sqlite_utils.h"
 #include "constants.h"
 #include "file_info.h"

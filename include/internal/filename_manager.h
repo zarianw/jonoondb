@@ -13,7 +13,6 @@ struct sqlite3_stmt;
 
 namespace jonoondb_api {
 //Forward declaration
-class Status;
 struct FileInfo;
 
 class FileNameManager {
