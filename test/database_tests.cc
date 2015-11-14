@@ -258,8 +258,8 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   db->Close();
 }
 
-TEST(Database, ExecuteSelect_NonEmptyDB_NoIndex) {
-  string dbName = "ExecuteSelect_NonEmptyDB_NoIndex";
+TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
+  string dbName = "ExecuteSelect_NonEmptyDB_SingleIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   Options options;
@@ -268,5 +268,42 @@ TEST(Database, ExecuteSelect_NonEmptyDB_NoIndex) {
 
   CreateInsertTweet(db, collectionName, true, 1);
   ResultSet rs = db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'");  
+  db->Close();
+}
+
+TEST(Database, ExecuteSelect_Testing) {
+  string dbName = "ExecuteSelect_Testing";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Options options;
+  options.SetCreateDBIfMissing(true);
+  Database* db = Database::Open(dbPath, dbName, options);
+
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
+  std::vector<IndexInfo> indexes;
+
+  IndexInfo index;
+  index.SetIndexName("IndexName1");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("user.name");
+  indexes.push_back(index);
+
+  index.SetIndexName("IndexName2");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("text");
+  indexes.push_back(index);
+
+  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  Buffer documentData = GetTweetObject2();
+  db->Insert(collectionName, documentData);
+
+
+  ResultSet rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'zarian' AND text = 'hello'");
+  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'zarian' OR text = 'hello'");
+
   db->Close();
 }

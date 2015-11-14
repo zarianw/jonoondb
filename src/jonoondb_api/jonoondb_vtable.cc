@@ -235,18 +235,20 @@ static int jonoondb_bestindex(sqlite3_vtab *vtab, sqlite3_index_info *info) {
   // printf("BEST INDEX:\n");
   jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
   IndexStat indexStat;
+  int argvIndex = 0;
   for (i = 0; i < info->nConstraint; i++) {
     if (info->aConstraint[i].usable) {
-      if (jdbVtab->collection->TryGetBestIndex(jdbVtab->columnNames[info->aConstraint[i].iColumn],
+      auto colName = jdbVtab->columnNames[info->aConstraint[i].iColumn];
+      if (jdbVtab->collection->TryGetBestIndex(colName,
                                                MapSQLiteToJonoonDBOperator(info->aConstraint[i].op),
                                                indexStat)) {
-        info->aConstraintUsage[i].argvIndex = 1;
-        info->aConstraintUsage[i].omit = 1;                        
+        info->aConstraintUsage[i].argvIndex = ++argvIndex;
+        info->aConstraintUsage[i].omit = 1;
       }
-    }
-
-    info->orderByConsumed = 0;    
+    }    
   }
+
+  info->orderByConsumed = 0;
 
   /*for (i = 0; i < info->nOrderBy; i++) {
     printf("   ORDER[%d]: %d %s\n", i, info->aOrderBy[i].iColumn,
@@ -282,7 +284,7 @@ static int jonoondb_filter(sqlite3_vtab_cursor *cur, int idxnum,
                            const char *idxstr, int argc,
                            sqlite3_value **value) {
   // printf("FILTER\n");
-  return SQLITE_OK;
+  return SQLITE_OK;  
 }
 
 static int jonoondb_next(sqlite3_vtab_cursor *cur) {

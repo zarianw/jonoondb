@@ -364,6 +364,9 @@ public:
   ResultSet(const ResultSet& other) = delete;
   ResultSet(ResultSet&& other) {
     if (this != &other) {
+      if (m_opaque != nullptr) {
+        jonoondb_resultset_destruct(m_opaque);
+      }
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
     }
@@ -378,6 +381,9 @@ public:
   ResultSet& operator=(const ResultSet& other) = delete;
   ResultSet& operator=(ResultSet&& other) {
     if (this != &other) {
+      if (m_opaque != nullptr) {
+        jonoondb_resultset_destruct(m_opaque);
+      }
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
     }
