@@ -230,15 +230,18 @@ static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
   assert(false && "Invalid SQL operator encountered.");
 }
 
-static int jonoondb_bestindex(sqlite3_vtab *vtab, sqlite3_index_info *info) {
-  int i;
-  // printf("BEST INDEX:\n");
+static int jonoondb_bestindex(sqlite3_vtab *vtab, sqlite3_index_info *info) {  
   jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
   IndexStat indexStat;
   int argvIndex = 0;
-  for (i = 0; i < info->nConstraint; i++) {
+  for (int i = 0; i < info->nConstraint; i++) {
     if (info->aConstraint[i].usable) {
-      auto colName = jdbVtab->columnNames[info->aConstraint[i].iColumn];
+      if (info->aConstraint[i].iColumn == -1) {
+        // Means someone has used RowID in contraint
+        // "Queries on RowID are not allowed.";
+        return SQLITE_ERROR;
+      }
+      const std::string& colName = jdbVtab->columnNames[info->aConstraint[i].iColumn];
       if (jdbVtab->collection->TryGetBestIndex(colName,
                                                MapSQLiteToJonoonDBOperator(info->aConstraint[i].op),
                                                indexStat)) {
