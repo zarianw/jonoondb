@@ -16,6 +16,8 @@
 #include "document_schema_factory.h"
 #include "enums.h"
 #include "jonoondb_exceptions.h"
+#include "index_stat.h"
+#include "mama_jennies_bitmap.h"
 
 using namespace jonoondb_api;
 using namespace std;
@@ -110,4 +112,8 @@ void DocumentCollection::PopulateColumnTypes(
     columnTypes.insert(
       pair<string, FieldType>(indexes[i]->GetColumnName(), colType));
   }
+}
+
+std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<Constraint>& constraints) {
+  return m_indexManager->Filter(constraints);
 }

@@ -15,6 +15,7 @@
 #include "enums.h"
 #include "document_schema.h"
 #include "index_stat.h"
+#include "constraint.h"
 
 
 using namespace jonoondb_api;
@@ -252,14 +253,17 @@ static int jonoondb_bestindex(sqlite3_vtab* vtab, sqlite3_index_info *info) {
       }
 
       const std::string& colName = jdbVtab->columnNames[info->aConstraint[i].iColumn];
-      auto op = MapSQLiteToJonoonDBOperator(info->aConstraint[i].op);
+      IndexConstraintOperator op = MapSQLiteToJonoonDBOperator(info->aConstraint[i].op);
       if (jdbVtab->collection->TryGetBestIndex(colName,
                                                op,
                                                indexStat)) {
         info->aConstraintUsage[i].argvIndex = ++argvIndex;
         info->aConstraintUsage[i].omit = 1;
-        sbuf.append((char*)&info->aConstraint[i].iColumn, sizeof(info->aConstraint[i].iColumn));
-        sbuf.append((char*)&op, sizeof(op));
+        assert(sizeof(int) == sizeof(info->aConstraint[i].iColumn));
+        assert(sizeof(IndexConstraintOperator) == sizeof(op));
+        // type of info->aConstraint[i].iColumn is int
+        sbuf.append((char*)&info->aConstraint[i].iColumn, sizeof(int)); 
+        sbuf.append((char*)&op, sizeof(IndexConstraintOperator));
       }
     }    
   }
@@ -285,8 +289,10 @@ static int jonoondb_open(sqlite3_vtab* vtab, sqlite3_vtab_cursor** cur) {
   try {
     jonoondb_cursor* c = new jonoondb_cursor(v->collection, v->columnNames);    
     *cur = reinterpret_cast<sqlite3_vtab_cursor*>(c);    
-  } catch (std::bad_alloc) {
+  } catch (std::bad_alloc&) {
     return SQLITE_NOMEM;
+  } catch (std::exception&) {
+    return SQLITE_ERROR;
   }
   
   return SQLITE_OK;
@@ -300,8 +306,37 @@ static int jonoondb_close(sqlite3_vtab_cursor* cur) {
 static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
                            const char* idxstr, int argc,
                            sqlite3_value** value) {
-  // printf("FILTER\n");
-  return SQLITE_OK;  
+  try {
+    auto cursor = reinterpret_cast<jonoondb_cursor*>(cur);
+    // Get the constraints
+    if (false) {
+      std::vector<Constraint> constraints;
+      auto currIndex = idxstr;
+
+      while (currIndex < (idxstr + idxnum)) {
+        // idxstr is encoded as: sizeof(int) bytes for column index, sizeof(IndexConstraintOperator) for Op
+        int colIndex;
+        memcpy(&colIndex, currIndex, sizeof(int));
+        currIndex += sizeof(int);
+        
+        IndexConstraintOperator op;
+        memcpy(&op, currIndex, sizeof(IndexConstraintOperator));
+        currIndex += sizeof(IndexConstraintOperator);
+
+        std::string& colName = cursor->columnNames[colIndex];
+        Constraint constraint(colName, op);
+        
+        //constraint.operand.strVal = *value.
+        constraints.push_back(constraint);        
+      }
+
+      auto bitmap = cursor->collection->Filter(constraints);
+    }
+  } catch (std::exception&) {
+    return SQLITE_ERROR;
+  }
+
+  return SQLITE_OK;
 }
 
 static int jonoondb_next(sqlite3_vtab_cursor* cur) {

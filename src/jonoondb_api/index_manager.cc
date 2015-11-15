@@ -1,5 +1,6 @@
 #include <memory>
 #include <assert.h>
+#include <sstream>
 #include "index_manager.h"
 #include "status.h"
 #include "document.h"
@@ -7,6 +8,8 @@
 #include "indexer_factory.h"
 #include "index_info_impl.h"
 #include "index_stat.h"
+#include "constraint.h"
+#include "mama_jennies_bitmap.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -55,4 +58,33 @@ bool IndexManager::TryGetBestIndex(const std::string& columnName, IndexConstrain
   // Add the logic to select the best index for the column  
   indexStat = columnIndexerIter->second[0]->GetIndexStats();
   return true;
+}
+
+std::shared_ptr<MamaJenniesBitmap> IndexManager::Filter(const std::vector<Constraint>& constraints) {
+  std::shared_ptr<MamaJenniesBitmap> combinedBitmap;  
+  for (auto& constraint : constraints) {
+    auto columnIndexerIter = m_columnIndexerMap->find(constraint.columnName);
+    if (columnIndexerIter == m_columnIndexerMap->end()) {
+      std::ostringstream ss;
+      ss << "Cannot apply filter operation on field " << constraint.columnName
+        << " because no indexes exist on this field.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+    // Todo: When we have different kinds of indexes, 
+    // Add the logic to select the best index for the column  
+    auto currBitmap = columnIndexerIter->second[0]->Filter(constraint);
+    if (combinedBitmap == nullptr) {      
+      combinedBitmap = currBitmap;
+    } else {
+      auto outputBitmap = std::make_shared<MamaJenniesBitmap>();
+      currBitmap->LogicalAND(*combinedBitmap, *outputBitmap);
+      combinedBitmap = outputBitmap;
+    }
+
+    if (combinedBitmap->GetSizeInBits() == 0) {
+      break;
+    }
+  }
+
+  return combinedBitmap;
 }

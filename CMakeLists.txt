@@ -86,26 +86,25 @@ add_library(
  ${INCLUDE_PATH}/constants.h
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h 
  ${INCLUDE_PATH}/field.h
- ${INCLUDE_PATH}/jonoondb_exceptions.h
- ${INCLUDE_PATH}/cdatabase.h
+ ${INCLUDE_PATH}/jonoondb_exceptions.h 
  ${INCLUDE_PATH}/database.h
  ${INCLUDE_INTERNAL_PATH}/concurrent_map.h
- ${SRC_PATH}/jonoondb_api/cdatabase.cc
+ ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
+ ${INCLUDE_INTERNAL_PATH}/constraint.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
+ ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
  ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
  ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/options_impl.h
  ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${INCLUDE_INTERNAL_PATH}/database_metadata_manager.h
  ${SRC_PATH}/jonoondb_api/document_collection.cc ${INCLUDE_INTERNAL_PATH}/document_collection.h
- ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_PATH}/index_info_impl.h
- ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
+ ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_PATH}/index_info_impl.h 
  ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${INCLUDE_PATH}/buffer_impl.h
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
  ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
  ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${INCLUDE_INTERNAL_PATH}/document_schema_factory.h
- ${SRC_PATH}/jonoondb_api/filename_manager.cc ${INCLUDE_INTERNAL_PATH}/filename_manager.h 
- 
+ ${SRC_PATH}/jonoondb_api/filename_manager.cc ${INCLUDE_INTERNAL_PATH}/filename_manager.h  
  ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document.h
@@ -115,7 +114,7 @@ add_library(
  ${SRC_PATH}/jonoondb_api/document_collection_dictionary.cc ${INCLUDE_INTERNAL_PATH}/document_collection_dictionary.h
  ${SRC_PATH}/jonoondb_api/guard_funcs.cc ${INCLUDE_INTERNAL_PATH}/guard_funcs.h
  ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_PATH}/resultset_impl.h
- ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_INTERNAL_PATH}/index_stat.h)
+ ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_INTERNAL_PATH}/index_stat.h) 
  
 target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 

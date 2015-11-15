@@ -14,6 +14,8 @@
 #include "mama_jennies_bitmap.h"
 #include "exception_utils.h"
 #include "index_stat.h"
+#include "constraint.h"
+#include "enums.h"
 
 namespace jonoondb_api {
 
@@ -308,6 +310,127 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
     }
   }
 
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
+    switch (m_indexStat.GetFieldType()) {
+      case FieldType::BASE_TYPE_UINT8: {
+        auto iter = m_compressedBitmapsUInt8.find(constraint.operand.uint8Val);
+        if (iter != m_compressedBitmapsUInt8.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();        
+      }
+      case FieldType::BASE_TYPE_UINT16: {
+        auto iter = m_compressedBitmapsUInt16.find(constraint.operand.uint16Val);
+        if (iter != m_compressedBitmapsUInt16.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_UINT32: {
+        auto iter = m_compressedBitmapsUInt32.find(constraint.operand.uint32Val);
+        if (iter != m_compressedBitmapsUInt32.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_UINT64: {
+        auto iter = m_compressedBitmapsUInt64.find(constraint.operand.uint64Val);
+        if (iter != m_compressedBitmapsUInt64.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_INT8: {
+        auto iter = m_compressedBitmapsInt8.find(constraint.operand.int8Val);
+        if (iter != m_compressedBitmapsInt8.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_INT16: {
+        auto iter = m_compressedBitmapsInt16.find(constraint.operand.int16Val);
+        if (iter != m_compressedBitmapsInt16.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_INT32: {
+        auto iter = m_compressedBitmapsInt32.find(constraint.operand.int32Val);
+        if (iter != m_compressedBitmapsInt32.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_INT64: {
+        auto iter = m_compressedBitmapsInt64.find(constraint.operand.int64Val);
+        if (iter != m_compressedBitmapsInt64.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_FLOAT32: {
+        auto iter = m_compressedBitmapsFloat32.find(constraint.operand.floatVal);
+        if (iter != m_compressedBitmapsFloat32.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_DOUBLE: {
+        auto iter = m_compressedBitmapsDouble.find(constraint.operand.doubleVal);
+        if (iter != m_compressedBitmapsDouble.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      case FieldType::BASE_TYPE_STRING: {
+        auto iter = m_compressedBitmapsString.find(*constraint.operand.strVal);
+        if (iter != m_compressedBitmapsString.end()) {
+          return iter->second;
+        }
+
+        return std::make_shared<MamaJenniesBitmap>();
+      }
+      default: {
+        std::ostringstream ss;
+        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
+          << " is not valid for EWAHCompressedBitmapIndexer.";
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      }
+    }
+  }
+
+  std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
+    switch (constraint.op) {
+      case jonoondb_api::IndexConstraintOperator::EQUAL:
+        return GetBitmapEQ(constraint);
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
+        break;
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
+        break;
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
+        break;
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
+        break;
+      case jonoondb_api::IndexConstraintOperator::MATCH:
+        break;
+      default:
+        std::ostringstream ss;
+        ss << "IndexConstraintOperator type " << static_cast<std::int8_t>(constraint.op) << " is not valid.";
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+  }
+
+private:
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::map<std::uint8_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmapsUInt8;

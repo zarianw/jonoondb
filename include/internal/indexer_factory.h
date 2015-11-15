@@ -10,7 +10,7 @@ class Status;
 class IndexInfoImpl;
 class Indexer;
 enum class FieldType
-: std::int32_t;
+: std::int8_t;
 
 class IndexerFactory {
  public:

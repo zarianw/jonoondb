@@ -19,7 +19,7 @@ extern IndexType ToIndexType(std::int32_t type);
 
 
 enum class FieldType
-  : std::int32_t {
+  : std::int8_t {
     BASE_TYPE_UINT8,
   BASE_TYPE_UINT16,
   BASE_TYPE_UINT32,
@@ -47,7 +47,7 @@ static const char* GetFieldString(FieldType fieldType) {
 }
 
 enum class IndexConstraintOperator
-  : std::int32_t {
+  : std::int8_t {
   EQUAL,
   LESS_THAN,
   LESS_THAN_EQUAL,
