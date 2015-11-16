@@ -303,6 +303,49 @@ static int jonoondb_close(sqlite3_vtab_cursor* cur) {
   return SQLITE_OK;
 }
 
+//static int PopulateValue(sqlite3_value* value, Operand& operand) {
+//  
+//#define SQLITE_INTEGER  1
+//#define SQLITE_FLOAT    2
+//#define SQLITE_BLOB     4
+//#define SQLITE_NULL     5
+//#ifdef SQLITE_TEXT
+//
+//  switch (sqlite3_value_type(value)) {
+//    case SQLITE_INTEGER:
+//      int64_t val = sqlite3_value_int64(value);
+//    default:
+//      break;
+//  }
+//
+//
+//
+//  switch (fieldType) {
+//    case jonoondb_api::FieldType::BASE_TYPE_UINT8:
+//    case jonoondb_api::FieldType::BASE_TYPE_UINT16:
+//    case jonoondb_api::FieldType::BASE_TYPE_UINT32:
+//    case jonoondb_api::FieldType::BASE_TYPE_UINT64:
+//    case jonoondb_api::FieldType::BASE_TYPE_INT8:
+//    case jonoondb_api::FieldType::BASE_TYPE_INT16:
+//    case jonoondb_api::FieldType::BASE_TYPE_INT32:
+//    case jonoondb_api::FieldType::BASE_TYPE_INT64:
+//      return integer.c_str();
+//    case jonoondb_api::FieldType::BASE_TYPE_FLOAT32:
+//    case jonoondb_api::FieldType::BASE_TYPE_DOUBLE:
+//      return real.c_str();
+//    case jonoondb_api::FieldType::BASE_TYPE_STRING:
+//      return text.c_str();
+//    case jonoondb_api::FieldType::BASE_TYPE_VECTOR:
+//    case jonoondb_api::FieldType::BASE_TYPE_COMPLEX:
+//    default:
+//      assert(false && "These types should never be encountered here.");
+//      break;
+//  }
+//
+//  return unknown.c_str();
+//
+//}
+
 static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
                            const char* idxstr, int argc,
                            sqlite3_value** value) {
@@ -324,10 +367,27 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
         currIndex += sizeof(IndexConstraintOperator);
 
         std::string& colName = cursor->columnNames[colIndex];
-        Constraint constraint(colName, op);
-        
+        Constraint constraint(colName, op);        
         //constraint.operand.strVal = *value.
-        constraints.push_back(constraint);        
+
+        /*if (sqlite3_value_type(*value) != SQLITE_BLOB) return SQLITE_ERROR;
+
+        nBlob = sqlite3_value_bytes(pValue);
+        if (nBlob<(int)sizeof(RtreeMatchArg)
+          || ((nBlob - sizeof(RtreeMatchArg)) % sizeof(RtreeDValue)) != 0
+          ) {
+          return SQLITE_ERROR;
+        }
+
+        pInfo = (sqlite3_rtree_query_info*)sqlite3_malloc(sizeof(*pInfo) + nBlob);
+        if (!pInfo) return SQLITE_NOMEM;
+        memset(pInfo, 0, sizeof(*pInfo));
+        pBlob = (RtreeMatchArg*)&pInfo[1];
+
+        memcpy(pBlob, sqlite3_value_blob(pValue), nBlob);*/
+
+
+        constraints.push_back(std::move(constraint));        
       }
 
       auto bitmap = cursor->collection->Filter(constraints);
