@@ -383,7 +383,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
         break;
       }
       case FieldType::BASE_TYPE_FLOAT32: {
-        auto iter = m_compressedBitmapsFloat32.find(constraint.operand.int64Val);
+        auto iter = m_compressedBitmapsFloat32.find(constraint.operand.doubleVal);
         if (iter != m_compressedBitmapsFloat32.end()) {
           return iter->second;
         }
