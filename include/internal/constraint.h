@@ -9,17 +9,8 @@ enum class IndexConstraintOperator : std::int8_t;
 enum class FieldType : std::int8_t;
 
 union Operand {
-  std::int8_t int8Val;
-  std::int16_t int16Val;
-  std::int32_t int32Val;
-  std::int64_t int64Val;
-  std::uint8_t uint8Val;
-  std::uint16_t uint16Val;
-  std::uint32_t uint32Val;
-  std::uint64_t uint64Val;
-  float floatVal;
+  std::int64_t int64Val;  
   double doubleVal; 
-  std::string* strVal;
 };
 
 struct Constraint {
@@ -28,7 +19,9 @@ struct Constraint {
   }
 
   const std::string& columnName;
+  std::string strVal;
   IndexConstraintOperator op;  
-  Operand operand;   
+  Operand operand;  
+  FieldType operandType;
 };
 } // namespace jonoondb_api
