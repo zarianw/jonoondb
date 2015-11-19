@@ -9,7 +9,7 @@ class Status;
 class IndexInfoImpl;
 class Document;
 class IndexStat;
-class Constraint;
+struct Constraint;
 class MamaJenniesBitmap;
 
 class Indexer {

@@ -13,6 +13,12 @@ union Operand {
   double doubleVal; 
 };
 
+enum class OperandType : std::int32_t {
+  INTEGER,
+  DOUBLE,
+  STRING
+};
+
 struct Constraint {
   Constraint(const std::string& colName, IndexConstraintOperator oper)
     : columnName(colName), op(oper) {
@@ -22,6 +28,6 @@ struct Constraint {
   std::string strVal;
   IndexConstraintOperator op;  
   Operand operand;  
-  FieldType operandType;
+  OperandType operandType;
 };
 } // namespace jonoondb_api

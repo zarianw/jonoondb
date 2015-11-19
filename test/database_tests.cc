@@ -296,14 +296,22 @@ TEST(Database, ExecuteSelect_Testing) {
   index.SetColumnName("text");
   indexes.push_back(index);
 
+  index.SetIndexName("IndexName3");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("id");
+  indexes.push_back(index);
+
+
   db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
   Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
 
+  ResultSet rs = db->ExecuteSelect("SELECT * FROM tweet WHERE id = 1;");
 
-  ResultSet rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'zarian' AND text = 'hello'");
-  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'zarian' OR text = 'hello'");
+  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
+  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
 
   db->Close();
 }

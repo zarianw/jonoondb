@@ -14,17 +14,32 @@
 using namespace std;
 using namespace jonoondb_api;
 
-IndexManager::IndexManager(const std::vector<IndexInfoImpl*>& indexes, const std::unordered_map<std::string, FieldType>& columnTypes) :
-    m_columnIndexerMap(new ColumnIndexderMap()) {
-  for (size_t i = 0; i < indexes.size(); i++) {    
-    unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(*indexes[i], columnTypes));
+IndexManager::IndexManager(const std::vector<IndexInfoImpl*>& indexes,
+  const std::unordered_map<std::string, FieldType>& columnTypes) :
+  m_columnIndexerMap(new ColumnIndexderMap()) {
+  for (size_t i = 0; i < indexes.size(); i++) {
+    auto it = columnTypes.find(indexes[i]->GetColumnName());
+    if (it == columnTypes.end()) {
+      ostringstream ss;
+      ss << "The field type for " << indexes[i]->GetColumnName()
+        << " could not be determined.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+    unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(*indexes[i], it->second));
     (*m_columnIndexerMap)[indexes[i]->GetColumnName()].push_back(move(indexer));
   }
 }
 
 Status IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
-                                 std::unordered_map<std::string, FieldType>& columnTypes) {
-  unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(indexInfo, columnTypes));  
+  std::unordered_map<std::string, FieldType>& columnTypes) {
+  auto it = columnTypes.find(indexInfo.GetColumnName());
+  if (it == columnTypes.end()) {
+    ostringstream ss;
+    ss << "The field type for " << indexInfo.GetColumnName()
+      << " could not be determined.";
+    throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+  }
+  unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(indexInfo, it->second));  
   (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));
   return Status();
 }

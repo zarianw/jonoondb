@@ -340,8 +340,8 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
                            sqlite3_value** value) {
   try {
     auto cursor = reinterpret_cast<jonoondb_cursor*>(cur);
-    // Get the constraints
-    if (false) {
+    // Get the constraints    
+    if (argc > 0) {
       std::vector<Constraint> constraints;
       auto currIndex = idxstr;
 
@@ -360,13 +360,17 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
         
         switch (sqlite3_value_type(*value)) {
           case SQLITE_INTEGER:
+            constraint.operandType = OperandType::INTEGER;
             constraint.operand.int64Val = sqlite3_value_int64(*value);
             break;
           case SQLITE_FLOAT:
+            constraint.operandType = OperandType::DOUBLE;
             constraint.operand.doubleVal = sqlite3_value_double(*value);
             break;
           case SQLITE_TEXT:
+            constraint.operandType = OperandType::STRING;
             constraint.strVal = (char*)(sqlite3_value_text(*value));
+            break;
           default:
             std::ostringstream ss;
             ss << "Argument value has sql type " << sqlite3_value_type(*value)
@@ -374,7 +378,8 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
             throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);
         }
 
-        constraints.push_back(std::move(constraint));        
+        constraints.push_back(std::move(constraint)); 
+        value++;
       }
 
       auto bitmap = cursor->collection->Filter(constraints);

@@ -1,0 +1,214 @@
+#pragma once
+
+#include <map>
+#include <memory>
+#include <cstdint>
+#include <sstream>
+#include <vector>
+#include <string>
+#include "indexer.h"
+#include "index_info_impl.h"
+#include "status.h"
+#include "string_utils.h"
+#include "document.h"
+#include "mama_jennies_bitmap.h"
+#include "exception_utils.h"
+#include "index_stat.h"
+#include "constraint.h"
+#include "enums.h"
+#include <climits>
+
+namespace jonoondb_api {
+
+class EWAHCompressedBitmapIndexerInteger final : public Indexer {
+public:
+  static void Construct(const IndexInfoImpl& indexInfo,
+    const FieldType& fieldType,
+    EWAHCompressedBitmapIndexerInteger*& obj) {
+    // TODO: Add index name in the error message as well
+    std::string errorMsg;
+    if (StringUtils::IsNullOrEmpty(indexInfo.GetIndexName())) {
+      errorMsg = "Argument indexInfo has null or empty name.";
+    } else if (StringUtils::IsNullOrEmpty(indexInfo.GetColumnName())) {
+      errorMsg = "Argument indexInfo has null or empty column name.";
+    } else if (indexInfo.GetType() != IndexType::EWAHCompressedBitmap) {
+      errorMsg =
+        "Argument indexInfo can only have IndexType EWAHCompressedBitmap for EWAHCompressedBitmapIndexer.";
+    } else if (!IsValidFieldType(fieldType)) {
+      std::ostringstream ss;
+      ss << "Argument fieldType " << GetFieldString(fieldType)
+        << " is not valid for EWAHCompressedBitmapIndexerInteger.";
+      errorMsg = ss.str();
+    }
+
+    if (errorMsg.length() > 0) {
+      throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
+    }
+
+    std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumnName(),
+      ".");
+    IndexStat indexStat(indexInfo, fieldType);
+    obj = new EWAHCompressedBitmapIndexerInteger(indexStat, tokens);
+  }
+
+  ~EWAHCompressedBitmapIndexerInteger() override {
+  }
+
+  static bool IsValidFieldType(FieldType fieldType) {
+    return (fieldType == FieldType::BASE_TYPE_INT8
+      || fieldType == FieldType::BASE_TYPE_INT16
+      || fieldType == FieldType::BASE_TYPE_INT32
+      || fieldType == FieldType::BASE_TYPE_INT64
+      || fieldType == FieldType::BASE_TYPE_UINT8
+      || fieldType == FieldType::BASE_TYPE_UINT16
+      || fieldType == FieldType::BASE_TYPE_UINT32
+      || fieldType == FieldType::BASE_TYPE_UINT64);
+  }
+
+  void ValidateForInsert(const Document& document) override {
+    if (m_fieldNameTokens.size() > 1) {
+      auto subDoc = GetSubDocumentRecursively(document);
+      subDoc->VerifyFieldForRead(m_fieldNameTokens.back().c_str(),
+        m_indexStat.GetFieldType());
+    } else {
+      document.VerifyFieldForRead(m_fieldNameTokens.back().c_str(),
+        m_indexStat.GetFieldType());
+    }
+  }
+
+  void Insert(std::uint64_t documentID, const Document& document) override {
+    if (m_fieldNameTokens.size() > 1) {
+      auto subDoc = GetSubDocumentRecursively(document);
+      InsertInternal(documentID, *subDoc.get());
+    } else {
+      InsertInternal(documentID, document);
+    }
+  }
+
+  const IndexStat& GetIndexStats() override {
+    return m_indexStat;
+  }
+
+private:
+  EWAHCompressedBitmapIndexerInteger(const IndexStat& indexStat,
+    std::vector<std::string>& fieldNameTokens)
+    : m_indexStat(indexStat),
+    m_fieldNameTokens(fieldNameTokens) {
+  }
+
+  std::unique_ptr<Document> GetSubDocumentRecursively(const Document& parentDoc) {
+    auto doc = parentDoc.AllocateSubDocument();
+    for (size_t i = 0; i < m_fieldNameTokens.size() - 1; i++) {
+      if (i == 0) {
+        parentDoc.GetDocumentValue(m_fieldNameTokens[i].c_str(), *doc.get());
+      } else {
+        doc->GetDocumentValue(m_fieldNameTokens[i].c_str(), *doc.get());
+      }
+    }
+
+    return doc;
+  }
+
+  void InsertInternal(std::uint64_t documentID, const Document& document) {
+    int64_t val;
+    switch (m_indexStat.GetFieldType()) {
+      case FieldType::BASE_TYPE_UINT8: {
+        val = document.GetScalarValueAsUInt8(m_fieldNameTokens.back());
+        break;
+      }
+      case FieldType::BASE_TYPE_UINT16: {
+        val = document.GetScalarValueAsUInt16(m_fieldNameTokens.back());
+        break;
+      }
+      case FieldType::BASE_TYPE_UINT32: {
+        val = document.GetScalarValueAsUInt32(m_fieldNameTokens.back());
+        break;
+      }
+      case FieldType::BASE_TYPE_UINT64: {
+        val = document.GetScalarValueAsUInt64(m_fieldNameTokens.back());
+        break;
+      }
+      case FieldType::BASE_TYPE_INT8: {
+        val = document.GetScalarValueAsInt8(m_fieldNameTokens.back());
+        break;
+      }
+      case FieldType::BASE_TYPE_INT16: {
+        val = document.GetScalarValueAsInt16(m_fieldNameTokens.back());
+        break;
+      }
+      case FieldType::BASE_TYPE_INT32: {
+        val = document.GetScalarValueAsInt32(m_fieldNameTokens.back());
+        break;
+      }
+      case FieldType::BASE_TYPE_INT64: {
+        val = document.GetScalarValueAsInt64(m_fieldNameTokens.back());
+        break;
+      }
+      default: {
+        // This can never happen
+        std::ostringstream ss;
+        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
+          << " is not valid for EWAHCompressedBitmapIndexerInteger.";
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      }
+    }
+
+    auto compressedBitmap = m_compressedBitmaps.find(val);
+    if (compressedBitmap == m_compressedBitmaps.end()) {
+      auto bm = shared_ptr < MamaJenniesBitmap >(new MamaJenniesBitmap());
+      bm->Add(documentID);
+      m_compressedBitmaps[val] = bm;
+    } else {
+      compressedBitmap->second->Add(documentID);
+    }
+  }
+
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
+    if (constraint.operandType == OperandType::INTEGER) {
+      auto iter = m_compressedBitmaps.find(constraint.operand.int64Val);
+      if (iter != m_compressedBitmaps.end()) {
+        return iter->second;
+      }
+    } else if (constraint.operandType == OperandType::DOUBLE) {
+      // Check if double has no fractional part
+      std::int64_t intVal = static_cast<std::int64_t>(constraint.operand.doubleVal);
+      if (constraint.operand.doubleVal == intVal) {
+        auto iter = m_compressedBitmaps.find(intVal);
+        if (iter != m_compressedBitmaps.end()) {
+          return iter->second;
+        }
+      }
+    }
+
+    // In all other cases the operand cannot be equal. The cases are:
+    // Operand is a string value, this should not happen because the query should fail before reaching this point   
+    return std::make_shared<MamaJenniesBitmap>();
+  }
+
+  std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
+    switch (constraint.op) {
+      case jonoondb_api::IndexConstraintOperator::EQUAL:
+        return GetBitmapEQ(constraint);
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
+        break;
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
+        break;
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
+        break;
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
+        break;
+      case jonoondb_api::IndexConstraintOperator::MATCH:
+        break;
+      default:
+        std::ostringstream ss;
+        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+  }
+
+private:
+  IndexStat m_indexStat;
+  std::vector<std::string> m_fieldNameTokens;
+  std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
+};
+}  // namespace jonoondb_api

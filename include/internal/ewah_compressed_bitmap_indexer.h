@@ -112,62 +112,16 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
     return doc;
   }
 
-  // Todo: Make sure this function is not getting optimized out,
-  // compiler may just do a no-op for this function
   void CanAccessValue(const Document& subDoc, FieldType fieldType,
     std::string fieldName) {
-    switch (fieldType) {
-      case FieldType::BASE_TYPE_UINT8: {
-        subDoc.GetScalarValueAsUInt8(fieldName.c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_UINT16: {
-        subDoc.GetScalarValueAsUInt16(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_UINT32: {
-        subDoc.GetScalarValueAsUInt32(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_UINT64: {
-        subDoc.GetScalarValueAsUInt64(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_INT8: {
-        subDoc.GetScalarValueAsInt8(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_INT16: {
-        subDoc.GetScalarValueAsInt16(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_INT32: {
-        subDoc.GetScalarValueAsInt32(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_INT64: {
-        subDoc.GetScalarValueAsInt64(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_FLOAT32: {
-        subDoc.GetScalarValueAsFloat(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_DOUBLE: {
-        subDoc.GetScalarValueAsDouble(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      case FieldType::BASE_TYPE_STRING: {
-        subDoc.GetStringValue(m_fieldNameTokens.back().c_str());
-        break;
-      }
-      default: {
-        std::ostringstream ss;
-        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-          << " is not valid for EWAHCompressedBitmapIndexer.";        
-        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);        
-      }
+    if (!IsValidFieldType(fieldType)) {
+      std::ostringstream ss;
+      ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
+        << " is not valid for EWAHCompressedBitmapIndexerInteger.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
     }
+
+    subDoc.VerifyFieldForRead(fieldName, fieldType); 
   }
 
   void InsertInternal(std::uint64_t documentID, const Document& document) {
@@ -314,7 +268,7 @@ class EWAHCompressedBitmapIndexer final : public Indexer {
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     switch (m_indexStat.GetFieldType()) {
       case FieldType::BASE_TYPE_UINT8: {
-        if (constraint.operandType == FieldType::BASE_TYPE_INT64) {
+        if (constraint.operandType == OperandType::INTEGER) {
           // First see if the provided operand is in our range
           if (constraint.operand.int64Val > -1 && constraint.operand.int64Val <= UINT8_MAX) {
             auto iter = m_compressedBitmapsUInt8.find(constraint.operand.int64Val); //safe cast

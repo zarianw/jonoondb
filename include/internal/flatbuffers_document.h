@@ -32,6 +32,7 @@ class FlatbuffersDocument final : public Document {
   const char* GetStringValue(const std::string& fieldName) const override;
   void GetDocumentValue(const std::string& fieldName, Document& val) const override;
   std::unique_ptr<Document> AllocateSubDocument() const override;  
+  void VerifyFieldForRead(const std::string& fieldName, FieldType type) const override;
 
   std::unique_ptr<flatbuffers::DynamicTableReader> m_dynTableReader;
 

@@ -143,6 +143,23 @@ std::unique_ptr<Document> FlatbuffersDocument::AllocateSubDocument() const {
     move(unique_ptr < DynamicTableReader >(new DynamicTableReader()))));
 }
 
+void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName, FieldType expectedType) const {
+  // Make sure field exists
+  auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
+  if (fieldDef == nullptr) {
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+  }
+
+  // Make sure it has the same type
+  auto actualType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(fieldDef->value.type.base_type);
+  if (actualType != expectedType) {
+    ostringstream ss;
+    ss << "Actual field type for field " << fieldName << " is " << GetFieldString(actualType) <<
+      " which is different from the expected field type " << GetFieldString(expectedType) << ".";
+    throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+  }
+}
+
 FlatbuffersDocument::FlatbuffersDocument(
   const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
   unique_ptr<DynamicTableReader> dynTableReader)
