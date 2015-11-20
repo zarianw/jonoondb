@@ -9,6 +9,7 @@ class MamaJenniesBitmap {
   MamaJenniesBitmap();  
   MamaJenniesBitmap(MamaJenniesBitmap&& other);
   void Add(std::size_t x);
+  bool IsEmpty();
   std::size_t GetSizeInBits();
   void LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
   static MamaJenniesBitmap LogicalAND(const MamaJenniesBitmap& b1,

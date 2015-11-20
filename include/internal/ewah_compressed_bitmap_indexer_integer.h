@@ -185,11 +185,42 @@ private:
     return std::make_shared<MamaJenniesBitmap>();
   }
 
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    if (constraint.operandType == OperandType::INTEGER) {
+      for (auto& item : m_compressedBitmaps) {
+        if (item.first < constraint.operand.int64Val) {
+          bitmaps.push_back(item.second);
+        } else {
+          break;
+        }
+      }
+      auto iter = m_compressedBitmaps.find(constraint.operand.int64Val);
+      if (iter != m_compressedBitmaps.end()) {
+        return iter->second;
+      }
+    } else if (constraint.operandType == OperandType::DOUBLE) {
+      // Check if double has no fractional part
+      std::int64_t intVal = static_cast<std::int64_t>(constraint.operand.doubleVal);
+      if (constraint.operand.doubleVal == intVal) {
+        auto iter = m_compressedBitmaps.find(intVal);
+        if (iter != m_compressedBitmaps.end()) {
+          return iter->second;
+        }
+      }
+    }
+
+    // In all other cases the operand cannot be equal. The cases are:
+    // Operand is a string value, this should not happen because the query should fail before reaching this point   
+    return std::make_shared<MamaJenniesBitmap>();
+  }
+
   std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
       case jonoondb_api::IndexConstraintOperator::LESS_THAN:
+        return GetBitmapEQ(constraint);
         break;
       case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
         break;

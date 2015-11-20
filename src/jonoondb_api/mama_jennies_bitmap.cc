@@ -1,4 +1,5 @@
 #include <memory>
+#include <sstream>
 #include "mama_jennies_bitmap.h"
 
 using namespace jonoondb_api;
@@ -17,12 +18,26 @@ void MamaJenniesBitmap::Add(std::size_t x) {
   m_ewahBoolArray->set(x);  
 }
 
+bool MamaJenniesBitmap::IsEmpty() {
+  // Todo: Need to find a faster way to check for empty bitmap
+  bool isEmpty = true;
+  if (m_ewahBoolArray->sizeInBits() > 0) {    
+    for (auto iter = m_ewahBoolArray->begin(); iter != m_ewahBoolArray->end(); iter++) {
+      isEmpty = false;
+      break;
+    }     
+  }
+
+  return isEmpty;
+}
+
 std::size_t MamaJenniesBitmap::GetSizeInBits() {
   return m_ewahBoolArray->sizeInBits();
 }
 
 void MamaJenniesBitmap::LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) {
   m_ewahBoolArray->logicaland(*other.m_ewahBoolArray, *output.m_ewahBoolArray);  
+ 
 }
 
 MamaJenniesBitmap MamaJenniesBitmap::LogicalAND(const MamaJenniesBitmap& b1,

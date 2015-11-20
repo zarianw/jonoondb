@@ -88,6 +88,7 @@ std::shared_ptr<MamaJenniesBitmap> IndexManager::Filter(const std::vector<Constr
     // Todo: When we have different kinds of indexes, 
     // Add the logic to select the best index for the column  
     auto currBitmap = columnIndexerIter->second[0]->Filter(constraint);
+    
     if (combinedBitmap == nullptr) {      
       combinedBitmap = currBitmap;
     } else {
@@ -96,10 +97,14 @@ std::shared_ptr<MamaJenniesBitmap> IndexManager::Filter(const std::vector<Constr
       combinedBitmap = outputBitmap;
     }
 
-    if (combinedBitmap->GetSizeInBits() == 0) {
+    if (combinedBitmap->IsEmpty()) {
       break;
     }
   }
 
-  return combinedBitmap;
+  if (combinedBitmap != nullptr) {
+    return combinedBitmap;
+  } else {
+    return std::make_shared<MamaJenniesBitmap>();
+  }
 }
