@@ -108,7 +108,7 @@ double FlatbuffersDocument::GetScalarValueAsDouble(const std::string& fieldName)
   return m_dynTableReader->GetScalarValueAs<double>(fieldDef);  
 }
 
-const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName) const {
+std::string FlatbuffersDocument::GetStringValue(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
     throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);

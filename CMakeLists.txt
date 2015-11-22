@@ -84,8 +84,9 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/file_info.h
  ${INCLUDE_PATH}/indexer.h
  ${INCLUDE_PATH}/constants.h
- ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h 
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_integer.h
+ ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_string.h
+ ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_double.h
  ${INCLUDE_PATH}/field.h
  ${INCLUDE_PATH}/jonoondb_exceptions.h 
  ${INCLUDE_PATH}/database.h

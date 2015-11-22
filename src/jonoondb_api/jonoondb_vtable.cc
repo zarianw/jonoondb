@@ -17,6 +17,7 @@
 #include "document_schema.h"
 #include "index_stat.h"
 #include "constraint.h"
+#include "mama_jennies_bitmap.h"
 
 
 using namespace jonoondb_api;

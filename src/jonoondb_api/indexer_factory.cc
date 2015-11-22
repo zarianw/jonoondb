@@ -3,8 +3,9 @@
 #include "status.h"
 #include "index_info_impl.h"
 #include "enums.h"
-#include "ewah_compressed_bitmap_indexer.h"
 #include "ewah_compressed_bitmap_indexer_integer.h"
+#include "ewah_compressed_bitmap_indexer_string.h"
+#include "ewah_compressed_bitmap_indexer_double.h"
 #include "jonoondb_exceptions.h"
 
 using namespace std;
@@ -18,12 +19,12 @@ Indexer* IndexerFactory::CreateIndexer(
     case IndexType::EWAHCompressedBitmap: {
       if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
         fieldType == FieldType::BASE_TYPE_FLOAT32) {
-        EWAHCompressedBitmapIndexer* ewahIndexer;
-        EWAHCompressedBitmapIndexer::Construct(indexInfo, fieldType, ewahIndexer);
+        EWAHCompressedBitmapIndexerDouble* ewahIndexer;
+        EWAHCompressedBitmapIndexerDouble::Construct(indexInfo, fieldType, ewahIndexer);
         return static_cast<Indexer*>(ewahIndexer);
       } else if (fieldType == FieldType::BASE_TYPE_STRING) {
-        EWAHCompressedBitmapIndexer* ewahIndexer;
-        EWAHCompressedBitmapIndexer::Construct(indexInfo, fieldType, ewahIndexer);
+        EWAHCompressedBitmapIndexerString* ewahIndexer;
+        EWAHCompressedBitmapIndexerString::Construct(indexInfo, fieldType, ewahIndexer);
         return static_cast<Indexer*>(ewahIndexer);
       } else {
         EWAHCompressedBitmapIndexerInteger* ewahIndexer;

@@ -29,7 +29,7 @@ class FlatbuffersDocument final : public Document {
   float GetScalarValueAsFloat(const std::string& fieldName) const override;
   double GetScalarValueAsDouble(const std::string& fieldName) const override;
 
-  const char* GetStringValue(const std::string& fieldName) const override;
+  std::string GetStringValue(const std::string& fieldName) const override;
   void GetDocumentValue(const std::string& fieldName, Document& val) const override;
   std::unique_ptr<Document> AllocateSubDocument() const override;  
   void VerifyFieldForRead(const std::string& fieldName, FieldType type) const override;

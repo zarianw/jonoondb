@@ -14,6 +14,28 @@ MamaJenniesBitmap::MamaJenniesBitmap(MamaJenniesBitmap&& other) {
   }
 }
 
+MamaJenniesBitmap::MamaJenniesBitmap(const MamaJenniesBitmap& other) {
+  if (this != &other) {
+    // Lets call copy ctor of EWAHBoolArray
+    m_ewahBoolArray = std::make_unique<EWAHBoolArray<size_t>>(*other.m_ewahBoolArray);
+  }
+}
+
+MamaJenniesBitmap& MamaJenniesBitmap::operator=(const MamaJenniesBitmap& other) {
+  if (this != &other) {
+    // Lets call copy ctor of EWAHBoolArray
+    m_ewahBoolArray = std::make_unique<EWAHBoolArray<size_t>>(*other.m_ewahBoolArray);
+  }
+  return *this;
+}
+
+MamaJenniesBitmap& MamaJenniesBitmap::operator=(MamaJenniesBitmap&& other) {
+  if (this != &other) {
+    m_ewahBoolArray.reset(other.m_ewahBoolArray.release());
+  }
+  return *this;
+}
+
 void MamaJenniesBitmap::Add(std::size_t x) {
   m_ewahBoolArray->set(x);  
 }
@@ -58,3 +80,31 @@ MamaJenniesBitmap::MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<std::size_t>>
     : m_ewahBoolArray(std::move(ewahBoolArray)) {
 }
 
+std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalAnd(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps) {
+  if (bitmaps.size() == 0) {
+    return std::make_unique<MamaJenniesBitmap>();
+  } else if (bitmaps.size() == 1) {
+    return bitmaps[0];
+  }
+  // ok we have more than 1 bitmap
+  std::shared_ptr<MamaJenniesBitmap> b1 = std::make_shared<MamaJenniesBitmap>();
+  std::shared_ptr<MamaJenniesBitmap> b2 = std::make_shared<MamaJenniesBitmap>();
+
+  MamaJenniesBitmap& combinedBitmap = *bitmaps[0];
+  MamaJenniesBitmap& outputBitmap = *b2;
+  bool flipper = true;
+
+  for (int i = 1; i < bitmaps.size(); i++) {
+    bitmaps[i]->LogicalAND(combinedBitmap, outputBitmap);
+    flipper = !flipper; // will turn to false on 1st iteration
+    combinedBitmap = flipper ? *b1 : *b2;
+    outputBitmap = flipper ? *b2 : *b1;
+
+    if (combinedBitmap.GetSizeInBits() == 0) {
+      // No need to proceed further, the AND result will be an empty bitmap
+      break;
+    }
+  }
+
+  return flipper ? b1 : b2;  
+}

@@ -22,12 +22,12 @@ using namespace jonoondb_test;
 void CompareTweetObject(const Document& doc, const BufferImpl& tweetObject) {
   auto tweet = GetTweet(tweetObject.GetData());
   ASSERT_EQ(doc.GetScalarValueAsUInt64("id"), tweet->id());
-  ASSERT_STREQ(doc.GetStringValue("text"), tweet->text()->c_str());
+  ASSERT_STREQ(doc.GetStringValue("text").c_str(), tweet->text()->c_str());
 
   auto subDoc = doc.AllocateSubDocument();
   doc.GetDocumentValue("user", *subDoc.get());  
   ASSERT_EQ(subDoc->GetScalarValueAsUInt64("id"), tweet->user()->id());  
-  ASSERT_STREQ(subDoc->GetStringValue("name"), tweet->user()->name()->c_str());
+  ASSERT_STREQ(subDoc->GetStringValue("name").c_str(), tweet->user()->name()->c_str());
 }
 
 TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
