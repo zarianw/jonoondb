@@ -354,10 +354,11 @@ void jonoondb_database_insert(database_ptr db, const char* collectionName, const
   }, *sts);
 }
 
-resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selectStatement, status_ptr* sts) {
+resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selectStmt, uint64_t selectStmtLength, status_ptr* sts) {
   resultset_ptr val;
   // Todo: Use string_view for performance improvement
   TranslateExceptions([&]{
+    std::string selectStatement(selectStmt, selectStmtLength);
     val = new resultset(db->impl->ExecuteSelect(selectStatement));
   }, *sts);
 

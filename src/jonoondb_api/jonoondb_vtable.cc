@@ -45,6 +45,7 @@ typedef struct jonoondb_cursor_s {
   // jonoondb_cursor_s before closing the jonoondb_vtab_s
   std::shared_ptr<DocumentCollection>& collection;
   std::vector<ColumnInfo>& columnNames;
+  std::shared_ptr<MamaJenniesBitmap> filteredIds;
 } jonoondb_cursor;
 
 static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
@@ -383,7 +384,7 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
         value++;
       }
 
-      auto bitmap = cursor->collection->Filter(constraints);
+      cursor->filteredIds = cursor->collection->Filter(constraints);
     }
   } catch (std::exception&) {
     return SQLITE_ERROR;
