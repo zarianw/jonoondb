@@ -82,6 +82,28 @@ public:
     return m_indexStat;
   }
 
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> Filter(const Constraint& constraint) override {    
+    assert(constraint.operandType == OperandType::STRING);
+    switch (constraint.op) {
+      case jonoondb_api::IndexConstraintOperator::EQUAL:
+        return GetBitmapEQ(constraint);
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
+        return GetBitmapLT(constraint, false);        
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
+        return GetBitmapLT(constraint, true);        
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
+        return GetBitmapGT(constraint, false);        
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
+        return GetBitmapGT(constraint, true);
+      case jonoondb_api::IndexConstraintOperator::MATCH:
+        break;
+      default:
+        std::ostringstream ss;
+        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+  }
+
 private:
   EWAHCompressedBitmapIndexerString(const IndexStat& indexStat,
     std::vector<std::string>& fieldNameTokens)
@@ -126,8 +148,7 @@ private:
     }    
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapEQ(const Constraint& constraint) {
-    assert(constraint.operandType == OperandType::STRING);
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapEQ(const Constraint& constraint) {    
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     if (constraint.operandType == OperandType::STRING) {
       auto iter = m_compressedBitmaps.find(constraint.strVal);
@@ -139,46 +160,43 @@ private:
     return bitmaps;
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapLT(const Constraint& constraint) {
-    assert(constraint.operandType == OperandType::STRING);
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapLT(const Constraint& constraint, bool orEqual) {    
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;    
-
     if (constraint.operandType == OperandType::STRING) {
       for (auto& item : m_compressedBitmaps) {
         if (item.first.compare(constraint.strVal) < 0) {        
           bitmaps.push_back(item.second);
         } else {
+          if (orEqual && item.first.compare(constraint.strVal) == 0) {
+            bitmaps.push_back(item.second);
+          }
           break;
         }
       }      
     }
     
     return bitmaps;
-  }
+  }  
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> Filter(const Constraint& constraint) override {
-    switch (constraint.op) {
-      case jonoondb_api::IndexConstraintOperator::EQUAL:
-        return GetBitmapEQ(constraint);
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
-        return GetBitmapLT(constraint);
-        break;
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
-        break;
-      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
-        break;
-      case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
-        break;
-      case jonoondb_api::IndexConstraintOperator::MATCH:
-        break;
-      default:
-        std::ostringstream ss;
-        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
-        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapGT(const Constraint& constraint, bool isEqual) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    if (constraint.operandType == OperandType::STRING) {
+      std::map<std::string, std::shared_ptr<MamaJenniesBitmap>>::const_iterator iter;
+      if (isEqual) {
+        iter = m_compressedBitmaps.lower_bound(constraint.strVal);
+      } else {
+        iter = m_compressedBitmaps.upper_bound(constraint.strVal);
+      }
+
+      if (iter != m_compressedBitmaps.end()) {
+        bitmaps.push_back(iter->second);
+        iter++;
+      }
     }
+
+    return bitmaps;
   }
 
-private:
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::map<std::string, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;

@@ -83,6 +83,27 @@ public:
     return m_indexStat;
   }
 
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> Filter(const Constraint& constraint) override {
+    switch (constraint.op) {
+      case jonoondb_api::IndexConstraintOperator::EQUAL:
+        return GetBitmapEQ(constraint);
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
+        return GetBitmapLT(constraint, false);        
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
+        return GetBitmapLT(constraint, true);        
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
+        return GetBitmapGT(constraint);        
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
+        return GetBitmapGTE(constraint);        
+      case jonoondb_api::IndexConstraintOperator::MATCH:
+        break;
+      default:
+        std::ostringstream ss;
+        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+  }
+
 private:
   EWAHCompressedBitmapIndexerDouble(const IndexStat& indexStat,
     std::vector<std::string>& fieldNameTokens)
@@ -153,7 +174,7 @@ private:
     return bitmaps;
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapLT(const Constraint& constraint) {
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapLT(const Constraint& constraint, bool orEqual) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;    
     
     if (constraint.operandType == OperandType::INTEGER) {
@@ -162,6 +183,9 @@ private:
         if (item.first < dVal) {
           bitmaps.push_back(item.second);
         } else {
+          if (orEqual && item.first == dVal) {
+            bitmaps.push_back(item.second);
+          }
           break;
         }
       }      
@@ -170,6 +194,9 @@ private:
         if (item.first < constraint.operand.doubleVal) {
           bitmaps.push_back(item.second);
         } else {
+          if (orEqual && item.first == constraint.operand.doubleVal) {
+            bitmaps.push_back(item.second);
+          }
           break;
         }
       }
@@ -180,29 +207,42 @@ private:
     return bitmaps;
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> Filter(const Constraint& constraint) override {
-    switch (constraint.op) {
-      case jonoondb_api::IndexConstraintOperator::EQUAL:
-        return GetBitmapEQ(constraint);
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
-        return GetBitmapLT(constraint);
-        break;
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
-        break;
-      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
-        break;
-      case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
-        break;
-      case jonoondb_api::IndexConstraintOperator::MATCH:
-        break;
-      default:
-        std::ostringstream ss;
-        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
-        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapGT(const Constraint& constraint) {    
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    double operandVal;
+    if (constraint.operandType == OperandType::DOUBLE) {
+      operandVal = constraint.operand.doubleVal;
+    } else {
+      operandVal = constraint.operand.int64Val;
     }
+
+    auto iter = m_compressedBitmaps.upper_bound(operandVal);
+    while (iter != m_compressedBitmaps.end()) {
+      bitmaps.push_back(iter->second);
+      iter++;
+    }   
+    
+    return bitmaps;
   }
 
-private:
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapGTE(const Constraint& constraint) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    double operandVal;
+    if (constraint.operandType == OperandType::DOUBLE) {
+      operandVal = constraint.operand.doubleVal;
+    } else {
+      operandVal = constraint.operand.int64Val;
+    }
+
+    auto iter = m_compressedBitmaps.lower_bound(operandVal);
+    while (iter != m_compressedBitmaps.end()) {
+      bitmaps.push_back(iter->second);
+      iter++;
+    }
+
+    return bitmaps;
+  }
+
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   // Todo: We are assuming that double will be 8 bytes (which should be the case mostly),

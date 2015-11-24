@@ -89,6 +89,27 @@ public:
     return m_indexStat;
   }
 
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> Filter(const Constraint& constraint) override {
+    switch (constraint.op) {
+      case jonoondb_api::IndexConstraintOperator::EQUAL:
+        return GetBitmapEQ(constraint);
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
+        return GetBitmapLT(constraint, false);        
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
+        return GetBitmapLT(constraint, true);        
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
+        return GetBitmapGT(constraint);        
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
+        return GetBitmapGTE(constraint);
+      case jonoondb_api::IndexConstraintOperator::MATCH:
+        break;
+      default:
+        std::ostringstream ss;
+        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+  }
+
 private:
   EWAHCompressedBitmapIndexerInteger(const IndexStat& indexStat,
     std::vector<std::string>& fieldNameTokens)
@@ -186,7 +207,7 @@ private:
     return bitmaps;
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapLT(const Constraint& constraint) {
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapLT(const Constraint& constraint, bool orEqual) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     int64_t ceiling;
     if (constraint.operandType == OperandType::DOUBLE) {
@@ -198,47 +219,64 @@ private:
         if (item.first < constraint.operand.int64Val) {
           bitmaps.push_back(item.second);
         } else {
+          if (orEqual && item.first == constraint.operand.int64Val) {
+            bitmaps.push_back(item.second);
+          }
           break;
         }
-      }      
+      }
     } else if (constraint.operandType == OperandType::DOUBLE) {
-      for (auto& item : m_compressedBitmaps) {        
+      for (auto& item : m_compressedBitmaps) {
         if (item.first < ceiling) {
           bitmaps.push_back(item.second);
         } else {
+          if (orEqual && constraint.operand.doubleVal == (double)item.first) {
+            bitmaps.push_back(item.second);
+          }
           break;
         }
       }
     }
 
-    // In all other cases the operand cannot be equal. The cases are:
-    // Operand is a string value, this should not happen because the query should fail before reaching this point   
     return bitmaps;
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> Filter(const Constraint& constraint) override {
-    switch (constraint.op) {
-      case jonoondb_api::IndexConstraintOperator::EQUAL:
-        return GetBitmapEQ(constraint);
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
-        return GetBitmapLT(constraint);
-        break;
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
-        break;
-      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
-        break;
-      case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
-        break;
-      case jonoondb_api::IndexConstraintOperator::MATCH:
-        break;
-      default:
-        std::ostringstream ss;
-        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
-        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapGT(const Constraint& constraint) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    int64_t operandVal;
+    if (constraint.operandType == OperandType::DOUBLE) {
+      operandVal = std::floor(constraint.operand.doubleVal);
+    } else {
+      operandVal = constraint.operand.int64Val;
     }
+
+    auto iter = m_compressedBitmaps.upper_bound(operandVal);    
+    while (iter != m_compressedBitmaps.end()) {
+      bitmaps.push_back(iter->second);
+      iter++;
+    }
+    
+    return bitmaps;
   }
 
-private:
+  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapGTE(const Constraint& constraint) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    int64_t operandVal;
+    if (constraint.operandType == OperandType::DOUBLE) {
+      operandVal = std::ceil(constraint.operand.doubleVal);
+    } else {
+      operandVal = constraint.operand.int64Val;
+    }
+
+    auto iter = m_compressedBitmaps.lower_bound(operandVal);
+    while (iter != m_compressedBitmaps.end()) {
+      bitmaps.push_back(iter->second);
+      iter++;
+    }
+
+    return bitmaps;
+  }
+
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
