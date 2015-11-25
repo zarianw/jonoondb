@@ -13,9 +13,6 @@ const int SQLiteBusyHandlerRetryCount = 20;
 
 typedef void (*DeleterFuncPtr)(char*);
 
-const double INT32_MIN_AS_DOUBLE = double(INT32_MIN);
-const double INT32_MAX_AS_DOUBLE = double(INT32_MIN);
-
 
 
 
