@@ -46,7 +46,7 @@ TEST(Database, Open_MissingDatabaseFile) {
   string dbPath = g_TestRootDirectory;
   Options options;
   Database* db = nullptr;
-  ASSERT_THROW(db = Database::Open(g_TestRootDirectory, dbName, options), MissingDatabaseFileException);
+  ASSERT_THROW(db = Database::Open(dbPath, dbName, options), MissingDatabaseFileException);
   ASSERT_EQ(db, nullptr);
 }
 
@@ -56,7 +56,7 @@ TEST(Database, Open_MissingDatabaseFolder) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db = nullptr;
-  ASSERT_THROW(Database::Open(g_TestRootDirectory + "missing_folder", dbName, options), MissingDatabaseFolderException);
+  ASSERT_THROW(Database::Open(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
 }
 
 TEST(Database, Open_New) {
@@ -64,7 +64,7 @@ TEST(Database, Open_New) {
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(true);
-  Database* db = Database::Open(g_TestRootDirectory, dbName, options);
+  Database* db = Database::Open(dbPath, dbName, options);
   db->Close();
 }
 
@@ -74,10 +74,10 @@ TEST(Database, Open_Existing) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  db = Database::Open(g_TestRootDirectory.c_str(), dbName, options); 
+  db = Database::Open(dbPath, dbName, options);
   db->Close();
 
-  db = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options);  
+  db = Database::Open(dbPath, dbName.c_str(), options);
   db->Close();
 }
 

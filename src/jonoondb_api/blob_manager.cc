@@ -7,6 +7,7 @@
 #include "buffer_impl.h"
 #include "blob_metadata.h"
 #include "filename_manager.h"
+#include "file.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -16,37 +17,15 @@ using namespace jonoondb_api;
 
 BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager, bool compressionEnabled, size_t maxDataFileSize, bool synchronous)
   : m_fileNameManager(move(fileNameManager)), m_compressionEnabled(compressionEnabled),
-  m_maxDataFileSize(maxDataFileSize), m_currentBlobFile(nullptr), m_initialized(false), m_synchronous(synchronous), m_readerFiles(DEFAULT_MEM_MAP_LRU_CACHE_SIZE) {
-}
-
-BlobManager::~BlobManager(void) {
-  //Todo: Error handing
-  //We should persist the length of the current blob file
-  if (m_currentBlobFile.get() != nullptr && m_initialized) {
-    try {
-      m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
-    } catch (std::exception&) {
-      // Todo: Log this error, we should not throw exceptions from dtors
-      // Google "throwing exceptions from destructors"
-    }
-
-  }
-}
-
-void BlobManager::Initialize() {
-  string errorMessage;
+  m_maxDataFileSize(maxDataFileSize), m_currentBlobFile(nullptr), m_synchronous(synchronous), m_readerFiles(DEFAULT_MEM_MAP_LRU_CACHE_SIZE) {
   m_fileNameManager->GetCurrentDataFileInfo(true, m_currentBlobFileInfo);
-
   path pathObj(m_currentBlobFileInfo.fileNameWithPath);
-
   //Check if the file exist or do we have to create it
   if (!boost::filesystem::exists(pathObj)) {
-    //File::FastAllocate(m_currentBlobFileInfo.fileNameWithPath.c_str(), m_maxDataFileSize);
+    File::FastAllocate(m_currentBlobFileInfo.fileNameWithPath, m_maxDataFileSize);
   }
-
   //We have the file lets memory map it  
-  m_currentBlobFile.reset(new MemoryMappedFile(m_currentBlobFileInfo.fileNameWithPath, MemoryMappedFileMode::ReadOnly, 0, !m_synchronous));
-
+  m_currentBlobFile.reset(new MemoryMappedFile(m_currentBlobFileInfo.fileNameWithPath, MemoryMappedFileMode::ReadWrite, 0, !m_synchronous));
 
   //Set the MemMapFile offset
   if (m_currentBlobFileInfo.dataLength != -1) {
@@ -54,15 +33,28 @@ void BlobManager::Initialize() {
     //Reset the data length of the blob file, we will set it on file switch or shutdown
     m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
   }
-
-  m_initialized = true;
+  
   m_readerFiles.Add(m_currentBlobFileInfo.fileKey, m_currentBlobFile, false);
+}
+
+BlobManager::~BlobManager(void) {
+  //Todo: Error handing
+  //We should persist the length of the current blob file
+  if (m_fileNameManager && m_currentBlobFile) {
+    try {
+      m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
+    } catch (std::exception&) {
+      // Todo: Log this error, we should not throw exceptions from dtors
+      // Google "throwing exceptions from destructors" to know why
+    }
+
+  }
 }
 
 void BlobManager::SwitchToNewDataFile() {
   FileInfo fileInfo;
   m_fileNameManager->GetNextDataFileInfo(fileInfo);
-  //File::FastAllocate(fileInfo.fileNameWithPath.c_str(), m_maxDataFileSize);  
+  File::FastAllocate(fileInfo.fileNameWithPath, m_maxDataFileSize);  
 
   auto file = std::make_unique<MemoryMappedFile>(fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadOnly, 0, !m_synchronous);
   m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
