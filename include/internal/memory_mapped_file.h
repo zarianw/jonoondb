@@ -21,10 +21,11 @@ enum class MemoryMappedFileMode : std::int32_t {
 class MemoryMappedFile final {
 public:
   MemoryMappedFile(const std::string& fileName, MemoryMappedFileMode mode,
-    size_t writeOffset, bool asynchronous)
+    std::size_t writeOffset, bool asynchronous)
     : m_currentWritePosition(nullptr),
     m_currentWriteOffset(0),
     m_asynchronous(asynchronous) {
+    m_pageSize = boost::interprocess::mapped_region::get_page_size();
     auto internalMode = GetInternalMode(mode);
     m_fileMapping = boost::interprocess::file_mapping(fileName.c_str(), internalMode);
     m_mappedRegion = boost::interprocess::mapped_region(m_fileMapping,
@@ -89,6 +90,13 @@ public:
   }
 
   void Flush(size_t offset, size_t numBytes) {
+    // On some OS (e.g. Linux) offset needs to be a multiple of a pagesize
+    // The next 2 stmts should be optimized into a single div instructions
+    auto quotient = offset / m_pageSize;
+    auto remainder = offset % m_pageSize; 
+    offset = m_pageSize * quotient;
+    numBytes += remainder;
+
     if (!m_mappedRegion.flush(offset, numBytes, m_asynchronous)) {      
       throw FileIOException("Unexpected error occured while flushing memory mapped file.",
         __FILE__, "", __LINE__);
@@ -113,7 +121,8 @@ public:
   boost::interprocess::file_mapping m_fileMapping;
   boost::interprocess::mapped_region m_mappedRegion;
   char* m_currentWritePosition;
-  size_t m_currentWriteOffset;
+  std::size_t m_currentWriteOffset;
   bool m_asynchronous;
+  std::size_t m_pageSize;
 };
 }  // namespace jonoondb_api
