@@ -42,8 +42,6 @@ TEST(BlobManager, Put) {
 TEST(BlobManager, Putx2) {
   std::string dbName = "BlobManager_Putx2";
   std::string dbPath = g_TestRootDirectory;
-  boost::filesystem::path pathObj(g_TestRootDirectory);
-  pathObj += "BlobManager_Putx2.0";
   auto fileSize = 1024 * 1024;
   auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
