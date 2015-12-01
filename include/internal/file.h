@@ -66,7 +66,8 @@ class File {
     //1. Create a new file. This will fail if the file already exist, which is what we want.
     //   We don't want to delete or overwrite any data
     int fd;
-    if ((fd = open(fileName.c_str(), O_WRONLY | O_CREAT | O_EXCL)) == -1) {
+    if ((fd = open(fileName.c_str(), O_RDWR | O_CREAT | O_EXCL,
+                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
       int errCode = errno;
       std::string reason = GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
