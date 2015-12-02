@@ -538,7 +538,19 @@ class DynamicTableReader {
                                atot<T>(field_def->value.constant.c_str()));
   }
 
-  const char* GetStringValue(const FieldDef* field_def) const {
+  std::string GetStringValue(const FieldDef* field_def) const {
+    assert(field_def->value.type.base_type == BaseType::BASE_TYPE_STRING);
+    auto str = table_->GetPointer<const flatbuffers::String*>(
+      field_def->value.offset);
+    if (str == nullptr) {
+      return "";
+    } else {
+      std::string val(str->begin(), str->end());      
+      return val;
+    }    
+  }
+
+  const char* GetCStringValue(const FieldDef* field_def) const {
     assert(field_def->value.type.base_type == BaseType::BASE_TYPE_STRING);
     auto str = table_->GetPointer<const flatbuffers::String*>(
         field_def->value.offset);

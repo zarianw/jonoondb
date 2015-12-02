@@ -46,7 +46,7 @@ TEST(Database, Open_MissingDatabaseFile) {
   string dbPath = g_TestRootDirectory;
   Options options;
   Database* db = nullptr;
-  ASSERT_THROW(db = Database::Open(g_TestRootDirectory, dbName, options), MissingDatabaseFileException);
+  ASSERT_THROW(db = Database::Open(dbPath, dbName, options), MissingDatabaseFileException);
   ASSERT_EQ(db, nullptr);
 }
 
@@ -56,7 +56,7 @@ TEST(Database, Open_MissingDatabaseFolder) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db = nullptr;
-  ASSERT_THROW(Database::Open(g_TestRootDirectory + "missing_folder", dbName, options), MissingDatabaseFolderException);
+  ASSERT_THROW(Database::Open(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
 }
 
 TEST(Database, Open_New) {
@@ -64,7 +64,7 @@ TEST(Database, Open_New) {
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(true);
-  Database* db = Database::Open(g_TestRootDirectory, dbName, options);
+  Database* db = Database::Open(dbPath, dbName, options);
   db->Close();
 }
 
@@ -74,10 +74,10 @@ TEST(Database, Open_Existing) {
   Options options;
   options.SetCreateDBIfMissing(true);
   Database* db;
-  db = Database::Open(g_TestRootDirectory.c_str(), dbName, options); 
+  db = Database::Open(dbPath, dbName, options);
   db->Close();
 
-  db = Database::Open(g_TestRootDirectory.c_str(), dbName.c_str(), options);  
+  db = Database::Open(dbPath, dbName.c_str(), options);
   db->Close();
 }
 
@@ -296,14 +296,22 @@ TEST(Database, ExecuteSelect_Testing) {
   index.SetColumnName("text");
   indexes.push_back(index);
 
+  index.SetIndexName("IndexName3");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("id");
+  indexes.push_back(index);
+
+
   db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
   Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
 
+  ResultSet rs = db->ExecuteSelect("SELECT * FROM tweet WHERE id = 1;");
 
-  ResultSet rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'zarian' AND text = 'hello'");
-  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'zarian' OR text = 'hello'");
+  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
+  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
 
   db->Close();
 }

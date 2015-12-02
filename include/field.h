@@ -5,7 +5,7 @@
 namespace jonoondb_api {
 // Forward Declarations
 enum class FieldType
-: std::int32_t;
+: std::int8_t;
 class Status;
 class Field {
  public:

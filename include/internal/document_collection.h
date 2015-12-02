@@ -19,9 +19,11 @@ class BufferImpl;
 class DocumentSchema;
 class IndexStat;
 enum class FieldType
-: std::int32_t;
+: std::int8_t;
 enum class SchemaType
 : std::int32_t;
+struct Constraint;
+class MamaJenniesBitmap;
 
 class DocumentCollection {
  public:
@@ -35,6 +37,7 @@ class DocumentCollection {
   const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
                        IndexStat& indexStat);
+  std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
 
  private:
   void PopulateColumnTypes(
