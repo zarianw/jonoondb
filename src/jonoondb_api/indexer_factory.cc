@@ -1,38 +1,40 @@
 #include <sstream>
 #include "indexer_factory.h"
 #include "status.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "enums.h"
-#include "ewah_compressed_bitmap_indexer.h"
+#include "ewah_compressed_bitmap_indexer_integer.h"
+#include "ewah_compressed_bitmap_indexer_string.h"
+#include "ewah_compressed_bitmap_indexer_double.h"
+#include "jonoondb_exceptions.h"
 
 using namespace std;
 using namespace jonoondb_api;
 
-Status IndexerFactory::CreateIndexer(
-    const IndexInfo& indexInfo,
-    std::unordered_map<std::string, FieldType>& fieldType, Indexer*& indexer) {
+Indexer* IndexerFactory::CreateIndexer(
+  const IndexInfoImpl& indexInfo,
+  const FieldType& fieldType) {
   Status sts;
   switch (indexInfo.GetType()) {
     case IndexType::EWAHCompressedBitmap: {
-      auto it = fieldType.find(indexInfo.GetColumn(0));
-      if (it == fieldType.end()) {
-        ostringstream ss;
-        ss << "The column type for " << indexInfo.GetColumn(0)
-           << " could not be determined.";
-        auto errorMsg = ss.str();
-        return Status(kStatusGenericErrorCode, errorMsg.c_str(),
-                      __FILE__, "", __LINE__);
+      if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
+        fieldType == FieldType::BASE_TYPE_FLOAT32) {
+        EWAHCompressedBitmapIndexerDouble* ewahIndexer;
+        EWAHCompressedBitmapIndexerDouble::Construct(indexInfo, fieldType, ewahIndexer);
+        return static_cast<Indexer*>(ewahIndexer);
+      } else if (fieldType == FieldType::BASE_TYPE_STRING) {
+        EWAHCompressedBitmapIndexerString* ewahIndexer;
+        EWAHCompressedBitmapIndexerString::Construct(indexInfo, fieldType, ewahIndexer);
+        return static_cast<Indexer*>(ewahIndexer);
+      } else {
+        EWAHCompressedBitmapIndexerInteger* ewahIndexer;
+        EWAHCompressedBitmapIndexerInteger::Construct(indexInfo, fieldType, ewahIndexer);
+        return static_cast<Indexer*>(ewahIndexer);
       }
-
-      EWAHCompressedBitmapIndexer* ewahIndexer;
-      sts = EWAHCompressedBitmapIndexer::Construct(indexInfo, it->second,
-                                                   ewahIndexer);
-      indexer = static_cast<Indexer*>(ewahIndexer);
-      break;
     }
     default:
-      break;
+      std::ostringstream ss;
+      ss << "Cannot create Indexer. Index type '" << static_cast<int32_t>(indexInfo.GetType()) << "' is unknown.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
   }
-
-  return sts;
 }

@@ -25,16 +25,12 @@ set (THIRDPARTY_PATH ${PROJECT_SOURCE_DIR}/thirdparty)
 set (EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 set (LIBRARY_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
-
 if(APPLE)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -m64")
+    "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++ -m64")
 elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++11 -m64")
+    "${CMAKE_CXX_FLAGS} -std=c++14 -m64")
 endif()
 
 
@@ -88,34 +84,41 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/file_info.h
  ${INCLUDE_PATH}/indexer.h
  ${INCLUDE_PATH}/constants.h
- ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer.h 
+ ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_integer.h
+ ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_string.h
+ ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_double.h
  ${INCLUDE_PATH}/field.h
+ ${INCLUDE_PATH}/jonoondb_exceptions.h 
+ ${INCLUDE_PATH}/database.h
+ ${INCLUDE_INTERNAL_PATH}/concurrent_map.h
+ ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
+ ${INCLUDE_INTERNAL_PATH}/constraint.h
+ ${INCLUDE_INTERNAL_PATH}/file.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
- ${SRC_PATH}/jonoondb_api/database.cc ${INCLUDE_PATH}/database.h
+ ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
  ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
- ${SRC_PATH}/jonoondb_api/options.cc ${INCLUDE_PATH}/options.h
+ ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/options_impl.h
  ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${INCLUDE_INTERNAL_PATH}/database_metadata_manager.h
  ${SRC_PATH}/jonoondb_api/document_collection.cc ${INCLUDE_INTERNAL_PATH}/document_collection.h
- ${SRC_PATH}/jonoondb_api/index_info.cc ${INCLUDE_PATH}/index_info.h
- ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
- ${SRC_PATH}/jonoondb_api/buffer.cc ${INCLUDE_PATH}/buffer.h
+ ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_PATH}/index_info_impl.h 
+ ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${INCLUDE_PATH}/buffer_impl.h
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
  ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
  ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${INCLUDE_INTERNAL_PATH}/document_schema_factory.h
- 
+ ${SRC_PATH}/jonoondb_api/filename_manager.cc ${INCLUDE_INTERNAL_PATH}/filename_manager.h  
  ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document.h
- ${SRC_PATH}/jonoondb_api/field_name_parser.cc ${INCLUDE_INTERNAL_PATH}/field_name_parser.h
  ${SRC_PATH}/jonoondb_api/document_id_generator.cc ${INCLUDE_INTERNAL_PATH}/document_id_generator.h 
  ${SRC_PATH}/jonoondb_api/query_processor.cc ${INCLUDE_INTERNAL_PATH}/query_processor.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_field.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_field.h
  ${SRC_PATH}/jonoondb_api/document_collection_dictionary.cc ${INCLUDE_INTERNAL_PATH}/document_collection_dictionary.h
  ${SRC_PATH}/jonoondb_api/guard_funcs.cc ${INCLUDE_INTERNAL_PATH}/guard_funcs.h
- ${SRC_PATH}/jonoondb_api/resultset.cc ${INCLUDE_PATH}/resultset.h
- ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_INTERNAL_PATH}/index_stat.h)
+ ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_PATH}/resultset_impl.h
+ ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_INTERNAL_PATH}/index_stat.h
+ ${SRC_PATH}/jonoondb_api/blob_manager.cc ${INCLUDE_INTERNAL_PATH}/blob_manager.h) 
  
 target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 
@@ -136,6 +139,9 @@ add_executable(
  ${TEST_PATH}/concurrent_lru_cache_tests.cc
  ${TEST_PATH}/memory_mapped_file_tests.cc
  ${TEST_PATH}/database_tests.cc
- ${TEST_PATH}/document_tests.cc)
+ ${TEST_PATH}/document_tests.cc
+ ${TEST_PATH}/jonoondb_exception_tests.cc
+ ${TEST_PATH}/filename_manager_tests.cc
+ ${TEST_PATH}/blob_manager_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)

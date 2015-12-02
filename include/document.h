@@ -1,8 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
-#include "buffer.h"
+#include "buffer_impl.h"
 #include "enums.h"
 
 namespace jonoondb_api {
@@ -14,33 +15,22 @@ class Document {
   virtual ~Document() {
   }
 
-  virtual Status GetScalarValueAsInt8(const char* fieldName,
-                                      int8_t& val) const = 0;
-  virtual Status GetScalarValueAsInt16(const char* fieldName,
-                                       int16_t& val) const = 0;
-  virtual Status GetScalarValueAsInt32(const char* fieldName,
-                                       int32_t& val) const = 0;
-  virtual Status GetScalarValueAsInt64(const char* fieldName,
-                                       int64_t& val) const = 0;
+  virtual std::int8_t GetScalarValueAsInt8(const std::string& fieldName) const = 0;
+  virtual std::int16_t GetScalarValueAsInt16(const std::string& fieldName) const = 0;
+  virtual std::int32_t GetScalarValueAsInt32(const std::string& fieldName) const = 0;
+  virtual std::int64_t GetScalarValueAsInt64(const std::string& fieldName) const = 0;
 
-  virtual Status GetScalarValueAsUInt8(const char* fieldName,
-                                       uint8_t& val) const = 0;
-  virtual Status GetScalarValueAsUInt16(const char* fieldName,
-                                        uint16_t& val) const = 0;
-  virtual Status GetScalarValueAsUInt32(const char* fieldName,
-                                        uint32_t& val) const = 0;
-  virtual Status GetScalarValueAsUInt64(const char* fieldName,
-                                        uint64_t& val) const = 0;
+  virtual std::uint8_t GetScalarValueAsUInt8(const std::string& fieldName) const = 0;
+  virtual std::uint16_t GetScalarValueAsUInt16(const std::string& fieldName) const = 0;
+  virtual std::uint32_t GetScalarValueAsUInt32(const std::string& fieldName) const = 0;
+  virtual std::uint64_t GetScalarValueAsUInt64(const std::string& fieldName) const = 0;
 
-  virtual Status GetScalarValueAsFloat(const char* fieldName,
-                                       float& val) const = 0;
-  virtual Status GetScalarValueAsDouble(const char* fieldName,
-                                        double& val) const = 0;
+  virtual float GetScalarValueAsFloat(const std::string& fieldName) const = 0;
+  virtual double GetScalarValueAsDouble(const std::string& fieldName) const = 0;
 
-  virtual Status GetStringValue(const char* fieldName, char*& val) const = 0;
-  virtual Status GetDocumentValue(const char* fieldName,
-                                  Document*& val) const = 0;
-  virtual Status AllocateSubDocument(Document*& doc) const = 0;
-  virtual void Dispose() = 0;
+  virtual std::string GetStringValue(const std::string& fieldName) const = 0;
+  virtual void GetDocumentValue(const std::string& fieldName, Document& val) const = 0;
+  virtual std::unique_ptr<Document> AllocateSubDocument() const = 0;  
+  virtual void VerifyFieldForRead(const std::string& fieldName, FieldType type) const = 0;
 };
 }

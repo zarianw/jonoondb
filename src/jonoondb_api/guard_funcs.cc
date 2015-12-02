@@ -19,3 +19,10 @@ void GuardFuncs::SQLite3Close(sqlite3* db) {
     }    
   }
 }
+
+void GuardFuncs::SQLite3Finalize(sqlite3_stmt* stmt) {
+  if (stmt != nullptr) {
+    int code = sqlite3_finalize(stmt);
+    assert(code == SQLITE_OK);    
+  }
+}

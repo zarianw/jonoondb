@@ -9,21 +9,31 @@
 #include "exception_utils.h"
 #include "sqlite_utils.h"
 #include "exception_utils.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "serializer_utils.h"
 #include "enums.h"
+#include "jonoondb_exceptions.h"
 
 using namespace std;
 using namespace boost::filesystem;
 using namespace jonoondb_api;
 
-DatabaseMetadataManager::DatabaseMetadataManager(const char* dbPath,
-                                                 const char* dbName,
-                                                 bool createDBIfMissing)
-    : m_dbPath(dbPath),
-      m_dbName(dbName),
-      m_createDBIfMissing(createDBIfMissing),
-      m_metadataDBConnection(nullptr) {
+DatabaseMetadataManager::DatabaseMetadataManager(const std::string& dbPath,
+                                                 const std::string& dbName,
+                                                 bool createDBIfMissing) :
+    m_dbPath(dbPath), m_dbName(dbName) {
+  // Validate arguments
+  if (StringUtils::IsNullOrEmpty(m_dbPath)) {
+    throw InvalidArgumentException("Argument dbPath is null or empty.",
+      __FILE__, "", __LINE__);
+  }
+
+  if (StringUtils::IsNullOrEmpty(m_dbName)) {
+    throw InvalidArgumentException("Argument dbName is null or empty.",
+      __FILE__, "", __LINE__);
+  }  
+  
+  Initialize(createDBIfMissing);  
 }
 
 DatabaseMetadataManager::~DatabaseMetadataManager() {
@@ -35,82 +45,92 @@ DatabaseMetadataManager::~DatabaseMetadataManager() {
   }
 }
 
-Status DatabaseMetadataManager::Initialize() {
-  string errorMessage;
-
+void DatabaseMetadataManager::Initialize(bool createDBIfMissing) {
   path pathObj(m_dbPath);
+
+  // check if the db folder exists
+  if (!boost::filesystem::exists(pathObj)) {
+    std::ostringstream ss;
+    ss << "Database folder " << pathObj.string() << " does not exist.";
+    throw MissingDatabaseFolderException(ss.str(), __FILE__, "", __LINE__);
+  }
+
   pathObj += m_dbName;
   pathObj += ".dat";
-
   m_fullDbPath = pathObj.string();
 
-  if (!boost::filesystem::exists(pathObj) && !m_createDBIfMissing) {
-    return Status(kStatusMissingDatabaseFileCode, errorMessage.c_str(),
-                  __FILE__, "", __LINE__);
+  if (!boost::filesystem::exists(pathObj) && !createDBIfMissing) {
+    std::ostringstream ss;
+    ss << "Database file " << m_fullDbPath << " does not exist.";    
+    throw MissingDatabaseFileException(ss.str(), __FILE__, "", __LINE__);
   }
 
   int sqliteCode = sqlite3_open(pathObj.string().c_str(),
                                 &m_metadataDBConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
-  if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
-
-  auto status = CreateTables();
-  if (!status.OK()) {
-    return status;
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
   }
-
-  status = PrepareStatements();
-
-  return status;
+   
+  CreateTables();
+  PrepareStatements();
 }
 
-Status DatabaseMetadataManager::CreateTables() {
+void DatabaseMetadataManager::CreateTables() {
   // Set DB Pragmas
   int sqliteCode = 0;
   sqliteCode = sqlite3_exec(m_metadataDBConnection,
                             "PRAGMA synchronous = FULL;", 0, 0, 0);
-  if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
+  }
 
   sqliteCode = sqlite3_exec(m_metadataDBConnection,
                             "PRAGMA journal_mode = WAL;", 0, 0, 0);
-  if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
+  }
 
   sqliteCode = sqlite3_busy_handler(m_metadataDBConnection,
                                     SQLiteUtils::SQLiteGenericBusyHandler,
                                     nullptr);
-  if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
-
-  // Create the necessary tables if they do not exist
-  string sql =
-      "create table if not exists CollectionSchema(CollectionName text primary key, CollectionSchema text, CollectionSchemaType int)";
-  auto status = SQLiteUtils::ExecuteSQL(m_metadataDBConnection, sql);
-  if (!status.OK()) {
-    return status;
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
   }
 
-  sql =
-      "create table if not exists CollectionIndex(IndexName text primary key, CollectionName text, IndexInfo blob)";
-  status = SQLiteUtils::ExecuteSQL(m_metadataDBConnection, sql);
-  if (!status.OK()) {
-    return status;
+  // Create the necessary tables if they do not exist
+  string sql = "create table if not exists CollectionSchema("
+    "CollectionName text primary key, CollectionSchema text, "
+    "CollectionSchemaType int)";
+  sqliteCode = sqlite3_exec(m_metadataDBConnection, sql.c_str(), NULL, NULL, NULL);
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
+  }  
+
+  sql = "create table if not exists CollectionIndex("
+    "IndexName text primary key, CollectionName text, IndexInfo blob)";
+  sqliteCode = sqlite3_exec(m_metadataDBConnection, sql.c_str(), NULL, NULL, NULL);
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
   }
 
   //sql = "create table if not exists CollectionDocumentFile(FileKey int primary key, FileName text, FileDataLength int, foreign key(CollectionName) references CollectionMetadata(CollectionName))";
-  sql =
-      "create table if not exists CollectionDocumentFile(FileKey int primary key, FileName text, FileDataLength int, CollectionName text)";
-
-  status = SQLiteUtils::ExecuteSQL(m_metadataDBConnection, sql);
-  if (!status.OK()) {
-    return status;
+  sql = "create table if not exists CollectionDocumentFile("
+    "FileKey int primary key, FileName text, "
+    "FileDataLength int, CollectionName text)";
+  sqliteCode = sqlite3_exec(m_metadataDBConnection, sql.c_str(), NULL, NULL, NULL);
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
   }
-
-  return Status();
 }
 
-Status DatabaseMetadataManager::PrepareStatements() {
+void DatabaseMetadataManager::PrepareStatements() {
   int sqliteCode =
       sqlite3_prepare_v2(
           m_metadataDBConnection,
@@ -120,8 +140,10 @@ Status DatabaseMetadataManager::PrepareStatements() {
           0  // Pointer to unused portion of stmt
           );
 
-  if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
+  }
 
   sqliteCode =
       sqlite3_prepare_v2(
@@ -132,47 +154,14 @@ Status DatabaseMetadataManager::PrepareStatements() {
           0  // Pointer to unused portion of stmt
           );
 
-  if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
-
-  return Status();
+  if (sqliteCode != SQLITE_OK) {
+    std::string msg = sqlite3_errstr(sqliteCode);
+    throw SQLException(msg, __FILE__, "", __LINE__);
+  }
 }
 
-Status DatabaseMetadataManager::Open(
-    const char* dbPath, const char* dbName, bool createDBIfMissing,
-    DatabaseMetadataManager*& databaseMetadataManager) {
-  string errorMessage;
-
-  // Validate function arguments
-  if (StringUtils::IsNullOrEmpty(dbPath)) {
-    errorMessage = "Argument dbPath is null or empty.";
-    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
-  if (StringUtils::IsNullOrEmpty(dbName)) {
-    errorMessage = "Argument dbName is null or empty.";
-    return Status(kStatusInvalidArgumentCode, errorMessage.c_str(),
-                  __FILE__, "", __LINE__);
-  }
-
-  unique_ptr<DatabaseMetadataManager> dbMetadataManager(
-      new DatabaseMetadataManager(dbPath, dbName, createDBIfMissing));
-  auto status = dbMetadataManager->Initialize();
-  if (!status.OK()) {
-    return status;
-  }
-
-  databaseMetadataManager = dbMetadataManager.release();
-
-  return status;
-}
-
-Status DatabaseMetadataManager::AddCollection(const char* name,
-                                              SchemaType schemaType,
-                                              const char* schema,
-                                              const IndexInfo indexes[],
-                                              size_t indexesLength) {
+void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType schemaType,
+  const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
   unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
@@ -180,29 +169,33 @@ Status DatabaseMetadataManager::AddCollection(const char* name,
 
   // 1. Prepare stmt to add data in CollectionSchema table
   int code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 1,  // Index of wildcard
-                                     name,  // CollectionName
+                                     name.c_str(),  // CollectionName
                                      -1,  // length of the string is the number of bytes up to the first zero terminator
                                      SQLITE_STATIC);
 
-  if (code != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);    
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
 
   code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 2,  // Index of wildcard
-                                 schema,  // CollectionSchema
+                                 schema.c_str(),  // CollectionSchema
                                  -1,  // length of the string is the number of bytes up to the first zero terminator
                                  SQLITE_STATIC);
-  if (code != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
 
   code = sqlite3_bind_int(m_insertCollectionSchemaStmt, 3,  // Index of wildcard
                                 static_cast<int>(schemaType));
-  if (code != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
 
   // 2. Start Transaction before issuing insert
   code = sqlite3_exec(m_metadataDBConnection, "BEGIN", 0, 0, 0);
-  if (code != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
 
   code = sqlite3_step(m_insertCollectionSchemaStmt);
   if (code != SQLITE_DONE) {
@@ -212,18 +205,17 @@ Status DatabaseMetadataManager::AddCollection(const char* name,
       ss << "Collection with name \"" << name << "\" already exists.";
       std::string errorMsg = ss.str();
       sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
-      return Status(kStatusCollectionAlreadyExistCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
+      throw CollectionAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
     } else {
       sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+      throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
     }
   }
 
   // 3. Add all the collection indexes
   Status sts;
-  for (int i = 0; i < indexesLength; i++) {
-    sts = CreateIndex(name, indexes[i]);
+  for (int i = 0; i < indexes.size(); i++) {
+    sts = CreateIndex(name.c_str(), *indexes[i]);
     if (!sts) break;
   }
 
@@ -239,52 +231,46 @@ Status DatabaseMetadataManager::AddCollection(const char* name,
       // automatically by the error response, then the ROLLBACK command will
       // fail with an error, but no harm is caused by this.
       sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(code);
+      throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
     }    
   }
-
-  return sts;
 }
 
 Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
-                                            const IndexInfo& indexInfo) {
+                                            const IndexInfoImpl& indexInfo) {
   unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionIndexStmt, SQLiteUtils::ClearAndResetStatement);
 
   int sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 1,  // Index of wildcard
-                                     indexInfo.GetName(), -1,  // length of the string is the number of bytes up to the first zero terminator
+                                     indexInfo.GetIndexName().c_str(), -1,  // length of the string is the number of bytes up to the first zero terminator
                                      SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
   sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 2,  // Index of wildcard
                                  collectionName, -1,  // length of the string is the number of bytes up to the first zero terminator
                                  SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
-  Buffer buffer;
-  auto status = SerializerUtils::IndexInfoToBytes(indexInfo, buffer);
-  if (!status.OK()) {
-    return status;
-  }
-
+  BufferImpl buffer;
+  SerializerUtils::IndexInfoToBytes(indexInfo, buffer);
   sqliteCode = sqlite3_bind_blob(m_insertCollectionIndexStmt, 3,  // Index of wildcard
                                  buffer.GetData(), buffer.GetLength(),
                                  SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
-    return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
   //Now insert the record
   sqliteCode = sqlite3_step(m_insertCollectionIndexStmt);
   if (sqliteCode != SQLITE_DONE) {
     if (sqliteCode == SQLITE_CONSTRAINT) {
       //Key already exists
-      std::string errorMsg = "Index with the same name already exists.";
-      return Status(kStatusIndexAlreadyExistCode, errorMsg.c_str(),
-                    __FILE__, "", __LINE__);
+      ostringstream ss;
+      ss << "Index with name " << indexInfo.GetIndexName() << " already exists.";
+      throw IndexAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
     } else {
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
     }
   }
 

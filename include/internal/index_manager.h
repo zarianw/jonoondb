@@ -10,27 +10,25 @@
 namespace jonoondb_api {
 // Forward declarations
 class Status;
-class IndexInfo;
+class IndexInfoImpl;
 class Document;
 class IndexStat;
 enum class FieldType
-: std::int32_t;
+: std::int8_t;
 enum class IndexConstraintOperator
-  : std::int32_t;
+  : std::int8_t;
+struct Constraint;
 
 class IndexManager {
  public:
-   typedef std::unordered_map<std::string, std::vector<std::unique_ptr<Indexer>>> ColumnIndexderMap;
+  typedef std::unordered_map<std::string, std::vector<std::unique_ptr<Indexer>>> ColumnIndexderMap;  
   
-  IndexManager(std::unique_ptr<ColumnIndexderMap> indexers);
-  static Status Construct(const IndexInfo indexes[], size_t indexesLength,
-  std::unordered_map<std::string, FieldType>& columnTypes,
-  IndexManager*& indexManager);
-  Status CreateIndex(const IndexInfo& indexInfo,
-  std::unordered_map<std::string, FieldType>& columnTypes);
+  IndexManager(const std::vector<IndexInfoImpl*>& indexes, const std::unordered_map<std::string, FieldType>& columnTypes);
+  Status CreateIndex(const IndexInfoImpl& indexInfo, std::unordered_map<std::string, FieldType>& columnTypes);
   Status IndexDocument(std::uint64_t documentID, const Document& document);
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
     IndexStat& indexStat);
+  std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
 private:
   std::unique_ptr<ColumnIndexderMap> m_columnIndexerMap;
 };

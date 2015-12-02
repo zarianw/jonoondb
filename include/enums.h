@@ -1,20 +1,25 @@
 #pragma once
 
 #include <cstdint>
+#include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
 enum class SchemaType
   : std::int32_t {
     FLAT_BUFFERS = 1
 };
+extern SchemaType ToSchemaType(std::int32_t type);
+
 
 enum class IndexType
   : std::int32_t {
     EWAHCompressedBitmap = 1
 };
+extern IndexType ToIndexType(std::int32_t type);
+
 
 enum class FieldType
-  : std::int32_t {
+  : std::int8_t {
     BASE_TYPE_UINT8,
   BASE_TYPE_UINT16,
   BASE_TYPE_UINT32,
@@ -42,7 +47,7 @@ static const char* GetFieldString(FieldType fieldType) {
 }
 
 enum class IndexConstraintOperator
-  : std::int32_t {
+  : std::int8_t {
   EQUAL,
   LESS_THAN,
   LESS_THAN_EQUAL,

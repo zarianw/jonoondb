@@ -1,27 +1,20 @@
+#include <string>
+#include <sstream>
 #include "document_schema_factory.h"
 #include "status.h"
 #include "flatbuffers_document_schema.h"
 
 using namespace jonoondb_api;
 
-Status DocumentSchemaFactory::CreateDocumentSchema(
-    const char* schemaText, SchemaType schemaType,
-    DocumentSchema*& documentSchema) {
+DocumentSchema* DocumentSchemaFactory::CreateDocumentSchema(
+    const std::string& schemaText, SchemaType schemaType) {
   switch (schemaType) {
     case SchemaType::FLAT_BUFFERS: {
-      FlatbuffersDocumentSchema* fbDocSchema;
-      auto sts = FlatbuffersDocumentSchema::Construct(schemaText, schemaType,
-                                                      fbDocSchema);
-      if (!sts.OK()) {
-        return sts;
-      }
-
-      documentSchema = fbDocSchema;
-      break;
+      return new FlatbuffersDocumentSchema(schemaText, schemaType);      
     }
     default:
-      break;
-  }
-
-  return Status();
+      std::ostringstream ss;
+      ss << "Cannot create DocumentSchema. Schema type '" << static_cast<int32_t>(schemaType) << "' is unknown.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+  }  
 }

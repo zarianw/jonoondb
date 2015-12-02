@@ -6,10 +6,10 @@
 #include "document.h"
 #include "document_factory.h"
 #include "status.h"
-#include "index_info.h"
+#include "index_info_impl.h"
 #include "enums.h"
-#include "options.h"
-#include "buffer.h"
+#include "options_impl.h"
+#include "buffer_impl.h"
 #include "schemas/flatbuffers/tweet_generated.h"
 #include "document_schema_factory.h"
 #include "document_schema.h"
@@ -19,41 +19,24 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
 
-void CompareTweetObject(const Document* doc, const Buffer& tweetObject) {
+void CompareTweetObject(const Document& doc, const BufferImpl& tweetObject) {
   auto tweet = GetTweet(tweetObject.GetData());
-  ASSERT_TRUE(tweet != nullptr);
-  uint64_t id;
-  char* str;
-  ASSERT_TRUE(doc->GetScalarValueAsUInt64("id", id).OK());
-  ASSERT_TRUE(id == tweet->id());
-  ASSERT_TRUE(doc->GetStringValue("text", str).OK());
-  ASSERT_TRUE(strcmp(str, tweet->text()->c_str()) == 0);
-  auto user = tweet->user();
-  ASSERT_TRUE(user != nullptr);
+  ASSERT_EQ(doc.GetScalarValueAsUInt64("id"), tweet->id());
+  ASSERT_STREQ(doc.GetStringValue("text").c_str(), tweet->text()->c_str());
 
-  Document* subDoc;
-  ASSERT_TRUE(doc->AllocateSubDocument(subDoc).OK());
-  ASSERT_TRUE(doc->GetDocumentValue("user", subDoc).OK());
-  ASSERT_TRUE(subDoc->GetScalarValueAsUInt64("id", id).OK());
-  ASSERT_TRUE(id == tweet->user()->id());
-  ASSERT_TRUE(subDoc->GetStringValue("name", str).OK());
-  ASSERT_TRUE(strcmp(str, tweet->user()->name()->c_str()) == 0);
-  subDoc->Dispose();
+  auto subDoc = doc.AllocateSubDocument();
+  doc.GetDocumentValue("user", *subDoc.get());  
+  ASSERT_EQ(subDoc->GetScalarValueAsUInt64("id"), tweet->user()->id());  
+  ASSERT_STREQ(subDoc->GetStringValue("name").c_str(), tweet->user()->name()->c_str());
 }
 
 TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  Buffer documentData;
-  ASSERT_TRUE(GetTweetObject(documentData).OK());
-  DocumentSchema* docSchema;
-  auto sts = DocumentSchemaFactory::CreateDocumentSchema(
-      schema.c_str(), SchemaType::FLAT_BUFFERS, docSchema);
-  ASSERT_TRUE(sts.OK());
-  shared_ptr<DocumentSchema> docSchemaPtr(docSchema);
-  Document* doc;
-  sts = DocumentFactory::CreateDocument(docSchemaPtr, documentData, doc);
-  ASSERT_TRUE(sts.OK());
-  CompareTweetObject(doc, documentData);
-  doc->Dispose();
+  BufferImpl documentData = GetTweetObject();
+  shared_ptr<DocumentSchema> docSchemaPtr(DocumentSchemaFactory::CreateDocumentSchema(
+    schema.c_str(), SchemaType::FLAT_BUFFERS));
+  
+  auto doc = DocumentFactory::CreateDocument(docSchemaPtr, documentData);
+  CompareTweetObject(*doc.get(), documentData);  
 }

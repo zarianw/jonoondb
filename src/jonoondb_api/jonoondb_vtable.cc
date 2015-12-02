@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <assert.h>
+#include <tuple>
 #include "sqlite3ext.h"
 #include "document_collection_dictionary.h"
 #include "document_collection.h"
@@ -15,28 +16,63 @@
 #include "enums.h"
 #include "document_schema.h"
 #include "index_stat.h"
+#include "constraint.h"
+#include "mama_jennies_bitmap.h"
 
 
 using namespace jonoondb_api;
 
 SQLITE_EXTENSION_INIT1;
 
+typedef std::tuple<std::string, FieldType> ColumnInfo;
+
 typedef struct jonoondb_vtab_s {
   sqlite3_vtab vtab;
+  // This collection object is shared with the DatabaseImpl object
   std::shared_ptr<DocumentCollection> collection;
-  std::vector<std::string> columnNames;
+  std::vector<ColumnInfo> columnNames;
 } jonoondb_vtab;
 
 typedef struct jonoondb_cursor_s {
+  jonoondb_cursor_s(std::shared_ptr<DocumentCollection>& docCol,
+    std::vector<ColumnInfo>& colNames) : collection(docCol),
+    columnNames(colNames), row(0) {
+  }
+
   sqlite3_vtab_cursor cur;
   sqlite_int64 row;
+  // we can keep references here because we will always close the
+  // jonoondb_cursor_s before closing the jonoondb_vtab_s
+  std::shared_ptr<DocumentCollection>& collection;
+  std::vector<ColumnInfo>& columnNames;
+  std::shared_ptr<MamaJenniesBitmap> filteredIds;
 } jonoondb_cursor;
+
+static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
+  switch (op) {
+    case SQLITE_INDEX_CONSTRAINT_EQ:
+      return IndexConstraintOperator::EQUAL;
+    case SQLITE_INDEX_CONSTRAINT_GT:
+      return IndexConstraintOperator::GREATER_THAN;
+    case SQLITE_INDEX_CONSTRAINT_LE:
+      return IndexConstraintOperator::LESS_THAN_EQUAL;
+    case SQLITE_INDEX_CONSTRAINT_LT:
+      return IndexConstraintOperator::LESS_THAN;
+    case SQLITE_INDEX_CONSTRAINT_GE:
+      return IndexConstraintOperator::GREATER_THAN_EQUAL;
+    case SQLITE_INDEX_CONSTRAINT_MATCH:
+      return IndexConstraintOperator::MATCH;
+    default:
+      break;
+  }
+
+  assert(false && "Invalid SQL operator encountered.");
+}
 
 const char* GetSQLiteTypeString(FieldType fieldType) {
   static std::string integer = "INTEGER";
   static std::string real = "REAL";
-  static std::string text = "TEXT";
-  static std::string unknown = "UNKNOWN";  
+  static std::string text = "TEXT";  
   switch (fieldType) {
     case jonoondb_api::FieldType::BASE_TYPE_UINT8:
     case jonoondb_api::FieldType::BASE_TYPE_UINT16:
@@ -55,17 +91,47 @@ const char* GetSQLiteTypeString(FieldType fieldType) {
     case jonoondb_api::FieldType::BASE_TYPE_VECTOR:
     case jonoondb_api::FieldType::BASE_TYPE_COMPLEX:
     default:
-      assert(false && "These types should never be encountered here.");
-      break;
+    {
+      std::ostringstream ss;
+      ss << "Argument fieldType has a value " << static_cast<int32_t>(fieldType)
+        << " which does not have a correponding sql type.";
+      throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);
+    }
   }
+}
 
-  return unknown.c_str();
+int GetSQLiteType(FieldType fieldType) {
+  switch (fieldType) {
+    case jonoondb_api::FieldType::BASE_TYPE_UINT8:
+    case jonoondb_api::FieldType::BASE_TYPE_UINT16:
+    case jonoondb_api::FieldType::BASE_TYPE_UINT32:
+    case jonoondb_api::FieldType::BASE_TYPE_UINT64:
+    case jonoondb_api::FieldType::BASE_TYPE_INT8:
+    case jonoondb_api::FieldType::BASE_TYPE_INT16:
+    case jonoondb_api::FieldType::BASE_TYPE_INT32:
+    case jonoondb_api::FieldType::BASE_TYPE_INT64:
+      return SQLITE_INTEGER;
+    case jonoondb_api::FieldType::BASE_TYPE_FLOAT32:
+    case jonoondb_api::FieldType::BASE_TYPE_DOUBLE:
+      return SQLITE_FLOAT;
+    case jonoondb_api::FieldType::BASE_TYPE_STRING:
+      return SQLITE_TEXT;
+    case jonoondb_api::FieldType::BASE_TYPE_VECTOR:
+    case jonoondb_api::FieldType::BASE_TYPE_COMPLEX:
+    default:
+    {
+      std::ostringstream ss;
+      ss << "Argument fieldType has a value " << static_cast<int32_t>(fieldType)
+        << " which does not have a correponding sql type.";
+      throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);        
+    }
+  }
 }
 
 Status BuildCreateTableStatement(const Field* complexField,
                                  std::string& prefix,
                                  std::ostringstream& stringStream,
-                                 std::vector<std::string>& columnNames) {
+                                 std::vector<ColumnInfo>& columnNames) {
   assert(complexField->GetType() == FieldType::BASE_TYPE_COMPLEX);
   Field* field;
   auto sts = complexField->AllocateField(field);
@@ -84,7 +150,7 @@ Status BuildCreateTableStatement(const Field* complexField,
     } else {
       auto fullName = prefix;
       fullName.append(field->GetName());
-      columnNames.push_back(fullName);
+      columnNames.push_back(ColumnInfo(fullName, field->GetType()));
       stringStream << "'" << fullName << "'" << " "
         << GetSQLiteTypeString(field->GetType());
       stringStream << ", ";
@@ -96,7 +162,7 @@ Status BuildCreateTableStatement(const Field* complexField,
 
 Status GenerateCreateTableStatementForCollection(const std::shared_ptr<DocumentCollection>& collection,
                                                  std::ostringstream& stringStream,
-                                                 std::vector<std::string>& columnNames) {
+                                                 std::vector<ColumnInfo>& columnNames) {
   Field* field;
   auto sts = collection->GetDocumentSchema()->AllocateField(field);
   if (!sts) return sts;
@@ -116,7 +182,7 @@ Status GenerateCreateTableStatementForCollection(const std::shared_ptr<DocumentC
       sts = BuildCreateTableStatement(field, prefix, stringStream, columnNames);
       if (!sts) return sts;
     } else {
-      columnNames.push_back(field->GetName());
+      columnNames.push_back(ColumnInfo(field->GetName(), field->GetType()));
       stringStream << field->GetName() << " " << GetSQLiteTypeString(field->GetType());
       stringStream << ", ";
     }
@@ -197,128 +263,154 @@ static int jonoondb_connect(sqlite3 *db, void *udp, int argc,
   return SQLITE_ERROR;
 }
 
-static int jonoondb_disconnect(sqlite3_vtab *vtab) {
-  delete vtab;
-  //sqlite3_free(vtab);
+static int jonoondb_disconnect(sqlite3_vtab* vtab) {
+  delete vtab;  
   return SQLITE_OK;
 }
 
-static int jonoondb_destroy(sqlite3_vtab *vtab) {
-  delete vtab;
-  //sqlite3_free(vtab);
+static int jonoondb_destroy(sqlite3_vtab* vtab) {
+  delete vtab;  
   return SQLITE_OK;
 }
 
-static char* op(unsigned char op) {
-  if (op == SQLITE_INDEX_CONSTRAINT_EQ)
-    return "=";
-  if (op == SQLITE_INDEX_CONSTRAINT_GT)
-    return ">";
-  if (op == SQLITE_INDEX_CONSTRAINT_LE)
-    return "<=";
-  if (op == SQLITE_INDEX_CONSTRAINT_LT)
-    return "<";
-  if (op == SQLITE_INDEX_CONSTRAINT_GE)
-    return ">=";
-  if (op == SQLITE_INDEX_CONSTRAINT_MATCH)
-    return "MATCH";
-  return "?";
-}
-
-static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
-  switch (op) {
-    case SQLITE_INDEX_CONSTRAINT_EQ:
-      return IndexConstraintOperator::EQUAL;
-    case SQLITE_INDEX_CONSTRAINT_GT:
-      return IndexConstraintOperator::GREATER_THAN;
-    case SQLITE_INDEX_CONSTRAINT_LE:
-      return IndexConstraintOperator::LESS_THAN_EQUAL;
-    case SQLITE_INDEX_CONSTRAINT_LT:
-      return IndexConstraintOperator::LESS_THAN;
-    case SQLITE_INDEX_CONSTRAINT_GE:
-      return IndexConstraintOperator::GREATER_THAN_EQUAL;
-    case SQLITE_INDEX_CONSTRAINT_MATCH:
-      return IndexConstraintOperator::MATCH;
-    default:
-      break;
-  }
-
-  assert(false && "Invalid SQL operator encountered.");
-}
-
-static int jonoondb_bestindex(sqlite3_vtab *vtab, sqlite3_index_info *info) {
-  int i;
-  // printf("BEST INDEX:\n");
+static int jonoondb_bestindex(sqlite3_vtab* vtab, sqlite3_index_info *info) {  
   jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
   IndexStat indexStat;
-  for (i = 0; i < info->nConstraint; i++) {
+  int argvIndex = 0;  
+  std::string sbuf;
+  for (int i = 0; i < info->nConstraint; i++) {
     if (info->aConstraint[i].usable) {
-      if (jdbVtab->collection->TryGetBestIndex(jdbVtab->columnNames[info->aConstraint[i].iColumn],
-                                               MapSQLiteToJonoonDBOperator(info->aConstraint[i].op),
-                                               indexStat)) {
-        info->aConstraintUsage[i].argvIndex = 1;
-        info->aConstraintUsage[i].omit = 1;                        
+      if (info->aConstraint[i].iColumn == -1) {
+        // Means someone has used RowID in contraint
+        // "Queries on RowID are not allowed.";
+        return SQLITE_ERROR;
       }
-    }
 
-    info->orderByConsumed = 0;    
+      const std::string& colName = std::get<0>(jdbVtab->columnNames[info->aConstraint[i].iColumn]);
+      IndexConstraintOperator op = MapSQLiteToJonoonDBOperator(info->aConstraint[i].op);
+      if (jdbVtab->collection->TryGetBestIndex(colName,
+                                               op,
+                                               indexStat)) {
+        info->aConstraintUsage[i].argvIndex = ++argvIndex;
+        info->aConstraintUsage[i].omit = 1;
+        assert(sizeof(int) == sizeof(info->aConstraint[i].iColumn));
+        assert(sizeof(IndexConstraintOperator) == sizeof(op));
+        // type of info->aConstraint[i].iColumn is int
+        sbuf.append((char*)&info->aConstraint[i].iColumn, sizeof(int)); 
+        sbuf.append((char*)&op, sizeof(IndexConstraintOperator));
+      }
+    }    
+  }
+  
+  if (sbuf.size() > 0) {    
+    info->idxStr = (char*)sqlite3_malloc(sbuf.size());
+    if (info->idxStr == nullptr) {
+      return SQLITE_NOMEM;
+    }
+    info->needToFreeIdxStr = 1;
+    info->idxNum = sbuf.size();    
+    
+    std::memcpy(info->idxStr, sbuf.data(), sbuf.size());    
   }
 
-  /*for (i = 0; i < info->nOrderBy; i++) {
-    printf("   ORDER[%d]: %d %s\n", i, info->aOrderBy[i].iColumn,
-           info->aOrderBy[i].desc ? "DESC" : "ASC");
-  }*/     
+  info->orderByConsumed = 0;    
 
   return SQLITE_OK;
 }
 
-static int jonoondb_open(sqlite3_vtab *vtab, sqlite3_vtab_cursor **cur) {
-  jonoondb_vtab *v = (jonoondb_vtab*) vtab;
-  jonoondb_cursor *c;
-
-  // printf("OPEN\n");
-
-  c = (jonoondb_cursor*) sqlite3_malloc(sizeof(jonoondb_cursor));
-  if (c == NULL)
+static int jonoondb_open(sqlite3_vtab* vtab, sqlite3_vtab_cursor** cur) {
+  jonoondb_vtab* v = (jonoondb_vtab*) vtab;
+  try {
+    jonoondb_cursor* c = new jonoondb_cursor(v->collection, v->columnNames);    
+    *cur = reinterpret_cast<sqlite3_vtab_cursor*>(c);    
+  } catch (std::bad_alloc&) {
     return SQLITE_NOMEM;
-
-  *cur = (sqlite3_vtab_cursor*) c;
-  c->row = 0;
+  } catch (std::exception&) {
+    return SQLITE_ERROR;
+  }
+  
   return SQLITE_OK;
 }
 
-static int jonoondb_close(sqlite3_vtab_cursor *cur) {
-  // printf("CLOSE\n");
-
-  sqlite3_free(cur);
+static int jonoondb_close(sqlite3_vtab_cursor* cur) {
+  delete cur;
   return SQLITE_OK;
 }
 
-static int jonoondb_filter(sqlite3_vtab_cursor *cur, int idxnum,
-                           const char *idxstr, int argc,
-                           sqlite3_value **value) {
-  // printf("FILTER\n");
+static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
+                           const char* idxstr, int argc,
+                           sqlite3_value** value) {
+  try {
+    auto cursor = reinterpret_cast<jonoondb_cursor*>(cur);
+    // Get the constraints    
+    if (argc > 0) {
+      std::vector<Constraint> constraints;
+      auto currIndex = idxstr;
+
+      while (currIndex < (idxstr + idxnum)) {
+        // idxstr is encoded as: sizeof(int) bytes for column index, sizeof(IndexConstraintOperator) for Op
+        int colIndex;
+        memcpy(&colIndex, currIndex, sizeof(int));
+        currIndex += sizeof(int);
+        
+        IndexConstraintOperator op;
+        memcpy(&op, currIndex, sizeof(IndexConstraintOperator));
+        currIndex += sizeof(IndexConstraintOperator);
+
+        std::string& colName = std::get<0>(cursor->columnNames[colIndex]);
+        Constraint constraint(colName, op);   
+        
+        switch (sqlite3_value_type(*value)) {
+          case SQLITE_INTEGER:
+            constraint.operandType = OperandType::INTEGER;
+            constraint.operand.int64Val = sqlite3_value_int64(*value);
+            break;
+          case SQLITE_FLOAT:
+            constraint.operandType = OperandType::DOUBLE;
+            constraint.operand.doubleVal = sqlite3_value_double(*value);
+            break;
+          case SQLITE_TEXT:
+            constraint.operandType = OperandType::STRING;
+            constraint.strVal = (char*)(sqlite3_value_text(*value));
+            break;
+          default:
+            std::ostringstream ss;
+            ss << "Argument value has sql type " << sqlite3_value_type(*value)
+              << " which is not supported yet.";
+            throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);
+        }
+
+        constraints.push_back(std::move(constraint)); 
+        value++;
+      }
+
+      cursor->filteredIds = cursor->collection->Filter(constraints);
+    }
+  } catch (std::exception&) {
+    return SQLITE_ERROR;
+  }
+
   return SQLITE_OK;
 }
 
-static int jonoondb_next(sqlite3_vtab_cursor *cur) {
+static int jonoondb_next(sqlite3_vtab_cursor* cur) {
   // printf("NEXT\n");
   ((jonoondb_cursor*) cur)->row++;
   return SQLITE_OK;
 }
 
-static int jonoondb_eof(sqlite3_vtab_cursor *cur) {
+static int jonoondb_eof(sqlite3_vtab_cursor* cur) {
   // printf("EOF\n");
   return (((jonoondb_cursor*) cur)->row >= 10);
 }
 
-static int jonoondb_rowid(sqlite3_vtab_cursor *cur, sqlite3_int64 *rowid) {
+static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64 *rowid) {
   // printf("ROWID: %lld\n", ((jonoondb_cursor*) cur)->row);
   *rowid = ((jonoondb_cursor*) cur)->row;
   return SQLITE_OK;
 }
 
-static int jonoondb_column(sqlite3_vtab_cursor *cur, sqlite3_context *ctx,
+static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
                            int cidx) {
   jonoondb_cursor *c = (jonoondb_cursor*) cur;
 
@@ -327,12 +419,12 @@ static int jonoondb_column(sqlite3_vtab_cursor *cur, sqlite3_context *ctx,
   return SQLITE_OK;
 }
 
-static int jonoondb_rename(sqlite3_vtab *vtab, const char *newname) {
+static int jonoondb_rename(sqlite3_vtab* vtab, const char *newname) {
   // printf("RENAME\n");
   return SQLITE_OK;
 }
 
-static int jonoondb_update(sqlite3_vtab *vtab, int argc, sqlite3_value **argv,
+static int jonoondb_update(sqlite3_vtab* vtab, int argc, sqlite3_value **argv,
                            sqlite_int64 *rowid) {
   printf("UPDATE: ");
 
@@ -358,22 +450,22 @@ static int jonoondb_update(sqlite3_vtab *vtab, int argc, sqlite3_value **argv,
   return SQLITE_OK;
 }
 
-static int jonoondb_begin(sqlite3_vtab *vtab) {
+static int jonoondb_begin(sqlite3_vtab* vtab) {
   // printf("BEGIN\n");
   return SQLITE_OK;
 }
 
-static int jonoondb_sync(sqlite3_vtab *vtab) {
+static int jonoondb_sync(sqlite3_vtab* vtab) {
   //printf("SYNC\n");
   return SQLITE_OK;
 }
 
-static int jonoondb_commit(sqlite3_vtab *vtab) {
+static int jonoondb_commit(sqlite3_vtab* vtab) {
   //printf("COMMIT\n");
   return SQLITE_OK;
 }
 
-static int jonoondb_rollback(sqlite3_vtab *vtab) {
+static int jonoondb_rollback(sqlite3_vtab* vtab) {
   // printf("ROLLBACK\n");
   return SQLITE_OK;
 }

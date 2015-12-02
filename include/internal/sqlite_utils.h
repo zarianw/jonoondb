@@ -15,7 +15,7 @@ class SQLiteUtils {
   static Status ExecuteSQL(sqlite3* dbConnection, std::string sql) {
     int sqliteCode = sqlite3_exec(dbConnection, sql.c_str(), NULL, NULL, NULL);
     if (sqliteCode != SQLITE_OK)
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode);
+      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
     return Status();
   }
@@ -31,10 +31,10 @@ class SQLiteUtils {
     assert(sqliteCode2 == SQLITE_OK || sqliteCode2 == SQLITE_CONSTRAINT);  //Duplicate key errors are reported as SQLITE_CONSTRAINT
 
     if (sqliteCode1 != SQLITE_OK)
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode1);
+      throw SQLException(sqlite3_errstr(sqliteCode1), __FILE__, "", __LINE__);
 
     if (sqliteCode2 != SQLITE_OK)
-      return ExceptionUtils::GetSQLiteErrorStatusFromSQLiteErrorCode(sqliteCode2);
+      throw SQLException(sqlite3_errstr(sqliteCode2), __FILE__, "", __LINE__);
 
     return Status();
   }

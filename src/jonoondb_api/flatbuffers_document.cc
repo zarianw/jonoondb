@@ -8,196 +8,169 @@ using namespace std;
 using namespace jonoondb_api;
 using namespace flatbuffers;
 
-Status FlatbuffersDocument::Construct(
-    const shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema,
-    const Buffer& buffer, FlatbuffersDocument*& flatbuffersDocument) {
-
-  Table* table = const_cast<Table*>(flatbuffers::GetRoot<Table>(
-      buffer.GetData()));
-  unique_ptr<DynamicTableReader> dynamicTableReader(
-      new DynamicTableReader(table, fbDocumentSchema->GetRootStruct(),
-                             fbDocumentSchema->GetChildStructs()));
-
-  flatbuffersDocument = new FlatbuffersDocument(fbDocumentSchema,
-                                                move(dynamicTableReader));
-
-  return Status();
+FlatbuffersDocument::FlatbuffersDocument(
+  const std::shared_ptr<FlatbuffersDocumentSchema>& fbDocumentSchema, const BufferImpl& buffer) :
+  m_fbDcumentSchema(fbDocumentSchema) {
+  Table* table = const_cast<Table*>(flatbuffers::GetRoot<Table>(buffer.GetData()));
+  m_dynTableReader.reset(new DynamicTableReader(table,
+                                                m_fbDcumentSchema->GetRootStruct(),
+                                                m_fbDcumentSchema->GetChildStructs()));
 }
 
-Status FlatbuffersDocument::GetScalarValueAsInt8(const char* fieldName,
-                                                 int8_t& val) const {
+int8_t FlatbuffersDocument::GetScalarValueAsInt8(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName),
+      __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs < int8_t > (fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs < int8_t > (fieldDef);  
 }
 
-Status FlatbuffersDocument::GetScalarValueAsInt16(const char* fieldName,
-                                                  int16_t& val) const {
+int16_t FlatbuffersDocument::GetScalarValueAsInt16(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs < int16_t > (fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs < int16_t > (fieldDef);
 }
 
-Status FlatbuffersDocument::GetScalarValueAsInt32(const char* fieldName,
-                                                  int32_t& val) const {
+int32_t FlatbuffersDocument::GetScalarValueAsInt32(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs < int32_t > (fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs < int32_t > (fieldDef);
 }
 
-Status FlatbuffersDocument::GetScalarValueAsInt64(const char* fieldName,
-                                                  int64_t& val) const {
+int64_t FlatbuffersDocument::GetScalarValueAsInt64(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs < int64_t > (fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs < int64_t > (fieldDef);
 }
 
-Status FlatbuffersDocument::GetScalarValueAsUInt8(const char* fieldName,
-                                                  uint8_t& val) const {
+uint8_t FlatbuffersDocument::GetScalarValueAsUInt8(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs < uint8_t > (fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs < uint8_t > (fieldDef);  
 }
 
-Status FlatbuffersDocument::GetScalarValueAsUInt16(const char* fieldName,
-                                                   uint16_t& val) const {
+uint16_t FlatbuffersDocument::GetScalarValueAsUInt16(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs < uint16_t > (fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs < uint16_t > (fieldDef);  
 }
 
-Status FlatbuffersDocument::GetScalarValueAsUInt32(const char* fieldName,
-                                                   uint32_t& val) const {
+uint32_t FlatbuffersDocument::GetScalarValueAsUInt32(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs < uint32_t > (fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs < uint32_t > (fieldDef);  
 }
 
-Status FlatbuffersDocument::GetScalarValueAsUInt64(const char* fieldName,
-                                                   uint64_t& val) const {
+uint64_t FlatbuffersDocument::GetScalarValueAsUInt64(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs < uint64_t > (fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs < uint64_t > (fieldDef);  
 }
 
-Status FlatbuffersDocument::GetScalarValueAsFloat(const char* fieldName,
-                                                  float& val) const {
+float FlatbuffersDocument::GetScalarValueAsFloat(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs<float>(fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs<float>(fieldDef);  
 }
 
-Status FlatbuffersDocument::GetScalarValueAsDouble(const char* fieldName,
-                                                   double& val) const {
+double FlatbuffersDocument::GetScalarValueAsDouble(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = m_dynTableReader->GetScalarValueAs<double>(fieldDef);
-  return Status();
+  return m_dynTableReader->GetScalarValueAs<double>(fieldDef);  
 }
 
-Status FlatbuffersDocument::GetStringValue(const char* fieldName,
-                                           char*& val) const {
+std::string FlatbuffersDocument::GetStringValue(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  val = const_cast<char*>(m_dynTableReader->GetStringValue(fieldDef));
-  return Status();
+  return m_dynTableReader->GetStringValue(fieldDef);  
 }
 
-Status FlatbuffersDocument::GetDocumentValue(const char* fieldName,
-                                             Document*& val) const {
-  FlatbuffersDocument* fbDoc = dynamic_cast<FlatbuffersDocument*>(val);
-  if (fbDoc == nullptr) {
+void FlatbuffersDocument::GetDocumentValue(const std::string& fieldName,
+                                           Document& val) const {
+  try {
+    // Todo: dynamic_cast can be expensive, this should be optimized.
+    FlatbuffersDocument& fbDoc = dynamic_cast<FlatbuffersDocument&>(val);
+    auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
+    if (fieldDef == nullptr) {
+      throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    }
+
+    m_dynTableReader->GetTableValue(fieldDef, *(fbDoc.m_dynTableReader.get()));
+  } catch (std::bad_cast) {
     // This means that the passed in doc cannot be casted to FlatbuffersDocument    
     string errorMsg = "Argument val cannot be casted to underlying document "
-        "implementation i.e. FlatbuffersDocument. "
-        "Make sure you are creating the val by calling AllocateDocument call.";
-    return Status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+      "implementation i.e. FlatbuffersDocument. "
+      "Make sure you are creating the val by calling AllocateDocument call.";
+    throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
   }
+}
 
+std::unique_ptr<Document> FlatbuffersDocument::AllocateSubDocument() const {
+  return std::unique_ptr<Document>(new FlatbuffersDocument(
+    m_fbDcumentSchema,
+    move(unique_ptr < DynamicTableReader >(new DynamicTableReader()))));
+}
+
+void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName, FieldType expectedType) const {
+  // Make sure field exists
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    return GetMissingFieldErrorStatus(fieldName);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
   }
 
-  m_dynTableReader->GetTableValue(fieldDef, *fbDoc->m_dynTableReader.get());
-
-  return Status();
-}
-
-Status FlatbuffersDocument::AllocateSubDocument(Document*& doc) const {
-  try {
-    doc = new FlatbuffersDocument(
-        m_fbDcumentSchema,
-        move(unique_ptr < DynamicTableReader > (new DynamicTableReader())));
-  } catch (bad_alloc&) {
-    // Memory allocation failed
-    string errorMsg = "Memory allocation failed.";
-    return Status(kStatusOutOfMemoryErrorCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+  // Make sure it has the same type
+  auto actualType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(fieldDef->value.type.base_type);
+  if (actualType != expectedType) {
+    ostringstream ss;
+    ss << "Actual field type for field " << fieldName << " is " << GetFieldString(actualType) <<
+      " which is different from the expected field type " << GetFieldString(expectedType) << ".";
+    throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
   }
-
-  return Status();
-}
-
-void FlatbuffersDocument::Dispose() {
-  delete this;
 }
 
 FlatbuffersDocument::FlatbuffersDocument(
-    const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
-    unique_ptr<DynamicTableReader> dynTableReader)
-    : m_fbDcumentSchema(fbDocumentSchema),
-      m_dynTableReader(move(dynTableReader)) {
+  const shared_ptr<FlatbuffersDocumentSchema> fbDocumentSchema,
+  unique_ptr<DynamicTableReader> dynTableReader)
+  : m_fbDcumentSchema(fbDocumentSchema),
+  m_dynTableReader(move(dynTableReader)) {
 }
 
-Status FlatbuffersDocument::GetMissingFieldErrorStatus(
-    const char* fieldName) const {
+std::string FlatbuffersDocument::GetMissingFieldErrorString(
+    const std::string& fieldName) const {
   ostringstream ss;
   ss << "Field definition for " << fieldName
-     << " not found in the parsed schema.";
-  string errorMsg = ss.str();
-  return Status(kStatusGenericErrorCode, errorMsg.c_str(), __FILE__, "", __LINE__);
+     << " not found in the parsed schema."; 
+  return ss.str();  
 }

@@ -7,16 +7,16 @@
 namespace jonoondb_api {
 // Forward declarations
 class Status;
-class IndexInfo;
+class IndexInfoImpl;
 class Indexer;
 enum class FieldType
-: std::int32_t;
+: std::int8_t;
 
 class IndexerFactory {
  public:
-  static Status CreateIndexer(
-      const IndexInfo& indexInfo,
-      std::unordered_map<std::string, FieldType>& fieldName, Indexer*& indexer);
+   static Indexer* CreateIndexer(
+      const IndexInfoImpl& indexInfo,
+      const FieldType& fieldType);
  private:
   IndexerFactory() = delete;
   IndexerFactory(const IndexerFactory&) = delete;
