@@ -24,15 +24,16 @@ enum class SchemaType
 : std::int32_t;
 struct Constraint;
 class MamaJenniesBitmap;
+class BlobManager;
 
-class DocumentCollection {
+class DocumentCollection final {
  public:
    DocumentCollection(const std::string& databaseMetadataFilePath,
      const std::string& name, SchemaType schemaType,
-     const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
-  ~DocumentCollection();
+     const std::string& schema, const std::vector<IndexInfoImpl*>& indexes,
+     std::unique_ptr<BlobManager> blobManager);  
 
-  Status Insert(const BufferImpl& documentData);
+  void Insert(const BufferImpl& documentData);
   const std::string& GetName();
   const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
@@ -44,12 +45,13 @@ class DocumentCollection {
       const std::vector<IndexInfoImpl*>& indexes,
       const DocumentSchema& documentSchema,
       std::unordered_map<std::string, FieldType>& columnTypes);
-  sqlite3* m_dbConnection;
+  std::unique_ptr<sqlite3, void(*)(sqlite3*)> m_dbConnection;  
   std::unique_ptr<IndexManager> m_indexManager;
   std::shared_ptr<DocumentSchema> m_documentSchema;
   DocumentIDGenerator m_documentIDGenerator;
   std::unordered_map<std::uint64_t, BlobMetadata> m_documentIDMap;
   std::string m_name;
+  std::unique_ptr<BlobManager> m_blobManager;
 };
 }  // namespace jonoondb_api
 

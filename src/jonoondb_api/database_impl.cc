@@ -12,14 +12,17 @@
 #include "enums.h"
 #include "query_processor.h"
 #include "resultset_impl.h"
+#include "filename_manager.h"
+#include "blob_manager.h"
 
 using namespace std;
 using namespace jonoondb_api;
 
-DatabaseImpl::DatabaseImpl(
+DatabaseImpl::DatabaseImpl(const OptionsImpl& options,
     unique_ptr<DatabaseMetadataManager> databaseMetadataManager,
     unique_ptr<QueryProcessor> queryProcessor)
-    : m_dbMetadataMgrImpl(move(databaseMetadataManager)),
+    : m_options(options),
+      m_dbMetadataMgrImpl(move(databaseMetadataManager)),
       m_queryProcessor(move(queryProcessor)) {
 }
 
@@ -32,7 +35,7 @@ DatabaseImpl* DatabaseImpl::Open(const std::string& dbPath, const std::string& d
   std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager =
     std::make_unique<DatabaseMetadataManager>(dbPath, dbName, options.GetCreateDBIfMissing()); 
 
-  return new DatabaseImpl(move(databaseMetadataManager), move(qp));
+  return new DatabaseImpl(options, move(databaseMetadataManager), move(qp));
 }
 
 void DatabaseImpl::Close() {
@@ -41,8 +44,14 @@ void DatabaseImpl::Close() {
 
 void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,
   const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
+
+  //First create FileNameManager and BlobManager
+  auto fnm = std::make_unique<FileNameManager>(m_dbMetadataMgrImpl->GetDBPath(),
+    m_dbMetadataMgrImpl->GetDBName(), false);
+  auto bm = std::make_unique<BlobManager>(move(fnm), m_options.GetCompressionEnabled(), m_options.GetMaxDataFileSize(), m_options.GetSynchronous());
+
   shared_ptr<DocumentCollection> documentCollection =
-    make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes);
+    make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes, move(bm));
 
   //check if collection already exists
   string colName = name;
@@ -62,7 +71,7 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
   m_collectionContainer[colName] = documentCollection;
 }
 
-Status DatabaseImpl::Insert(const char* collectionName,
+void DatabaseImpl::Insert(const char* collectionName,
                             const BufferImpl& documentData) {
   // Todo (zarian): Check what is a clean way to avoid the string copy from char * to string
   auto item = m_collectionContainer.find(collectionName);
@@ -73,12 +82,7 @@ Status DatabaseImpl::Insert(const char* collectionName,
   }
 
   // Add data in collection
-  Status status = item->second->Insert(documentData);
-  if (!status.OK()) {
-    return status;
-  }
-
-  return status;
+  item->second->Insert(documentData); 
 }
 
 ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {

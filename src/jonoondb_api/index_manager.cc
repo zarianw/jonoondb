@@ -44,7 +44,7 @@ Status IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
   return Status();
 }
 
-Status IndexManager::IndexDocument(uint64_t documentID,
+void IndexManager::IndexDocument(uint64_t documentID,
                                    const Document& document) {
   for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
     for (const auto& indexer : columnIndexerMapPair.second) {
@@ -57,8 +57,6 @@ Status IndexManager::IndexDocument(uint64_t documentID,
       indexer->Insert(documentID, document);
     }
   }
-
-  return Status();
 }
 
 bool IndexManager::TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,

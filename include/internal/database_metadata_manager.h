@@ -26,7 +26,9 @@ class DatabaseMetadataManager final {
   ~DatabaseMetadataManager();
   void AddCollection(const std::string& name, SchemaType schemaType,
                        const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
-  const char* GetFullDBPath() const;
+  const std::string& GetFullDBPath() const;
+  const std::string& GetDBPath() const;
+  const std::string& GetDBName() const;
 
  private:
   
