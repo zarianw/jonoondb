@@ -8,10 +8,7 @@ class OptionsImpl {
   //Default constructor that sets all the options to their default value
   OptionsImpl();
   OptionsImpl(bool createDBIfMissing, size_t maxDataFileSize,
-          bool compressionEnabled, bool synchronous);
-  OptionsImpl(OptionsImpl&& other);
-
-  ~OptionsImpl();
+          bool compressionEnabled, bool synchronous);  
 
   void SetCreateDBIfMissing(bool value);
   bool GetCreateDBIfMissing() const;
@@ -26,8 +23,10 @@ class OptionsImpl {
   bool GetSynchronous() const;
 
  private:
-  struct OptionsData;
-  OptionsData* m_optionsData;
+   bool CreateDBIfMissing;
+   std::size_t MaxDataFileSize;
+   bool CompressionEnabled;
+   bool Synchronous;
 };
 
-}  // jonoondb_api
+}  // namespace jonoondb_api
