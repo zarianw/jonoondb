@@ -40,6 +40,9 @@ class DocumentCollection final {
                        IndexStat& indexStat);
   std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
 
+  //Document Access Functions
+  std::string GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName) const;
+
  private:
   void PopulateColumnTypes(
       const std::vector<IndexInfoImpl*>& indexes,

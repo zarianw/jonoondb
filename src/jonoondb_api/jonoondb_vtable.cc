@@ -24,19 +24,25 @@ using namespace jonoondb_api;
 
 SQLITE_EXTENSION_INIT1;
 
-typedef std::tuple<std::string, FieldType> ColumnInfo;
+struct ColumnInfo {
+  ColumnInfo(const std::string& colName, FieldType colType) : 
+    columnName(colName), columnType(colType) {
+  }
+  std::string columnName;
+  FieldType columnType;
+};
 
 typedef struct jonoondb_vtab_s {
   sqlite3_vtab vtab;
   // This collection object is shared with the DatabaseImpl object
   std::shared_ptr<DocumentCollection> collection;
-  std::vector<ColumnInfo> columnNames;
+  std::vector<ColumnInfo> columnsInfo;
 } jonoondb_vtab;
 
 typedef struct jonoondb_cursor_s {
   jonoondb_cursor_s(std::shared_ptr<DocumentCollection>& docCol,
-    std::vector<ColumnInfo>& colNames) : collection(docCol),
-    columnNames(colNames), row(0) {
+    std::vector<ColumnInfo>& colsInfo) : collection(docCol),
+    columnsInfo(colsInfo), row(0) {
   }
 
   sqlite3_vtab_cursor cur;
@@ -44,7 +50,7 @@ typedef struct jonoondb_cursor_s {
   // we can keep references here because we will always close the
   // jonoondb_cursor_s before closing the jonoondb_vtab_s
   std::shared_ptr<DocumentCollection>& collection;
-  std::vector<ColumnInfo>& columnNames;
+  std::vector<ColumnInfo>& columnsInfo;
   std::shared_ptr<MamaJenniesBitmap> filteredIds;
 } jonoondb_cursor;
 
@@ -235,7 +241,7 @@ static int jonoondb_create(sqlite3 *db, void *udp, int argc,
 
   // Generate the create table stmt
   std::ostringstream ss;
-  auto sts = GenerateCreateTableStatementForCollection(col, ss, v->columnNames);
+  auto sts = GenerateCreateTableStatementForCollection(col, ss, v->columnsInfo);
   if (!sts) {
     if (errmsg != nullptr) {
       std::string str = sts.GetMessage();
@@ -286,9 +292,8 @@ static int jonoondb_bestindex(sqlite3_vtab* vtab, sqlite3_index_info *info) {
         return SQLITE_ERROR;
       }
 
-      const std::string& colName = std::get<0>(jdbVtab->columnNames[info->aConstraint[i].iColumn]);
       IndexConstraintOperator op = MapSQLiteToJonoonDBOperator(info->aConstraint[i].op);
-      if (jdbVtab->collection->TryGetBestIndex(colName,
+      if (jdbVtab->collection->TryGetBestIndex(jdbVtab->columnsInfo[info->aConstraint[i].iColumn].columnName,
                                                op,
                                                indexStat)) {
         info->aConstraintUsage[i].argvIndex = ++argvIndex;
@@ -321,7 +326,7 @@ static int jonoondb_bestindex(sqlite3_vtab* vtab, sqlite3_index_info *info) {
 static int jonoondb_open(sqlite3_vtab* vtab, sqlite3_vtab_cursor** cur) {
   jonoondb_vtab* v = (jonoondb_vtab*) vtab;
   try {
-    jonoondb_cursor* c = new jonoondb_cursor(v->collection, v->columnNames);    
+    jonoondb_cursor* c = new jonoondb_cursor(v->collection, v->columnsInfo);    
     *cur = reinterpret_cast<sqlite3_vtab_cursor*>(c);    
   } catch (std::bad_alloc&) {
     return SQLITE_NOMEM;
@@ -357,8 +362,7 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
         memcpy(&op, currIndex, sizeof(IndexConstraintOperator));
         currIndex += sizeof(IndexConstraintOperator);
 
-        std::string& colName = std::get<0>(cursor->columnNames[colIndex]);
-        Constraint constraint(colName, op);   
+        Constraint constraint(cursor->columnsInfo[colIndex].columnName, op);
         
         switch (sqlite3_value_type(*value)) {
           case SQLITE_INTEGER:
@@ -394,7 +398,8 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
 }
 
 static int jonoondb_next(sqlite3_vtab_cursor* cur) {
-  // printf("NEXT\n");
+  auto jdb_cursor = (jonoondb_cursor*)cur;
+  
   ((jonoondb_cursor*) cur)->row++;
   return SQLITE_OK;
 }
@@ -412,10 +417,15 @@ static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64 *rowid) {
 
 static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
                            int cidx) {
-  jonoondb_cursor *c = (jonoondb_cursor*) cur;
+  jonoondb_cursor* jdb_cursor = (jonoondb_cursor*) cur;
+  
+  //auto val = jdb_cursor->collection->GetDocumentFieldAsString(1, 
+  //  jdb_cursor->columnsInfo[cidx].columnName);
+
+  
 
   // printf("COLUMN: %d\n", cidx);
-  sqlite3_result_int(ctx, c->row * 10 + cidx);
+  sqlite3_result_int(ctx, jdb_cursor->row * 10 + cidx);
   return SQLITE_OK;
 }
 

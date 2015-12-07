@@ -103,3 +103,32 @@ void DocumentCollection::PopulateColumnTypes(
 std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<Constraint>& constraints) {
   return m_indexManager->Filter(constraints);
 }
+
+
+
+std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName) const {
+  if (fieldName.size() == 0) {
+    throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
+      "", __LINE__);
+  }
+  auto metadataEntry = m_documentIDMap.find(docID);
+  if (metadataEntry == m_documentIDMap.end()) {
+    ostringstream ss;
+    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
+    throw MissingDocumentException(ss.str(), __FILE__, "", __LINE__);
+  }
+  // TODO: buffer should come from object pool
+  BufferImpl buffer;
+  m_blobManager->Get(metadataEntry->second, buffer);
+
+  // TODO: tokens should be cached in collection class
+  std::vector<std::string> tokens = StringUtils::Split(fieldName, ".");
+  // TODO: Document should be cached
+  auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+  if (tokens.size() > 1) {
+    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
+    return subDoc->GetStringValue(fieldName);
+  } else {
+    return doc->GetStringValue(fieldName);
+  }  
+}

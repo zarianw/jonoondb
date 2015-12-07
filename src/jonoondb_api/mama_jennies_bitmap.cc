@@ -1,6 +1,7 @@
 #include <memory>
 #include <sstream>
 #include "mama_jennies_bitmap.h"
+#include "jonoondb_exceptions.h"
 
 using namespace jonoondb_api;
 
@@ -37,7 +38,10 @@ MamaJenniesBitmap& MamaJenniesBitmap::operator=(MamaJenniesBitmap&& other) {
 }
 
 void MamaJenniesBitmap::Add(std::size_t x) {
-  m_ewahBoolArray->set(x);  
+  if (!m_ewahBoolArray->set(x)) {
+    throw JonoonDBException("Add to bitmap failed. Most probably the entries were not added in increasing order.",
+      __FILE__, "", __LINE__);
+  }
 }
 
 bool MamaJenniesBitmap::IsEmpty() {

@@ -67,7 +67,7 @@ public:
 
   void ValidateForInsert(const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = GetSubDocumentRecursively(document);
+      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       subDoc->VerifyFieldForRead(m_fieldNameTokens.back().c_str(),
         m_indexStat.GetFieldType());
     } else {
@@ -78,7 +78,7 @@ public:
 
   void Insert(std::uint64_t documentID, const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = GetSubDocumentRecursively(document);
+      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       InsertInternal(documentID, *subDoc.get());
     } else {
       InsertInternal(documentID, document);
@@ -115,19 +115,6 @@ private:
     std::vector<std::string>& fieldNameTokens)
     : m_indexStat(indexStat),
     m_fieldNameTokens(fieldNameTokens) {
-  }
-
-  std::unique_ptr<Document> GetSubDocumentRecursively(const Document& parentDoc) {
-    auto doc = parentDoc.AllocateSubDocument();
-    for (size_t i = 0; i < m_fieldNameTokens.size() - 1; i++) {
-      if (i == 0) {
-        parentDoc.GetDocumentValue(m_fieldNameTokens[i].c_str(), *doc.get());
-      } else {
-        doc->GetDocumentValue(m_fieldNameTokens[i].c_str(), *doc.get());
-      }
-    }
-
-    return doc;
   }
 
   void InsertInternal(std::uint64_t documentID, const Document& document) {
