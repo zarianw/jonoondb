@@ -32,15 +32,15 @@ struct ColumnInfo {
   FieldType columnType;
 };
 
-typedef struct jonoondb_vtab_s {
+struct jonoondb_vtab {
   sqlite3_vtab vtab;
   // This collection object is shared with the DatabaseImpl object
   std::shared_ptr<DocumentCollection> collection;
   std::vector<ColumnInfo> columnsInfo;
-} jonoondb_vtab;
+};
 
-typedef struct jonoondb_cursor_s {
-  jonoondb_cursor_s(std::shared_ptr<DocumentCollection>& docCol,
+struct jonoondb_cursor {
+  jonoondb_cursor(std::shared_ptr<DocumentCollection>& docCol,
     std::vector<ColumnInfo>& colsInfo) : collection(docCol),
     columnsInfo(colsInfo), row(0) {
   }
@@ -48,11 +48,13 @@ typedef struct jonoondb_cursor_s {
   sqlite3_vtab_cursor cur;
   sqlite_int64 row;
   // we can keep references here because we will always close the
-  // jonoondb_cursor_s before closing the jonoondb_vtab_s
+  // jonoondb_cursor before closing the jonoondb_vtab
   std::shared_ptr<DocumentCollection>& collection;
   std::vector<ColumnInfo>& columnsInfo;
   std::shared_ptr<MamaJenniesBitmap> filteredIds;
-} jonoondb_cursor;
+  std::unique_ptr<MamaJenniesBitmap::const_iterator> iter;
+  std::unique_ptr<MamaJenniesBitmap::const_iterator> end;
+};
 
 static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
   switch (op) {
@@ -389,6 +391,8 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
       }
 
       cursor->filteredIds = cursor->collection->Filter(constraints);
+      cursor->iter = cursor->filteredIds->begin_pointer();
+      cursor->end = cursor->filteredIds->end_pointer();
     }
   } catch (std::exception&) {
     return SQLITE_ERROR;
@@ -398,15 +402,19 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
 }
 
 static int jonoondb_next(sqlite3_vtab_cursor* cur) {
-  auto jdb_cursor = (jonoondb_cursor*)cur;
+  auto jdbCursor = (jonoondb_cursor*)cur;
+  (*jdbCursor->iter)++;  
   
-  ((jonoondb_cursor*) cur)->row++;
   return SQLITE_OK;
 }
 
 static int jonoondb_eof(sqlite3_vtab_cursor* cur) {
-  // printf("EOF\n");
-  return (((jonoondb_cursor*) cur)->row >= 10);
+  auto jdbCursor = (jonoondb_cursor*)cur;
+  if (*(jdbCursor->iter) >= *(jdbCursor->end)) {
+    return 1;
+  }
+  
+  return 0;
 }
 
 static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64 *rowid) {
@@ -417,15 +425,15 @@ static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64 *rowid) {
 
 static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
                            int cidx) {
-  jonoondb_cursor* jdb_cursor = (jonoondb_cursor*) cur;
-  
-  //auto val = jdb_cursor->collection->GetDocumentFieldAsString(1, 
-  //  jdb_cursor->columnsInfo[cidx].columnName);
-
-  
+  jonoondb_cursor* jdbCursor = (jonoondb_cursor*) cur;
+  if (jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_STRING) {
+    std::size_t size = 0;
+    const char* val = jdbCursor->collection->GetDocumentFieldAsString(jdbCursor->iter->operator*(), jdbCursor->columnsInfo[cidx].columnName, size);
+    sqlite3_result_text(ctx, val, size, SQLITE_TRANSIENT); // SQLITE_TRANSIENT causes SQLite to copy the string on its side
+  } 
 
   // printf("COLUMN: %d\n", cidx);
-  sqlite3_result_int(ctx, jdb_cursor->row * 10 + cidx);
+  sqlite3_result_int(ctx, jdbCursor->row * 10 + cidx);
   return SQLITE_OK;
 }
 

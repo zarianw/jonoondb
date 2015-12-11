@@ -41,7 +41,7 @@ class DocumentCollection final {
   std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
 
   //Document Access Functions
-  std::string GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName) const;
+  const char* GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName, std::size_t& size) const;
 
  private:
   void PopulateColumnTypes(

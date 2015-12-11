@@ -117,6 +117,15 @@ std::string FlatbuffersDocument::GetStringValue(const std::string& fieldName) co
   return m_dynTableReader->GetStringValue(fieldDef);  
 }
 
+const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName, std::size_t& size) const {
+  auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
+  if (fieldDef == nullptr) {
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+  }
+
+  return m_dynTableReader->GetStringValue(fieldDef, size);
+}
+
 void FlatbuffersDocument::GetDocumentValue(const std::string& fieldName,
                                            Document& val) const {
   try {

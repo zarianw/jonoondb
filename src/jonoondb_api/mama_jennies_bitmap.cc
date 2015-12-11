@@ -112,3 +112,57 @@ std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalAnd(std::vector<std
 
   return flipper ? b1 : b2;  
 }
+
+MamaJenniesBitmap::const_iterator MamaJenniesBitmap::begin() {
+  return MamaJenniesBitmapConstIterator(m_ewahBoolArray->begin());
+}
+
+MamaJenniesBitmap::const_iterator MamaJenniesBitmap::end() {
+  return MamaJenniesBitmapConstIterator(m_ewahBoolArray->end());
+}
+
+std::unique_ptr<MamaJenniesBitmap::const_iterator> MamaJenniesBitmap::begin_pointer() {
+  return std::make_unique<const_iterator>(m_ewahBoolArray->begin());
+}
+
+std::unique_ptr<MamaJenniesBitmap::const_iterator> MamaJenniesBitmap::end_pointer() {
+  return std::make_unique<const_iterator>(m_ewahBoolArray->end());
+}
+
+MamaJenniesBitmapConstIterator::MamaJenniesBitmapConstIterator(EWAHBoolArray<size_t>::const_iterator& iter) 
+  : m_iter(iter) {
+}
+
+std::size_t MamaJenniesBitmapConstIterator::operator*() const {
+  return m_iter.operator*();
+}
+
+MamaJenniesBitmapConstIterator& MamaJenniesBitmapConstIterator::operator++() {
+  m_iter++;
+  return *this;
+}
+
+bool MamaJenniesBitmapConstIterator::operator==(const MamaJenniesBitmapConstIterator& other) {
+  return this->m_iter == other.m_iter;
+}
+
+bool MamaJenniesBitmapConstIterator::operator!=(const MamaJenniesBitmapConstIterator& other) {
+  return this->m_iter != other.m_iter;
+}
+
+bool MamaJenniesBitmapConstIterator::operator<(const MamaJenniesBitmapConstIterator& other) {
+  return m_iter.operator<(other.m_iter);
+}
+
+bool MamaJenniesBitmapConstIterator::operator<=(const MamaJenniesBitmapConstIterator& other) {
+  return m_iter.operator<=(other.m_iter);
+}
+
+bool MamaJenniesBitmapConstIterator::operator>(const MamaJenniesBitmapConstIterator& other) {
+  return m_iter.operator>(other.m_iter);
+}
+
+bool MamaJenniesBitmapConstIterator::operator>=(const MamaJenniesBitmapConstIterator& other) {
+  return m_iter.operator>=(other.m_iter);
+}
+

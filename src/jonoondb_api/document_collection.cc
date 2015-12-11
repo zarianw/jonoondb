@@ -106,7 +106,7 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
 
 
 
-std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName) const {
+const char* DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName, std::size_t& size) const {
   if (fieldName.size() == 0) {
     throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
       "", __LINE__);
@@ -127,8 +127,8 @@ std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID, co
   auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
   if (tokens.size() > 1) {
     auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
-    return subDoc->GetStringValue(fieldName);
+    return subDoc->GetStringValue(fieldName, size);
   } else {
-    return doc->GetStringValue(fieldName);
+    return doc->GetStringValue(fieldName, size);
   }  
 }
