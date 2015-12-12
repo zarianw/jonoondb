@@ -393,6 +393,11 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
       cursor->filteredIds = cursor->collection->Filter(constraints);
       cursor->iter = cursor->filteredIds->begin_pointer();
       cursor->end = cursor->filteredIds->end_pointer();
+    } else {
+      // We need to do a full scan
+      cursor->filteredIds = cursor->collection->Filter(std::vector<Constraint>());
+      cursor->iter = cursor->filteredIds->begin_pointer();
+      cursor->end = cursor->filteredIds->end_pointer();
     }
   } catch (std::exception&) {
     return SQLITE_ERROR;
@@ -426,14 +431,11 @@ static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64 *rowid) {
 static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
                            int cidx) {
   jonoondb_cursor* jdbCursor = (jonoondb_cursor*) cur;
-  if (jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_STRING) {
-    std::size_t size = 0;
-    const char* val = jdbCursor->collection->GetDocumentFieldAsString(jdbCursor->iter->operator*(), jdbCursor->columnsInfo[cidx].columnName, size);
-    sqlite3_result_text(ctx, val, size, SQLITE_TRANSIENT); // SQLITE_TRANSIENT causes SQLite to copy the string on its side
-  } 
+  if (jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_STRING) {    
+    auto val = jdbCursor->collection->GetDocumentFieldAsString(jdbCursor->iter->operator*(), jdbCursor->columnsInfo[cidx].columnName);
+    sqlite3_result_text(ctx, val.c_str(), val.size()+1, SQLITE_TRANSIENT); // SQLITE_TRANSIENT causes SQLite to copy the string on its side
+  }
 
-  // printf("COLUMN: %d\n", cidx);
-  sqlite3_result_int(ctx, jdbCursor->row * 10 + cidx);
   return SQLITE_OK;
 }
 

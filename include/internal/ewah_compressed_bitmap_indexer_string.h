@@ -61,10 +61,10 @@ public:
   void ValidateForInsert(const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
       auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      subDoc->VerifyFieldForRead(m_fieldNameTokens.back().c_str(),
+      subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
         m_indexStat.GetFieldType());
     } else {
-      document.VerifyFieldForRead(m_fieldNameTokens.back().c_str(),
+      document.VerifyFieldForRead(m_fieldNameTokens.back(),
         m_indexStat.GetFieldType());
     }
   }

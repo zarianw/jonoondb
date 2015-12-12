@@ -19,9 +19,9 @@
 #include "index_stat.h"
 #include "mama_jennies_bitmap.h"
 #include "blob_manager.h"
+#include "constraint.h"
 
 using namespace jonoondb_api;
-using namespace std;
 
 DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePath,
   const std::string& name, SchemaType schemaType,
@@ -62,17 +62,15 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
 
 void DocumentCollection::Insert(const BufferImpl& documentData) {
   auto doc = DocumentFactory::CreateDocument(m_documentSchema, documentData);
+  BlobMetadata blobMetadata;
+  m_blobManager->Put(documentData, blobMetadata);
   
   // Index the document
   auto id = m_documentIDGenerator.ReserveID(1);
   m_indexManager->IndexDocument(id, *doc.get());  
-
-  // Add it in the documentID map
-  // Todo: Once we have the blobManager then use the real blobMetadata.
-  BlobMetadata blobMetadata;
-  m_blobManager->Put(documentData, blobMetadata);  
  
-  m_documentIDMap[id] = blobMetadata;
+  m_documentIDMap.push_back(blobMetadata);
+  assert(m_documentIDMap.size()-1 == id);
 }
 
 const std::string& DocumentCollection::GetName() {
@@ -93,7 +91,7 @@ void DocumentCollection::PopulateColumnTypes(
   const DocumentSchema& documentSchema,
   std::unordered_map<string, FieldType>& columnTypes) {
   FieldType colType;
-  for (size_t i = 0; i < indexes.size(); i++) {
+  for (std::size_t i = 0; i < indexes.size(); i++) {
     auto sts = documentSchema.GetFieldType(indexes[i]->GetColumnName().c_str(), colType);    
     columnTypes.insert(
       pair<string, FieldType>(indexes[i]->GetColumnName(), colType));
@@ -101,25 +99,37 @@ void DocumentCollection::PopulateColumnTypes(
 }
 
 std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<Constraint>& constraints) {
-  return m_indexManager->Filter(constraints);
+  if (constraints.size() > 0) {
+    return m_indexManager->Filter(constraints);
+  } else {
+    // Return all the ids
+    auto lastID = m_documentIDMap.size();
+    auto bm = std::make_shared<MamaJenniesBitmap>();
+    for (std::size_t i = 0; i < lastID; i++) {
+      bm->Add(i);
+    }
+
+    return bm;
+  }
 }
 
-
-
-const char* DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName, std::size_t& size) const {
+//Todo: Need to avoid the string creation/copy cost
+std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID,
+  const std::string& fieldName) const {
   if (fieldName.size() == 0) {
     throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
       "", __LINE__);
   }
-  auto metadataEntry = m_documentIDMap.find(docID);
-  if (metadataEntry == m_documentIDMap.end()) {
+
+  if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
     ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, "", __LINE__);
   }
+
   // TODO: buffer should come from object pool
   BufferImpl buffer;
-  m_blobManager->Get(metadataEntry->second, buffer);
+  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
 
   // TODO: tokens should be cached in collection class
   std::vector<std::string> tokens = StringUtils::Split(fieldName, ".");
@@ -127,8 +137,8 @@ const char* DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID, co
   auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
   if (tokens.size() > 1) {
     auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
-    return subDoc->GetStringValue(fieldName, size);
+    return subDoc->GetStringValue(tokens.back());
   } else {
-    return doc->GetStringValue(fieldName, size);
+    return doc->GetStringValue(fieldName);
   }  
 }
