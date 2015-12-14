@@ -42,6 +42,8 @@ class DocumentCollection final {
 
   //Document Access Functions
   std::string GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName) const;
+  std::int64_t GetDocumentFieldAsInteger(std::uint64_t docID, const std::string& fieldName) const;
+  double GetDocumentFieldAsDouble(std::uint64_t docID, const std::string& fieldName) const;
 
  private:
   void PopulateColumnTypes(

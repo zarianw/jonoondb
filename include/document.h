@@ -32,6 +32,10 @@ class Document {
 
   virtual std::string GetStringValue(const std::string& fieldName) const = 0;
   virtual const char* GetStringValue(const std::string& fieldName, std::size_t& size) const = 0;
+
+  virtual std::int64_t GetIntegerValueAsInt64(const std::string& fieldName) const = 0;
+  virtual double GetFloatingValueAsDouble(const std::string& fieldName) const = 0;
+
   virtual void GetDocumentValue(const std::string& fieldName, Document& val) const = 0;
   virtual std::unique_ptr<Document> AllocateSubDocument() const = 0;  
   virtual void VerifyFieldForRead(const std::string& fieldName, FieldType type) const = 0;

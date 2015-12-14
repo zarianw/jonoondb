@@ -126,6 +126,84 @@ const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName, st
   return m_dynTableReader->GetStringValue(fieldDef, size);
 }
 
+std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fieldName) const {
+  auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
+  if (fieldDef == nullptr) {
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+  }
+
+  int64_t val;
+  switch (fieldDef->value.type.base_type) {
+    case BaseType::BASE_TYPE_UCHAR: {
+      val = m_dynTableReader->GetScalarValueAs<std::uint8_t>(fieldDef);
+      break;
+    }
+    case BaseType::BASE_TYPE_USHORT: {
+      val = m_dynTableReader->GetScalarValueAs<std::uint16_t>(fieldDef);
+      break;
+    }
+    case BaseType::BASE_TYPE_UINT: {
+      val = m_dynTableReader->GetScalarValueAs<std::uint32_t>(fieldDef);
+      break;
+    }
+    case BaseType::BASE_TYPE_ULONG: {
+      val = m_dynTableReader->GetScalarValueAs<std::uint64_t>(fieldDef);
+      break;
+    }
+    case BaseType::BASE_TYPE_CHAR: {
+      val = m_dynTableReader->GetScalarValueAs<std::int8_t>(fieldDef);
+      break;
+    }
+    case BaseType::BASE_TYPE_SHORT: {
+      val = m_dynTableReader->GetScalarValueAs<std::int16_t>(fieldDef);
+      break;
+    }
+    case BaseType::BASE_TYPE_INT: {
+      val = m_dynTableReader->GetScalarValueAs<std::int32_t>(fieldDef);
+      break;
+    }
+    case BaseType::BASE_TYPE_LONG: {
+      val = m_dynTableReader->GetScalarValueAs<std::int64_t>(fieldDef);
+      break;
+    }
+    default: {
+      std::ostringstream ss;
+      ss << "Field " << fieldName << " has FieldType " << fieldDef->value.type.base_type
+        << " and it cannot be safely converted into a 64 bit integer.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+  }
+
+  return val;
+}
+
+double FlatbuffersDocument::GetFloatingValueAsDouble(const std::string& fieldName) const {
+  auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
+  if (fieldDef == nullptr) {
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+  }
+
+  double val;
+  switch (fieldDef->value.type.base_type) {
+    case BaseType::BASE_TYPE_FLOAT: {
+      val = m_dynTableReader->GetScalarValueAs<float>(fieldDef);
+      break;
+    }
+    case BaseType::BASE_TYPE_DOUBLE: {
+      val = m_dynTableReader->GetScalarValueAs<double>(fieldDef);
+      break;
+    }    
+    default: {
+      std::ostringstream ss;
+      ss << "Field " << fieldName << " has FieldType " << fieldDef->value.type.base_type
+        << " and it cannot be safely converted into a 64 bit floating point number.";
+      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    }
+  }
+
+  return val;
+}
+
 void FlatbuffersDocument::GetDocumentValue(const std::string& fieldName,
                                            Document& val) const {
   try {

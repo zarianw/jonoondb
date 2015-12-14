@@ -429,11 +429,31 @@ static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64 *rowid) {
 }
 
 static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
-                           int cidx) {
-  jonoondb_cursor* jdbCursor = (jonoondb_cursor*) cur;
-  if (jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_STRING) {    
-    auto val = jdbCursor->collection->GetDocumentFieldAsString(jdbCursor->iter->operator*(), jdbCursor->columnsInfo[cidx].columnName);
-    sqlite3_result_text(ctx, val.c_str(), val.size()+1, SQLITE_TRANSIENT); // SQLITE_TRANSIENT causes SQLite to copy the string on its side
+  int cidx) {
+  try {
+    jonoondb_cursor* jdbCursor = (jonoondb_cursor*)cur;
+    if (jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_STRING) {
+      auto val = jdbCursor->collection->GetDocumentFieldAsString(jdbCursor->iter->operator*(), jdbCursor->columnsInfo[cidx].columnName);
+      sqlite3_result_text(ctx, val.c_str(), val.size() + 1, SQLITE_TRANSIENT); // SQLITE_TRANSIENT causes SQLite to copy the string on its side
+    } else if (jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT64 ||
+      jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT32 ||
+      jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT16 ||
+      jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT8 ||
+      jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_UINT64 ||
+      jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_UINT32 ||
+      jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_UINT16 ||
+      jdbCursor->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_UINT8) {
+      // Get the integer value
+      auto val = jdbCursor->collection->GetDocumentFieldAsInteger(jdbCursor->iter->operator*(), jdbCursor->columnsInfo[cidx].columnName);
+      sqlite3_result_int64(ctx, val);
+    } else {
+      // Get the floating value
+      auto val = jdbCursor->collection->GetDocumentFieldAsDouble(jdbCursor->iter->operator*(), jdbCursor->columnsInfo[cidx].columnName);
+      sqlite3_result_double(ctx, val);
+    }
+  } catch (std::exception& ex) {
+    //Todo: Log the error
+    return SQLITE_ERROR;
   }
 
   return SQLITE_OK;
