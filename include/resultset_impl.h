@@ -2,26 +2,24 @@
 
 #include <cstddef>
 #include <cstdint>
+#include "sqlite3.h"
 
 namespace jonoondb_api {
 class Status;
 
 class ResultSetImpl {
 public:
-  Status Next();
-  Status GetInt8(const char* columnName, std::int8_t& val) const;    
-  Status GetInt16(const char* fieldName, std::int16_t& val) const;    
-  Status GetInt32(const char* fieldName, std::int32_t& val) const;    
-  Status GetInt64(const char* fieldName, std::int64_t& val) const;    
-
-  Status GetUInt8(const char* fieldName, uint8_t& val) const;    
-  Status GetUInt16(const char* fieldName, uint16_t& val) const;    
-  Status GetUInt32(const char* fieldName, uint32_t& val) const;    
-  Status GetUInt64(const char* fieldName, uint64_t& val) const;    
-
-  Status GetFloat(const char* fieldName, float& val) const;    
-  Status GetDouble(const char* fieldName, double& val) const;    
-
-  Status GetStringValue(const char* fieldName, char*& val) const;   
+  bool Next();
+  std::int8_t GetInt8(int columnIndex) const;
+  std::int16_t GetInt16(int columnIndex) const;
+  std::int32_t GetInt32(int columnIndex) const;
+  std::int64_t GetInt64(int columnIndex) const;
+  float GetFloat(int columnIndex) const;
+  double GetDouble(int columnIndex) const;
+  std::string GetStringValue(int columnIndex) const;
+  int GetColumnIndex(const std::string& columnLabel) const;
+private:
+  sqlite3* m_db;
+  sqlite3* m_stmt;
 };
 } // jonoondb_api

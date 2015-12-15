@@ -423,8 +423,8 @@ static int jonoondb_eof(sqlite3_vtab_cursor* cur) {
 }
 
 static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64 *rowid) {
-  // printf("ROWID: %lld\n", ((jonoondb_cursor*) cur)->row);
-  *rowid = ((jonoondb_cursor*) cur)->row;
+  jonoondb_cursor* jdbCursor = (jonoondb_cursor*)cur;  
+  *rowid = jdbCursor->iter->operator*();
   return SQLITE_OK;
 }
 
