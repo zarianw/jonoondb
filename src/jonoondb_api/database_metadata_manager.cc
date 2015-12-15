@@ -13,6 +13,7 @@
 #include "serializer_utils.h"
 #include "enums.h"
 #include "jonoondb_exceptions.h"
+#include "guard_funcs.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -21,7 +22,7 @@ using namespace jonoondb_api;
 DatabaseMetadataManager::DatabaseMetadataManager(const std::string& dbPath,
                                                  const std::string& dbName,
                                                  bool createDBIfMissing) :
-    m_dbPath(dbPath), m_dbName(dbName) {
+    m_dbPath(dbPath), m_dbName(dbName), m_metadataDBConnection(nullptr, GuardFuncs::SQLite3Close) {
   // Validate arguments
   if (StringUtils::IsNullOrEmpty(m_dbPath)) {
     throw InvalidArgumentException("Argument dbPath is null or empty.",
@@ -37,12 +38,7 @@ DatabaseMetadataManager::DatabaseMetadataManager(const std::string& dbPath,
 }
 
 DatabaseMetadataManager::~DatabaseMetadataManager() {
-  if (m_metadataDBConnection != nullptr) {
-    if (sqlite3_close(m_metadataDBConnection) != SQLITE_OK) {
-      //Todo: Handle SQLITE_BUSY response here
-    }
-    m_metadataDBConnection = nullptr;
-  }
+  FinalizeStatements();
 }
 
 void DatabaseMetadataManager::Initialize(bool createDBIfMissing) {
@@ -65,11 +61,11 @@ void DatabaseMetadataManager::Initialize(bool createDBIfMissing) {
     throw MissingDatabaseFileException(ss.str(), __FILE__, "", __LINE__);
   }
 
-  int sqliteCode = sqlite3_open(pathObj.string().c_str(),
-                                &m_metadataDBConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+  sqlite3* db;
+  int sqliteCode = sqlite3_open(pathObj.string().c_str(), &db);
+  m_metadataDBConnection.reset(db);
   if (sqliteCode != SQLITE_OK) {
-    std::string msg = sqlite3_errstr(sqliteCode);
-    throw SQLException(msg, __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
   }
    
   CreateTables();
@@ -79,21 +75,21 @@ void DatabaseMetadataManager::Initialize(bool createDBIfMissing) {
 void DatabaseMetadataManager::CreateTables() {
   // Set DB Pragmas
   int sqliteCode = 0;
-  sqliteCode = sqlite3_exec(m_metadataDBConnection,
+  sqliteCode = sqlite3_exec(m_metadataDBConnection.get(),
                             "PRAGMA synchronous = FULL;", 0, 0, 0);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, "", __LINE__);
   }
 
-  sqliteCode = sqlite3_exec(m_metadataDBConnection,
+  sqliteCode = sqlite3_exec(m_metadataDBConnection.get(),
                             "PRAGMA journal_mode = WAL;", 0, 0, 0);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, "", __LINE__);
   }
 
-  sqliteCode = sqlite3_busy_handler(m_metadataDBConnection,
+  sqliteCode = sqlite3_busy_handler(m_metadataDBConnection.get(),
                                     SQLiteUtils::SQLiteGenericBusyHandler,
                                     nullptr);
   if (sqliteCode != SQLITE_OK) {
@@ -105,7 +101,7 @@ void DatabaseMetadataManager::CreateTables() {
   string sql = "create table if not exists CollectionSchema("
     "CollectionName text primary key, CollectionSchema text, "
     "CollectionSchemaType int)";
-  sqliteCode = sqlite3_exec(m_metadataDBConnection, sql.c_str(), NULL, NULL, NULL);
+  sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, "", __LINE__);
@@ -113,7 +109,7 @@ void DatabaseMetadataManager::CreateTables() {
 
   sql = "create table if not exists CollectionIndex("
     "IndexName text primary key, CollectionName text, IndexInfo blob)";
-  sqliteCode = sqlite3_exec(m_metadataDBConnection, sql.c_str(), NULL, NULL, NULL);
+  sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, "", __LINE__);
@@ -123,7 +119,7 @@ void DatabaseMetadataManager::CreateTables() {
   sql = "create table if not exists CollectionDocumentFile("
     "FileKey int primary key, FileName text, "
     "FileDataLength int, CollectionName text)";
-  sqliteCode = sqlite3_exec(m_metadataDBConnection, sql.c_str(), NULL, NULL, NULL);
+  sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, "", __LINE__);
@@ -133,7 +129,7 @@ void DatabaseMetadataManager::CreateTables() {
 void DatabaseMetadataManager::PrepareStatements() {
   int sqliteCode =
       sqlite3_prepare_v2(
-          m_metadataDBConnection,
+          m_metadataDBConnection.get(),
           "insert into CollectionIndex (IndexName, CollectionName, IndexInfo) values (?, ?, ?)",  // stmt
           -1,  // If greater than zero, then stmt is read up to the first null terminator
           &m_insertCollectionIndexStmt,  //Statement that is to be prepared
@@ -147,7 +143,7 @@ void DatabaseMetadataManager::PrepareStatements() {
 
   sqliteCode =
       sqlite3_prepare_v2(
-          m_metadataDBConnection,
+          m_metadataDBConnection.get(),
           "insert into CollectionSchema (CollectionName, CollectionSchema, CollectionSchemaType) values (?, ?, ?)",  // stmt
           -1,  // If greater than zero, then stmt is read up to the first null terminator
           &m_insertCollectionSchemaStmt,  //Statement that is to be prepared
@@ -192,7 +188,7 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
   }
 
   // 2. Start Transaction before issuing insert
-  code = sqlite3_exec(m_metadataDBConnection, "BEGIN", 0, 0, 0);
+  code = sqlite3_exec(m_metadataDBConnection.get(), "BEGIN", 0, 0, 0);
   if (code != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
   }
@@ -204,10 +200,10 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
       ostringstream ss;
       ss << "Collection with name \"" << name << "\" already exists.";
       std::string errorMsg = ss.str();
-      sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
+      sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
       throw CollectionAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
     } else {
-      sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
+      sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
       throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
     }
   }
@@ -221,19 +217,31 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
 
   //4. Commit or Rollback the transaction based on status of inserts
   if (!sts) {
-    sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);    
+    sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);    
   } else {
-    code = sqlite3_exec(m_metadataDBConnection, "COMMIT", 0, 0, 0);
+    code = sqlite3_exec(m_metadataDBConnection.get(), "COMMIT", 0, 0, 0);
     if (code != SQLITE_OK) {
       // Comment copied from sqlite documentation. It is recommended that
       // applications respond to the errors listed above by explicitly issuing
       // a ROLLBACK command.If the transaction has already been rolled back
       // automatically by the error response, then the ROLLBACK command will
       // fail with an error, but no harm is caused by this.
-      sqlite3_exec(m_metadataDBConnection, "ROLLBACK", 0, 0, 0);
+      sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
       throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
     }    
   }
+}
+
+const std::string& DatabaseMetadataManager::GetFullDBPath() const {
+  return m_fullDbPath;
+}
+
+const std::string& DatabaseMetadataManager::GetDBPath() const {
+  return m_dbPath;
+}
+
+const std::string& DatabaseMetadataManager::GetDBName() const {
+  return m_dbName;
 }
 
 Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
@@ -277,14 +285,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
   return Status();
 }
 
-const std::string& DatabaseMetadataManager::GetFullDBPath() const {
-  return m_fullDbPath;
-}
-
-const std::string& DatabaseMetadataManager::GetDBPath() const {
-  return m_dbPath;
-}
-
-const std::string& DatabaseMetadataManager::GetDBName() const {
-  return m_dbName;
+void DatabaseMetadataManager::FinalizeStatements() {
+  GuardFuncs::SQLite3Finalize(m_insertCollectionIndexStmt);
+  GuardFuncs::SQLite3Finalize(m_insertCollectionSchemaStmt);  
 }

@@ -30,17 +30,17 @@ class DatabaseMetadataManager final {
   const std::string& GetDBPath() const;
   const std::string& GetDBName() const;
 
- private:
-  
+ private:  
   void Initialize(bool createDBIfMissing);
   void CreateTables();
   void PrepareStatements();
   Status CreateIndex(const char* collectionName, const IndexInfoImpl& indexInfo);
+  void FinalizeStatements();
 
   std::string m_dbName;
   std::string m_dbPath;
   std::string m_fullDbPath;
-  sqlite3* m_metadataDBConnection;
+  std::unique_ptr<sqlite3, void(*)(sqlite3*)> m_metadataDBConnection;
   sqlite3_stmt* m_insertCollectionSchemaStmt;
   sqlite3_stmt* m_insertCollectionIndexStmt;
 };

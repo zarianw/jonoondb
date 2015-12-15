@@ -221,16 +221,16 @@ TEST(Status, GetCode){
   string errorMsg = "Error Message.";
 
   Status status1(kStatusGenericErrorCode, errorMsg.c_str(),
-		__FILE__, "", __LINE__);
+    __FILE__, "", __LINE__);
   ASSERT_EQ(status1.GetCode(), kStatusGenericErrorCode);
 
 
   Status status2(kStatusInvalidArgumentCode, errorMsg.c_str(),
-		__FILE__, "", __LINE__);
+    __FILE__, "", __LINE__);
   ASSERT_EQ(status2.GetCode(), kStatusInvalidArgumentCode);
 
   Status status3(kStatusMissingDatabaseFileCode, errorMsg.c_str(),
-		__FILE__, "", __LINE__);
+    __FILE__, "", __LINE__);
   ASSERT_EQ(status3.GetCode(), kStatusMissingDatabaseFileCode);
 }
 

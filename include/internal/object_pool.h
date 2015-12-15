@@ -4,37 +4,47 @@
 #include <list>
 #include <vector>
 #include <mutex>
+#include <functional>
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
 template<class ObjectType> class ObjectPool {
-public:
-  typedef ObjectType*(*ObjectAllocatorFunc)();
-  typedef void(*ObjectDeallocatorFunc)(ObjectType*);
-  typedef void(*ObjectResetFunc)(ObjectType*);
-
-  ObjectPool(int poolInitialiSize, int poolCapacity, ObjectAllocatorFunc objectAllocatorFunc, ObjectDeallocatorFunc objectDeallocatorFunc, ObjectResetFunc objectResetFunc) :
+public:  
+  ObjectPool(int poolInitialiSize, int poolCapacity, std::function<ObjectType*()> objectAllocatorFunc, std::function<void(ObjectType*)> objectDeallocatorFunc,
+    std::function<void(ObjectType*)> objectResetFunc = std::function<void(ObjectType*)>()) :
     m_poolInitialiSize(poolInitialiSize), m_poolCapacity(poolCapacity), m_objectAllocatorFunc(objectAllocatorFunc),
-    m_objectDeallocatorFunc(objectDeallocatorFunc), m_objectResetFunc(objectResetFunc), m_initialized(false), m_currentObjectIndex(-1) {
+    m_objectDeallocatorFunc(objectDeallocatorFunc), m_currentObjectIndex(-1) {
     if (m_poolCapacity == 0 || m_poolCapacity < m_poolInitialiSize) {
       throw InvalidArgumentException("Argument poolCapacity cannot be 0 or less than initialPoolSize.",
         __FILE__, "", __LINE__);
     }
 
-    m_objects.resize(m_poolCapacity);
+    if (!m_objectAllocatorFunc) {
+      throw InvalidArgumentException("Argument objectAllocatorFunc cannot be empty.",
+        __FILE__, "", __LINE__);
+    }
+
+    if (!m_objectDeallocatorFunc) {
+      throw InvalidArgumentException("Argument objectDeallocatorFunc cannot be empty.",
+        __FILE__, "", __LINE__);
+    }
+
+    if (objectResetFunc) {
+      m_objectResetFunc = objectResetFunc;
+    }
+
+    m_objects.resize(m_poolCapacity, nullptr);
 
     try {
-      if (m_objectAllocatorFunc != nullptr) {
-        for (int i = 0; i < m_poolInitialiSize; i++) {
-          m_objects[i] = InvokeObjectAllocatorFunc();
-          if (m_objects[i] == nullptr) {
-            throw JonoonDBException("Object allocation failed.");
-          }
+      for (int i = 0; i < m_poolInitialiSize; i++) {
+        m_objects[i] = InvokeObjectAllocatorFunc();
+        if (m_objects[i] == nullptr) {
+          throw JonoonDBException("Object allocation failed. ObjectAllocatorFunc returned nullptr.",
+            __FILE__, "", __LINE__);
         }
       }
-
       m_currentObjectIndex = m_poolInitialiSize - 1;
-    } catch {
+    } catch (...) {
       for (int i = 0; i <= m_currentObjectIndex; i++) {
         if (m_objects[i] != nullptr) {
           InvokeObjectDeallocatorFunc(m_objects[i]);
@@ -86,33 +96,27 @@ public:
   }
 
 private:
-  std::vector<ObjectType*> m_objects;
-  int m_poolInitialiSize;
-  int m_poolCapacity;
-  ObjectAllocatorFunc m_objectAllocatorFunc;
-  ObjectDeallocatorFunc m_objectDeallocatorFunc;
-  ObjectResetFunc m_objectResetFunc;
-  int m_currentObjectIndex;
-  std::mutex m_mutex;
-
   inline ObjectType* InvokeObjectAllocatorFunc() {
-    if (m_objectAllocatorFunc == nullptr) {
-      return nullptr;
-    }
-
     return m_objectAllocatorFunc();
   }
 
   inline void InvokeObjectDeallocatorFunc(ObjectType* obj) {
-    if (m_objectDeallocatorFunc != nullptr) {
-      m_objectDeallocatorFunc(obj);
-    }
+    m_objectDeallocatorFunc(obj);    
   }
 
   inline void InvokeObjectResetFunc(ObjectType* obj) {
-    if (m_objectResetFunc != nullptr) {
+    if (m_objectResetFunc) {
       m_objectResetFunc(obj);
     }
-  }
+  }  
+
+  std::vector<ObjectType*> m_objects;
+  int m_poolInitialiSize;
+  int m_poolCapacity;
+  std::function<ObjectType*()> m_objectAllocatorFunc;
+  std::function<void(ObjectType*)> m_objectDeallocatorFunc;
+  std::function<void(ObjectType*)> m_objectResetFunc;
+  int m_currentObjectIndex;
+  std::mutex m_mutex;  
 };
 } // namespace jonoondb_api

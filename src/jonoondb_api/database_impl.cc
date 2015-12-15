@@ -28,12 +28,12 @@ DatabaseImpl::DatabaseImpl(const OptionsImpl& options,
 
 DatabaseImpl* DatabaseImpl::Open(const std::string& dbPath, const std::string& dbName,
                           const OptionsImpl& options) {
-  // Initialize query processor
-  unique_ptr<QueryProcessor> qp = std::make_unique<QueryProcessor>();
-  
   // Initialize DatabaseMetadataManager
   std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager =
     std::make_unique<DatabaseMetadataManager>(dbPath, dbName, options.GetCreateDBIfMissing()); 
+
+  // Initialize query processor
+  unique_ptr<QueryProcessor> qp = std::make_unique<QueryProcessor>(dbPath, dbName);
 
   return new DatabaseImpl(options, move(databaseMetadataManager), move(qp));
 }
