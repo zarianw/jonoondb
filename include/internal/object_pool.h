@@ -8,7 +8,7 @@
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
-template<class ObjectType> class ObjectPool {
+template<typename ObjectType> class ObjectPool final {
 public:  
   ObjectPool(int poolInitialiSize, int poolCapacity, std::function<ObjectType*()> objectAllocatorFunc, std::function<void(ObjectType*)> objectDeallocatorFunc,
     std::function<void(ObjectType*)> objectResetFunc = std::function<void(ObjectType*)>()) :
@@ -92,6 +92,7 @@ public:
   ~ObjectPool() {
     for (int i = 0; i <= m_currentObjectIndex; i++) {
       InvokeObjectDeallocatorFunc(m_objects[i]);
+      m_objects[i] = nullptr;
     }
   }
 
@@ -118,5 +119,23 @@ private:
   std::function<void(ObjectType*)> m_objectResetFunc;
   int m_currentObjectIndex;
   std::mutex m_mutex;  
+};
+
+template <typename ObjectType> class ObjectPoolGuard {
+public:
+  ObjectPoolGuard(ObjectPool<ObjectType>* pool, ObjectType* obj) : m_pool(pool), m_obj(obj) {
+  }
+
+  ~ObjectPoolGuard() {
+    m_pool->Return(m_obj);
+  }
+
+  //implicit conversion from ObjectPoolGuard to Object
+  operator ObjectType* () {
+    return m_obj;
+  }
+private:
+  ObjectPool<ObjectType>* m_pool;
+  ObjectType* m_obj;
 };
 } // namespace jonoondb_api

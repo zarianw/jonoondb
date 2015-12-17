@@ -24,12 +24,8 @@ struct sqlite3_api_routines;
 int jonoondb_vtable_init(sqlite3 *db, char **error,
                          const sqlite3_api_routines *api);
 
-class DBConnectionFactory {
-  static std::string path;
-};
-
 QueryProcessor::QueryProcessor(const std::string& dbPath, const std::string& dbName) :
-m_writableDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(nullptr) {
+m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(nullptr) {
   path pathObj(dbPath);
 
   // check if the db folder exists
@@ -41,11 +37,11 @@ m_writableDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(nu
 
   pathObj += dbName;
   pathObj += ".dat";
-  auto fullDbPath = pathObj.string();
+  m_fullDBpath = pathObj.string();
 
   if (!boost::filesystem::exists(pathObj)) {
     std::ostringstream ss;
-    ss << "Database file " << fullDbPath << " does not exist.";
+    ss << "Database file " << m_fullDBpath << " does not exist.";
     throw MissingDatabaseFileException(ss.str(), __FILE__, "", __LINE__);
   }
 
@@ -55,11 +51,14 @@ m_writableDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(nu
   }
 
   sqlite3* db = nullptr;
-  code = sqlite3_open(pathObj.string().c_str(), &db);
-  m_writableDBConnection.reset(db);
+  code = sqlite3_open(m_fullDBpath.c_str(), &db);
+  m_readWriteDBConnection.reset(db);
   if (code != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
   } 
+
+  //Initialize the connection pool
+  m_dbConnectionPool.reset(new ObjectPool<sqlite3>(5, 10, std::bind(&QueryProcessor::OpenConnection, this), GuardFuncs::SQLite3Close));
 }
 
 Status QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& collection) {
@@ -75,7 +74,7 @@ Status QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& 
     << " USING jonoondb_vtable(" << key << ")";
 
   char* errMsg;
-  int code = sqlite3_exec(m_writableDBConnection.get(), sqlStmt.str().c_str(), nullptr, nullptr, &errMsg);
+  int code = sqlite3_exec(m_readWriteDBConnection.get(), sqlStmt.str().c_str(), nullptr, nullptr, &errMsg);
   // Remove the collection from dictionary
   DocumentCollectionDictionary::Instance()->Remove(key);
   if (code != SQLITE_OK) {
@@ -93,10 +92,13 @@ Status QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& 
 
 ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) {
   char* errMsg;
-  int code = sqlite3_exec(m_writableDBConnection.get(), selectStatement.c_str(), nullptr, nullptr, &errMsg);
+  // connection comming from m_dbConnectionPool are readonly so we dont have to worry about
+  // sql injection
+  //ObjectPoolGuard<sqlite3> guard(m_dbConnectionPool.get(), m_dbConnectionPool->Take());
+  int code = sqlite3_exec(m_readWriteDBConnection.get(), selectStatement.c_str(), nullptr, nullptr, &errMsg);
   if (code != SQLITE_OK) {
     if (errMsg != nullptr) {
-      std::string sqliteErrorMsg = errMsg;
+      std::string sqliteErrorMsg(errMsg);
       sqlite3_free(errMsg);
       throw SQLException(sqliteErrorMsg, __FILE__, "", __LINE__);
     }
@@ -105,4 +107,15 @@ ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) 
   }
 
   return ResultSetImpl();
+}
+
+sqlite3* QueryProcessor::OpenConnection() {
+  sqlite3* db = nullptr;
+  int code = sqlite3_open_v2(m_fullDBpath.c_str(), &db, SQLITE_OPEN_READONLY, nullptr);
+  if (code != SQLITE_OK) {
+    sqlite3_close(db);
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }
+
+  return db;
 }

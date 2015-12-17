@@ -22,7 +22,9 @@ public:
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
 private:  
-  std::unique_ptr<sqlite3, void(*)(sqlite3*)> m_writableDBConnection;
+  sqlite3* OpenConnection();
+  std::unique_ptr<sqlite3, void(*)(sqlite3*)> m_readWriteDBConnection;
   std::unique_ptr<ObjectPool<sqlite3>> m_dbConnectionPool;
+  std::string m_fullDBpath;
 };
 }  // jonoondb_api
