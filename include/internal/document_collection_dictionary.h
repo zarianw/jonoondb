@@ -4,10 +4,25 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include "enums.h"
 
 namespace jonoondb_api {
 // Forward Declarations
 class DocumentCollection;
+
+struct ColumnInfo {
+  ColumnInfo(const std::string& colName, FieldType colType) :
+    columnName(colName), columnType(colType) {
+  }
+  std::string columnName;
+  FieldType columnType;
+};
+
+struct DocumentCollectionInfo {
+  std::shared_ptr<DocumentCollection> collection;
+  std::vector<ColumnInfo> columnsInfo;
+  std::string createVTableStmt;
+};
 
 class DocumentCollectionDictionary {
 public:
@@ -15,8 +30,8 @@ public:
   DocumentCollectionDictionary(DocumentCollectionDictionary&&) = delete;
   
   static DocumentCollectionDictionary* Instance();
-  void Insert(const std::string& key, const std::shared_ptr<DocumentCollection>& collection);
-  bool TryGet(const std::string& key, std::shared_ptr<DocumentCollection>& collection);
+  void Insert(const std::string& key, const std::shared_ptr<DocumentCollectionInfo>& collection);
+  bool TryGet(const std::string& key, std::shared_ptr<DocumentCollectionInfo>& collection);
   void Remove(const std::string& key);
   void Clear();
 
@@ -25,6 +40,8 @@ private:
   static void Init();
   static std::once_flag onceFlag;
   static DocumentCollectionDictionary* instance;
-  std::unordered_map<std::string, std::shared_ptr<DocumentCollection>> m_dictionary;
+  std::unordered_map<std::string, std::shared_ptr<DocumentCollectionInfo>> m_dictionary;
 };
+
+
 }  // jonoondb_api

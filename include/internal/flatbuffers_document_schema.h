@@ -24,8 +24,8 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
   Status GetFieldType(const char* fieldName, FieldType& fieldType) const
       override;
   std::size_t GetRootFieldCount() const override;
-  Status GetRootField(size_t index, Field*& field) const override;
-  Status AllocateField(Field*& field) const override;
+  void GetRootField(size_t index, Field*& field) const override;
+  Field* AllocateField() const override;
   const flatbuffers::StructDef* GetRootStruct() const;
   const flatbuffers::SymbolTable<flatbuffers::StructDef>* GetChildStructs() const;
  private:  

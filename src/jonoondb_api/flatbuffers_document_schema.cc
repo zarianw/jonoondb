@@ -85,7 +85,7 @@ std::size_t FlatbuffersDocumentSchema::GetRootFieldCount() const {
   return m_parser->root_struct_def->fields.vec.size();
 }
 
-Status FlatbuffersDocumentSchema::GetRootField(size_t index,
+void FlatbuffersDocumentSchema::GetRootField(size_t index,
                                                Field*& field) const {
   FlatbuffersField* fbField = dynamic_cast<FlatbuffersField*>(field);
   if (fbField == nullptr) {
@@ -101,12 +101,10 @@ Status FlatbuffersDocumentSchema::GetRootField(size_t index,
   }
 
   fbField->SetFieldDef(m_parser->root_struct_def->fields.vec[index]);
-  return Status();
 }
 
-Status FlatbuffersDocumentSchema::AllocateField(Field*& field) const {
-  field = new FlatbuffersField();
-  return Status();
+Field* FlatbuffersDocumentSchema::AllocateField() const {
+  return new FlatbuffersField();  
 }
 
 const StructDef* FlatbuffersDocumentSchema::GetRootStruct() const {

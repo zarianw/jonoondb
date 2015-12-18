@@ -11,11 +11,11 @@ DocumentCollectionDictionary* DocumentCollectionDictionary::Instance() {
   return instance;
 }
 
-void DocumentCollectionDictionary::Insert(const std::string& key, const std::shared_ptr<DocumentCollection>& collection) {
+void DocumentCollectionDictionary::Insert(const std::string& key, const std::shared_ptr<DocumentCollectionInfo>& collection) {
   m_dictionary[key] = collection;
 }
 
-bool DocumentCollectionDictionary::TryGet(const std::string& key, std::shared_ptr<DocumentCollection>& collection) {
+bool DocumentCollectionDictionary::TryGet(const std::string& key, std::shared_ptr<DocumentCollectionInfo>& collection) {
   auto iter = m_dictionary.find(key);
   if (iter != m_dictionary.end()) {
     collection = iter->second;    
