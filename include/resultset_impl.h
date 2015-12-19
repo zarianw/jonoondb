@@ -2,13 +2,22 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include "sqlite3.h"
+#include "object_pool.h"
 
 namespace jonoondb_api {
 class Status;
 
 class ResultSetImpl {
 public:
+  ResultSetImpl(ObjectPoolGuard<sqlite3>& db, const std::string& selectStmt);
+  ResultSetImpl(ResultSetImpl&& other);
+  ResultSetImpl& operator=(ResultSetImpl&& other);
+  ResultSetImpl(const ResultSetImpl& other) = delete;
+  ResultSetImpl& operator=(const ResultSetImpl& other) = delete;
+
+
   bool Next();
   std::int8_t GetInt8(int columnIndex) const;
   std::int16_t GetInt16(int columnIndex) const;
@@ -19,7 +28,7 @@ public:
   std::string GetStringValue(int columnIndex) const;
   int GetColumnIndex(const std::string& columnLabel) const;
 private:
-  sqlite3* m_db;
-  sqlite3* m_stmt;
+  ObjectPoolGuard<sqlite3> m_db;  
+  std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> m_stmt;
 };
 } // jonoondb_api

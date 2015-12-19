@@ -363,10 +363,7 @@ public:
 
   ResultSet(const ResultSet& other) = delete;
   ResultSet(ResultSet&& other) {
-    if (this != &other) {
-      if (m_opaque != nullptr) {
-        jonoondb_resultset_destruct(m_opaque);
-      }
+    if (this != &other) {      
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
     }
@@ -389,6 +386,13 @@ public:
     }
 
     return *this;
+  }
+
+  void Close() {
+    if (m_opaque != nullptr) {
+      jonoondb_resultset_destruct(m_opaque);
+      m_opaque = nullptr;
+    }
   }
 
   bool Next();
@@ -423,9 +427,9 @@ public:
     status_ptr sts = nullptr;
     jonoondb_database_close(m_opaque, &sts);
     if (sts != nullptr) {
-      //Todo: Handle errors that can happen on shutdown
+      //Todo: Handle/Log errors that can happen on shutdown
     }
-
+    m_opaque = nullptr;
     delete this;
   }
 

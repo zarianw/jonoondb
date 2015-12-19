@@ -178,22 +178,9 @@ void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& co
 }
 
 ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) {
-  char* errMsg;
-  // connection comming from m_dbConnectionPool are readonly so we dont have to worry about
-  // sql injection
-  ObjectPoolGuard<sqlite3> guard(m_dbConnectionPool.get(), m_dbConnectionPool->Take());
-  int code = sqlite3_exec(guard, selectStatement.c_str(), nullptr, nullptr, &errMsg);
-  if (code != SQLITE_OK) {
-    if (errMsg != nullptr) {
-      std::string sqliteErrorMsg(errMsg);
-      sqlite3_free(errMsg);
-      throw SQLException(sqliteErrorMsg, __FILE__, "", __LINE__);
-    }
-
-    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
-  }
-
-  return ResultSetImpl();
+  // connection comming from m_dbConnectionPool are readonly
+  // so we dont have to worry about sql injection
+  return ResultSetImpl(ObjectPoolGuard<sqlite3>(m_dbConnectionPool.get(), m_dbConnectionPool->Take()), selectStatement);
 }
 
 sqlite3* QueryProcessor::OpenConnection() {

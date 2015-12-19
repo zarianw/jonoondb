@@ -123,11 +123,45 @@ private:
 
 template <typename ObjectType> class ObjectPoolGuard {
 public:
+  ObjectPoolGuard() : m_pool(nullptr), m_obj(nullptr) {
+  }
+
   ObjectPoolGuard(ObjectPool<ObjectType>* pool, ObjectType* obj) : m_pool(pool), m_obj(obj) {
   }
 
+  ObjectPoolGuard(ObjectPoolGuard&& other) {
+    if (this != &other) {
+      this->m_pool = other.m_pool;
+      this->m_obj = other.m_obj;
+
+      other.m_pool = nullptr;
+      other.m_obj = nullptr;
+    }
+  }
+
+  ObjectPoolGuard& operator=(ObjectPoolGuard&& other) {
+    if (this != &other) {
+      if (m_pool && m_obj) {
+        m_pool->Return(m_obj);
+      }
+
+      this->m_pool = other.m_pool;
+      this->m_obj = other.m_obj;
+
+      other.m_pool = nullptr;
+      other.m_obj = nullptr;
+    }
+
+    return *this;
+  }
+
+  ObjectPoolGuard(const ObjectPoolGuard&) = delete;
+  ObjectPoolGuard& operator=(const ObjectPoolGuard&) = delete;
+
   ~ObjectPoolGuard() {
-    m_pool->Return(m_obj);
+    if (m_pool && m_obj) {
+      m_pool->Return(m_obj);
+    }
   }
 
   //implicit conversion from ObjectPoolGuard to Object

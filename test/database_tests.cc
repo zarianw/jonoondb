@@ -254,7 +254,8 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   string schema = ReadTextFile(filePath.c_str());
   db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS, schema.c_str(), std::vector<IndexInfo>());
 
-  ResultSet rs = db->ExecuteSelect("select * from tweet where text = 'hello'");  
+  ResultSet rs = db->ExecuteSelect("select * from tweet where text = 'hello'"); 
+  rs.Close();
   db->Close();
 }
 
@@ -268,6 +269,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
 
   CreateInsertTweet(db, collectionName, true, 1);
   ResultSet rs = db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'");  
+  rs.Close();
   db->Close();
 }
 
@@ -301,17 +303,15 @@ TEST(Database, ExecuteSelect_Testing) {
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
-
-
   db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
   Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
 
   ResultSet rs = db->ExecuteSelect("SELECT * FROM tweet WHERE id = 1;");
-
   rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
   rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
 
+  rs.Close();
   db->Close();
 }
