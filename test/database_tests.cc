@@ -45,6 +45,7 @@ TEST(Database, Open_MissingDatabaseFile) {
   string dbName = "Database_Open_New";
   string dbPath = g_TestRootDirectory;
   Options options;
+  options.SetCreateDBIfMissing(false);
   Database* db = nullptr;
   ASSERT_THROW(db = Database::Open(dbPath, dbName, options), MissingDatabaseFileException);
   ASSERT_EQ(db, nullptr);
@@ -53,8 +54,7 @@ TEST(Database, Open_MissingDatabaseFile) {
 TEST(Database, Open_MissingDatabaseFolder) {
   string dbName = "Database_Open_New";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = nullptr;
   ASSERT_THROW(Database::Open(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
 }
@@ -62,8 +62,7 @@ TEST(Database, Open_MissingDatabaseFolder) {
 TEST(Database, Open_New) {
   string dbName = "Database_Open_New";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);
   db->Close();
 }
@@ -71,8 +70,7 @@ TEST(Database, Open_New) {
 TEST(Database, Open_Existing) {
   string dbName = "Database_Open_Existing";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db;
   db = Database::Open(dbPath, dbName, options);
   db->Close();
@@ -83,8 +81,7 @@ TEST(Database, Open_Existing) {
 
 TEST(Database, Open_CreateIfMissing) {
   //First remove the file if it exists
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(g_TestRootDirectory.c_str(), "Database_Open_CreateIfMissing", options);  
   db->Close();	
 }
@@ -92,8 +89,7 @@ TEST(Database, Open_CreateIfMissing) {
 TEST(Database, CreateCollection_InvalidSchema) {
   string dbName = "CreateCollection_New";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);
   std::vector<IndexInfo> indexes;
   ASSERT_THROW(db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", indexes), SchemaParseException);
@@ -103,8 +99,7 @@ TEST(Database, CreateCollection_InvalidSchema) {
 TEST(Database, CreateCollection_New) {
   string dbName = "CreateCollection_New";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   Database* db = Database::Open(dbPath, dbName, options);
@@ -116,8 +111,7 @@ TEST(Database, CreateCollection_New) {
 TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string dbName = "CreateCollection_CollectionAlreadyExist";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   Database* db = Database::Open(dbPath, dbName, options);
@@ -131,8 +125,7 @@ TEST(Database, Insert_NoIndex) {
   string dbName = "Insert_NoIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
@@ -150,8 +143,7 @@ TEST(Database, Insert_SingleIndex) {
   string dbName = "Insert_SingleIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
@@ -194,8 +186,7 @@ TEST(Database, Insert_AllIndexTypes) {
   string dbName = "Insert_AllIndexTypes";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);  
 
   string filePath = g_SchemaFolderPath + "all_field_type.fbs";
@@ -231,9 +222,7 @@ TEST(Database, ExecuteSelect_MissingCollection) {
   string dbName = "ExecuteSelect_MissingCollection";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
-  
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
@@ -247,8 +236,7 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   string dbName = "ExecuteSelect_EmptyDB_NoIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -263,8 +251,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   string dbName = "ExecuteSelect_NonEmptyDB_SingleIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);
 
   CreateInsertTweet(db, collectionName, true, 1);
@@ -277,8 +264,7 @@ TEST(Database, ExecuteSelect_Testing) {
   string dbName = "ExecuteSelect_Testing";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;
-  options.SetCreateDBIfMissing(true);
+  Options options;  
   Database* db = Database::Open(dbPath, dbName, options);
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";

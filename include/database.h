@@ -141,20 +141,37 @@ private:
 class Options {
 public:
   //Default constructor that sets all the options to their default value
-  Options() {
-    m_opaque = jonoondb_options_construct();
-  }
-  Options(bool createDBIfMissing, size_t maxDataFileSize,
-    bool compressionEnabled, bool synchronous) {    
-    m_opaque = jonoondb_options_construct2(createDBIfMissing, maxDataFileSize, compressionEnabled,
-      synchronous, ThrowOnError{});
+  Options() : m_opaque(jonoondb_options_construct()) {
   }
 
-  Options(Options&& other) {
-    if (this != &other) {
-      this->m_opaque = other.m_opaque;
-      other.m_opaque = nullptr;
-    }
+  Options(bool createDBIfMissing, size_t maxDataFileSize,
+    bool compressionEnabled, bool synchronous) :
+       m_opaque(jonoondb_options_construct2(createDBIfMissing, maxDataFileSize,
+       compressionEnabled, synchronous, ThrowOnError{})) {
+  }
+
+  Options(const Options& other) :
+    m_opaque(jonoondb_options_copy_construct(other.m_opaque)) {
+  }
+
+  friend void swap(Options& first, Options& second) {
+    using std::swap;
+    swap(first.m_opaque, second.m_opaque);
+  }  
+
+  Options(Options&& other) : m_opaque(nullptr) {
+    swap(*this, other);
+  }    
+
+  Options& operator=(const Options& other) {
+    Options copy(other);
+    swap(*this, copy);
+    return *this;
+  }
+
+  Options& operator=(Options&& other) {
+    swap(*this, other);
+    return *this;
   }
 
   ~Options() {
@@ -167,7 +184,7 @@ public:
     jonoondb_options_setcreatedbifmissing(m_opaque, value);
   }
   bool GetCreateDBIfMissing() const {
-    jonoondb_options_getcreatedbifmissing(m_opaque);
+    return jonoondb_options_getcreatedbifmissing(m_opaque);
   }
 
   void SetCompressionEnabled(bool value) {

@@ -153,6 +153,10 @@ options_ptr jonoondb_options_construct() {
   return new options();
 }
 
+options_ptr jonoondb_options_copy_construct(const options_ptr other) {
+  return new options(*other);
+}
+
 options_ptr jonoondb_options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
   bool compressionEnabled, bool synchronous, status_ptr* sts) {
   return new options(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous);

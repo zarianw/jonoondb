@@ -42,6 +42,7 @@ uint64_t jonoondb_status_line(status_ptr sts);
 //
 typedef struct options* options_ptr;
 options_ptr jonoondb_options_construct();
+options_ptr jonoondb_options_copy_construct(const options_ptr other);
 options_ptr jonoondb_options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
   bool compressionEnabled, bool isSynchronous, status_ptr* sts);
 void jonoondb_options_destruct(options_ptr opt);
