@@ -294,9 +294,13 @@ TEST(Database, ExecuteSelect_Testing) {
   Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
 
-  ResultSet rs = db->ExecuteSelect("SELECT * FROM tweet WHERE id = 1;");
-  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
-  rs = db->ExecuteSelect("SELECT * FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
+  ResultSet rs = db->ExecuteSelect("SELECT id, text, 'user.id', 'user.name' FROM tweet WHERE id = 1;");
+  while (rs.Next()) {
+    
+  }
+
+  rs = db->ExecuteSelect("SELECT id, text, 'user.id', 'user.name' FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
+  rs = db->ExecuteSelect("SELECT id, text, 'user.id', 'user.name' FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
 
   rs.Close();
   db->Close();

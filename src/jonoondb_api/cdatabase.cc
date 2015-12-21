@@ -308,6 +308,26 @@ void jonoondb_resultset_destruct(resultset_ptr rs) {
   delete rs;
 }
 
+int32_t jonoondb_resultset_next(resultset_ptr rs) {
+  if (rs->impl.Next()) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int64_t jonoondb_resultset_getinteger(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
+  return rs->impl.GetInteger(columnIndex);
+}
+
+double jonoondb_resultset_getdouble(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
+  return rs->impl.GetDouble(columnIndex);
+}
+
+const char* jonoondb_resultset_getstring(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts) {
+  return nullptr;
+}
+
 //
 // Database
 //

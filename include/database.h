@@ -412,22 +412,12 @@ public:
     }
   }
 
-  bool Next();
-
-  std::int8_t GetInt8(const std::string& fieldName) const;
-  std::int16_t GetInt16(const std::string& fieldName) const;
-  std::int32_t GetInt32(const std::string& fieldName) const;
-  std::int64_t GetInt64(const std::string& fieldName) const;
-
-  std::uint8_t GetUInt8(const std::string& fieldName) const;
-  std::uint16_t GetUInt16(const std::string& fieldName) const;
-  std::uint32_t GetUInt32(const std::string& fieldName) const;
-  std::uint64_t GetUInt64(const std::string& fieldName) const;
-
-  float GetFloat(const std::string& fieldName) const;
-  double GetDouble(const std::string& fieldName) const;
-
-  const char* GetStringValue(const std::string& fieldName) const;
+  bool Next() {
+    return jonoondb_resultset_next(m_opaque) != 0;    
+  }
+  std::int64_t GetInteger(const std::string& columnLabel) const;  
+  double GetDouble(const std::string& columnLabel) const;
+  std::string GetString(const std::string& columnLabel) const;
 private:
   resultset_ptr m_opaque;
 };

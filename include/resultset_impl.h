@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 #include "sqlite3.h"
 #include "object_pool.h"
 
@@ -17,18 +18,15 @@ public:
   ResultSetImpl(const ResultSetImpl& other) = delete;
   ResultSetImpl& operator=(const ResultSetImpl& other) = delete;
 
-
   bool Next();
-  std::int8_t GetInt8(int columnIndex) const;
-  std::int16_t GetInt16(int columnIndex) const;
-  std::int32_t GetInt32(int columnIndex) const;
-  std::int64_t GetInt64(int columnIndex) const;
-  float GetFloat(int columnIndex) const;
+  std::int64_t GetInteger(int columnIndex) const;
   double GetDouble(int columnIndex) const;
-  std::string GetStringValue(int columnIndex) const;
+  std::string GetString(int columnIndex) const;
   int GetColumnIndex(const std::string& columnLabel) const;
 private:
   ObjectPoolGuard<sqlite3> m_db;  
   std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> m_stmt;
+  std::unordered_map<std::string, int> m_columnMap;
+  mutable std::string m_tmpStrStorage;
 };
 } // jonoondb_api
