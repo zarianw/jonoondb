@@ -114,19 +114,23 @@ std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalAnd(std::vector<std
 }
 
 MamaJenniesBitmap::const_iterator MamaJenniesBitmap::begin() {
-  return MamaJenniesBitmapConstIterator(m_ewahBoolArray->begin());
+  auto iter = m_ewahBoolArray->begin();
+  return MamaJenniesBitmapConstIterator(iter);
 }
 
 MamaJenniesBitmap::const_iterator MamaJenniesBitmap::end() {
-  return MamaJenniesBitmapConstIterator(m_ewahBoolArray->end());
+  auto iter = m_ewahBoolArray->end();
+  return MamaJenniesBitmapConstIterator(iter);
 }
 
 std::unique_ptr<MamaJenniesBitmap::const_iterator> MamaJenniesBitmap::begin_pointer() {
-  return std::make_unique<const_iterator>(m_ewahBoolArray->begin());
+  auto iter = m_ewahBoolArray->begin();
+  return std::make_unique<const_iterator>(iter);
 }
 
 std::unique_ptr<MamaJenniesBitmap::const_iterator> MamaJenniesBitmap::end_pointer() {
-  return std::make_unique<const_iterator>(m_ewahBoolArray->end());
+  auto iter = m_ewahBoolArray->end();
+  return std::make_unique<const_iterator>(iter);
 }
 
 MamaJenniesBitmapConstIterator::MamaJenniesBitmapConstIterator(EWAHBoolArray<size_t>::const_iterator& iter) 

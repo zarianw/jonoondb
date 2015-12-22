@@ -5,7 +5,7 @@
 
 using namespace jonoondb_api;
 
-ResultSetImpl::ResultSetImpl(ObjectPoolGuard<sqlite3>& db, const std::string& selectStmt) :
+ResultSetImpl::ResultSetImpl(ObjectPoolGuard<sqlite3> db, const std::string& selectStmt) :
 m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
   sqlite3_stmt* stmt = nullptr;
   int code = sqlite3_prepare_v2(m_db, selectStmt.c_str(), selectStmt.size(), &stmt, nullptr);

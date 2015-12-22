@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <vector>
 #include "enums.h"
 
 namespace jonoondb_api {

@@ -12,7 +12,7 @@ class Status;
 
 class ResultSetImpl {
 public:
-  ResultSetImpl(ObjectPoolGuard<sqlite3>& db, const std::string& selectStmt);
+  ResultSetImpl(ObjectPoolGuard<sqlite3> db, const std::string& selectStmt);
   ResultSetImpl(ResultSetImpl&& other);
   ResultSetImpl& operator=(ResultSetImpl&& other);
   ResultSetImpl(const ResultSetImpl& other) = delete;
