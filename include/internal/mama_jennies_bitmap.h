@@ -8,8 +8,8 @@ namespace jonoondb_api {
 class MamaJenniesBitmapConstIterator {
 public:
   MamaJenniesBitmapConstIterator(EWAHBoolArray<size_t>::const_iterator& iter);
-  std::size_t MamaJenniesBitmapConstIterator::operator*() const;
-  MamaJenniesBitmapConstIterator & operator++();
+  std::size_t operator*() const;
+  MamaJenniesBitmapConstIterator& operator++();
   bool operator==(const MamaJenniesBitmapConstIterator& other);
   bool operator!=(const MamaJenniesBitmapConstIterator& other);
   bool operator<(const MamaJenniesBitmapConstIterator& other);

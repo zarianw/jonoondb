@@ -283,7 +283,7 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
 
 static int jonoondb_next(sqlite3_vtab_cursor* cur) {
   auto jdbCursor = (jonoondb_cursor*)cur;
-  (*jdbCursor->iter)++;  
+  ++(*jdbCursor->iter);
   
   return SQLITE_OK;
 }
