@@ -22,7 +22,9 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
         __FILE__, "", __LINE__);
     }
     // Todo: maybe we need to handle UTF8 strings here
-    m_columnMap[colName] = i;
+    std::string val(colName);    
+    m_columnMapStringStore.push_back(val);
+    m_columnMap[val] = i;
   }
 }
 
@@ -59,7 +61,7 @@ double ResultSetImpl::GetDouble(int columnIndex) const {
   return sqlite3_column_double(m_stmt.get(), columnIndex);
 }
 
-std::string ResultSetImpl::GetString(int columnIndex) const {
+const std::string& ResultSetImpl::GetString(int columnIndex) const {
   auto val = sqlite3_column_text(m_stmt.get(), columnIndex);
   if (val == nullptr) {
     std::ostringstream ss;
@@ -68,9 +70,10 @@ std::string ResultSetImpl::GetString(int columnIndex) const {
   }
   auto size = sqlite3_column_bytes(m_stmt.get(), columnIndex);
   m_tmpStrStorage = std::string(reinterpret_cast<const char*>(val), size);
+  return m_tmpStrStorage;
 }
 
-int ResultSetImpl::GetColumnIndex(const std::string& columnLabel) const {
+std::int32_t ResultSetImpl::GetColumnIndex(const boost::string_ref& columnLabel) const {
   auto iter = m_columnMap.find(columnLabel);
   if (iter == m_columnMap.end()) {
     std::ostringstream ss;

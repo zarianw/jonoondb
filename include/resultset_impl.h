@@ -3,7 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <unordered_map>
+#include <map>
+#include <boost/utility/string_ref.hpp>
 #include "sqlite3.h"
 #include "object_pool.h"
 
@@ -21,12 +22,13 @@ public:
   bool Next();
   std::int64_t GetInteger(int columnIndex) const;
   double GetDouble(int columnIndex) const;
-  std::string GetString(int columnIndex) const;
-  int GetColumnIndex(const std::string& columnLabel) const;
+  const std::string& GetString(int columnIndex) const;
+  std::int32_t GetColumnIndex(const boost::string_ref& columnLabel) const;
 private:
   ObjectPoolGuard<sqlite3> m_db;  
   std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> m_stmt;
-  std::unordered_map<std::string, int> m_columnMap;
+  std::map<boost::string_ref, int> m_columnMap;
+  std::vector<std::string> m_columnMapStringStore;
   mutable std::string m_tmpStrStorage;
 };
 } // jonoondb_api

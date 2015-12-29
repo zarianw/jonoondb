@@ -8,6 +8,7 @@
 #include "enums.h"
 #include "buffer_impl.h"
 #include "resultset_impl.h"
+#include "boost/utility/string_ref.hpp"
 
 using namespace jonoondb_api;
 
@@ -317,19 +318,38 @@ int32_t jonoondb_resultset_next(resultset_ptr rs) {
 }
 
 int64_t jonoondb_resultset_getinteger(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
-  return rs->impl.GetInteger(columnIndex);
+  int64_t val;
+  TranslateExceptions([&]{
+    val = rs->impl.GetInteger(columnIndex);
+  }, *sts);  
+  return val;
 }
 
 double jonoondb_resultset_getdouble(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
-  return rs->impl.GetDouble(columnIndex);
+  double val;
+  TranslateExceptions([&]{
+    val = rs->impl.GetDouble(columnIndex);
+  }, *sts);
+  return val;
 }
 
 const char* jonoondb_resultset_getstring(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts) {
-  return nullptr;
+  char* strPtr;
+  TranslateExceptions([&]{
+    const std::string& str = rs->impl.GetString(columnIndex);
+    **retValSize = str.size();
+    strPtr = const_cast<char*>(str.c_str());
+  }, *sts);  
+  return strPtr;
 }
 
 int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLabel, uint64_t columnLabelLength, status_ptr* sts) {  
-  return 0;
+  int32_t val;
+  TranslateExceptions([&]{
+    boost::string_ref strRef(columnLabel, columnLabelLength);
+    val = rs->impl.GetColumnIndex(strRef);
+  }, *sts);
+  return val;
 }
 
 //

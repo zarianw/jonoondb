@@ -8,6 +8,16 @@
 
 namespace jonoondb_api {
 
+
+//
+// StringRef
+//
+struct StringRef {
+  StringRef(const char* start, std::size_t size) :
+    strStart(start), strSize(size) { }
+  const char* strStart;
+  std::size_t strSize;
+};
 //
 // Status
 //
@@ -424,11 +434,11 @@ public:
     return jonoondb_resultset_getdouble(m_opaque, columnIndex, ThrowOnError());
   }
 
-  std::string GetString(std::int32_t columnIndex) const {
+  StringRef GetString(std::int32_t columnIndex) const {
     std::uint64_t size;
     std::uint64_t* sizePtr = &size;
-    jonoondb_resultset_getstring(m_opaque, columnIndex, &sizePtr, ThrowOnError{});
-    return "";
+    const char* str = jonoondb_resultset_getstring(m_opaque, columnIndex, &sizePtr, ThrowOnError{});
+    return StringRef(str, size);
   }
 
   std::int32_t GetColumnIndex(std::string columnLabel) {
