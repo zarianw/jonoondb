@@ -449,7 +449,7 @@ public:
   }
 
   ResultSet ExecuteSelect(const std::string& selectStatement) {
-    auto rs = jonoondb_database_executeselect(m_opaque, selectStatement.c_str(), ThrowOnError{});
+    auto rs = jonoondb_database_executeselect(m_opaque, selectStatement.c_str(), selectStatement.size(), ThrowOnError{});
     return ResultSet(rs);
   }
 

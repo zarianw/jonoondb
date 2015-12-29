@@ -277,6 +277,14 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
   return Status();
 }
 
-const char* DatabaseMetadataManager::GetFullDBPath() const {
-  return m_fullDbPath.c_str();
+const std::string& DatabaseMetadataManager::GetFullDBPath() const {
+  return m_fullDbPath;
+}
+
+const std::string& DatabaseMetadataManager::GetDBPath() const {
+  return m_dbPath;
+}
+
+const std::string& DatabaseMetadataManager::GetDBName() const {
+  return m_dbName;
 }

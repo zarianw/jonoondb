@@ -14,9 +14,10 @@ class IndexInfoImpl;
 class Document;
 class IndexStat;
 enum class FieldType
-: std::int32_t;
+: std::int8_t;
 enum class IndexConstraintOperator
-  : std::int32_t;
+  : std::int8_t;
+struct Constraint;
 
 class IndexManager {
  public:
@@ -24,9 +25,10 @@ class IndexManager {
   
   IndexManager(const std::vector<IndexInfoImpl*>& indexes, const std::unordered_map<std::string, FieldType>& columnTypes);
   Status CreateIndex(const IndexInfoImpl& indexInfo, std::unordered_map<std::string, FieldType>& columnTypes);
-  Status IndexDocument(std::uint64_t documentID, const Document& document);
+  void IndexDocument(std::uint64_t documentID, const Document& document);
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
     IndexStat& indexStat);
+  std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
 private:
   std::unique_ptr<ColumnIndexderMap> m_columnIndexerMap;
 };

@@ -115,7 +115,7 @@ void jonoondb_database_close(database_ptr db, status_ptr* sts);
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
                                         indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts);
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts);
-resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selectStatement, status_ptr* sts);
+resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selectStmt, uint64_t selectStmtLength, status_ptr* sts);
 
 #ifdef __cplusplus
 } // extern "C"

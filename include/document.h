@@ -28,8 +28,9 @@ class Document {
   virtual float GetScalarValueAsFloat(const std::string& fieldName) const = 0;
   virtual double GetScalarValueAsDouble(const std::string& fieldName) const = 0;
 
-  virtual const char* GetStringValue(const std::string& fieldName) const = 0;
+  virtual std::string GetStringValue(const std::string& fieldName) const = 0;
   virtual void GetDocumentValue(const std::string& fieldName, Document& val) const = 0;
   virtual std::unique_ptr<Document> AllocateSubDocument() const = 0;  
+  virtual void VerifyFieldForRead(const std::string& fieldName, FieldType type) const = 0;
 };
 }

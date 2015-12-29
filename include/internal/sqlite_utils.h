@@ -49,7 +49,7 @@ class SQLiteUtils {
     return 1;
   }
 
-  static void CloseSQLiteConnection(sqlite3*& dbConnection) {
+  static void CloseSQLiteConnection(sqlite3* dbConnection) {
     if (dbConnection != nullptr) {
       if (sqlite3_close(dbConnection) != SQLITE_OK) {
         // Todo: Handle SQLITE_BUSY response here
