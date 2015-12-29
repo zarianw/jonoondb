@@ -62,9 +62,7 @@ void CompareObjects(const FlatbuffersDocument &fbDoc, const AllFieldType& allFie
   ASSERT_EQ(subDoc->GetScalarValueAsInt64("field9"), allFieldObj.nestedField()->field9());
   ASSERT_EQ(subDoc->GetScalarValueAsUInt64("field10"), allFieldObj.nestedField()->field10());
   ASSERT_EQ(subDoc->GetScalarValueAsDouble("field11"), allFieldObj.nestedField()->field11());
-  ASSERT_STREQ(subDoc->GetStringValue("field12"), allFieldObj.nestedField()->field12()->c_str());
-
-
+  ASSERT_STREQ(subDoc->GetStringValue("field12").c_str(), allFieldObj.nestedField()->field12()->c_str());
 }
 
 TEST(FlatbuffersDocument, GetterTest) {
