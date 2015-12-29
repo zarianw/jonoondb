@@ -138,6 +138,7 @@ add_executable(
  ${TEST_PATH}/database_tests.cc
  ${TEST_PATH}/document_tests.cc
  ${TEST_PATH}/jonoondb_exception_tests.cc
- ${TEST_PATH}/filename_manager_tests.cc)
+ ${TEST_PATH}/filename_manager_tests.cc
+ ${TEST_PATH}/flatbuffers_document_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
