@@ -96,6 +96,7 @@ int32_t jonoondb_resultset_next(resultset_ptr rs);
 int64_t jonoondb_resultset_getinteger(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 double jonoondb_resultset_getdouble(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 const char* jonoondb_resultset_getstring(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts);
+int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLabel, uint64_t columnLabelLength, status_ptr* sts);
 
 //
 // Database Functions

@@ -415,9 +415,28 @@ public:
   bool Next() {
     return jonoondb_resultset_next(m_opaque) != 0;    
   }
-  std::int64_t GetInteger(const std::string& columnLabel) const;  
-  double GetDouble(const std::string& columnLabel) const;
-  std::string GetString(const std::string& columnLabel) const;
+
+  std::int64_t GetInteger(std::int32_t columnIndex) const {
+    return jonoondb_resultset_getinteger(m_opaque, columnIndex, ThrowOnError());
+  }
+
+  double GetDouble(std::int32_t columnIndex) const {
+    return jonoondb_resultset_getdouble(m_opaque, columnIndex, ThrowOnError());
+  }
+
+  std::string GetString(std::int32_t columnIndex) const {
+    std::uint64_t size;
+    std::uint64_t* sizePtr = &size;
+    jonoondb_resultset_getstring(m_opaque, columnIndex, &sizePtr, ThrowOnError{});
+    return "";
+  }
+
+  std::int32_t GetColumnIndex(std::string columnLabel) {
+    return jonoondb_resultset_getcolumnindex(m_opaque, columnLabel.c_str(),
+      columnLabel.size(), ThrowOnError{});
+  }
+
+  
 private:
   resultset_ptr m_opaque;
 };
