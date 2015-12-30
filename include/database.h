@@ -10,13 +10,24 @@ namespace jonoondb_api {
 
 
 //
-// StringRef
+// StringView
 //
-struct StringRef {
-  StringRef(const char* start, std::size_t size) :
-    strStart(start), strSize(size) { }
-  const char* strStart;
-  std::size_t strSize;
+class StringView {
+public:
+  StringView(const char* str, std::size_t size) :
+    m_str(str), m_size(size) {
+  }
+
+  const char* str() {
+    return m_str;
+  }
+
+  std::size_t size() {
+    return m_size;
+  }
+private:
+  const char* m_str;
+  std::size_t m_size;
 };
 //
 // Status
@@ -434,11 +445,11 @@ public:
     return jonoondb_resultset_getdouble(m_opaque, columnIndex, ThrowOnError());
   }
 
-  StringRef GetString(std::int32_t columnIndex) const {
+  StringView GetString(std::int32_t columnIndex) const {
     std::uint64_t size;
     std::uint64_t* sizePtr = &size;
     const char* str = jonoondb_resultset_getstring(m_opaque, columnIndex, &sizePtr, ThrowOnError{});
-    return StringRef(str, size);
+    return StringView(str, size);
   }
 
   std::int32_t GetColumnIndex(std::string columnLabel) {

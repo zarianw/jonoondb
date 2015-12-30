@@ -94,17 +94,17 @@ std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalAnd(std::vector<std
   std::shared_ptr<MamaJenniesBitmap> b1 = std::make_shared<MamaJenniesBitmap>();
   std::shared_ptr<MamaJenniesBitmap> b2 = std::make_shared<MamaJenniesBitmap>();
 
-  MamaJenniesBitmap& combinedBitmap = *bitmaps[0];
-  MamaJenniesBitmap& outputBitmap = *b2;
+  MamaJenniesBitmap* combinedBitmap = bitmaps[0].get();
+  MamaJenniesBitmap* outputBitmap = b2.get();
   bool flipper = true;
 
   for (int i = 1; i < bitmaps.size(); i++) {
-    bitmaps[i]->LogicalAND(combinedBitmap, outputBitmap);
+    bitmaps[i]->LogicalAND(*combinedBitmap, *outputBitmap);
     flipper = !flipper; // will turn to false on 1st iteration
-    combinedBitmap = flipper ? *b1 : *b2;
-    outputBitmap = flipper ? *b2 : *b1;
+    combinedBitmap = flipper ? b1.get() : b2.get();
+    outputBitmap = flipper ? b2.get() : b1.get();
 
-    if (combinedBitmap.GetSizeInBits() == 0) {
+    if (combinedBitmap->GetSizeInBits() == 0) {
       // No need to proceed further, the AND result will be an empty bitmap
       break;
     }

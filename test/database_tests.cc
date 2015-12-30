@@ -293,14 +293,43 @@ TEST(Database, ExecuteSelect_Testing) {
 
   Buffer documentData = GetTweetObject2();
   db->Insert(collectionName, documentData);
-
-  ResultSet rs = db->ExecuteSelect("SELECT id, text, 'user.id', 'user.name' FROM tweet WHERE id = 1;");
+  
+  int rows = 0;
+  ResultSet rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
   while (rs.Next()) {
-    
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ++rows;
   }
+  ASSERT_EQ(rows, 1);
 
-  rs = db->ExecuteSelect("SELECT id, text, 'user.id', 'user.name' FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
-  rs = db->ExecuteSelect("SELECT id, text, 'user.id', 'user.name' FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
+  rows = 0;
+  rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
+  while (rs.Next()) {
+    ++rows;
+  }
+  ASSERT_EQ(rows, 0);
+
+  rows = 0;
+  rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
+  while (rs.Next()) {
+    ++rows;
+  }
+  //Todo: Fix the OR case
+  //ASSERT_EQ(rows, 1);
+
+  rows = 0;
+  rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ++rows;
+  }
+  ASSERT_EQ(rows, 1);  
 
   rs.Close();
   db->Close();

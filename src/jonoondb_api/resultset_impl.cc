@@ -21,22 +21,31 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
       throw SQLException("Failed to get column names for the resultset.",
         __FILE__, "", __LINE__);
     }
-    // Todo: maybe we need to handle UTF8 strings here
-    std::string val(colName);    
-    m_columnMapStringStore.push_back(val);
-    m_columnMap[val] = i;
+    // Todo: maybe we need to handle UTF8 strings here     
+    m_columnMapStringStore.push_back(colName);    
+  }
+
+  for (size_t i = 0; i < m_columnMapStringStore.size(); i++) {
+    m_columnMap[m_columnMapStringStore[i]] = i;
   }
 }
 
+// Todo: Use more efficient move sematics (e.g. pimpl idom)
 ResultSetImpl::ResultSetImpl(ResultSetImpl&& other) : m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
   this->m_db = std::move(other.m_db);
-  this->m_stmt = std::move(other.m_stmt);  
+  this->m_stmt = std::move(other.m_stmt); 
+  this->m_columnMapStringStore = std::move(other.m_columnMapStringStore);
+  this->m_columnMap = std::move(other.m_columnMap);
+  this->m_tmpStrStorage = std::move(other.m_tmpStrStorage);
 }
 
 ResultSetImpl& ResultSetImpl::operator=(ResultSetImpl&& other) {
   if (this != &other) {
     this->m_db = std::move(other.m_db);
     this->m_stmt = std::move(other.m_stmt);
+    this->m_columnMapStringStore = std::move(other.m_columnMapStringStore);
+    this->m_columnMap = std::move(other.m_columnMap);
+    this->m_tmpStrStorage = std::move(other.m_tmpStrStorage);
   }
 
   return *this;
