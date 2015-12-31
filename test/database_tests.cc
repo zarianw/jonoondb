@@ -318,7 +318,7 @@ TEST(Database, ExecuteSelect_Testing) {
     ++rows;
   }
   //Todo: Fix the OR case
-  //ASSERT_EQ(rows, 1);
+  ASSERT_EQ(rows, 1);
 
   rows = 0;
   rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");

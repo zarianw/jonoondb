@@ -309,7 +309,7 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
     jonoondb_cursor* jdbCursor = (jonoondb_cursor*)cur;
     if (jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_STRING) {
       auto val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsString(jdbCursor->iter->operator*(), jdbCursor->collectionInfo->columnsInfo[cidx].columnName);
-      sqlite3_result_text(ctx, val.c_str(), val.size() + 1, SQLITE_TRANSIENT); // SQLITE_TRANSIENT causes SQLite to copy the string on its side
+      sqlite3_result_text(ctx, val.c_str(), val.size(), SQLITE_TRANSIENT); // SQLITE_TRANSIENT causes SQLite to copy the string on its side
     } else if (jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT64 ||
       jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT32 ||
       jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT16 ||
