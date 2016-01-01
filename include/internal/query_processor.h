@@ -7,7 +7,6 @@
 
 namespace jonoondb_api {
 // Forward declarations
-class Status;
 class DocumentCollection;
 class DocumentSchema;
 class ResultSetImpl;

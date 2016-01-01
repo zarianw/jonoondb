@@ -3,6 +3,7 @@
 #include <memory>
 #include "flatbuffers_document.h"
 #include "flatbuffers_document_schema.h"
+#include "buffer_impl.h"
 
 using namespace std;
 using namespace jonoondb_api;

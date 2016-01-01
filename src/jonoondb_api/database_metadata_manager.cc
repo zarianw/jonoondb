@@ -159,7 +159,7 @@ void DatabaseMetadataManager::PrepareStatements() {
 void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType schemaType,
   const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
-  unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
+  unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
   
 
@@ -246,7 +246,7 @@ const std::string& DatabaseMetadataManager::GetDBName() const {
 
 Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
                                             const IndexInfoImpl& indexInfo) {
-  unique_ptr<sqlite3_stmt, Status (*)(sqlite3_stmt*)> statementGuard(
+  unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionIndexStmt, SQLiteUtils::ClearAndResetStatement);
 
   int sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 1,  // Index of wildcard

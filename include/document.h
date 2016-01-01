@@ -5,13 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "buffer_impl.h"
 #include "enums.h"
 
 namespace jonoondb_api {
-// Forward Declaration
-class Status;
-
 class Document {
  public:
   virtual ~Document() {

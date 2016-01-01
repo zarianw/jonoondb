@@ -10,9 +10,6 @@
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
-// Forward declarations
-class Status;
-
 enum class MemoryMappedFileMode : std::int32_t {
   ReadOnly = 1,
   ReadWrite = 2

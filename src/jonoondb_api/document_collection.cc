@@ -20,6 +20,7 @@
 #include "mama_jennies_bitmap.h"
 #include "blob_manager.h"
 #include "constraint.h"
+#include "buffer_impl.h"
 
 using namespace jonoondb_api;
 
@@ -89,12 +90,11 @@ bool DocumentCollection::TryGetBestIndex(const std::string& columnName, IndexCon
 void DocumentCollection::PopulateColumnTypes(
   const std::vector<IndexInfoImpl*>& indexes,
   const DocumentSchema& documentSchema,
-  std::unordered_map<string, FieldType>& columnTypes) {
-  FieldType colType;
+  std::unordered_map<string, FieldType>& columnTypes) {  
   for (std::size_t i = 0; i < indexes.size(); i++) {
-    auto sts = documentSchema.GetFieldType(indexes[i]->GetColumnName().c_str(), colType);    
     columnTypes.insert(
-      pair<string, FieldType>(indexes[i]->GetColumnName(), colType));
+      pair<string, FieldType>(indexes[i]->GetColumnName(),
+      documentSchema.GetFieldType(indexes[i]->GetColumnName())));
   }
 }
 

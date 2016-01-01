@@ -20,7 +20,7 @@ class SQLiteUtils {
     return Status();
   }
 
-  static Status ClearAndResetStatement(sqlite3_stmt* statement) {
+  static void ClearAndResetStatement(sqlite3_stmt* statement) {
     //Reset all params back to null
     int sqliteCode1 = sqlite3_clear_bindings(statement);
 
@@ -34,9 +34,7 @@ class SQLiteUtils {
       throw SQLException(sqlite3_errstr(sqliteCode1), __FILE__, "", __LINE__);
 
     if (sqliteCode2 != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode2), __FILE__, "", __LINE__);
-
-    return Status();
+      throw SQLException(sqlite3_errstr(sqliteCode2), __FILE__, "", __LINE__);    
   }
 
   static int SQLiteGenericBusyHandler(void* input, int retryCount) {

@@ -242,7 +242,12 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   string schema = ReadTextFile(filePath.c_str());
   db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS, schema.c_str(), std::vector<IndexInfo>());
 
+  int rows = 0;
   ResultSet rs = db->ExecuteSelect("select * from tweet where text = 'hello'"); 
+  while (rs.Next()) {
+    ++rows;
+  }
+  ASSERT_EQ(rows, 0);
   rs.Close();
   db->Close();
 }
@@ -255,7 +260,12 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   Database* db = Database::Open(dbPath, dbName, options);
 
   CreateInsertTweet(db, collectionName, true, 1);
-  ResultSet rs = db->ExecuteSelect("select * from tweet where [user.name] = 'zarian'");  
+  int rows = 0;
+  ResultSet rs = db->ExecuteSelect("select * from tweet where [user.name] = 'Zarian'");
+  while (rs.Next()) {
+    ++rows;
+  }
+  ASSERT_EQ(rows, 1);
   rs.Close();
   db->Close();
 }
@@ -317,7 +327,6 @@ TEST(Database, ExecuteSelect_Testing) {
   while (rs.Next()) {
     ++rows;
   }
-  //Todo: Fix the OR case
   ASSERT_EQ(rows, 1);
 
   rows = 0;

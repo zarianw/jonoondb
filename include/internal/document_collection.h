@@ -13,7 +13,6 @@ struct sqlite3;
 
 namespace jonoondb_api {
 // Forward Declaration
-class Status;
 class IndexInfoImpl;
 class BufferImpl;
 class DocumentSchema;

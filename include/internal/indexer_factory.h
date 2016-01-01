@@ -6,7 +6,6 @@
 
 namespace jonoondb_api {
 // Forward declarations
-class Status;
 class IndexInfoImpl;
 class Indexer;
 enum class FieldType

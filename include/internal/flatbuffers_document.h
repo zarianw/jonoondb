@@ -7,8 +7,8 @@
 namespace jonoondb_api {
 
 // Forward declarations
-class Status;
 class FlatbuffersDocumentSchema;
+class BufferImpl;
 
 class FlatbuffersDocument final : public Document {
  public:

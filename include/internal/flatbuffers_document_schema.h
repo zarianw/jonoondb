@@ -21,8 +21,7 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
   FlatbuffersDocumentSchema(const std::string& schemaText, SchemaType schemaType);
   const char* GetSchemaText() const override;
   SchemaType GetSchemaType() const override;
-  Status GetFieldType(const char* fieldName, FieldType& fieldType) const
-      override;
+  FieldType GetFieldType(const std::string& fieldName) const override;
   std::size_t GetRootFieldCount() const override;
   void GetRootField(size_t index, Field*& field) const override;
   Field* AllocateField() const override;
