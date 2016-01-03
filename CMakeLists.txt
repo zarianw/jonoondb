@@ -88,12 +88,13 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_string.h
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_double.h
  ${INCLUDE_PATH}/field.h
- ${INCLUDE_PATH}/jonoondb_exceptions.h
+ ${INCLUDE_PATH}/jonoondb_exceptions.h 
  ${INCLUDE_PATH}/database.h
  ${INCLUDE_INTERNAL_PATH}/concurrent_map.h
  ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
  ${INCLUDE_INTERNAL_PATH}/constraint.h
  ${INCLUDE_INTERNAL_PATH}/file.h
+ ${INCLUDE_INTERNAL_PATH}/object_pool.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
@@ -101,13 +102,13 @@ add_library(
  ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/options_impl.h
  ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${INCLUDE_INTERNAL_PATH}/database_metadata_manager.h
  ${SRC_PATH}/jonoondb_api/document_collection.cc ${INCLUDE_INTERNAL_PATH}/document_collection.h
- ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_PATH}/index_info_impl.h
+ ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_PATH}/index_info_impl.h 
  ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${INCLUDE_PATH}/buffer_impl.h
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
  ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
  ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${INCLUDE_INTERNAL_PATH}/document_schema_factory.h
- ${SRC_PATH}/jonoondb_api/filename_manager.cc ${INCLUDE_INTERNAL_PATH}/filename_manager.h 
+ ${SRC_PATH}/jonoondb_api/filename_manager.cc ${INCLUDE_INTERNAL_PATH}/filename_manager.h  
  ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h
  ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document.h
@@ -143,6 +144,8 @@ add_executable(
  ${TEST_PATH}/jonoondb_exception_tests.cc
  ${TEST_PATH}/filename_manager_tests.cc
  ${TEST_PATH}/flatbuffers_document_tests.cc
- ${TEST_PATH}/blob_manager_tests.cc)
+ ${TEST_PATH}/blob_manager_tests.cc
+ ${TEST_PATH}/object_pool_tests.cc
+ ${TEST_PATH}/options_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)

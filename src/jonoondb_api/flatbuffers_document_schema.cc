@@ -40,18 +40,15 @@ SchemaType FlatbuffersDocumentSchema::GetSchemaType() const {
   return m_schemaType;
 }
 
-Status FlatbuffersDocumentSchema::GetFieldType(const char* fieldName,
-                                               FieldType& fieldType) const {
+FieldType FlatbuffersDocumentSchema::GetFieldType(const std::string& fieldName) const {
   // The fieldName is dot(.) sperated e.g. Field1.Field2.Field3
-  if (StringUtils::IsNullOrEmpty(fieldName)) {
-    throw InvalidArgumentException("Argument fieldName is null or empty.",
+  if (fieldName.size() == 0) {
+    throw InvalidArgumentException("Argument fieldName is empty.",
       __FILE__, "", __LINE__);
   }
 
   char_separator<char> sep(".");
-  // TODO: Find a way to avoid the cost of string construction
-  string fieldNameStr(fieldName);
-  tokenizer<char_separator<char>> tokens(fieldNameStr, sep);
+  tokenizer<char_separator<char>> tokens(fieldName, sep);
   auto structDef = m_parser->root_struct_def;
   vector<string> tokenVec(tokens.begin(), tokens.end());
 
@@ -75,17 +72,15 @@ Status FlatbuffersDocumentSchema::GetFieldType(const char* fieldName,
     throw JonoonDBException(ExceptionUtils::GetMissingFieldErrorString(fieldName),
       __FILE__, "", __LINE__);    
   }
-  fieldType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
-      fieldDef->value.type.base_type);
-
-  return Status();
+  return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
+    fieldDef->value.type.base_type);
 }
 
 std::size_t FlatbuffersDocumentSchema::GetRootFieldCount() const {
   return m_parser->root_struct_def->fields.vec.size();
 }
 
-Status FlatbuffersDocumentSchema::GetRootField(size_t index,
+void FlatbuffersDocumentSchema::GetRootField(size_t index,
                                                Field*& field) const {
   FlatbuffersField* fbField = dynamic_cast<FlatbuffersField*>(field);
   if (fbField == nullptr) {
@@ -101,12 +96,10 @@ Status FlatbuffersDocumentSchema::GetRootField(size_t index,
   }
 
   fbField->SetFieldDef(m_parser->root_struct_def->fields.vec[index]);
-  return Status();
 }
 
-Status FlatbuffersDocumentSchema::AllocateField(Field*& field) const {
-  field = new FlatbuffersField();
-  return Status();
+Field* FlatbuffersDocumentSchema::AllocateField() const {
+  return new FlatbuffersField();  
 }
 
 const StructDef* FlatbuffersDocumentSchema::GetRootStruct() const {

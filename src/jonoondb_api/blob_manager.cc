@@ -120,8 +120,7 @@ void BlobManager::MultiPut(const BufferImpl blobs[], const int arrayLength, Blob
   //Lock will be acquired on the next line and released when lock goes out of scope
   lock_guard<mutex> lock(m_writeMutex);
   size_t bytesWritten = 0, totalBytesWrittenInFile = 0;
-  size_t baseOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();
-  Status status;
+  size_t baseOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();  
   int headerSize = 1 + 4 + 8;
   for (int i = 0; i < arrayLength; i++) {
     size_t currentOffset = m_currentBlobFile->GetCurrentWriteOffset();

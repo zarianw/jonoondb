@@ -10,8 +10,8 @@ class FlatbuffersField final : public Field {
   const char* GetName() const override;
   FieldType GetType() const override;
   std::size_t GetSubFieldCount() const override;
-  Status GetSubField(size_t index, Field*& field) const override;
-  Status AllocateField(Field*& field) const override;
+  void GetSubField(size_t index, Field*& field) const override;
+  Field* AllocateField() const override;
   void Dispose() override;
   void SetFieldDef(flatbuffers::FieldDef* val);
  private:

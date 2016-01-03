@@ -122,4 +122,12 @@ public:
   }
 };
 
+class MissingDocumentException : public JonoonDBException {
+public:
+  MissingDocumentException(const std::string& msg, const std::string& srcFileName,
+    const std::string& funcName, std::size_t lineNum) :
+    JonoonDBException(msg, srcFileName, funcName, lineNum) {
+  }
+};
+
 } // jonoondb_api

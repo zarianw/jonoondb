@@ -4,9 +4,9 @@
 using namespace jonoondb_api;
 
 OptionsImpl::OptionsImpl() {
-  CreateDBIfMissing = false;
+  CreateDBIfMissing = true;
   MaxDataFileSize = MAX_DATA_FILE_SIZE;
-  CompressionEnabled = true;
+  CompressionEnabled = false;
   Synchronous = true;
 }
 

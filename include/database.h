@@ -8,6 +8,27 @@
 
 namespace jonoondb_api {
 
+
+//
+// StringView
+//
+class StringView {
+public:
+  StringView(const char* str, std::size_t size) :
+    m_str(str), m_size(size) {
+  }
+
+  const char* str() {
+    return m_str;
+  }
+
+  std::size_t size() {
+    return m_size;
+  }
+private:
+  const char* m_str;
+  std::size_t m_size;
+};
 //
 // Status
 //
@@ -141,20 +162,37 @@ private:
 class Options {
 public:
   //Default constructor that sets all the options to their default value
-  Options() {
-    m_opaque = jonoondb_options_construct();
-  }
-  Options(bool createDBIfMissing, size_t maxDataFileSize,
-    bool compressionEnabled, bool synchronous) {    
-    m_opaque = jonoondb_options_construct2(createDBIfMissing, maxDataFileSize, compressionEnabled,
-      synchronous, ThrowOnError{});
+  Options() : m_opaque(jonoondb_options_construct()) {
   }
 
-  Options(Options&& other) {
-    if (this != &other) {
-      this->m_opaque = other.m_opaque;
-      other.m_opaque = nullptr;
-    }
+  Options(bool createDBIfMissing, size_t maxDataFileSize,
+    bool compressionEnabled, bool synchronous) :
+       m_opaque(jonoondb_options_construct2(createDBIfMissing, maxDataFileSize,
+       compressionEnabled, synchronous, ThrowOnError{})) {
+  }
+
+  Options(const Options& other) :
+    m_opaque(jonoondb_options_copy_construct(other.m_opaque)) {
+  }
+
+  friend void swap(Options& first, Options& second) {
+    using std::swap;
+    swap(first.m_opaque, second.m_opaque);
+  }  
+
+  Options(Options&& other) : m_opaque(nullptr) {
+    swap(*this, other);
+  }    
+
+  Options& operator=(const Options& other) {
+    Options copy(other);
+    swap(*this, copy);
+    return *this;
+  }
+
+  Options& operator=(Options&& other) {
+    swap(*this, other);
+    return *this;
   }
 
   ~Options() {
@@ -167,7 +205,7 @@ public:
     jonoondb_options_setcreatedbifmissing(m_opaque, value);
   }
   bool GetCreateDBIfMissing() const {
-    jonoondb_options_getcreatedbifmissing(m_opaque);
+    return jonoondb_options_getcreatedbifmissing(m_opaque);
   }
 
   void SetCompressionEnabled(bool value) {
@@ -363,10 +401,7 @@ public:
 
   ResultSet(const ResultSet& other) = delete;
   ResultSet(ResultSet&& other) {
-    if (this != &other) {
-      if (m_opaque != nullptr) {
-        jonoondb_resultset_destruct(m_opaque);
-      }
+    if (this != &other) {      
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
     }
@@ -391,22 +426,38 @@ public:
     return *this;
   }
 
-  bool Next();
+  void Close() {
+    if (m_opaque != nullptr) {
+      jonoondb_resultset_destruct(m_opaque);
+      m_opaque = nullptr;
+    }
+  }
 
-  std::int8_t GetInt8(const std::string& fieldName) const;
-  std::int16_t GetInt16(const std::string& fieldName) const;
-  std::int32_t GetInt32(const std::string& fieldName) const;
-  std::int64_t GetInt64(const std::string& fieldName) const;
+  bool Next() {
+    return jonoondb_resultset_next(m_opaque) != 0;    
+  }
 
-  std::uint8_t GetUInt8(const std::string& fieldName) const;
-  std::uint16_t GetUInt16(const std::string& fieldName) const;
-  std::uint32_t GetUInt32(const std::string& fieldName) const;
-  std::uint64_t GetUInt64(const std::string& fieldName) const;
+  std::int64_t GetInteger(std::int32_t columnIndex) const {
+    return jonoondb_resultset_getinteger(m_opaque, columnIndex, ThrowOnError());
+  }
 
-  float GetFloat(const std::string& fieldName) const;
-  double GetDouble(const std::string& fieldName) const;
+  double GetDouble(std::int32_t columnIndex) const {
+    return jonoondb_resultset_getdouble(m_opaque, columnIndex, ThrowOnError());
+  }
 
-  const char* GetStringValue(const std::string& fieldName) const;
+  StringView GetString(std::int32_t columnIndex) const {
+    std::uint64_t size;
+    std::uint64_t* sizePtr = &size;
+    const char* str = jonoondb_resultset_getstring(m_opaque, columnIndex, &sizePtr, ThrowOnError{});
+    return StringView(str, size);
+  }
+
+  std::int32_t GetColumnIndex(std::string columnLabel) {
+    return jonoondb_resultset_getcolumnindex(m_opaque, columnLabel.c_str(),
+      columnLabel.size(), ThrowOnError{});
+  }
+
+  
 private:
   resultset_ptr m_opaque;
 };
@@ -423,9 +474,9 @@ public:
     status_ptr sts = nullptr;
     jonoondb_database_close(m_opaque, &sts);
     if (sts != nullptr) {
-      //Todo: Handle errors that can happen on shutdown
+      //Todo: Handle/Log errors that can happen on shutdown
     }
-
+    m_opaque = nullptr;
     delete this;
   }
 

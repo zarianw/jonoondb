@@ -116,7 +116,7 @@ void FileNameManager::GetCurrentDataFileInfo(bool createIfMissing, FileInfo& fil
   std::lock_guard<std::mutex> lock(m_mutex);
 
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
-  std::unique_ptr<sqlite3_stmt, Status(*)(sqlite3_stmt*)> statementGuard(m_getLastFileKeyStatement, SQLiteUtils::ClearAndResetStatement);
+  std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(m_getLastFileKeyStatement, SQLiteUtils::ClearAndResetStatement);
 
   //Get the last fileKey
   int sqliteCode = sqlite3_step(m_getLastFileKeyStatement);
@@ -169,7 +169,7 @@ void FileNameManager::GetNextDataFileInfo(FileInfo& fileInfo) {
 
   {
     //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
-    std::unique_ptr<sqlite3_stmt, Status(*)(sqlite3_stmt*)> statementGuard(m_getLastFileKeyStatement, SQLiteUtils::ClearAndResetStatement);
+    std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(m_getLastFileKeyStatement, SQLiteUtils::ClearAndResetStatement);
 
     //Get the last fileKey
     int sqliteCode = sqlite3_step(m_getLastFileKeyStatement);
@@ -205,7 +205,7 @@ void FileNameManager::UpdateDataFileLength(int fileKey, int64_t length) {
   std::lock_guard<std::mutex> lock(m_mutex);
 
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
-  std::unique_ptr<sqlite3_stmt, Status(*)(sqlite3_stmt*)> statementGuard(m_updateStatement, SQLiteUtils::ClearAndResetStatement);
+  std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(m_updateStatement, SQLiteUtils::ClearAndResetStatement);
 
   int sqliteCode = sqlite3_bind_int64(
     m_updateStatement,
@@ -239,7 +239,7 @@ void FileNameManager::GetFileInfo(const int fileKey, std::shared_ptr<FileInfo>& 
     std::lock_guard<std::mutex> lock(m_mutex);
 
     //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
-    std::unique_ptr<sqlite3_stmt, Status(*)(sqlite3_stmt*)> statementGuard(m_getFileNameStatement, SQLiteUtils::ClearAndResetStatement);
+    std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(m_getFileNameStatement, SQLiteUtils::ClearAndResetStatement);
 
     //Bind the ObjectKey
     int sqliteCode = sqlite3_bind_int64(
@@ -282,7 +282,7 @@ void FileNameManager::GetFileInfo(const int fileKey, std::shared_ptr<FileInfo>& 
 
 void FileNameManager::AddFileRecord(int fileKey, const std::string& fileName) {
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
-  std::unique_ptr<sqlite3_stmt, Status(*)(sqlite3_stmt*)> statementGuard(m_putStatement, SQLiteUtils::ClearAndResetStatement);
+  std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(m_putStatement, SQLiteUtils::ClearAndResetStatement);
 
   int sqliteCode = sqlite3_bind_int(
     m_putStatement,

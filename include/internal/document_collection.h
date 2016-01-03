@@ -13,7 +13,6 @@ struct sqlite3;
 
 namespace jonoondb_api {
 // Forward Declaration
-class Status;
 class IndexInfoImpl;
 class BufferImpl;
 class DocumentSchema;
@@ -40,6 +39,11 @@ class DocumentCollection final {
                        IndexStat& indexStat);
   std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
 
+  //Document Access Functions
+  std::string GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName) const;
+  std::int64_t GetDocumentFieldAsInteger(std::uint64_t docID, const std::string& fieldName) const;
+  double GetDocumentFieldAsDouble(std::uint64_t docID, const std::string& fieldName) const;
+
  private:
   void PopulateColumnTypes(
       const std::vector<IndexInfoImpl*>& indexes,
@@ -49,7 +53,7 @@ class DocumentCollection final {
   std::unique_ptr<IndexManager> m_indexManager;
   std::shared_ptr<DocumentSchema> m_documentSchema;
   DocumentIDGenerator m_documentIDGenerator;
-  std::unordered_map<std::uint64_t, BlobMetadata> m_documentIDMap;
+  std::vector<BlobMetadata> m_documentIDMap;
   std::string m_name;
   std::unique_ptr<BlobManager> m_blobManager;
 };
