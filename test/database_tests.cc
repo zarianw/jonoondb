@@ -164,7 +164,7 @@ TEST(Database, Insert_SingleIndex) {
   db->Close();
 }
 
-Buffer GetAllFieldTypeObject() {
+Buffer GetAllFieldTypeObjectBuffer() {
   Buffer buffer;
   FlatBufferBuilder fbb;
   // create nested object
@@ -213,7 +213,7 @@ TEST(Database, Insert_AllIndexTypes) {
 
   db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
-  Buffer documentData = GetAllFieldTypeObject();
+  Buffer documentData = GetAllFieldTypeObjectBuffer();
   db->Insert(collectionName, documentData);
   db->Close();
 }
