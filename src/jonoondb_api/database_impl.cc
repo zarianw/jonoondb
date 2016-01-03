@@ -3,7 +3,6 @@
 #include <sstream>
 #include <memory>
 #include "database_impl.h"
-#include "status.h"
 #include "database_metadata_manager.h"
 #include "options_impl.h"
 #include "string_utils.h"

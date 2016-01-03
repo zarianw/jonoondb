@@ -1,6 +1,6 @@
 #include <string>
 #include "gtest/gtest.h"
-#include "status.h"
+#include "status_impl.h"
 
 using namespace std;
 using namespace jonoondb_api;

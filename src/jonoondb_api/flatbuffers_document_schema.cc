@@ -4,7 +4,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers_document_schema.h"
 #include "enums.h"
-#include "status.h"
 #include "string_utils.h"
 #include "exception_utils.h"
 #include "flatbuffers_field.h"

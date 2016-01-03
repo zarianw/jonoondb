@@ -1,6 +1,5 @@
 #include <sstream>
 #include "indexer_factory.h"
-#include "status.h"
 #include "index_info_impl.h"
 #include "enums.h"
 #include "ewah_compressed_bitmap_indexer_integer.h"

@@ -10,7 +10,6 @@
 #include <boost/exception_ptr.hpp>
 #include <boost/filesystem.hpp>
 #include "test_utils.h"
-#include "status.h"
 #include "buffer_impl.h"
 #include "enums.h"
 #include "schemas/flatbuffers/tweet_generated.h"

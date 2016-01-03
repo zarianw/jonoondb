@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include "buffer_impl.h"
-#include "status.h"
 #include "memory_mapped_file.h"
 #include "test_utils.h"
 

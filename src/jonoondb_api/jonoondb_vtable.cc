@@ -12,7 +12,6 @@
 #include "document_collection.h"
 #include "field.h"
 #include "guard_funcs.h"
-#include "status.h"
 #include "enums.h"
 #include "document_schema.h"
 #include "index_stat.h"

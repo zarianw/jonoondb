@@ -3,8 +3,6 @@
 #include <string>
 #include <assert.h>
 #include <thread>
-
-#include "status.h"
 #include "sqlite3.h"
 #include "exception_utils.h"
 #include "constants.h"

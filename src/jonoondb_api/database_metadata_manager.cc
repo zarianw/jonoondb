@@ -4,7 +4,6 @@
 #include <boost/filesystem.hpp>
 #include "sqlite3.h"
 #include "database_metadata_manager.h"
-#include "status.h"
 #include "string_utils.h"
 #include "exception_utils.h"
 #include "sqlite_utils.h"

@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <boost/filesystem.hpp>
 #include "blob_manager.h"
-#include "status.h"
 #include "exception_utils.h"
 #include "buffer_impl.h"
 #include "blob_metadata.h"

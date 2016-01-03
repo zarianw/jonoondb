@@ -1,6 +1,5 @@
 #include <sstream>
 #include "cdatabase.h"
-#include "status.h"
 #include "options_impl.h"
 #include "database_impl.h"
 #include "jonoondb_exceptions.h"
@@ -9,6 +8,7 @@
 #include "buffer_impl.h"
 #include "resultset_impl.h"
 #include "boost/utility/string_ref.hpp"
+#include "status_impl.h"
 
 using namespace jonoondb_api;
 

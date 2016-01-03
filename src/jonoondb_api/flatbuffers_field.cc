@@ -1,5 +1,4 @@
 #include "flatbuffers_field.h"
-#include "status.h"
 #include "flatbuffers_document_schema.h"
 
 using namespace flatbuffers;

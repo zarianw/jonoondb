@@ -9,7 +9,7 @@
 #include <cmath>
 #include "indexer.h"
 #include "index_info_impl.h"
-#include "status.h"
+#include "status_impl.h"
 #include "string_utils.h"
 #include "document.h"
 #include "mama_jennies_bitmap.h"

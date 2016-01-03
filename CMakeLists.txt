@@ -98,7 +98,7 @@ add_library(
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
- ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
+ ${SRC_PATH}/jonoondb_api/status_impl.cc ${INCLUDE_PATH}/status_impl.h
  ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/options_impl.h
  ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${INCLUDE_INTERNAL_PATH}/database_metadata_manager.h
  ${SRC_PATH}/jonoondb_api/document_collection.cc ${INCLUDE_INTERNAL_PATH}/document_collection.h
@@ -134,7 +134,7 @@ add_executable(
  jonoondb_test
  ${TEST_PATH}/test_utils.h
  ${TEST_PATH}/main.cc
- ${TEST_PATH}/status_tests.cc
+ ${TEST_PATH}/status_impl_tests.cc
  ${TEST_PATH}/database_metadata_manager_tests.cc
  ${TEST_PATH}/buffer_tests.cc
  ${TEST_PATH}/concurrent_lru_cache_tests.cc

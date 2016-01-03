@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <sstream>
 #include "index_manager.h"
-#include "status.h"
 #include "document.h"
 #include "indexer.h"
 #include "indexer_factory.h"

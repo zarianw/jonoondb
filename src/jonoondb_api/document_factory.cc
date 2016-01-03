@@ -1,7 +1,6 @@
 #include <string>
 #include "document_factory.h"
 #include "flatbuffers_document.h"
-#include "status.h"
 #include "document_schema.h"
 #include "flatbuffers_document_schema.h"
 

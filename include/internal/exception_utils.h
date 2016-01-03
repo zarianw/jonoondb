@@ -3,13 +3,11 @@
 #include <string>
 #include <sstream>
 #include "sqlite3.h"
-#include "status.h"
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
 class ExceptionUtils {
- public:
-
+public:
   static std::string GetMissingFieldErrorString(const std::string& fieldName) {
     std::ostringstream ss;
     ss << "Field definition for " << fieldName

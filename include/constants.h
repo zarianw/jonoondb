@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <thread>
-#include "status.h"
 
 namespace jonoondb_api {
 const int64_t MAX_DATA_FILE_SIZE = (1024 * 1024 * 1024);  // 1 GB

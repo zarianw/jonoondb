@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <sstream>
 #include "index_info_impl.h"
-#include "status.h"
 #include "string_utils.h"
 #include "enums.h"
 

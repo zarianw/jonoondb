@@ -1,7 +1,6 @@
 #include <string>
 #include <sstream>
 #include "document_schema_factory.h"
-#include "status.h"
 #include "flatbuffers_document_schema.h"
 
 using namespace jonoondb_api;
