@@ -8,14 +8,12 @@
 #include "schemas/flatbuffers/all_field_type_generated.h"
 #include "flatbuffers/flatbuffers.h"
 
+using namespace std;
+using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
-using namespace flatbuffers;
-using namespace std;
 
 BufferImpl GetAllFieldTypeObject() {
-  //CreateNestedAllFieldType
-  //CreateAllFieldType
   FlatBufferBuilder fbb;
   auto field12 = fbb.CreateString("joker");
   auto nestedobject = CreateNestedAllFieldType(fbb, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 13, field12);
@@ -23,32 +21,23 @@ BufferImpl GetAllFieldTypeObject() {
   auto allfieldtype = CreateAllFieldType(fbb, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, outerfield12, nestedobject);
   fbb.Finish(allfieldtype);
   auto size = fbb.GetSize();
-  BufferImpl buffer;
-  if (size > buffer.GetCapacity()) {
-    buffer.Resize(size);
-  }
-  buffer.Copy((char*)fbb.GetBufferPointer(), size);
-
-  return buffer;
-  
+  return BufferImpl(reinterpret_cast<char*>(fbb.GetBufferPointer()), size, size);
 }
+
 void CompareObjects(const FlatbuffersDocument &fbDoc, const AllFieldType& allFieldObj) {
   ASSERT_EQ(fbDoc.GetScalarValueAsInt8("field1"), allFieldObj.field1());
   ASSERT_EQ(fbDoc.GetScalarValueAsUInt8("field2"), allFieldObj.field2());
- // ASSERT_EQ(fbDoc.GetScalarValueAsbool("field3"), allFieldObj.field3()); GETSCALAR VALUE AS BOOL SHOULD BE IN THIS FIELD.
+  //Todo: GetScalarValueAsBool should be added and tested for the field3
   ASSERT_EQ(fbDoc.GetScalarValueAsInt16("field4"), allFieldObj.field4());
   ASSERT_EQ(fbDoc.GetScalarValueAsUInt16("field5"), allFieldObj.field5());
   ASSERT_EQ(fbDoc.GetScalarValueAsInt32("field6"), allFieldObj.field6());
   ASSERT_EQ(fbDoc.GetScalarValueAsUInt32("field7"), allFieldObj.field7());
   ASSERT_EQ(fbDoc.GetScalarValueAsFloat("field8"), allFieldObj.field8());
- 
   ASSERT_EQ(fbDoc.GetScalarValueAsInt64("field9"), allFieldObj.field9());
- 
   ASSERT_EQ(fbDoc.GetScalarValueAsUInt64("field10"), allFieldObj.field10());
-  
   ASSERT_EQ(fbDoc.GetScalarValueAsDouble("field11"), allFieldObj.field11());
+  ASSERT_STREQ(fbDoc.GetStringValue("field12").c_str(), allFieldObj.field12()->c_str());
   // Check rest of the fields
-  
   auto subDoc = fbDoc.AllocateSubDocument();
   fbDoc.GetDocumentValue("nestedField", *subDoc);
   ASSERT_EQ(subDoc->GetScalarValueAsInt8("field1"), allFieldObj.nestedField()->field1());
@@ -75,7 +64,6 @@ TEST(FlatbuffersDocument, GetterTest) {
   FlatbuffersDocument fbDoc(docSchema, documentData);
   auto buf2 = documentData;
   auto allFieldTypeObj = flatbuffers::GetRoot<AllFieldType>(buf2.GetData());
-
   // 3: Compare the values of FlatBufferDocument object and FlatBufferObject
   CompareObjects(fbDoc, *allFieldTypeObj);
 }
