@@ -7,8 +7,6 @@
 #include "enums.h"
 
 namespace jonoondb_api {
-
-
 //
 // StringView
 //
@@ -32,22 +30,20 @@ private:
 //
 // Status
 //
-class ex_Status {
+class Status {
 public:
-  ex_Status() : opaque(nullptr) {
+  Status() : opaque(nullptr) {
   }
 
-  ex_Status(status_ptr sts) : opaque(sts) {
+  Status(status_ptr sts) : opaque(sts) {
   }
 
-  ex_Status(ex_Status&& other) {
-    if (this != &other) {
-      this->opaque = other.opaque;
-      other.opaque = nullptr;
-    }
+  Status(Status&& other) {
+    this->opaque = other.opaque;
+    other.opaque = nullptr;
   }
 
-  ~ex_Status() {
+  ~Status() {
     if (opaque) {
       jonoondb_status_destruct(opaque);
     }
@@ -153,7 +149,7 @@ public:
   operator status_ptr*() { return &m_status.opaque; }
 
 private:
-  ex_Status m_status;
+  Status m_status;
 };
 
 //
@@ -456,7 +452,6 @@ public:
     return jonoondb_resultset_getcolumnindex(m_opaque, columnLabel.c_str(),
       columnLabel.size(), ThrowOnError{});
   }
-
   
 private:
   resultset_ptr m_opaque;
@@ -502,9 +497,7 @@ public:
   ResultSet ExecuteSelect(const std::string& selectStatement) {
     auto rs = jonoondb_database_executeselect(m_opaque, selectStatement.c_str(), selectStatement.size(), ThrowOnError{});
     return ResultSet(rs);
-  }
-
-  
+  }  
 
 private:
   Database(database_ptr db) : m_opaque(db) {}
