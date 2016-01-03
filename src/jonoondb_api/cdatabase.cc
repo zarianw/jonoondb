@@ -8,6 +8,7 @@
 #include "enums.h"
 #include "buffer_impl.h"
 #include "resultset_impl.h"
+#include "boost/utility/string_ref.hpp"
 
 using namespace jonoondb_api;
 
@@ -151,6 +152,10 @@ struct options {
 
 options_ptr jonoondb_options_construct() {
   return new options();
+}
+
+options_ptr jonoondb_options_copy_construct(const options_ptr other) {
+  return new options(*other);
 }
 
 options_ptr jonoondb_options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
@@ -302,6 +307,49 @@ struct resultset {
 
 void jonoondb_resultset_destruct(resultset_ptr rs) {
   delete rs;
+}
+
+int32_t jonoondb_resultset_next(resultset_ptr rs) {
+  if (rs->impl.Next()) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int64_t jonoondb_resultset_getinteger(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
+  int64_t val;
+  TranslateExceptions([&]{
+    val = rs->impl.GetInteger(columnIndex);
+  }, *sts);  
+  return val;
+}
+
+double jonoondb_resultset_getdouble(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
+  double val;
+  TranslateExceptions([&]{
+    val = rs->impl.GetDouble(columnIndex);
+  }, *sts);
+  return val;
+}
+
+const char* jonoondb_resultset_getstring(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts) {
+  char* strPtr;
+  TranslateExceptions([&]{
+    const std::string& str = rs->impl.GetString(columnIndex);
+    **retValSize = str.size();
+    strPtr = const_cast<char*>(str.c_str());
+  }, *sts);  
+  return strPtr;
+}
+
+int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLabel, uint64_t columnLabelLength, status_ptr* sts) {  
+  int32_t val;
+  TranslateExceptions([&]{
+    boost::string_ref strRef(columnLabel, columnLabelLength);
+    val = rs->impl.GetColumnIndex(strRef);
+  }, *sts);
+  return val;
 }
 
 //

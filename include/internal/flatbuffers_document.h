@@ -7,8 +7,8 @@
 namespace jonoondb_api {
 
 // Forward declarations
-class Status;
 class FlatbuffersDocumentSchema;
+class BufferImpl;
 
 class FlatbuffersDocument final : public Document {
  public:
@@ -30,6 +30,11 @@ class FlatbuffersDocument final : public Document {
   double GetScalarValueAsDouble(const std::string& fieldName) const override;
 
   std::string GetStringValue(const std::string& fieldName) const override;
+  const char* GetStringValue(const std::string& fieldName, std::size_t& size) const override;
+
+  std::int64_t GetIntegerValueAsInt64(const std::string& fieldName) const override;
+  double GetFloatingValueAsDouble(const std::string& fieldName) const override;
+
   void GetDocumentValue(const std::string& fieldName, Document& val) const override;
   std::unique_ptr<Document> AllocateSubDocument() const override;  
   void VerifyFieldForRead(const std::string& fieldName, FieldType type) const override;

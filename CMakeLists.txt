@@ -94,6 +94,7 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
  ${INCLUDE_INTERNAL_PATH}/constraint.h
  ${INCLUDE_INTERNAL_PATH}/file.h
+ ${INCLUDE_INTERNAL_PATH}/object_pool.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
@@ -142,6 +143,9 @@ add_executable(
  ${TEST_PATH}/document_tests.cc
  ${TEST_PATH}/jonoondb_exception_tests.cc
  ${TEST_PATH}/filename_manager_tests.cc
- ${TEST_PATH}/blob_manager_tests.cc)
+ ${TEST_PATH}/flatbuffers_document_tests.cc
+ ${TEST_PATH}/blob_manager_tests.cc
+ ${TEST_PATH}/object_pool_tests.cc
+ ${TEST_PATH}/options_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)

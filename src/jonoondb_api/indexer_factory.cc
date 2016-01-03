@@ -14,7 +14,6 @@ using namespace jonoondb_api;
 Indexer* IndexerFactory::CreateIndexer(
   const IndexInfoImpl& indexInfo,
   const FieldType& fieldType) {
-  Status sts;
   switch (indexInfo.GetType()) {
     case IndexType::EWAHCompressedBitmap: {
       if (fieldType == FieldType::BASE_TYPE_DOUBLE ||

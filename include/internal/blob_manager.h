@@ -11,7 +11,6 @@
 
 namespace jonoondb_api {
 //Forward Declarations
-class Status;
 struct BlobMetadata;
 class BufferImpl;
 class FileNameManager;

@@ -42,6 +42,7 @@ uint64_t jonoondb_status_line(status_ptr sts);
 //
 typedef struct options* options_ptr;
 options_ptr jonoondb_options_construct();
+options_ptr jonoondb_options_copy_construct(const options_ptr other);
 options_ptr jonoondb_options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
   bool compressionEnabled, bool isSynchronous, status_ptr* sts);
 void jonoondb_options_destruct(options_ptr opt);
@@ -91,20 +92,11 @@ uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf);
 //
 typedef struct resultset* resultset_ptr;
 void jonoondb_resultset_destruct(resultset_ptr rs);
-int32_t next(resultset_ptr rs);
-int8_t jonoondb_resultset_getint8(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-int16_t jonoondb_resultset_getint16(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-int32_t jonoondb_resultset_getint32(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-int64_t jonoondb_resultset_getint64(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-
-uint8_t jonoondb_resultset_getuint8(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-uint16_t jonoondb_resultset_getuint16(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-uint32_t jonoondb_resultset_getuint32(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-uint64_t jonoondb_resultset_getuint64(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-
-float jonoondb_resultset_getfloat(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-double jonoondb_resultset_getdouble(resultset_ptr rs, const char* fieldName, status_ptr* sts);
-const char* jonoondb_resultset_getstringvalue(resultset_ptr rs, const char* fieldName, status_ptr* sts);
+int32_t jonoondb_resultset_next(resultset_ptr rs);
+int64_t jonoondb_resultset_getinteger(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
+double jonoondb_resultset_getdouble(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
+const char* jonoondb_resultset_getstring(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts);
+int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLabel, uint64_t columnLabelLength, status_ptr* sts);
 
 //
 // Database Functions

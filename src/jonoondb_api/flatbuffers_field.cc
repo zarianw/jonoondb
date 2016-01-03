@@ -23,7 +23,7 @@ size_t FlatbuffersField::GetSubFieldCount() const {
   }
 }
 
-Status FlatbuffersField::GetSubField(size_t index, Field*& field) const {
+void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
   FlatbuffersField* fbField = dynamic_cast<FlatbuffersField*>(field);
   if (fbField == nullptr) {
     // This means that the passed in doc cannot be casted to FlatbuffersDocument    
@@ -39,12 +39,10 @@ Status FlatbuffersField::GetSubField(size_t index, Field*& field) const {
   }
 
   fbField->SetFieldDef(m_fieldDef->value.type.struct_def->fields.vec[index]);
-  return Status();
 }
 
-Status FlatbuffersField::AllocateField(Field*& field) const {
-  field = new FlatbuffersField();
-  return Status();
+Field* FlatbuffersField::AllocateField() const {
+  return new FlatbuffersField();  
 }
 
 void FlatbuffersField::Dispose() {

@@ -14,6 +14,7 @@
 #include "resultset_impl.h"
 #include "filename_manager.h"
 #include "blob_manager.h"
+#include "document_collection_dictionary.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -28,18 +29,19 @@ DatabaseImpl::DatabaseImpl(const OptionsImpl& options,
 
 DatabaseImpl* DatabaseImpl::Open(const std::string& dbPath, const std::string& dbName,
                           const OptionsImpl& options) {
-  // Initialize query processor
-  unique_ptr<QueryProcessor> qp = std::make_unique<QueryProcessor>();
-  
   // Initialize DatabaseMetadataManager
   std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager =
     std::make_unique<DatabaseMetadataManager>(dbPath, dbName, options.GetCreateDBIfMissing()); 
+
+  // Initialize query processor
+  unique_ptr<QueryProcessor> qp = std::make_unique<QueryProcessor>(dbPath, dbName);
 
   return new DatabaseImpl(options, move(databaseMetadataManager), move(qp));
 }
 
 void DatabaseImpl::Close() {
-  // Todo (zarian): Close all sub components and report any issues in status  
+  // Todo (zarian): Close all sub components and log any issues
+  DocumentCollectionDictionary::Instance()->Clear();
 }
 
 void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,
@@ -61,12 +63,9 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
     throw CollectionAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
   }
   
-  auto sts = m_queryProcessor->AddCollection(documentCollection);  
-  
-  m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes);
-  if (!sts) {
-    // TODO: we need to call m_queryProcessor->RemoveCollection here.    
-  }
+  m_queryProcessor->AddCollection(documentCollection);  
+  // TODO: we need to call m_queryProcessor->RemoveCollection if the below call fails
+  m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes);  
 
   m_collectionContainer[colName] = documentCollection;
 }
