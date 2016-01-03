@@ -30,8 +30,8 @@ IndexManager::IndexManager(const std::vector<IndexInfoImpl*>& indexes,
   }
 }
 
-Status IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
-  std::unordered_map<std::string, FieldType>& columnTypes) {
+void IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
+  const std::unordered_map<std::string, FieldType>& columnTypes) {
   auto it = columnTypes.find(indexInfo.GetColumnName());
   if (it == columnTypes.end()) {
     ostringstream ss;
@@ -40,8 +40,7 @@ Status IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
     throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
   }
   unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(indexInfo, it->second));  
-  (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));
-  return Status();
+  (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));  
 }
 
 void IndexManager::IndexDocument(uint64_t documentID,

@@ -32,8 +32,8 @@ FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(const std::string& schemaTe
   }  
 }
 
-const char* FlatbuffersDocumentSchema::GetSchemaText() const {
-  return m_schemaText.c_str();
+const std::string& FlatbuffersDocumentSchema::GetSchemaText() const {
+  return m_schemaText;
 }
 
 SchemaType FlatbuffersDocumentSchema::GetSchemaType() const {

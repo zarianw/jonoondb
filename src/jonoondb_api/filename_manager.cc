@@ -46,7 +46,9 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   //Create the necessary tables if they do not exist
   std::string sql = "create table if not exists ObjectFile(FileKey int primary key, FileName text, FileDataLength int)";
-  SQLiteUtils::ExecuteSQL(m_db.get(), sql);
+  sqliteCode = sqlite3_exec(m_db.get(), sql.c_str(), nullptr, nullptr, nullptr);
+  if (sqliteCode != SQLITE_OK)
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
 
   sqliteCode = sqlite3_busy_handler(m_db.get(), SQLiteUtils::SQLiteGenericBusyHandler, nullptr);

@@ -11,15 +11,7 @@
 
 namespace jonoondb_api {
 class SQLiteUtils {
- public:
-  static Status ExecuteSQL(sqlite3* dbConnection, std::string sql) {
-    int sqliteCode = sqlite3_exec(dbConnection, sql.c_str(), NULL, NULL, NULL);
-    if (sqliteCode != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
-
-    return Status();
-  }
-
+public:
   static void ClearAndResetStatement(sqlite3_stmt* statement) {
     //Reset all params back to null
     int sqliteCode1 = sqlite3_clear_bindings(statement);

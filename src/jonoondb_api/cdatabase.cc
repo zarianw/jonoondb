@@ -25,7 +25,7 @@ struct status {
     impl(code, message, srcFileName, funcName, lineNum) {
   }
 
-  Status impl;
+  StatusImpl impl;
 };
 
 void jonoondb_status_destruct(status_ptr sts) {
