@@ -267,6 +267,7 @@ bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo) {
 //
 struct jonoondb_buffer {
   jonoondb_buffer() {}
+  jonoondb_buffer(const BufferImpl& other) : impl(other) {}
 
   BufferImpl impl;
 };
@@ -279,6 +280,25 @@ void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf) {
   delete buf;
 }
 
+jonoondb_buffer_ptr jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf, status_ptr* sts) {
+  jonoondb_buffer_ptr retVal = nullptr;
+  TranslateExceptions([&]{
+    retVal = new jonoondb_buffer(buf->impl);
+  }, *sts);
+
+  return retVal;
+}
+
+void jonoondb_buffer_copy_assignment(jonoondb_buffer_ptr self, jonoondb_buffer_ptr other, status_ptr* sts) {
+  TranslateExceptions([&]{
+    self->impl = other->impl;
+  }, *sts);  
+}
+
+int32_t jonoondb_buffer_op_lessthan(jonoondb_buffer_ptr self, jonoondb_buffer_ptr other) {
+  return (self->impl < other->impl ? 1 : 0);
+}
+
 void jonoondb_buffer_copy(jonoondb_buffer_ptr buf, const char* srcBuf, uint64_t bytesToCopy, status_ptr* sts) {
   TranslateExceptions([&]{
     buf->impl.Copy(srcBuf, bytesToCopy);
@@ -289,6 +309,14 @@ void jonoondb_buffer_resize(jonoondb_buffer_ptr buf, uint64_t newBufferCapacityI
   TranslateExceptions([&]{
     buf->impl.Resize(newBufferCapacityInBytes);
   }, *sts);
+}
+
+const char* jonoondb_buffer_getdata(jonoondb_buffer_ptr buf) {
+  return buf->impl.GetData();
+}
+
+uint64_t jonoondb_buffer_getlength(jonoondb_buffer_ptr buf) {
+  return buf->impl.GetLength();
 }
 
 uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf) {

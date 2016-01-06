@@ -203,8 +203,7 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
     blob.Resize(blobSize);
   }
 
-  memcpy(blob.GetDataForWrite(), offsetAddress, blobSize);
-  blob.SetLength(blobSize);
+  blob.Copy(offsetAddress, blobSize);  
 }
 
 void BlobManager::UnmapLRUDataFiles() {

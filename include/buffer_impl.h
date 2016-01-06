@@ -17,18 +17,15 @@ class BufferImpl {
     size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
   BufferImpl(const char* buffer, size_t bufferLengthInBytes,
     size_t bufferCapacityInBytes);  
-
   void Resize(size_t newBufferCapacityInBytes);
-  void Reset();
-  const char* GetData() const;
-  char* GetDataForWrite();
+  
+  const char* GetData() const;  
   const size_t GetCapacity() const;
   const size_t GetLength() const;
-  void SetLength(size_t value);
+  
   void Copy(const char* buffer, size_t bytesToCopy);
 private:
-  void Copy(const char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes);
+  void Reset();  
   //Forward Declarations
   struct BufferData;
   BufferData* m_bufferImpl;

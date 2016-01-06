@@ -338,34 +338,36 @@ private:
 //
 class Buffer {
 public:
-  //Buffer(const Buffer& other);
-  //Buffer& operator=(const Buffer& other);
-  Buffer() {
-    m_opaque = jonoondb_buffer_construct();
+  Buffer() : m_opaque(jonoondb_buffer_construct()) {
   }
-  
+
+  Buffer(const Buffer& other) :
+    m_opaque(jonoondb_buffer_copy_construct(other.m_opaque, ThrowOnError{})) {
+  }
+
   Buffer(Buffer&& other) {
-    if (this != &other) {
-      this->m_opaque = other.m_opaque;
-      other.m_opaque = nullptr;
-    }
+    m_opaque = other.m_opaque;
+    other.m_opaque = jonoondb_buffer_construct();
+  }
+
+  Buffer& operator=(const Buffer& other) {
+    jonoondb_buffer_copy_assignment(m_opaque, other.m_opaque, ThrowOnError{});
+    return *this;
+  }
+
+  Buffer& operator=(Buffer&& other) {
+    std::swap(m_opaque, other.m_opaque);
+    return *this;
+  }
+
+  ~Buffer() {
+    jonoondb_buffer_destruct(m_opaque);
   }
   
-  ~Buffer() {
-    if (m_opaque != nullptr) {
-      jonoondb_buffer_destruct(m_opaque);
-    }
+  bool operator<(const Buffer& other) const {
+    return (jonoondb_buffer_op_lessthan(m_opaque, other.m_opaque) != 0);
   }
-  /*Buffer& operator=(Buffer&& other);
-  bool operator<(const Buffer& other) const;
 
-  Status Assign(char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
-  Status Assign(Buffer& buffer, DeleterFuncPtr customDeleterFunc);
-
-  Status Copy(const char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes);
-  Status Copy(const Buffer& buffer);*/
   void Copy(const char* srcBuffer, size_t bytesToCopy) {
     jonoondb_buffer_copy(m_opaque, srcBuffer, bytesToCopy, ThrowOnError{});
   }
@@ -374,14 +376,18 @@ public:
     jonoondb_buffer_resize(m_opaque, newBufferCapacityInBytes, ThrowOnError{});
   }
 
-  //void Reset();
-  //const char* GetData() const;
-  //char* GetDataForWrite();
+  const char* GetData() const {
+    return jonoondb_buffer_getdata(m_opaque);
+  }
+
+  const size_t GetLength() const {
+    return jonoondb_buffer_getlength(m_opaque);
+  }
+
   const size_t GetCapacity() const {
     return jonoondb_buffer_getcapacity(m_opaque);
-  }
-  //const size_t GetLength() const;
-  //Status SetLength(size_t value);*/
+  }  
+  
   jonoondb_buffer_ptr GetOpaqueType() const {
     return m_opaque;
   }
