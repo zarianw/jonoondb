@@ -384,15 +384,11 @@ int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLa
 // Database
 //
 struct database {
-  database(const char* dbPath, const char* dbName, const OptionsImpl& opt) {
-    impl = DatabaseImpl::Open(dbPath, dbName, opt);
-  }
+  database(const char* dbPath, const char* dbName, const OptionsImpl& opt) 
+    : impl(dbPath, dbName, opt) {    
+  }  
 
-  ~database() {
-    delete impl;
-  }
-
-  DatabaseImpl* impl;
+  DatabaseImpl impl;
 };
 
 database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
@@ -406,7 +402,7 @@ database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, cons
 
 void jonoondb_database_close(database_ptr db, status_ptr* sts) {
   TranslateExceptions([&]{
-    db->impl->Close();
+    db->impl.Close();
     // Todo: Handle exceptions that can happen on close
     delete db;
   }, *sts);
@@ -420,13 +416,13 @@ void jonoondb_database_createcollection(database_ptr db, const char* name, int32
     for (uint64_t i = 0; i < indexesLength; i++) {
       vec.push_back(&indexes[i]->impl);
     }
-    db->impl->CreateCollection(name, ToSchemaType(schemaType), schema, vec);
+    db->impl.CreateCollection(name, ToSchemaType(schemaType), schema, vec);
   }, *sts);
 }
 
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts) {
   TranslateExceptions([&]{
-    db->impl->Insert(collectionName, documentData->impl);
+    db->impl.Insert(collectionName, documentData->impl);
   }, *sts);
 }
 
@@ -435,7 +431,7 @@ resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selec
   // Todo: Use string_view for performance improvement
   TranslateExceptions([&]{
     std::string selectStatement(selectStmt, selectStmtLength);
-    val = new resultset(db->impl->ExecuteSelect(selectStatement));
+    val = new resultset(db->impl.ExecuteSelect(selectStatement));
   }, *sts);
 
   return val;  

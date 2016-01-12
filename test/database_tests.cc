@@ -34,11 +34,8 @@ void CreateInsertTweet(Database* db, std::string& collectionName, bool createInd
 
 TEST(Database, Open_InvalidArguments) {
   Options options;
-  Database* db = nullptr;
-  ASSERT_THROW(db = Database::Open("somePath", "", options), InvalidArgumentException);
-  ASSERT_EQ(db, nullptr);
-  ASSERT_THROW(db = Database::Open("", "someDbName", options), InvalidArgumentException);
-  ASSERT_EQ(db, nullptr);
+  ASSERT_THROW(Database db("somePath", "", options), InvalidArgumentException);
+  ASSERT_THROW(Database db("", "someDbName", options), InvalidArgumentException);  
 }
 
 TEST(Database, Open_MissingDatabaseFile) {
@@ -46,9 +43,7 @@ TEST(Database, Open_MissingDatabaseFile) {
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(false);
-  Database* db = nullptr;
-  ASSERT_THROW(db = Database::Open(dbPath, dbName, options), MissingDatabaseFileException);
-  ASSERT_EQ(db, nullptr);
+  ASSERT_THROW(Database db(dbPath, dbName, options), MissingDatabaseFileException);  
 }
 
 TEST(Database, Open_MissingDatabaseFolder) {

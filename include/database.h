@@ -465,21 +465,27 @@ private:
 
 class Database {
 public:
-  static Database* Open(const std::string& dbPath, const std::string& dbName,
-    const Options& opt) {
-    auto db = jonoondb_database_open(dbPath.c_str(), dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{});
-    return new Database(db);
+  Database(const std::string& dbPath, const std::string& dbName,
+    const Options& opt) : m_opaque(jonoondb_database_open(dbPath.c_str(),
+    dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{})) {
   }
 
-  void Close() {
+  ~Database() {
     status_ptr sts = nullptr;
     jonoondb_database_close(m_opaque, &sts);
     if (sts != nullptr) {
       //Todo: Handle/Log errors that can happen on shutdown
     }
-    m_opaque = nullptr;
-    delete this;
   }
+
+  //void Close() {
+  //  status_ptr sts = nullptr;
+  //  jonoondb_database_close(m_opaque, &sts);
+  //  if (sts != nullptr) {
+  //    //Todo: Handle/Log errors that can happen on shutdown
+  //  }
+  //  m_opaque = nullptr;    
+  //}
 
   void CreateCollection(const std::string& name, SchemaType schemaType,
                         const std::string& schema, const std::vector<IndexInfo>& indexes) {
@@ -505,8 +511,7 @@ public:
     return ResultSet(rs);
   }  
 
-private:
-  Database(database_ptr db) : m_opaque(db) {}
+private:  
   database_ptr m_opaque;
 };
 

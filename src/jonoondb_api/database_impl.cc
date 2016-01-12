@@ -18,24 +18,14 @@
 using namespace std;
 using namespace jonoondb_api;
 
-DatabaseImpl::DatabaseImpl(const OptionsImpl& options,
-    unique_ptr<DatabaseMetadataManager> databaseMetadataManager,
-    unique_ptr<QueryProcessor> queryProcessor)
-    : m_options(options),
-      m_dbMetadataMgrImpl(move(databaseMetadataManager)),
-      m_queryProcessor(move(queryProcessor)) {
-}
-
-DatabaseImpl* DatabaseImpl::Open(const std::string& dbPath, const std::string& dbName,
-                          const OptionsImpl& options) {
+DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
+  const OptionsImpl& options) : m_options(options) {
   // Initialize DatabaseMetadataManager
-  std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager =
-    std::make_unique<DatabaseMetadataManager>(dbPath, dbName, options.GetCreateDBIfMissing()); 
+  m_dbMetadataMgrImpl = std::make_unique<DatabaseMetadataManager>(dbPath,
+    dbName, options.GetCreateDBIfMissing());
 
   // Initialize query processor
-  unique_ptr<QueryProcessor> qp = std::make_unique<QueryProcessor>(dbPath, dbName);
-
-  return new DatabaseImpl(options, move(databaseMetadataManager), move(qp));
+  m_queryProcessor = std::make_unique<QueryProcessor>(dbPath, dbName);  
 }
 
 void DatabaseImpl::Close() {
