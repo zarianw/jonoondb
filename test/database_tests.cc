@@ -53,36 +53,38 @@ TEST(Database, Open_MissingDatabaseFolder) {
   ASSERT_THROW(Database db(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
 }
 
+Options GetDefaultDBOptions() {
+  Options opt;
+  opt.SetMaxDataFileSize(1024 * 1024);
+  return opt;
+}
+
 TEST(Database, Open_New) {
   string dbName = "Database_Open_New";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 }
 
 TEST(Database, Open_Existing) {
   string dbName = "Database_Open_Existing";
   string dbPath = g_TestRootDirectory;
-  Options options;  
   {
-    Database db(dbPath, dbName, options);
+    Database db(dbPath, dbName, GetDefaultDBOptions());
   }
   
   {
-    Database db(dbPath, dbName, options);
+    Database db(dbPath, dbName, GetDefaultDBOptions());
   }
 }
 
 TEST(Database, Open_CreateIfMissing) {
-  Options options;  
-  Database db(g_TestRootDirectory, "Database_Open_CreateIfMissing", options);  
+  Database db(g_TestRootDirectory, "Database_Open_CreateIfMissing", GetDefaultDBOptions());  
 }
 
 TEST(Database, CreateCollection_InvalidSchema) {
   string dbName = "CreateCollection_New";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
   ASSERT_THROW(db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", indexes), SchemaParseException);
 }
@@ -90,10 +92,9 @@ TEST(Database, CreateCollection_InvalidSchema) {
 TEST(Database, CreateCollection_New) {
   string dbName = "CreateCollection_New";
   string dbPath = g_TestRootDirectory;
-  Options options;  
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  Database db(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
   db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
 }
@@ -101,10 +102,9 @@ TEST(Database, CreateCollection_New) {
 TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string dbName = "CreateCollection_CollectionAlreadyExist";
   string dbPath = g_TestRootDirectory;
-  Options options;  
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  Database db(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
   db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
   ASSERT_THROW(db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes), CollectionAlreadyExistException);  
@@ -114,8 +114,7 @@ TEST(Database, Insert_NoIndex) {
   string dbName = "Insert_NoIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);  
+  Database db(dbPath, dbName, GetDefaultDBOptions());  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -131,8 +130,7 @@ TEST(Database, Insert_SingleIndex) {
   string dbName = "Insert_SingleIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);  
+  Database db(dbPath, dbName, GetDefaultDBOptions());  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -173,8 +171,7 @@ TEST(Database, Insert_AllIndexTypes) {
   string dbName = "Insert_AllIndexTypes";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);  
+  Database db(dbPath, dbName, GetDefaultDBOptions());  
 
   string filePath = g_SchemaFolderPath + "all_field_type.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -208,8 +205,7 @@ TEST(Database, ExecuteSelect_MissingCollection) {
   string dbName = "ExecuteSelect_MissingCollection";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -221,8 +217,7 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   string dbName = "ExecuteSelect_EmptyDB_NoIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   db.CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS, schema.c_str(), std::vector<IndexInfo>());
@@ -240,8 +235,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   string dbName = "ExecuteSelect_NonEmptyDB_SingleIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   CreateInsertTweet(db, collectionName, true, 1);
   int rows = 0;
@@ -257,8 +251,7 @@ TEST(Database, ExecuteSelect_Testing) {
   string dbName = "ExecuteSelect_Testing";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database db(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
