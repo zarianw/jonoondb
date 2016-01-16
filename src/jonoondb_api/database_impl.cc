@@ -28,8 +28,9 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
   m_queryProcessor = std::make_unique<QueryProcessor>(dbPath, dbName);  
 }
 
-void DatabaseImpl::Close() {
+DatabaseImpl::~DatabaseImpl() {
   // Todo (zarian): Close all sub components and log any issues
+  // Only clear the collections for this database and not all.
   DocumentCollectionDictionary::Instance()->Clear();
 }
 

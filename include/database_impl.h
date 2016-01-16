@@ -20,11 +20,11 @@ class DatabaseImpl final {
  public:
   DatabaseImpl(const std::string& dbPath, const std::string& dbName,
      const OptionsImpl& options);
+  ~DatabaseImpl();
   DatabaseImpl(const DatabaseImpl&) = delete;
   DatabaseImpl(DatabaseImpl&&) = delete;
   DatabaseImpl& operator=(const DatabaseImpl&) = delete;
   
-  void Close();
   void CreateCollection(const std::string& name, SchemaType schemaType,
                           const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
   void Insert(const char* collectionName, const BufferImpl& documentData);

@@ -466,26 +466,13 @@ private:
 class Database {
 public:
   Database(const std::string& dbPath, const std::string& dbName,
-    const Options& opt) : m_opaque(jonoondb_database_open(dbPath.c_str(),
+    const Options& opt) : m_opaque(jonoondb_database_construct(dbPath.c_str(),
     dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{})) {
   }
 
   ~Database() {
-    status_ptr sts = nullptr;
-    jonoondb_database_close(m_opaque, &sts);
-    if (sts != nullptr) {
-      //Todo: Handle/Log errors that can happen on shutdown
-    }
+    jonoondb_database_destruct(m_opaque);
   }
-
-  //void Close() {
-  //  status_ptr sts = nullptr;
-  //  jonoondb_database_close(m_opaque, &sts);
-  //  if (sts != nullptr) {
-  //    //Todo: Handle/Log errors that can happen on shutdown
-  //  }
-  //  m_opaque = nullptr;    
-  //}
 
   void CreateCollection(const std::string& name, SchemaType schemaType,
                         const std::string& schema, const std::vector<IndexInfo>& indexes) {

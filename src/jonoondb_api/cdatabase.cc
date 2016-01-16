@@ -391,7 +391,7 @@ struct database {
   DatabaseImpl impl;
 };
 
-database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
+database_ptr jonoondb_database_construct(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
   database_ptr db = nullptr;
   TranslateExceptions([&]{
     db = new database(dbPath, dbName, opt->impl);
@@ -400,12 +400,8 @@ database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, cons
   return db;
 }
 
-void jonoondb_database_close(database_ptr db, status_ptr* sts) {
-  TranslateExceptions([&]{
-    db->impl.Close();
-    // Todo: Handle exceptions that can happen on close
-    delete db;
-  }, *sts);
+void jonoondb_database_destruct(database_ptr db) {
+  delete db;
 }
 
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
