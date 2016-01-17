@@ -7,16 +7,16 @@ class BufferImpl {
  public:
   BufferImpl();
   BufferImpl(size_t capacity);
+  BufferImpl(const char* buffer, size_t bufferLengthInBytes,
+    size_t bufferCapacityInBytes);
+  BufferImpl(char* buffer, size_t bufferLengthInBytes,
+    size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
   BufferImpl(BufferImpl&& other);
   BufferImpl(const BufferImpl& other);
   ~BufferImpl();
   BufferImpl& operator=(const BufferImpl& other);
   BufferImpl& operator=(BufferImpl&& other);
-  bool operator<(const BufferImpl& other) const;
-  BufferImpl(char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
-  BufferImpl(const char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes);  
+  bool operator<(const BufferImpl& other) const;  
   void Resize(size_t newBufferCapacityInBytes);
   
   const char* GetData() const;  

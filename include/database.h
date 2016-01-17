@@ -341,6 +341,18 @@ public:
   Buffer() : m_opaque(jonoondb_buffer_construct()) {
   }
 
+  Buffer(size_t bufferCapacityInBytes) : m_opaque(jonoondb_buffer_construct2(bufferCapacityInBytes)) {
+  }
+
+  Buffer(const char* buffer, std::size_t bufferLengthInBytes, std::size_t bufferCapacityInBytes) : 
+    m_opaque(jonoondb_buffer_construct3(buffer, bufferLengthInBytes, bufferCapacityInBytes)) {
+  }
+
+  Buffer(char* buffer, std::size_t bufferLengthInBytes,
+    std::size_t bufferCapacityInBytes, void(*customDeleterFunc)(char*)) :
+    m_opaque(jonoondb_buffer_construct4(buffer, bufferLengthInBytes, bufferCapacityInBytes, customDeleterFunc)) {
+  }
+
   Buffer(const Buffer& other) :
     m_opaque(jonoondb_buffer_copy_construct(other.m_opaque, ThrowOnError{})) {
   }
@@ -348,7 +360,7 @@ public:
   Buffer(Buffer&& other) {
     m_opaque = other.m_opaque;
     other.m_opaque = jonoondb_buffer_construct();
-  }
+  }  
 
   Buffer& operator=(const Buffer& other) {
     jonoondb_buffer_copy_assignment(m_opaque, other.m_opaque, ThrowOnError{});

@@ -54,6 +54,26 @@ Buffer GetTweetObject2() {
   return buffer;
 }
 
+void GetTweetObject2(int tweetId, int userId, std::string& nameStr, std::string& textStr, Buffer& buffer) {
+  // create user object
+  FlatBufferBuilder fbb;
+  auto name = fbb.CreateString(nameStr);
+  auto user = CreateUser(fbb, name, userId);
+
+  // create tweet
+  auto text = fbb.CreateString(textStr);
+  auto tweet = CreateTweet(fbb, tweetId, text, user);
+
+  fbb.Finish(tweet);
+  auto size = fbb.GetSize();
+  
+  if (size > buffer.GetCapacity()) {
+    buffer.Resize(size);
+  }
+
+  buffer.Copy((char*)fbb.GetBufferPointer(), size);  
+}
+
 BufferImpl GetTweetObject() {
   // create user object
   FlatBufferBuilder fbb;

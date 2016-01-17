@@ -267,6 +267,14 @@ bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo) {
 //
 struct jonoondb_buffer {
   jonoondb_buffer() {}
+  jonoondb_buffer(size_t bufferCapacityInBytes) : impl(bufferCapacityInBytes) {}
+  jonoondb_buffer(const char* buffer, size_t bufferLengthInBytes, size_t bufferCapacityInBytes) :
+    impl(buffer, bufferLengthInBytes, bufferCapacityInBytes) {
+  }
+  jonoondb_buffer(char* buffer, size_t bufferLengthInBytes,
+    size_t bufferCapacityInBytes, void(*customDeleterFunc)(char*)) :
+    impl(buffer, bufferLengthInBytes, bufferCapacityInBytes, customDeleterFunc) {
+  }
   jonoondb_buffer(const BufferImpl& other) : impl(other) {}
 
   BufferImpl impl;
@@ -276,8 +284,23 @@ jonoondb_buffer_ptr jonoondb_buffer_construct() {
   return new jonoondb_buffer();
 }
 
-void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf) {
-  delete buf;
+jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes) {
+  return new jonoondb_buffer(bufferCapacityInBytes);
+}
+
+jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
+                                               size_t bufferLengthInBytes, 
+                                               size_t bufferCapacityInBytes) {
+  return new jonoondb_buffer(buffer, bufferLengthInBytes,
+                             bufferCapacityInBytes);
+}
+
+jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
+                                               size_t bufferLengthInBytes,
+                                               size_t bufferCapacityInBytes,
+                                               void(*customDeleterFunc)(char*)) {
+  return new jonoondb_buffer(buffer, bufferLengthInBytes,
+                             bufferCapacityInBytes, customDeleterFunc);
 }
 
 jonoondb_buffer_ptr jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf, status_ptr* sts) {
@@ -287,6 +310,10 @@ jonoondb_buffer_ptr jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf, stat
   }, *sts);
 
   return retVal;
+}
+
+void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf) {
+  delete buf;
 }
 
 void jonoondb_buffer_copy_assignment(jonoondb_buffer_ptr self, jonoondb_buffer_ptr other, status_ptr* sts) {

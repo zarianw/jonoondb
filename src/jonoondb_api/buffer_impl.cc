@@ -34,43 +34,6 @@ BufferImpl::BufferImpl(size_t capacity) : m_bufferImpl(nullptr) {
   }
 }
 
-BufferImpl::BufferImpl(BufferImpl&& other) {
-  this->m_bufferImpl = other.m_bufferImpl;
-  other.m_bufferImpl = nullptr;
-}
-
-BufferImpl::BufferImpl(const BufferImpl& other) : m_bufferImpl(nullptr) {
-  if (other.GetData() != nullptr) {
-    std::unique_ptr<char, DeleterFuncPtr> data(new char[other.GetCapacity()], StandardDelete);
-    memcpy(data.get(), other.GetData(), other.GetCapacity());
-    m_bufferImpl = new BufferData(std::move(data), other.GetLength(), other.GetCapacity());
-  }
-}
-
-BufferImpl::BufferImpl(char* buffer, size_t bufferLengthInBytes,
-  size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc) {
-  if (buffer == nullptr && bufferLengthInBytes == 0 && bufferCapacityInBytes == 0) {
-    // This is a special case, this kind of buffer is created by default ctor
-    m_bufferImpl = nullptr;
-  } else if (buffer == nullptr) {
-    throw InvalidArgumentException("Argument buffer is nullptr whereas bufferLengthInBytes or bufferCapacityInBytes are greater than 0.",
-      __FILE__, "", __LINE__);
-  } else if (bufferLengthInBytes == 0 || bufferCapacityInBytes == 0) {
-    throw InvalidArgumentException("Argument buffer is a valid pointer but bufferLengthInBytes or bufferCapacityInBytes are 0.",
-      __FILE__, "", __LINE__);
-  } else if (bufferCapacityInBytes < bufferLengthInBytes) {
-    // Capacity cannot be less than length    
-    throw InvalidArgumentException("Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.",
-      __FILE__, "", __LINE__);
-  } else if (customDeleterFunc == nullptr) {    
-    throw InvalidArgumentException("Argument customDeleterFunc is nullptr.",
-      __FILE__, "", __LINE__);
-  } else {
-    m_bufferImpl = new BufferData(std::unique_ptr<char, DeleterFuncPtr>(buffer, customDeleterFunc),
-      bufferLengthInBytes, bufferCapacityInBytes);
-  }
-}
-
 BufferImpl::BufferImpl(const char* buffer, size_t bufferLengthInBytes,
   size_t bufferCapacityInBytes) : m_bufferImpl(nullptr) {
   if (buffer == nullptr && bufferLengthInBytes == 0 && bufferCapacityInBytes == 0) {
@@ -89,7 +52,44 @@ BufferImpl::BufferImpl(const char* buffer, size_t bufferLengthInBytes,
   } else {
     std::unique_ptr<char, DeleterFuncPtr> data(new char[bufferCapacityInBytes], StandardDelete);
     memcpy(data.get(), buffer, bufferCapacityInBytes);
-    m_bufferImpl = new BufferData(std::move(data), bufferLengthInBytes, bufferCapacityInBytes);    
+    m_bufferImpl = new BufferData(std::move(data), bufferLengthInBytes, bufferCapacityInBytes);
+  }
+}
+
+BufferImpl::BufferImpl(char* buffer, size_t bufferLengthInBytes,
+  size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc) {
+  if (buffer == nullptr && bufferLengthInBytes == 0 && bufferCapacityInBytes == 0) {
+    // This is a special case, this kind of buffer is created by default ctor
+    m_bufferImpl = nullptr;
+  } else if (buffer == nullptr) {
+    throw InvalidArgumentException("Argument buffer is nullptr whereas bufferLengthInBytes or bufferCapacityInBytes are greater than 0.",
+      __FILE__, "", __LINE__);
+  } else if (bufferLengthInBytes == 0 || bufferCapacityInBytes == 0) {
+    throw InvalidArgumentException("Argument buffer is a valid pointer but bufferLengthInBytes or bufferCapacityInBytes are 0.",
+      __FILE__, "", __LINE__);
+  } else if (bufferCapacityInBytes < bufferLengthInBytes) {
+    // Capacity cannot be less than length    
+    throw InvalidArgumentException("Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.",
+      __FILE__, "", __LINE__);
+  } else if (customDeleterFunc == nullptr) {
+    throw InvalidArgumentException("Argument customDeleterFunc is nullptr.",
+      __FILE__, "", __LINE__);
+  } else {
+    m_bufferImpl = new BufferData(std::unique_ptr<char, DeleterFuncPtr>(buffer, customDeleterFunc),
+      bufferLengthInBytes, bufferCapacityInBytes);
+  }
+}
+
+BufferImpl::BufferImpl(BufferImpl&& other) {
+  this->m_bufferImpl = other.m_bufferImpl;
+  other.m_bufferImpl = nullptr;
+}
+
+BufferImpl::BufferImpl(const BufferImpl& other) : m_bufferImpl(nullptr) {
+  if (other.GetData() != nullptr) {
+    std::unique_ptr<char, DeleterFuncPtr> data(new char[other.GetCapacity()], StandardDelete);
+    memcpy(data.get(), other.GetData(), other.GetCapacity());
+    m_bufferImpl = new BufferData(std::move(data), other.GetLength(), other.GetCapacity());
   }
 }
 

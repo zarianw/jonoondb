@@ -1,35 +1,32 @@
 #include "gtest/gtest.h"
-#include "buffer_impl.h"
 #include "standard_deleters.h"
 #include "jonoondb_exceptions.h"
+#include "database.h"
 
 using namespace std;
 using namespace jonoondb_api;
 
-// Uncomment the #define to test the Buffer class instead
-//#define BufferImpl Buffer
-
-BufferImpl GetBufferRValue(char* source, size_t length) {
+Buffer GetBufferRValue(char* source, size_t length) {
   if (source == nullptr) {
-    BufferImpl buffer;
+    Buffer buffer;
     return buffer;
   } else {
-    BufferImpl buffer(source, length, length, StandardDeleteNoOp);
+    Buffer buffer(source, length, length, StandardDeleteNoOp);
     return buffer;
   }
 }
 
-TEST(BufferImpl, Buffer_DefaultConstructor) {
-  BufferImpl buffer;
+TEST(Buffer, Buffer_DefaultConstructor) {
+  Buffer buffer;
 
   ASSERT_TRUE(buffer.GetData() == nullptr);
   ASSERT_TRUE(buffer.GetCapacity() == 0);
   ASSERT_TRUE(buffer.GetLength() == 0);
 }
 
-TEST(BufferImpl, Buffer_MoveConstructor) {
-  BufferImpl buffer1;
-  BufferImpl buffer2 = move(buffer1);  //invoke move ctor
+TEST(Buffer, Buffer_MoveConstructor) {
+  Buffer buffer1;
+  Buffer buffer2 = move(buffer1);  //invoke move ctor
 
   ASSERT_TRUE(buffer1.GetData() == nullptr);
   ASSERT_TRUE(buffer1.GetCapacity() == 0);
@@ -41,10 +38,10 @@ TEST(BufferImpl, Buffer_MoveConstructor) {
 
   //Now invoke copy ctor on a buffer with some data
 
-  BufferImpl buffer3;
+  Buffer buffer3;
   buffer3.Resize(100);
 
-  BufferImpl buffer4 = move(buffer3);  //invoke move ctor
+  Buffer buffer4 = move(buffer3);  //invoke move ctor
 
   //Content of buffer should be null and buffer4 should have the value
   ASSERT_TRUE(buffer3.GetData() == nullptr);
@@ -57,7 +54,7 @@ TEST(BufferImpl, Buffer_MoveConstructor) {
   ASSERT_TRUE(buffer4.GetLength() == 0);
 
   //Move ctor from a separate func
-  BufferImpl buffer5 = GetBufferRValue(nullptr, 0);
+  Buffer buffer5 = GetBufferRValue(nullptr, 0);
 
   ASSERT_TRUE(buffer5.GetData() == nullptr);
   ASSERT_TRUE(buffer5.GetCapacity() == 0);
@@ -65,7 +62,7 @@ TEST(BufferImpl, Buffer_MoveConstructor) {
 
   //Now invoke move ctor on a buffer with some data
   string str = "Hello";
-  BufferImpl buffer6 = GetBufferRValue(const_cast<char*>(str.data()), str.length());
+  Buffer buffer6 = GetBufferRValue(const_cast<char*>(str.data()), str.length());
 
   ASSERT_TRUE(buffer6.GetData() != nullptr && buffer6.GetData() == str.data());
   ASSERT_TRUE(buffer6.GetCapacity() == str.length());
@@ -75,15 +72,15 @@ TEST(BufferImpl, Buffer_MoveConstructor) {
     memcmp(buffer6.GetData(), str.data(), buffer6.GetCapacity()) == 0);
 }
 
-TEST(BufferImpl, Buffer_Resize) {
-  BufferImpl buffer1;
+TEST(Buffer, Buffer_Resize) {
+  Buffer buffer1;
   buffer1.Resize(200);
 
   ASSERT_TRUE(buffer1.GetData() != nullptr);
   ASSERT_TRUE(buffer1.GetCapacity() == 200);
   ASSERT_TRUE(buffer1.GetLength() == 0);
 
-  BufferImpl buffer2;
+  Buffer buffer2;
   buffer2.Resize(0);
 
   ASSERT_TRUE(buffer2.GetData() == nullptr);
@@ -91,14 +88,14 @@ TEST(BufferImpl, Buffer_Resize) {
   ASSERT_TRUE(buffer2.GetLength() == 0);
 }
 
-TEST(BufferImpl, Buffer_AssignCtor_InvalidArguments) {
+TEST(Buffer, Buffer_AssignCtor_InvalidArguments) {
   string str = "Hello";
   //1. This is an error condition because we are saying take ownership but not providing the deleter
-  ASSERT_THROW(BufferImpl buffer1(const_cast<char*>(str.data()), str.length(), str.capacity(), nullptr),
+  ASSERT_THROW(Buffer buffer1(const_cast<char*>(str.data()), str.length(), str.capacity(), nullptr),
     InvalidArgumentException);
 
   //2. Valid condition.
-  BufferImpl buffer2(const_cast<char*>(str.data()), str.length(),
+  Buffer buffer2(const_cast<char*>(str.data()), str.length(),
     str.capacity(), StandardDeleteNoOp);
   
 
@@ -111,26 +108,26 @@ TEST(BufferImpl, Buffer_AssignCtor_InvalidArguments) {
       memcmp(buffer2.GetData(), str.data(), buffer2.GetCapacity()) == 0);
 
   //3. This is an error condition because we are specifying length < capacity
-  ASSERT_THROW(BufferImpl buffer3(const_cast<char*>(str.data()), 20, 10, StandardDeleteNoOp), InvalidArgumentException);  
+  ASSERT_THROW(Buffer buffer3(const_cast<char*>(str.data()), 20, 10, StandardDeleteNoOp), InvalidArgumentException);  
 
   //4. When capacity or length is 0 then an buffer should be nullptr
-  ASSERT_THROW(BufferImpl buffer4(const_cast<char*>(str.data()), 0, 0, StandardDeleteNoOp), InvalidArgumentException);  
+  ASSERT_THROW(Buffer buffer4(const_cast<char*>(str.data()), 0, 0, StandardDeleteNoOp), InvalidArgumentException);  
   
   //5. When nullptr buffer is nullptr length and capacity should be 0
-  ASSERT_THROW(BufferImpl buffer5(nullptr, 20, 20, StandardDeleteNoOp), InvalidArgumentException);  
+  ASSERT_THROW(Buffer buffer5(nullptr, 20, 20, StandardDeleteNoOp), InvalidArgumentException);  
 
   // Now valid case
-  BufferImpl buffer6(nullptr, 0, 0, StandardDeleteNoOp);
+  Buffer buffer6(nullptr, 0, 0, StandardDeleteNoOp);
   ASSERT_TRUE(buffer6.GetData() == nullptr);
   ASSERT_TRUE(buffer6.GetCapacity() == 0);
   ASSERT_TRUE(buffer6.GetLength() == 0);
 }
 
-TEST(BufferImpl, Buffer_ManualCopyCtor_InvalidArguments) {
+TEST(Buffer, Buffer_ManualCopyCtor_InvalidArguments) {
   string str = "Hello";
   
   // Valid condition.
-  BufferImpl buffer2(const_cast<char*>(str.data()), str.length(), str.capacity());
+  Buffer buffer2(const_cast<char*>(str.data()), str.length(), str.capacity());
 
 
   ASSERT_TRUE(buffer2.GetData() != nullptr && buffer2.GetData() != str.data());
@@ -141,26 +138,26 @@ TEST(BufferImpl, Buffer_ManualCopyCtor_InvalidArguments) {
     memcmp(buffer2.GetData(), str.data(), buffer2.GetCapacity()) == 0);
 
   //3. This is an error condition because we are specifying length < capacity
-  ASSERT_THROW(BufferImpl buffer3(const_cast<char*>(str.data()), 20, 10), InvalidArgumentException);
+  ASSERT_THROW(Buffer buffer3(const_cast<char*>(str.data()), 20, 10), InvalidArgumentException);
 
   //4. When capacity or length is 0 then an buffer should be nullptr
-  ASSERT_THROW(BufferImpl buffer4(const_cast<char*>(str.data()), 0, 0), InvalidArgumentException);
+  ASSERT_THROW(Buffer buffer4(const_cast<char*>(str.data()), 0, 0), InvalidArgumentException);
 
   //5. When nullptr buffer is nullptr length and capacity should be 0
-  ASSERT_THROW(BufferImpl buffer5(nullptr, 20, 20), InvalidArgumentException);
+  ASSERT_THROW(Buffer buffer5(nullptr, 20, 20), InvalidArgumentException);
 
   // Now valid case
-  BufferImpl buffer6(nullptr, 0, 0);
+  Buffer buffer6(nullptr, 0, 0);
   ASSERT_TRUE(buffer6.GetData() == nullptr);
   ASSERT_TRUE(buffer6.GetCapacity() == 0);
   ASSERT_TRUE(buffer6.GetLength() == 0);
 }
 
-TEST(BufferImpl, Buffer_CopyCtor) {
+TEST(Buffer, Buffer_CopyCtor) {
   // Valid condition
   string str = "Hello";
 
-  BufferImpl buffer1(const_cast<char*>(str.data()), str.length(), str.capacity());
+  Buffer buffer1(const_cast<char*>(str.data()), str.length(), str.capacity());
   ASSERT_TRUE(buffer1.GetData() != nullptr && buffer1.GetData() != str.data());
   ASSERT_TRUE(buffer1.GetCapacity() == str.capacity());
   ASSERT_TRUE(buffer1.GetLength() == str.length());
@@ -169,13 +166,13 @@ TEST(BufferImpl, Buffer_CopyCtor) {
     memcmp(buffer1.GetData(), str.data(), buffer1.GetCapacity()) == 0);
 }
 
-TEST(BufferImpl, Buffer_Copy) {
+TEST(Buffer, Buffer_Copy) {
   //1. Valid condition. Both string should copy successfully
   string str = "Hello";
   string strLong = "HelloWorld";
   int originalCapacity = 100;
 
-  BufferImpl buffer1(const_cast<char*>(str.data()), str.length(), originalCapacity);
+  Buffer buffer1(const_cast<char*>(str.data()), str.length(), originalCapacity);
   const char* originalDataPtr = buffer1.GetData();
   ASSERT_TRUE(buffer1.GetData() != nullptr && buffer1.GetData() != str.data());
 
@@ -192,28 +189,12 @@ TEST(BufferImpl, Buffer_Copy) {
   ASSERT_EQ(buffer1.GetLength(), strLong.length());
 
   //2. Invalid Arguments
-  BufferImpl buffer2;
+  Buffer buffer2;
   ASSERT_THROW(buffer2.Copy(nullptr, 2), InvalidArgumentException);  
 }
 
-TEST(BufferImpl, Buffer_Copy_SmallBuffer) {
-  //1. Valid condition. Both string should copy successfully
+TEST(Buffer, Buffer_Copy_SmallBuffer) {
   string str = "Hello";
-  BufferImpl buffer(2);
+  Buffer buffer(2);
   ASSERT_THROW(buffer.Copy(str.data(), str.length()), JonoonDBException);  
-}
-
-TEST(BufferImpl, Buffer_OutOfMemory) {
-  //1. This is an error condition because we are specifying a very large value that should result in bad_alloc
-  string str = "Hello";
-
-  BufferImpl buffer1;
-  // Todo: Uncomment this test once the assert dialog issue is fixed for windows 10
-  //ASSERT_TRUE(
-  //    buffer1.Copy(const_cast<char*>(str.data()), str.length(), ((size_t )-1))
-  //        .OutOfMemoryError());  // 1 TB
-
-  ASSERT_TRUE(buffer1.GetData() == nullptr);
-  ASSERT_TRUE(buffer1.GetCapacity() == 0);
-  ASSERT_TRUE(buffer1.GetLength() == 0);
 }
