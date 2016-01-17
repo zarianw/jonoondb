@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace jonoondb_api {
 // Forward declaration
@@ -14,7 +15,7 @@ class DocumentSchema {
  public:
   virtual ~DocumentSchema() {
   }
-  virtual const char* GetSchemaText() const = 0;
+  virtual const std::string& GetSchemaText() const = 0;
   virtual SchemaType GetSchemaType() const = 0;
   virtual FieldType GetFieldType(const std::string& fieldName) const = 0;
   virtual std::size_t GetRootFieldCount() const = 0;

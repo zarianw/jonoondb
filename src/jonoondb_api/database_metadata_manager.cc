@@ -4,7 +4,6 @@
 #include <boost/filesystem.hpp>
 #include "sqlite3.h"
 #include "database_metadata_manager.h"
-#include "status.h"
 #include "string_utils.h"
 #include "exception_utils.h"
 #include "sqlite_utils.h"
@@ -209,27 +208,25 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
   }
 
   // 3. Add all the collection indexes
-  Status sts;
-  for (int i = 0; i < indexes.size(); i++) {
-    sts = CreateIndex(name.c_str(), *indexes[i]);
-    if (!sts) break;
+  try {
+    for (int i = 0; i < indexes.size(); i++) {
+      CreateIndex(name.c_str(), *indexes[i]);
+    }
+  } catch (...) {
+    sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);    
+    throw;
   }
 
-  //4. Commit or Rollback the transaction based on status of inserts
-  if (!sts) {
-    sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);    
-  } else {
-    code = sqlite3_exec(m_metadataDBConnection.get(), "COMMIT", 0, 0, 0);
-    if (code != SQLITE_OK) {
-      // Comment copied from sqlite documentation. It is recommended that
-      // applications respond to the errors listed above by explicitly issuing
-      // a ROLLBACK command.If the transaction has already been rolled back
-      // automatically by the error response, then the ROLLBACK command will
-      // fail with an error, but no harm is caused by this.
-      sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
-      throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
-    }    
-  }
+  code = sqlite3_exec(m_metadataDBConnection.get(), "COMMIT", 0, 0, 0);
+  if (code != SQLITE_OK) {
+    // Comment copied from sqlite documentation. It is recommended that
+    // applications respond to the errors listed above by explicitly issuing
+    // a ROLLBACK command.If the transaction has already been rolled back
+    // automatically by the error response, then the ROLLBACK command will
+    // fail with an error, but no harm is caused by this.
+    sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
+    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+  }  
 }
 
 const std::string& DatabaseMetadataManager::GetFullDBPath() const {
@@ -244,7 +241,7 @@ const std::string& DatabaseMetadataManager::GetDBName() const {
   return m_dbName;
 }
 
-Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
+void DatabaseMetadataManager::CreateIndex(const std::string& collectionName,
                                             const IndexInfoImpl& indexInfo) {
   unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionIndexStmt, SQLiteUtils::ClearAndResetStatement);
@@ -256,7 +253,7 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
 
   sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 2,  // Index of wildcard
-                                 collectionName, -1,  // length of the string is the number of bytes up to the first zero terminator
+                                 collectionName.c_str(), -1,  // length of the string is the number of bytes up to the first zero terminator
                                  SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
@@ -281,8 +278,6 @@ Status DatabaseMetadataManager::CreateIndex(const char* collectionName,
       throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
     }
   }
-
-  return Status();
 }
 
 void DatabaseMetadataManager::FinalizeStatements() {

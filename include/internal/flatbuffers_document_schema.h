@@ -7,7 +7,6 @@
 
 namespace jonoondb_api {
 //Forward declaration
-class Status;
 enum class FieldType
 : std::int8_t;
 enum class SchemaType
@@ -19,7 +18,7 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
       flatbuffers::BaseType flatbuffersType);
   ~FlatbuffersDocumentSchema() override;
   FlatbuffersDocumentSchema(const std::string& schemaText, SchemaType schemaType);
-  const char* GetSchemaText() const override;
+  const std::string& GetSchemaText() const override;
   SchemaType GetSchemaType() const override;
   FieldType GetFieldType(const std::string& fieldName) const override;
   std::size_t GetRootFieldCount() const override;
@@ -30,10 +29,6 @@ class FlatbuffersDocumentSchema final : public DocumentSchema {
  private:  
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
-
-  Status GetMissingFieldErrorStatus(const char* fieldName) const;
-  Status GetInvalidStructFieldErrorStatus(const char* fieldName,
-                                          const char* fullName) const;
 
   std::string m_schemaText;
   std::unique_ptr<flatbuffers::Parser> m_parser;

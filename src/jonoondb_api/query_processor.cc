@@ -3,7 +3,6 @@
 #include <boost/filesystem.hpp>
 #include "sqlite3.h"
 #include "query_processor.h"
-#include "status.h"
 #include "exception_utils.h"
 #include "document_collection.h"
 #include "document_collection_dictionary.h"

@@ -4,9 +4,8 @@
 #include <string>
 #include <sstream>
 #include <cstdint>
-#include <boost/interprocess/file_mapping.hpp> // NOLINT
-#include <boost/interprocess/mapped_region.hpp> // NOLINT
-#include "status.h"
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {

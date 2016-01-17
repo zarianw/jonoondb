@@ -4,7 +4,6 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers_document_schema.h"
 #include "enums.h"
-#include "status.h"
 #include "string_utils.h"
 #include "exception_utils.h"
 #include "flatbuffers_field.h"
@@ -32,8 +31,8 @@ FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(const std::string& schemaTe
   }  
 }
 
-const char* FlatbuffersDocumentSchema::GetSchemaText() const {
-  return m_schemaText.c_str();
+const std::string& FlatbuffersDocumentSchema::GetSchemaText() const {
+  return m_schemaText;
 }
 
 SchemaType FlatbuffersDocumentSchema::GetSchemaType() const {

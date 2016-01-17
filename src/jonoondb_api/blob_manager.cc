@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <boost/filesystem.hpp>
 #include "blob_manager.h"
-#include "status.h"
 #include "exception_utils.h"
 #include "buffer_impl.h"
 #include "blob_metadata.h"
@@ -204,8 +203,7 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
     blob.Resize(blobSize);
   }
 
-  memcpy(blob.GetDataForWrite(), offsetAddress, blobSize);
-  blob.SetLength(blobSize);
+  blob.Copy(offsetAddress, blobSize);  
 }
 
 void BlobManager::UnmapLRUDataFiles() {

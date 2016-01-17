@@ -75,19 +75,19 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/serializer_utils.h
  ${INCLUDE_INTERNAL_PATH}/exception_utils.h
  ${INCLUDE_INTERNAL_PATH}/sqlite_utils.h
- ${INCLUDE_PATH}/document.h
- ${INCLUDE_PATH}/document_schema.h
+ ${INCLUDE_INTERNAL_PATH}/document.h
+ ${INCLUDE_INTERNAL_PATH}/document_schema.h
  ${INCLUDE_PATH}/enums.h
  ${INCLUDE_INTERNAL_PATH}/blob_metadata.h 
  ${INCLUDE_INTERNAL_PATH}/concurrent_lru_cache.h
  ${INCLUDE_INTERNAL_PATH}/memory_mapped_file.h
  ${INCLUDE_INTERNAL_PATH}/file_info.h
- ${INCLUDE_PATH}/indexer.h
- ${INCLUDE_PATH}/constants.h
+ ${INCLUDE_INTERNAL_PATH}/indexer.h
+ ${INCLUDE_INTERNAL_PATH}/constants.h
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_integer.h
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_string.h
  ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_double.h
- ${INCLUDE_PATH}/field.h
+ ${INCLUDE_INTERNAL_PATH}/field.h
  ${INCLUDE_PATH}/jonoondb_exceptions.h 
  ${INCLUDE_PATH}/database.h
  ${INCLUDE_INTERNAL_PATH}/concurrent_map.h
@@ -97,13 +97,13 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/object_pool.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
- ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/database_impl.h
- ${SRC_PATH}/jonoondb_api/status.cc ${INCLUDE_PATH}/status.h
- ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/options_impl.h
+ ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_INTERNAL_PATH}/database_impl.h
+ ${SRC_PATH}/jonoondb_api/status_impl.cc ${INCLUDE_INTERNAL_PATH}/status_impl.h
+ ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_INTERNAL_PATH}/options_impl.h
  ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${INCLUDE_INTERNAL_PATH}/database_metadata_manager.h
  ${SRC_PATH}/jonoondb_api/document_collection.cc ${INCLUDE_INTERNAL_PATH}/document_collection.h
- ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_PATH}/index_info_impl.h 
- ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${INCLUDE_PATH}/buffer_impl.h
+ ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_INTERNAL_PATH}/index_info_impl.h 
+ ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${INCLUDE_INTERNAL_PATH}/buffer_impl.h
  ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
  ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
  ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
@@ -117,7 +117,7 @@ add_library(
  ${SRC_PATH}/jonoondb_api/flatbuffers_field.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_field.h
  ${SRC_PATH}/jonoondb_api/document_collection_dictionary.cc ${INCLUDE_INTERNAL_PATH}/document_collection_dictionary.h
  ${SRC_PATH}/jonoondb_api/guard_funcs.cc ${INCLUDE_INTERNAL_PATH}/guard_funcs.h
- ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_PATH}/resultset_impl.h
+ ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_INTERNAL_PATH}/resultset_impl.h
  ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_INTERNAL_PATH}/index_stat.h
  ${SRC_PATH}/jonoondb_api/blob_manager.cc ${INCLUDE_INTERNAL_PATH}/blob_manager.h) 
  
@@ -134,7 +134,7 @@ add_executable(
  jonoondb_test
  ${TEST_PATH}/test_utils.h
  ${TEST_PATH}/main.cc
- ${TEST_PATH}/status_tests.cc
+ ${TEST_PATH}/status_impl_tests.cc
  ${TEST_PATH}/database_metadata_manager_tests.cc
  ${TEST_PATH}/buffer_tests.cc
  ${TEST_PATH}/concurrent_lru_cache_tests.cc

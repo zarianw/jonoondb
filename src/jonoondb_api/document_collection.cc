@@ -4,7 +4,6 @@
 #include <string>
 #include "sqlite3.h"
 #include "document_collection.h"
-#include "status.h"
 #include "string_utils.h"
 #include "exception_utils.h"
 #include "sqlite_utils.h"

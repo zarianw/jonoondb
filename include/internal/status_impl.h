@@ -6,16 +6,16 @@ namespace jonoondb_api {
   // Forward declarations
 struct StatusData;
 
-class Status {
+class StatusImpl {
  public:
-  Status();
-  Status(const Status& other);
-  Status(Status&& other);
-  Status(std::size_t code, const char* message, const char* srcFileName,
+  StatusImpl();
+  StatusImpl(const StatusImpl& other);
+  StatusImpl(StatusImpl&& other);
+  StatusImpl(std::size_t code, const char* message, const char* srcFileName,
     const char* funcName, std::size_t lineNum);
-  ~Status();
-  Status& operator=(Status&& other);
-  Status& operator=(const Status& other);
+  ~StatusImpl();
+  StatusImpl& operator=(StatusImpl&& other);
+  StatusImpl& operator=(const StatusImpl& other);
   bool operator!();
   std::size_t GetCode() const;
   const char* GetMessage() const;

@@ -9,8 +9,6 @@
 #include "object_pool.h"
 
 namespace jonoondb_api {
-class Status;
-
 class ResultSetImpl {
 public:
   ResultSetImpl(ObjectPoolGuard<sqlite3> db, const std::string& selectStmt);
