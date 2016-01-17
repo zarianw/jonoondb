@@ -318,3 +318,84 @@ TEST(Database, ExecuteSelect_Testing) {
 
   rs.Close();
 }
+
+/*TEST(Database, Insert_10K) {
+  string dbName = "Insert_100K";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Options opt;
+  opt.SetSynchronous(false);
+  Database db(dbPath, dbName, opt);
+
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
+  std::vector<IndexInfo> indexes;
+
+  IndexInfo index;
+  index.SetIndexName("IndexName1");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("user.name");
+  indexes.push_back(index);
+
+  index.SetIndexName("IndexName2");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("text");
+  indexes.push_back(index);
+
+  index.SetIndexName("IndexName3");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("id");
+  indexes.push_back(index);
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::string name = "Zarian";
+  std::string text = "Say hello to my little friend!";
+
+  Buffer documentData;
+  for (size_t i = 0; i < 100000; i++) {
+    GetTweetObject2(i, i, name, text, documentData);
+    db.Insert(collectionName, documentData);
+  }  
+
+  int rows = 0;
+  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ++rows;
+  }
+  ASSERT_EQ(rows, 1);
+
+  rows = 0;
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
+  while (rs.Next()) {
+    ++rows;
+  }
+  ASSERT_EQ(rows, 0);
+
+  rows = 0;
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
+  while (rs.Next()) {
+    rs.GetInteger(rs.GetColumnIndex("id"));
+    ++rows;
+  }
+  ASSERT_EQ(rows, 100000);
+
+  rows = 0;
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ++rows;
+  }
+  ASSERT_EQ(rows, 1);
+  
+  //rs.Close();
+}*/
