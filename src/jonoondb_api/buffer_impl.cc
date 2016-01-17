@@ -13,13 +13,13 @@ using namespace jonoondb_api;
 
 struct BufferImpl::BufferData {
  public:
-  BufferData(std::unique_ptr<char, DeleterFuncPtr> bufferData, size_t bufferLength, size_t bufferCapacity)
+  BufferData(std::unique_ptr<char, void(*)(char*)> bufferData, size_t bufferLength, size_t bufferCapacity)
       : bufferPtr(std::move(bufferData)),
         bufferLength(bufferLength),
         bufferCapacity(bufferCapacity) {
   }
 
-  std::unique_ptr<char, DeleterFuncPtr> bufferPtr;
+  std::unique_ptr<char, void(*)(char*)> bufferPtr;
   size_t bufferLength;
   size_t bufferCapacity;
 };
@@ -29,7 +29,7 @@ BufferImpl::BufferImpl() : m_bufferImpl(nullptr) {
 
 BufferImpl::BufferImpl(size_t capacity) : m_bufferImpl(nullptr) {
   if (capacity > 0) {
-    std::unique_ptr<char, DeleterFuncPtr> data(new char[capacity], StandardDelete);
+    std::unique_ptr<char, void(*)(char*)> data(new char[capacity], StandardDelete);
     m_bufferImpl = new BufferData(std::move(data), 0, capacity);
   }
 }
@@ -50,14 +50,14 @@ BufferImpl::BufferImpl(const char* buffer, size_t bufferLengthInBytes,
     throw InvalidArgumentException("Argument bufferCapacityInBytes cannot be less than bufferLengthInBytes.",
       __FILE__, "", __LINE__);
   } else {
-    std::unique_ptr<char, DeleterFuncPtr> data(new char[bufferCapacityInBytes], StandardDelete);
+    std::unique_ptr<char, void(*)(char*)> data(new char[bufferCapacityInBytes], StandardDelete);
     memcpy(data.get(), buffer, bufferCapacityInBytes);
     m_bufferImpl = new BufferData(std::move(data), bufferLengthInBytes, bufferCapacityInBytes);
   }
 }
 
 BufferImpl::BufferImpl(char* buffer, size_t bufferLengthInBytes,
-  size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc) {
+                       size_t bufferCapacityInBytes, void(*customDeleterFunc)(char*)) {
   if (buffer == nullptr && bufferLengthInBytes == 0 && bufferCapacityInBytes == 0) {
     // This is a special case, this kind of buffer is created by default ctor
     m_bufferImpl = nullptr;
@@ -75,7 +75,7 @@ BufferImpl::BufferImpl(char* buffer, size_t bufferLengthInBytes,
     throw InvalidArgumentException("Argument customDeleterFunc is nullptr.",
       __FILE__, "", __LINE__);
   } else {
-    m_bufferImpl = new BufferData(std::unique_ptr<char, DeleterFuncPtr>(buffer, customDeleterFunc),
+    m_bufferImpl = new BufferData(std::unique_ptr<char, void(*)(char*)>(buffer, customDeleterFunc),
       bufferLengthInBytes, bufferCapacityInBytes);
   }
 }
@@ -87,7 +87,7 @@ BufferImpl::BufferImpl(BufferImpl&& other) {
 
 BufferImpl::BufferImpl(const BufferImpl& other) : m_bufferImpl(nullptr) {
   if (other.GetData() != nullptr) {
-    std::unique_ptr<char, DeleterFuncPtr> data(new char[other.GetCapacity()], StandardDelete);
+    std::unique_ptr<char, void(*)(char*)> data(new char[other.GetCapacity()], StandardDelete);
     memcpy(data.get(), other.GetData(), other.GetCapacity());
     m_bufferImpl = new BufferData(std::move(data), other.GetLength(), other.GetCapacity());
   }
@@ -105,7 +105,7 @@ BufferImpl& BufferImpl::operator=(const BufferImpl& other) {
       // We have to delete existing buffer, create a new buffer and then copy
       // First check if our existing buffer has the same capacity
       if (GetCapacity() != other.GetCapacity()) {
-        std::unique_ptr<char, DeleterFuncPtr> data(new char[other.GetCapacity()], StandardDelete);
+        std::unique_ptr<char, void(*)(char*)> data(new char[other.GetCapacity()], StandardDelete);
         memcpy(data.get(), other.GetData(), other.GetCapacity());
         // We have to delete existing buffer, create a new buffer and then copy
         Reset();
@@ -181,7 +181,7 @@ void BufferImpl::Resize(size_t newBufferCapacityInBytes) {
   } else if (newBufferCapacityInBytes == GetCapacity()) {
     return; // no op
   } else {    
-      std::unique_ptr<char, DeleterFuncPtr> data(new char[newBufferCapacityInBytes], StandardDelete);
+      std::unique_ptr<char, void(*)(char*)> data(new char[newBufferCapacityInBytes], StandardDelete);
       Reset();
       m_bufferImpl = new BufferData(std::move(data), 0,
                                     newBufferCapacityInBytes);         

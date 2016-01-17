@@ -10,7 +10,7 @@ class BufferImpl {
   BufferImpl(const char* buffer, size_t bufferLengthInBytes,
     size_t bufferCapacityInBytes);
   BufferImpl(char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
+             size_t bufferCapacityInBytes, void(*customDeleterFunc)(char*));
   BufferImpl(BufferImpl&& other);
   BufferImpl(const BufferImpl& other);
   ~BufferImpl();
