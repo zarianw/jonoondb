@@ -14,7 +14,7 @@ TEST(StatusImpl, Constructor1) {
 TEST(StatusImpl, Constructor2) {
   string errorMsg = "Error Message.";
   StatusImpl status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                __FILE__, "", __LINE__);
+                __FILE__, __func__, __LINE__);
   ASSERT_STREQ(status.GetMessage(), errorMsg.c_str());
   ASSERT_TRUE(status.InvalidArgument());
 }
@@ -22,7 +22,7 @@ TEST(StatusImpl, Constructor2) {
 TEST(StatusImpl, CopyConstructor) {
   string errorMsg = "Error Message.";
   StatusImpl status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                __FILE__, "", __LINE__);
+                __FILE__, __func__, __LINE__);
 
   //Now copy the object
   StatusImpl status2(status);
@@ -38,7 +38,7 @@ TEST(StatusImpl, CopyConstructor) {
 TEST(StatusImpl, AssignmentOperator) {
   string errorMsg = "Error Message.";
   StatusImpl status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                __FILE__, "", __LINE__);
+                __FILE__, __func__, __LINE__);
 
   //Do the assignment
   StatusImpl status2;
@@ -58,7 +58,7 @@ TEST(StatusImpl, MoveAssignmentOperator) {
   StatusImpl status;
   //Assign StatusImpl from a rvalue object
   status = StatusImpl(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                  __FILE__, "", __LINE__);
+                  __FILE__, __func__, __LINE__);
 
   //Now verify
   ASSERT_STREQ(status.GetMessage(), errorMsg.c_str());
@@ -67,7 +67,7 @@ TEST(StatusImpl, MoveAssignmentOperator) {
 
 StatusImpl GetStatusRValue(const string& errorMsg) {
   StatusImpl sts = StatusImpl(kStatusInvalidArgumentCode, errorMsg.c_str(),
-                      __FILE__, "", __LINE__);
+                      __FILE__, __func__, __LINE__);
 
   return sts;
 }
@@ -221,16 +221,16 @@ TEST(StatusImpl, GetCode){
   string errorMsg = "Error Message.";
 
   StatusImpl status1(kStatusGenericErrorCode, errorMsg.c_str(),
-    __FILE__, "", __LINE__);
+    __FILE__, __func__, __LINE__);
   ASSERT_EQ(status1.GetCode(), kStatusGenericErrorCode);
 
 
   StatusImpl status2(kStatusInvalidArgumentCode, errorMsg.c_str(),
-    __FILE__, "", __LINE__);
+    __FILE__, __func__, __LINE__);
   ASSERT_EQ(status2.GetCode(), kStatusInvalidArgumentCode);
 
   StatusImpl status3(kStatusMissingDatabaseFileCode, errorMsg.c_str(),
-    __FILE__, "", __LINE__);
+    __FILE__, __func__, __LINE__);
   ASSERT_EQ(status3.GetCode(), kStatusMissingDatabaseFileCode);
 }
 
@@ -243,7 +243,7 @@ TEST(StatusImpl, NotOperatorOnEmptyConstructor) {
 TEST(StatusImpl, NotOperatorOnNonEmptyConstructor) {
   string errorMsg = "Error Message.";
   StatusImpl status(kStatusInvalidArgumentCode, errorMsg.c_str(),
-    __FILE__, "", __LINE__);
+    __FILE__, __func__, __LINE__);
   // on non empty params OK is false as there is some error,
   // so the negation will return true
   ASSERT_TRUE(!status);
@@ -253,7 +253,7 @@ TEST(StatusImpl, GetMessage) {
   string errorMsg = "Error Message.";
 
   StatusImpl status1(kStatusGenericErrorCode, errorMsg.c_str(),
-    __FILE__, "", __LINE__);
+    __FILE__, __func__, __LINE__);
   ASSERT_STREQ(status1.GetMessage(), errorMsg.c_str());
 
   //This is the case where status is OK and returns OK

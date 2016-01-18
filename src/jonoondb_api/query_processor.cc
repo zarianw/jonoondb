@@ -28,7 +28,7 @@ m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(n
   if (!boost::filesystem::exists(pathObj)) {
     std::ostringstream ss;
     ss << "Database folder " << pathObj.string() << " does not exist.";
-    throw MissingDatabaseFolderException(ss.str(), __FILE__, "", __LINE__);
+    throw MissingDatabaseFolderException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   pathObj += dbName;
@@ -38,19 +38,19 @@ m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(n
   if (!boost::filesystem::exists(pathObj)) {
     std::ostringstream ss;
     ss << "Database file " << m_fullDBpath << " does not exist.";
-    throw MissingDatabaseFileException(ss.str(), __FILE__, "", __LINE__);
+    throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
   }  
 
   int code = sqlite3_auto_extension((void(*)(void))jonoondb_vtable_init);
   if (code != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 
   sqlite3* db = nullptr;
   code = sqlite3_open(m_fullDBpath.c_str(), &db);
   m_readWriteDBConnection.reset(db);
   if (code != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   } 
 
   //Initialize the connection pool
@@ -83,7 +83,7 @@ const char* GetSQLiteTypeString(FieldType fieldType) {
       std::ostringstream ss;
       ss << "Argument fieldType has a value " << static_cast<int32_t>(fieldType)
         << " which does not have a correponding sql type.";
-      throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);
+      throw InvalidArgumentException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 }
@@ -169,10 +169,10 @@ void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& co
     if (errMsg != nullptr) {
       std::string sqliteErrorMsg = errMsg;
       sqlite3_free(errMsg);
-      throw SQLException(sqliteErrorMsg, __FILE__, "", __LINE__);      
+      throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);      
     }
 
-    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 }
 
@@ -187,7 +187,7 @@ sqlite3* QueryProcessor::OpenConnection() {
   int code = sqlite3_open_v2(m_fullDBpath.c_str(), &db, SQLITE_OPEN_READONLY, nullptr);
   if (code != SQLITE_OK) {
     sqlite3_close(db);
-    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 
   return db;

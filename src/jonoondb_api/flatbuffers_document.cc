@@ -22,7 +22,7 @@ int8_t FlatbuffersDocument::GetScalarValueAsInt8(const std::string& fieldName) c
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
     throw JonoonDBException(GetMissingFieldErrorString(fieldName),
-      __FILE__, "", __LINE__);
+      __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs < int8_t > (fieldDef);  
@@ -31,7 +31,7 @@ int8_t FlatbuffersDocument::GetScalarValueAsInt8(const std::string& fieldName) c
 int16_t FlatbuffersDocument::GetScalarValueAsInt16(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs < int16_t > (fieldDef);
@@ -40,7 +40,7 @@ int16_t FlatbuffersDocument::GetScalarValueAsInt16(const std::string& fieldName)
 int32_t FlatbuffersDocument::GetScalarValueAsInt32(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs < int32_t > (fieldDef);
@@ -49,7 +49,7 @@ int32_t FlatbuffersDocument::GetScalarValueAsInt32(const std::string& fieldName)
 int64_t FlatbuffersDocument::GetScalarValueAsInt64(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs < int64_t > (fieldDef);
@@ -58,7 +58,7 @@ int64_t FlatbuffersDocument::GetScalarValueAsInt64(const std::string& fieldName)
 uint8_t FlatbuffersDocument::GetScalarValueAsUInt8(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs < uint8_t > (fieldDef);  
@@ -67,7 +67,7 @@ uint8_t FlatbuffersDocument::GetScalarValueAsUInt8(const std::string& fieldName)
 uint16_t FlatbuffersDocument::GetScalarValueAsUInt16(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs < uint16_t > (fieldDef);  
@@ -76,7 +76,7 @@ uint16_t FlatbuffersDocument::GetScalarValueAsUInt16(const std::string& fieldNam
 uint32_t FlatbuffersDocument::GetScalarValueAsUInt32(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs < uint32_t > (fieldDef);  
@@ -85,7 +85,7 @@ uint32_t FlatbuffersDocument::GetScalarValueAsUInt32(const std::string& fieldNam
 uint64_t FlatbuffersDocument::GetScalarValueAsUInt64(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs < uint64_t > (fieldDef);  
@@ -94,7 +94,7 @@ uint64_t FlatbuffersDocument::GetScalarValueAsUInt64(const std::string& fieldNam
 float FlatbuffersDocument::GetScalarValueAsFloat(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs<float>(fieldDef);  
@@ -103,7 +103,7 @@ float FlatbuffersDocument::GetScalarValueAsFloat(const std::string& fieldName) c
 double FlatbuffersDocument::GetScalarValueAsDouble(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetScalarValueAs<double>(fieldDef);  
@@ -112,7 +112,7 @@ double FlatbuffersDocument::GetScalarValueAsDouble(const std::string& fieldName)
 std::string FlatbuffersDocument::GetStringValue(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetStringValue(fieldDef);  
@@ -121,7 +121,7 @@ std::string FlatbuffersDocument::GetStringValue(const std::string& fieldName) co
 const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName, std::size_t& size) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   return m_dynTableReader->GetStringValue(fieldDef, size);
@@ -130,7 +130,7 @@ const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName, st
 std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   int64_t val;
@@ -171,7 +171,7 @@ std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fiel
       std::ostringstream ss;
       ss << "Field " << fieldName << " has FieldType " << fieldDef->value.type.base_type
         << " and it cannot be safely converted into a 64 bit integer.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 
@@ -181,7 +181,7 @@ std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fiel
 double FlatbuffersDocument::GetFloatingValueAsDouble(const std::string& fieldName) const {
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   double val;
@@ -198,7 +198,7 @@ double FlatbuffersDocument::GetFloatingValueAsDouble(const std::string& fieldNam
       std::ostringstream ss;
       ss << "Field " << fieldName << " has FieldType " << fieldDef->value.type.base_type
         << " and it cannot be safely converted into a 64 bit floating point number.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 
@@ -212,7 +212,7 @@ void FlatbuffersDocument::GetDocumentValue(const std::string& fieldName,
     FlatbuffersDocument& fbDoc = dynamic_cast<FlatbuffersDocument&>(val);
     auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
     if (fieldDef == nullptr) {
-      throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+      throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
     }
 
     m_dynTableReader->GetTableValue(fieldDef, *(fbDoc.m_dynTableReader.get()));
@@ -221,7 +221,7 @@ void FlatbuffersDocument::GetDocumentValue(const std::string& fieldName,
     string errorMsg = "Argument val cannot be casted to underlying document "
       "implementation i.e. FlatbuffersDocument. "
       "Make sure you are creating the val by calling AllocateDocument call.";
-    throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
+    throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
   }
 }
 
@@ -235,7 +235,7 @@ void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName, Field
   // Make sure field exists
   auto fieldDef = m_dynTableReader->GetFieldDef(fieldName);
   if (fieldDef == nullptr) {
-    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, "", __LINE__);
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName), __FILE__, __func__, __LINE__);
   }
 
   // Make sure it has the same type
@@ -244,7 +244,7 @@ void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName, Field
     ostringstream ss;
     ss << "Actual field type for field " << fieldName << " is " << GetFieldString(actualType) <<
       " which is different from the expected field type " << GetFieldString(expectedType) << ".";
-    throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 }
 

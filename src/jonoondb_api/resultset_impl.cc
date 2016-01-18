@@ -11,7 +11,7 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
   int code = sqlite3_prepare_v2(m_db, selectStmt.c_str(), selectStmt.size(), &stmt, nullptr);
   m_stmt.reset(stmt);
   if (code != SQLITE_OK) {    
-    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 
   int colCount = sqlite3_column_count(m_stmt.get());
@@ -19,7 +19,7 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
     const char* colName = sqlite3_column_name(m_stmt.get(), i);
     if (colName == nullptr) {
       throw SQLException("Failed to get column names for the resultset.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
     }
     // Todo: maybe we need to handle UTF8 strings here     
     m_columnMapStringStore.push_back(colName);    
@@ -58,7 +58,7 @@ bool ResultSetImpl::Next() {
   } else if (code == SQLITE_DONE) {
     return false;
   } else {
-    throw SQLException(sqlite3_errstr(code), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 }
 
@@ -75,7 +75,7 @@ const std::string& ResultSetImpl::GetString(int columnIndex) const {
   if (val == nullptr) {
     std::ostringstream ss;
     ss << "Failed to allocate memory for string for column at index " << columnIndex << ".";
-    throw OutOfMemoryException(ss.str(), __FILE__, "", __LINE__);
+    throw OutOfMemoryException(ss.str(), __FILE__, __func__, __LINE__);
   }
   auto size = sqlite3_column_bytes(m_stmt.get(), columnIndex);
   m_tmpStrStorage = std::string(reinterpret_cast<const char*>(val), size);
@@ -87,7 +87,7 @@ std::int32_t ResultSetImpl::GetColumnIndex(const boost::string_ref& columnLabel)
   if (iter == m_columnMap.end()) {
     std::ostringstream ss;
     ss << "Unable to find column index for column label '" << columnLabel << "' in the resultset.";
-    throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   return iter->second;  

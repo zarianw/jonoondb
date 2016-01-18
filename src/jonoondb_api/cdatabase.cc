@@ -119,7 +119,7 @@ IndexType ToIndexType(std::int32_t type) {
       return static_cast<IndexType>(type);
     default:
       throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAHCompressedBitmap = 1}.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
   }
 }
 
@@ -129,7 +129,7 @@ SchemaType ToSchemaType(std::int32_t type) {
       return static_cast<SchemaType>(type);
     default:
       throw InvalidArgumentException("Argument type is not valid. Allowed values are {FLAT_BUFFERS = 1}.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
   }
 }
 
@@ -284,23 +284,41 @@ jonoondb_buffer_ptr jonoondb_buffer_construct() {
   return new jonoondb_buffer();
 }
 
-jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes) {
-  return new jonoondb_buffer(bufferCapacityInBytes);
+jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes,
+                                               status_ptr* sts) {
+  jonoondb_buffer_ptr retVal = nullptr;
+  TranslateExceptions([&] {
+    retVal = new jonoondb_buffer(bufferCapacityInBytes);
+  }, *sts);
+
+  return retVal;  
 }
 
 jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
                                                size_t bufferLengthInBytes, 
-                                               size_t bufferCapacityInBytes) {
-  return new jonoondb_buffer(buffer, bufferLengthInBytes,
-                             bufferCapacityInBytes);
+                                               size_t bufferCapacityInBytes,
+                                               status_ptr* sts) {
+  jonoondb_buffer_ptr retVal = nullptr;
+  TranslateExceptions([&] {
+    retVal = new jonoondb_buffer(buffer, bufferLengthInBytes,
+                                 bufferCapacityInBytes);
+  }, *sts);
+
+  return retVal;
 }
 
 jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
                                                size_t bufferLengthInBytes,
                                                size_t bufferCapacityInBytes,
-                                               void(*customDeleterFunc)(char*)) {
-  return new jonoondb_buffer(buffer, bufferLengthInBytes,
-                             bufferCapacityInBytes, customDeleterFunc);
+                                               void(*customDeleterFunc)(char*),
+                                               status_ptr* sts) {
+  jonoondb_buffer_ptr retVal = nullptr;
+  TranslateExceptions([&] {
+    retVal = new jonoondb_buffer(buffer, bufferLengthInBytes,
+                                 bufferCapacityInBytes, customDeleterFunc);
+  }, *sts);
+
+  return retVal;
 }
 
 jonoondb_buffer_ptr jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf, status_ptr* sts) {

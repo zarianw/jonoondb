@@ -22,7 +22,7 @@ IndexManager::IndexManager(const std::vector<IndexInfoImpl*>& indexes,
       ostringstream ss;
       ss << "The field type for " << indexes[i]->GetColumnName()
         << " could not be determined.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
     unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(*indexes[i], it->second));
     (*m_columnIndexerMap)[indexes[i]->GetColumnName()].push_back(move(indexer));
@@ -36,7 +36,7 @@ void IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
     ostringstream ss;
     ss << "The field type for " << indexInfo.GetColumnName()
       << " could not be determined.";
-    throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
   unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(indexInfo, it->second));  
   (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));  
@@ -79,7 +79,7 @@ std::shared_ptr<MamaJenniesBitmap> IndexManager::Filter(const std::vector<Constr
       std::ostringstream ss;
       ss << "Cannot apply filter operation on field " << constraint.columnName
         << " because no indexes exist on this field.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
     // Todo: When we have different kinds of indexes, 
     // Add the logic to select the best index for the column  

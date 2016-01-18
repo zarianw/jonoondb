@@ -30,11 +30,11 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
   m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
   // Validate function arguments
   if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
-    throw InvalidArgumentException("Argument databaseMetadataFilePath is null or empty.", __FILE__, "", __LINE__);
+    throw InvalidArgumentException("Argument databaseMetadataFilePath is null or empty.", __FILE__, __func__, __LINE__);
   }
 
   if (StringUtils::IsNullOrEmpty(name)) {
-    throw InvalidArgumentException("Argument name is null or empty.", __FILE__, "", __LINE__);
+    throw InvalidArgumentException("Argument name is null or empty.", __FILE__, __func__, __LINE__);
   }
   m_name = name;
 
@@ -42,7 +42,7 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
   if (!boost::filesystem::exists(databaseMetadataFilePath)) {
     std::ostringstream ss;
     ss << "Database file " << databaseMetadataFilePath << " does not exist.";
-    throw MissingDatabaseFileException(ss.str(), __FILE__, "", __LINE__);
+    throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
   } 
 
   sqlite3* dbConnection = nullptr;
@@ -50,7 +50,7 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
   m_dbConnection.reset(dbConnection);
 
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   m_documentSchema.reset(DocumentSchemaFactory::CreateDocumentSchema(schema, schemaType));
@@ -123,7 +123,7 @@ std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID,
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
     ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
-    throw MissingDocumentException(ss.str(), __FILE__, "", __LINE__);
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   // TODO: buffer should come from object pool
@@ -152,7 +152,7 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(std::uint64_t docID,
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
     ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
-    throw MissingDocumentException(ss.str(), __FILE__, "", __LINE__);
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   // TODO: buffer should come from object pool
@@ -181,7 +181,7 @@ double DocumentCollection::GetDocumentFieldAsDouble(std::uint64_t docID,
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
     ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
-    throw MissingDocumentException(ss.str(), __FILE__, "", __LINE__);
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   // TODO: buffer should come from object pool
