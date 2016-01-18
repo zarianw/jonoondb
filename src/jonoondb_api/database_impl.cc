@@ -50,7 +50,7 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
   if (m_collectionContainer.find(colName) != m_collectionContainer.end()) {
     ostringstream ss;
     ss << "Collection with name \"" << name << "\" already exists.";
-    throw CollectionAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
+    throw CollectionAlreadyExistException(ss.str(), __FILE__, __func__, __LINE__);
   }
   
   m_queryProcessor->AddCollection(documentCollection);  
@@ -67,7 +67,7 @@ void DatabaseImpl::Insert(const char* collectionName,
   if (item == m_collectionContainer.end()) {
     ostringstream ss;
     ss << "Collection \"" << collectionName << "\" not found.";    
-    throw CollectionNotFoundException(ss.str(), __FILE__, "", __LINE__);
+    throw CollectionNotFoundException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   // Add data in collection

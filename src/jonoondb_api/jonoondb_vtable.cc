@@ -90,7 +90,7 @@ int GetSQLiteType(FieldType fieldType) {
       std::ostringstream ss;
       ss << "Argument fieldType has a value " << static_cast<int32_t>(fieldType)
         << " which does not have a correponding sql type.";
-      throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);        
+      throw InvalidArgumentException(ss.str(), __FILE__, __func__, __LINE__);        
     }
   }
 }
@@ -257,7 +257,7 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
             std::ostringstream ss;
             ss << "Argument value has sql type " << sqlite3_value_type(*value)
               << " which is not supported yet.";
-            throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);
+            throw InvalidArgumentException(ss.str(), __FILE__, __func__, __LINE__);
         }
 
         constraints.push_back(std::move(constraint)); 

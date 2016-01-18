@@ -21,10 +21,10 @@ public:
     assert(sqliteCode2 == SQLITE_OK || sqliteCode2 == SQLITE_CONSTRAINT);  //Duplicate key errors are reported as SQLITE_CONSTRAINT
 
     if (sqliteCode1 != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode1), __FILE__, "", __LINE__);
+      throw SQLException(sqlite3_errstr(sqliteCode1), __FILE__, __func__, __LINE__);
 
     if (sqliteCode2 != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode2), __FILE__, "", __LINE__);    
+      throw SQLException(sqlite3_errstr(sqliteCode2), __FILE__, __func__, __LINE__);    
   }
 
   static int SQLiteGenericBusyHandler(void* input, int retryCount) {

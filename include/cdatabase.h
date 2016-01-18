@@ -82,14 +82,17 @@ bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo);
 //
 typedef struct jonoondb_buffer* jonoondb_buffer_ptr;
 jonoondb_buffer_ptr jonoondb_buffer_construct();
-jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes);
+jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes,
+                                               status_ptr* sts);
 jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
                                                uint64_t bufferLengthInBytes, 
-                                               uint64_t bufferCapacityInBytes);
+                                               uint64_t bufferCapacityInBytes,
+                                               status_ptr* sts);
 jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
                                                uint64_t bufferLengthInBytes,
                                                uint64_t bufferCapacityInBytes,
-                                               void(*customDeleterFunc)(char*));
+                                               void(*customDeleterFunc)(char*),
+                                               status_ptr* sts);
 
 jonoondb_buffer_ptr jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf, status_ptr* sts);
 void jonoondb_buffer_copy_assignment(jonoondb_buffer_ptr self, jonoondb_buffer_ptr other, status_ptr* sts);

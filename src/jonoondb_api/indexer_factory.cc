@@ -33,6 +33,6 @@ Indexer* IndexerFactory::CreateIndexer(
     default:
       std::ostringstream ss;
       ss << "Cannot create Indexer. Index type '" << static_cast<int32_t>(indexInfo.GetType()) << "' is unknown.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 }

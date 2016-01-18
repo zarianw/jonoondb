@@ -32,7 +32,7 @@ class File {
       std::string reason = GetErrorTextFromErrorCode(GetLastError());
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
-      throw FileIOException(ss.str(), __FILE__, "", __LINE__);
+      throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
     //2. Move the file pointer to the desired position
@@ -43,7 +43,7 @@ class File {
       std::string reason = GetErrorTextFromErrorCode(GetLastError());
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
-      throw FileIOException(ss.str(), __FILE__, "", __LINE__);
+      throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
     //3. Set the physical file size
@@ -51,7 +51,7 @@ class File {
       std::string reason = GetErrorTextFromErrorCode(GetLastError());
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
-      throw FileIOException(ss.str(), __FILE__, "", __LINE__);
+      throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
     //4. Close FileHandle
@@ -59,7 +59,7 @@ class File {
       std::string reason = GetErrorTextFromErrorCode(GetLastError());
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
-      throw FileIOException(ss.str(), __FILE__, "", __LINE__);
+      throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 #else
     // Linux code
@@ -73,7 +73,7 @@ class File {
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
          << reason;
-      throw FileIOException(ss.str(), __FILE__, "", __LINE__);
+      throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
     if (ftruncate64(fd, fileSize) != 0) {
@@ -83,7 +83,7 @@ class File {
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
          << reason;
       close(fd);
-      throw FileIOException(ss.str(), __FILE__, "", __LINE__);
+      throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
     if (close(fd) != 0) {
@@ -92,7 +92,7 @@ class File {
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
          << reason;
-      throw FileIOException(ss.str(), __FILE__, "", __LINE__);
+      throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 #endif
   }

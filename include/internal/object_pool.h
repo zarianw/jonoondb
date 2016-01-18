@@ -16,17 +16,17 @@ public:
     m_objectDeallocatorFunc(objectDeallocatorFunc), m_currentObjectIndex(-1) {
     if (m_poolCapacity == 0 || m_poolCapacity < m_poolInitialiSize) {
       throw InvalidArgumentException("Argument poolCapacity cannot be 0 or less than initialPoolSize.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
     }
 
     if (!m_objectAllocatorFunc) {
       throw InvalidArgumentException("Argument objectAllocatorFunc cannot be empty.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
     }
 
     if (!m_objectDeallocatorFunc) {
       throw InvalidArgumentException("Argument objectDeallocatorFunc cannot be empty.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
     }
 
     if (objectResetFunc) {
@@ -40,7 +40,7 @@ public:
         m_objects[i] = InvokeObjectAllocatorFunc();
         if (m_objects[i] == nullptr) {
           throw JonoonDBException("Object allocation failed. ObjectAllocatorFunc returned nullptr.",
-            __FILE__, "", __LINE__);
+            __FILE__, __func__, __LINE__);
         }
       }
       m_currentObjectIndex = m_poolInitialiSize - 1;

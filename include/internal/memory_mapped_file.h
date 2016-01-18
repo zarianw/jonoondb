@@ -68,14 +68,14 @@ public:
    memcpy(destinationAddress, data, length);
    }
    catch (boost::interprocess::interprocess_exception& ex) {
-   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
+   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, __func__, __LINE__);
    }
    catch (std::exception& ex) {
-   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, "", __LINE__);
+   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, __func__, __LINE__);
    }
    catch (...) {
    std::string errorMessage = "Unexpected error occured while opening mmap file.";
-   return Status(kStatusGenericErrorCode, errorMessage.c_str(), __FILE__, "", __LINE__);
+   return Status(kStatusGenericErrorCode, errorMessage.c_str(), __FILE__, __func__, __LINE__);
    }
    }*/
 
@@ -95,7 +95,7 @@ public:
 
     if (!m_mappedRegion.flush(offset, numBytes, m_asynchronous)) {      
       throw FileIOException("Unexpected error occured while flushing memory mapped file.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
     }    
   }
 
@@ -109,7 +109,7 @@ public:
       default:
         std::ostringstream ss;
         ss << "Mode value " << static_cast<int32_t>(mode) << "is not supported for memory mapped files.";        
-        throw InvalidArgumentException(ss.str(), __FILE__, "", __LINE__);
+        throw InvalidArgumentException(ss.str(), __FILE__, __func__, __LINE__);
         break;
     }
   }

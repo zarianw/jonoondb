@@ -61,7 +61,7 @@ include_directories(${THIRDPARTY_PATH}/flatbuffers/include)
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.56.0 REQUIRED COMPONENTS filesystem system thread date_time chrono)
+find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread date_time chrono)
 include_directories(${Boost_INCLUDE_DIR})
 
 message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
