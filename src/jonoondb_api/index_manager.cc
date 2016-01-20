@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <sstream>
 #include "index_manager.h"
-#include "status.h"
 #include "document.h"
 #include "indexer.h"
 #include "indexer_factory.h"
@@ -23,25 +22,24 @@ IndexManager::IndexManager(const std::vector<IndexInfoImpl*>& indexes,
       ostringstream ss;
       ss << "The field type for " << indexes[i]->GetColumnName()
         << " could not be determined.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
     unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(*indexes[i], it->second));
     (*m_columnIndexerMap)[indexes[i]->GetColumnName()].push_back(move(indexer));
   }
 }
 
-Status IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
-  std::unordered_map<std::string, FieldType>& columnTypes) {
+void IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
+  const std::unordered_map<std::string, FieldType>& columnTypes) {
   auto it = columnTypes.find(indexInfo.GetColumnName());
   if (it == columnTypes.end()) {
     ostringstream ss;
     ss << "The field type for " << indexInfo.GetColumnName()
       << " could not be determined.";
-    throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
   unique_ptr<Indexer> indexer(IndexerFactory::CreateIndexer(indexInfo, it->second));  
-  (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));
-  return Status();
+  (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));  
 }
 
 void IndexManager::IndexDocument(uint64_t documentID,
@@ -81,7 +79,7 @@ std::shared_ptr<MamaJenniesBitmap> IndexManager::Filter(const std::vector<Constr
       std::ostringstream ss;
       ss << "Cannot apply filter operation on field " << constraint.columnName
         << " because no indexes exist on this field.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
     // Todo: When we have different kinds of indexes, 
     // Add the logic to select the best index for the column  

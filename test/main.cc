@@ -10,7 +10,6 @@
 #include <boost/exception_ptr.hpp>
 #include <boost/filesystem.hpp>
 #include "test_utils.h"
-#include "status.h"
 #include "buffer_impl.h"
 #include "enums.h"
 #include "schemas/flatbuffers/tweet_generated.h"
@@ -53,6 +52,26 @@ Buffer GetTweetObject2() {
 
   buffer.Copy((char*)fbb.GetBufferPointer(), size);
   return buffer;
+}
+
+void GetTweetObject2(int tweetId, int userId, std::string& nameStr, std::string& textStr, Buffer& buffer) {
+  // create user object
+  FlatBufferBuilder fbb;
+  auto name = fbb.CreateString(nameStr);
+  auto user = CreateUser(fbb, name, userId);
+
+  // create tweet
+  auto text = fbb.CreateString(textStr);
+  auto tweet = CreateTweet(fbb, tweetId, text, user);
+
+  fbb.Finish(tweet);
+  auto size = fbb.GetSize();
+  
+  if (size > buffer.GetCapacity()) {
+    buffer.Resize(size);
+  }
+
+  buffer.Copy((char*)fbb.GetBufferPointer(), size);  
 }
 
 BufferImpl GetTweetObject() {

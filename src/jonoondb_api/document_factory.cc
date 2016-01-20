@@ -1,7 +1,6 @@
 #include <string>
 #include "document_factory.h"
 #include "flatbuffers_document.h"
-#include "status.h"
 #include "document_schema.h"
 #include "flatbuffers_document_schema.h"
 
@@ -19,7 +18,7 @@ std::unique_ptr<Document> DocumentFactory::CreateDocument(
         string errorMsg = "Argument documentSchema cannot be casted to "
             "underlying DocumentSchema implementation i.e. "
             "FlatbuffersDocumentSchema";
-        throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
+        throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
       }
 
       return std::unique_ptr<Document>(new FlatbuffersDocument(fbDocSchema, buffer));
@@ -27,6 +26,6 @@ std::unique_ptr<Document> DocumentFactory::CreateDocument(
     default:
       std::ostringstream ss;
       ss << "Cannot create Document. Schema type '" << static_cast<int32_t>(documentSchema->GetSchemaType()) << "' is unknown.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }  
 }

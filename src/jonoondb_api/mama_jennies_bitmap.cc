@@ -40,7 +40,7 @@ MamaJenniesBitmap& MamaJenniesBitmap::operator=(MamaJenniesBitmap&& other) {
 void MamaJenniesBitmap::Add(std::size_t x) {
   if (!m_ewahBoolArray->set(x)) {
     throw JonoonDBException("Add to bitmap failed. Most probably the entries were not added in increasing order.",
-      __FILE__, "", __LINE__);
+      __FILE__, __func__, __LINE__);
   }
 }
 

@@ -1,5 +1,4 @@
 #include "flatbuffers_field.h"
-#include "status.h"
 #include "flatbuffers_document_schema.h"
 
 using namespace flatbuffers;
@@ -30,12 +29,12 @@ void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
     string errorMsg = "Argument field cannot be casted to underlying field "
         "implementation i.e. FlatbuffersField. "
         "Make sure you are creating the val by calling AllocateField call.";
-    throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
+    throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
   }
 
   if (index > GetSubFieldCount() - 1 || index < 0) {
     throw IndexOutOfBoundException("Index was outside the bounds of the array.",
-      __FILE__, "", __LINE__);
+      __FILE__, __func__, __LINE__);
   }
 
   fbField->SetFieldDef(m_fieldDef->value.type.struct_def->fields.vec[index]);

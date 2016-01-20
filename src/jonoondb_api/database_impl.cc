@@ -3,7 +3,6 @@
 #include <sstream>
 #include <memory>
 #include "database_impl.h"
-#include "status.h"
 #include "database_metadata_manager.h"
 #include "options_impl.h"
 #include "string_utils.h"
@@ -19,28 +18,19 @@
 using namespace std;
 using namespace jonoondb_api;
 
-DatabaseImpl::DatabaseImpl(const OptionsImpl& options,
-    unique_ptr<DatabaseMetadataManager> databaseMetadataManager,
-    unique_ptr<QueryProcessor> queryProcessor)
-    : m_options(options),
-      m_dbMetadataMgrImpl(move(databaseMetadataManager)),
-      m_queryProcessor(move(queryProcessor)) {
-}
-
-DatabaseImpl* DatabaseImpl::Open(const std::string& dbPath, const std::string& dbName,
-                          const OptionsImpl& options) {
+DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
+  const OptionsImpl& options) : m_options(options) {
   // Initialize DatabaseMetadataManager
-  std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager =
-    std::make_unique<DatabaseMetadataManager>(dbPath, dbName, options.GetCreateDBIfMissing()); 
+  m_dbMetadataMgrImpl = std::make_unique<DatabaseMetadataManager>(dbPath,
+    dbName, options.GetCreateDBIfMissing());
 
   // Initialize query processor
-  unique_ptr<QueryProcessor> qp = std::make_unique<QueryProcessor>(dbPath, dbName);
-
-  return new DatabaseImpl(options, move(databaseMetadataManager), move(qp));
+  m_queryProcessor = std::make_unique<QueryProcessor>(dbPath, dbName);  
 }
 
-void DatabaseImpl::Close() {
+DatabaseImpl::~DatabaseImpl() {
   // Todo (zarian): Close all sub components and log any issues
+  // Only clear the collections for this database and not all.
   DocumentCollectionDictionary::Instance()->Clear();
 }
 
@@ -60,7 +50,7 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
   if (m_collectionContainer.find(colName) != m_collectionContainer.end()) {
     ostringstream ss;
     ss << "Collection with name \"" << name << "\" already exists.";
-    throw CollectionAlreadyExistException(ss.str(), __FILE__, "", __LINE__);
+    throw CollectionAlreadyExistException(ss.str(), __FILE__, __func__, __LINE__);
   }
   
   m_queryProcessor->AddCollection(documentCollection);  
@@ -77,7 +67,7 @@ void DatabaseImpl::Insert(const char* collectionName,
   if (item == m_collectionContainer.end()) {
     ostringstream ss;
     ss << "Collection \"" << collectionName << "\" not found.";    
-    throw CollectionNotFoundException(ss.str(), __FILE__, "", __LINE__);
+    throw CollectionNotFoundException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   // Add data in collection

@@ -1,6 +1,5 @@
 #include <sstream>
 #include "cdatabase.h"
-#include "status.h"
 #include "options_impl.h"
 #include "database_impl.h"
 #include "jonoondb_exceptions.h"
@@ -9,6 +8,7 @@
 #include "buffer_impl.h"
 #include "resultset_impl.h"
 #include "boost/utility/string_ref.hpp"
+#include "status_impl.h"
 
 using namespace jonoondb_api;
 
@@ -25,7 +25,7 @@ struct status {
     impl(code, message, srcFileName, funcName, lineNum) {
   }
 
-  Status impl;
+  StatusImpl impl;
 };
 
 void jonoondb_status_destruct(status_ptr sts) {
@@ -119,7 +119,7 @@ IndexType ToIndexType(std::int32_t type) {
       return static_cast<IndexType>(type);
     default:
       throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAHCompressedBitmap = 1}.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
   }
 }
 
@@ -129,7 +129,7 @@ SchemaType ToSchemaType(std::int32_t type) {
       return static_cast<SchemaType>(type);
     default:
       throw InvalidArgumentException("Argument type is not valid. Allowed values are {FLAT_BUFFERS = 1}.",
-        __FILE__, "", __LINE__);
+        __FILE__, __func__, __LINE__);
   }
 }
 
@@ -267,6 +267,15 @@ bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo) {
 //
 struct jonoondb_buffer {
   jonoondb_buffer() {}
+  jonoondb_buffer(size_t bufferCapacityInBytes) : impl(bufferCapacityInBytes) {}
+  jonoondb_buffer(const char* buffer, size_t bufferLengthInBytes, size_t bufferCapacityInBytes) :
+    impl(buffer, bufferLengthInBytes, bufferCapacityInBytes) {
+  }
+  jonoondb_buffer(char* buffer, size_t bufferLengthInBytes,
+    size_t bufferCapacityInBytes, void(*customDeleterFunc)(char*)) :
+    impl(buffer, bufferLengthInBytes, bufferCapacityInBytes, customDeleterFunc) {
+  }
+  jonoondb_buffer(const BufferImpl& other) : impl(other) {}
 
   BufferImpl impl;
 };
@@ -275,8 +284,64 @@ jonoondb_buffer_ptr jonoondb_buffer_construct() {
   return new jonoondb_buffer();
 }
 
+jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes,
+                                               status_ptr* sts) {
+  jonoondb_buffer_ptr retVal = nullptr;
+  TranslateExceptions([&] {
+    retVal = new jonoondb_buffer(bufferCapacityInBytes);
+  }, *sts);
+
+  return retVal;  
+}
+
+jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
+                                               size_t bufferLengthInBytes, 
+                                               size_t bufferCapacityInBytes,
+                                               status_ptr* sts) {
+  jonoondb_buffer_ptr retVal = nullptr;
+  TranslateExceptions([&] {
+    retVal = new jonoondb_buffer(buffer, bufferLengthInBytes,
+                                 bufferCapacityInBytes);
+  }, *sts);
+
+  return retVal;
+}
+
+jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
+                                               size_t bufferLengthInBytes,
+                                               size_t bufferCapacityInBytes,
+                                               void(*customDeleterFunc)(char*),
+                                               status_ptr* sts) {
+  jonoondb_buffer_ptr retVal = nullptr;
+  TranslateExceptions([&] {
+    retVal = new jonoondb_buffer(buffer, bufferLengthInBytes,
+                                 bufferCapacityInBytes, customDeleterFunc);
+  }, *sts);
+
+  return retVal;
+}
+
+jonoondb_buffer_ptr jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf, status_ptr* sts) {
+  jonoondb_buffer_ptr retVal = nullptr;
+  TranslateExceptions([&]{
+    retVal = new jonoondb_buffer(buf->impl);
+  }, *sts);
+
+  return retVal;
+}
+
 void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf) {
   delete buf;
+}
+
+void jonoondb_buffer_copy_assignment(jonoondb_buffer_ptr self, jonoondb_buffer_ptr other, status_ptr* sts) {
+  TranslateExceptions([&]{
+    self->impl = other->impl;
+  }, *sts);  
+}
+
+int32_t jonoondb_buffer_op_lessthan(jonoondb_buffer_ptr self, jonoondb_buffer_ptr other) {
+  return (self->impl < other->impl ? 1 : 0);
 }
 
 void jonoondb_buffer_copy(jonoondb_buffer_ptr buf, const char* srcBuf, uint64_t bytesToCopy, status_ptr* sts) {
@@ -289,6 +354,14 @@ void jonoondb_buffer_resize(jonoondb_buffer_ptr buf, uint64_t newBufferCapacityI
   TranslateExceptions([&]{
     buf->impl.Resize(newBufferCapacityInBytes);
   }, *sts);
+}
+
+const char* jonoondb_buffer_getdata(jonoondb_buffer_ptr buf) {
+  return buf->impl.GetData();
+}
+
+uint64_t jonoondb_buffer_getlength(jonoondb_buffer_ptr buf) {
+  return buf->impl.GetLength();
 }
 
 uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf) {
@@ -356,18 +429,14 @@ int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLa
 // Database
 //
 struct database {
-  database(const char* dbPath, const char* dbName, const OptionsImpl& opt) {
-    impl = DatabaseImpl::Open(dbPath, dbName, opt);
-  }
+  database(const char* dbPath, const char* dbName, const OptionsImpl& opt) 
+    : impl(dbPath, dbName, opt) {    
+  }  
 
-  ~database() {
-    delete impl;
-  }
-
-  DatabaseImpl* impl;
+  DatabaseImpl impl;
 };
 
-database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
+database_ptr jonoondb_database_construct(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts) {
   database_ptr db = nullptr;
   TranslateExceptions([&]{
     db = new database(dbPath, dbName, opt->impl);
@@ -376,12 +445,8 @@ database_ptr jonoondb_database_open(const char* dbPath, const char* dbName, cons
   return db;
 }
 
-void jonoondb_database_close(database_ptr db, status_ptr* sts) {
-  TranslateExceptions([&]{
-    db->impl->Close();
-    // Todo: Handle exceptions that can happen on close
-    delete db;
-  }, *sts);
+void jonoondb_database_destruct(database_ptr db) {
+  delete db;
 }
 
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
@@ -392,13 +457,13 @@ void jonoondb_database_createcollection(database_ptr db, const char* name, int32
     for (uint64_t i = 0; i < indexesLength; i++) {
       vec.push_back(&indexes[i]->impl);
     }
-    db->impl->CreateCollection(name, ToSchemaType(schemaType), schema, vec);
+    db->impl.CreateCollection(name, ToSchemaType(schemaType), schema, vec);
   }, *sts);
 }
 
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts) {
   TranslateExceptions([&]{
-    db->impl->Insert(collectionName, documentData->impl);
+    db->impl.Insert(collectionName, documentData->impl);
   }, *sts);
 }
 
@@ -407,7 +472,7 @@ resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selec
   // Todo: Use string_view for performance improvement
   TranslateExceptions([&]{
     std::string selectStatement(selectStmt, selectStmtLength);
-    val = new resultset(db->impl->ExecuteSelect(selectStatement));
+    val = new resultset(db->impl.ExecuteSelect(selectStatement));
   }, *sts);
 
   return val;  

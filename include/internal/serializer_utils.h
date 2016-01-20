@@ -20,10 +20,6 @@ public:
     }
 
     buffer.Copy((char*)fbb.GetBufferPointer(), size);
-  }
-
-  static Status IndexInfoFromBytes(const BufferImpl& buffer, IndexInfoImpl& indexInfo) {
-    auto ptr = GetIndexInfoFB(0);
-  }
+  }  
 };
 }  // jonoondb_api

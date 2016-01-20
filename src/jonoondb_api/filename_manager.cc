@@ -19,7 +19,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
   if (!boost::filesystem::exists(m_dbPath)) {
     std::ostringstream ss;
     ss << "Database folder " << m_dbPath.generic_string() << " does not exist.";
-    throw MissingDatabaseFolderException(ss.str(), __FILE__, "", __LINE__);
+    throw MissingDatabaseFolderException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   boost::filesystem::path pathObj(m_dbPath);
@@ -28,7 +28,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
   if (!boost::filesystem::exists(pathObj) && !createDBIfMissing) {
     std::ostringstream ss;
     ss << "Database file " << pathObj.generic_string() << " does not exist.";
-    throw MissingDatabaseFileException(ss.str(), __FILE__, "", __LINE__);
+    throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   sqlite3* db = nullptr;
@@ -36,22 +36,24 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
   m_db.reset(db);
 
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   sqliteCode = sqlite3_exec(m_db.get(), "PRAGMA journal_mode = WAL;", 0, 0, 0);
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   //Create the necessary tables if they do not exist
   std::string sql = "create table if not exists ObjectFile(FileKey int primary key, FileName text, FileDataLength int)";
-  SQLiteUtils::ExecuteSQL(m_db.get(), sql);
+  sqliteCode = sqlite3_exec(m_db.get(), sql.c_str(), nullptr, nullptr, nullptr);
+  if (sqliteCode != SQLITE_OK)
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
 
 
   sqliteCode = sqlite3_busy_handler(m_db.get(), SQLiteUtils::SQLiteGenericBusyHandler, nullptr);
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   sqliteCode = sqlite3_prepare_v2(
@@ -64,7 +66,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   if (sqliteCode != SQLITE_OK) {
     FinalizeStatements();
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   sqliteCode = sqlite3_prepare_v2(
@@ -77,7 +79,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   if (sqliteCode != SQLITE_OK) {
     FinalizeStatements();
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   sqliteCode = sqlite3_prepare_v2(
@@ -90,7 +92,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   if (sqliteCode != SQLITE_OK) {
     FinalizeStatements();
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   sqliteCode = sqlite3_prepare_v2(
@@ -103,7 +105,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   if (sqliteCode != SQLITE_OK) {
     FinalizeStatements();
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 }
 
@@ -141,10 +143,10 @@ void FileNameManager::GetCurrentDataFileInfo(bool createIfMissing, FileInfo& fil
         fileInfo.dataLength = -1;
       } else {
         throw JonoonDBException("Cannot get the current FileInfo because there are no FileInfo records in the database.",
-          __FILE__, "", __LINE__);
+          __FILE__, __func__, __LINE__);
       }
     } else {
-      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
     }
   } else {
     //Read the last FileKey
@@ -178,9 +180,9 @@ void FileNameManager::GetNextDataFileInfo(FileInfo& fileInfo) {
       if (sqliteCode == SQLITE_DONE) {
         //This means there are no object file records.			
         throw JonoonDBException("Cannot get the next FileInfo because there are no FileInfo records in the database.",
-          __FILE__, "", __LINE__);
+          __FILE__, __func__, __LINE__);
       } else {
-        throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+        throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
       }
     }
 
@@ -213,7 +215,7 @@ void FileNameManager::UpdateDataFileLength(int fileKey, int64_t length) {
     length);
 
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   sqliteCode = sqlite3_bind_int(
@@ -222,13 +224,13 @@ void FileNameManager::UpdateDataFileLength(int fileKey, int64_t length) {
     fileKey);
 
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   //Now insert the record
   sqliteCode = sqlite3_step(m_updateStatement);
   if (sqliteCode != SQLITE_DONE) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 }
 
@@ -248,7 +250,7 @@ void FileNameManager::GetFileInfo(const int fileKey, std::shared_ptr<FileInfo>& 
       fileKey);
 
     if (sqliteCode != SQLITE_OK) {
-      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
     }
 
     sqliteCode = sqlite3_step(m_getFileNameStatement);
@@ -262,9 +264,9 @@ void FileNameManager::GetFileInfo(const int fileKey, std::shared_ptr<FileInfo>& 
         // the correct error to the user.
         std::ostringstream ss;
         ss << "Could not find FileInfo for FileKey " << fileKey << ".";
-        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+        throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
       } else {
-        throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+        throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
       }
     }
 
@@ -290,7 +292,7 @@ void FileNameManager::AddFileRecord(int fileKey, const std::string& fileName) {
     fileKey);
 
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   sqliteCode = sqlite3_bind_text(
@@ -301,7 +303,7 @@ void FileNameManager::AddFileRecord(int fileKey, const std::string& fileName) {
     SQLITE_STATIC);
 
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   sqliteCode = sqlite3_bind_int64(
@@ -310,7 +312,7 @@ void FileNameManager::AddFileRecord(int fileKey, const std::string& fileName) {
     -1); //-1 represents that the length has not been set
 
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
 
   //Now insert the record
@@ -320,9 +322,9 @@ void FileNameManager::AddFileRecord(int fileKey, const std::string& fileName) {
       //Key already exists     
       std::ostringstream ss;
       ss << "The specified file key '" << fileKey << "' already exists.";
-      throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     } else {
-      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
+      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
     }
   }
 }

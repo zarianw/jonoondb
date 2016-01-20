@@ -5,7 +5,6 @@
 #include "test_utils.h"
 #include "document.h"
 #include "document_factory.h"
-#include "status.h"
 #include "index_info_impl.h"
 #include "enums.h"
 #include "options_impl.h"

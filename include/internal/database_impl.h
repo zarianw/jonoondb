@@ -18,21 +18,19 @@ enum class SchemaType
 
 class DatabaseImpl final {
  public:
+  DatabaseImpl(const std::string& dbPath, const std::string& dbName,
+     const OptionsImpl& options);
+  ~DatabaseImpl();
   DatabaseImpl(const DatabaseImpl&) = delete;
   DatabaseImpl(DatabaseImpl&&) = delete;
   DatabaseImpl& operator=(const DatabaseImpl&) = delete;
-  static DatabaseImpl* Open(const std::string& dbPath, const std::string& dbName,
-                      const OptionsImpl& options);
-  void Close();
+  
   void CreateCollection(const std::string& name, SchemaType schemaType,
                           const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
   void Insert(const char* collectionName, const BufferImpl& documentData);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
- private:
-  DatabaseImpl(const OptionsImpl& options,
-      std::unique_ptr<DatabaseMetadataManager> databaseMetadataManager,
-      std::unique_ptr<QueryProcessor> queryProcessor);
+ private:  
   std::unique_ptr<DatabaseMetadataManager> m_dbMetadataMgrImpl;
   std::unordered_map<std::string, std::shared_ptr<DocumentCollection>> m_collectionContainer;
   std::unique_ptr<QueryProcessor> m_queryProcessor;

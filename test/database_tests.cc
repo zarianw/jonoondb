@@ -13,7 +13,7 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
 
-void CreateInsertTweet(Database* db, std::string& collectionName, bool createIndexes, int numToInsert) {
+void CreateInsertTweet(Database& db, std::string& collectionName, bool createIndexes, int numToInsert) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   std::vector<IndexInfo> indexes;
@@ -26,19 +26,16 @@ void CreateInsertTweet(Database* db, std::string& collectionName, bool createInd
     indexes.push_back(index);
   }
 
-  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
   
   Buffer documentData = GetTweetObject2();
-  db->Insert(collectionName, documentData);
+  db.Insert(collectionName, documentData);
 }
 
 TEST(Database, Open_InvalidArguments) {
   Options options;
-  Database* db = nullptr;
-  ASSERT_THROW(db = Database::Open("somePath", "", options), InvalidArgumentException);
-  ASSERT_EQ(db, nullptr);
-  ASSERT_THROW(db = Database::Open("", "someDbName", options), InvalidArgumentException);
-  ASSERT_EQ(db, nullptr);
+  ASSERT_THROW(Database db("somePath", "", options), InvalidArgumentException);
+  ASSERT_THROW(Database db("", "someDbName", options), InvalidArgumentException);  
 }
 
 TEST(Database, Open_MissingDatabaseFile) {
@@ -46,105 +43,94 @@ TEST(Database, Open_MissingDatabaseFile) {
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(false);
-  Database* db = nullptr;
-  ASSERT_THROW(db = Database::Open(dbPath, dbName, options), MissingDatabaseFileException);
-  ASSERT_EQ(db, nullptr);
+  ASSERT_THROW(Database db(dbPath, dbName, options), MissingDatabaseFileException);  
 }
 
 TEST(Database, Open_MissingDatabaseFolder) {
   string dbName = "Database_Open_New";
   string dbPath = g_TestRootDirectory;
   Options options;  
-  Database* db = nullptr;
-  ASSERT_THROW(Database::Open(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
+  ASSERT_THROW(Database db(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
+}
+
+Options GetDefaultDBOptions() {
+  Options opt;
+  opt.SetMaxDataFileSize(1024 * 1024);
+  return opt;
 }
 
 TEST(Database, Open_New) {
   string dbName = "Database_Open_New";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);
-  db->Close();
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 }
 
 TEST(Database, Open_Existing) {
   string dbName = "Database_Open_Existing";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db;
-  db = Database::Open(dbPath, dbName, options);
-  db->Close();
-
-  db = Database::Open(dbPath, dbName.c_str(), options);
-  db->Close();
+  {
+    Database db(dbPath, dbName, GetDefaultDBOptions());
+  }
+  
+  {
+    Database db(dbPath, dbName, GetDefaultDBOptions());
+  }
 }
 
 TEST(Database, Open_CreateIfMissing) {
-  //First remove the file if it exists
-  Options options;  
-  Database* db = Database::Open(g_TestRootDirectory.c_str(), "Database_Open_CreateIfMissing", options);  
-  db->Close();	
+  Database db(g_TestRootDirectory, "Database_Open_CreateIfMissing", GetDefaultDBOptions());  
 }
 
 TEST(Database, CreateCollection_InvalidSchema) {
   string dbName = "CreateCollection_New";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
-  ASSERT_THROW(db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", indexes), SchemaParseException);
-  db->Close();
+  ASSERT_THROW(db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", indexes), SchemaParseException);
 }
 
 TEST(Database, CreateCollection_New) {
   string dbName = "CreateCollection_New";
   string dbPath = g_TestRootDirectory;
-  Options options;  
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  Database* db = Database::Open(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
-  db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
-  db->Close();
+  db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
 }
 
 TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string dbName = "CreateCollection_CollectionAlreadyExist";
   string dbPath = g_TestRootDirectory;
-  Options options;  
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  Database* db = Database::Open(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
-  db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
-  ASSERT_THROW(db->CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes), CollectionAlreadyExistException);  
-  db->Close();
+  db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
+  ASSERT_THROW(db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes), CollectionAlreadyExistException);  
 }
 
 TEST(Database, Insert_NoIndex) {
   string dbName = "Insert_NoIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);  
+  Database db(dbPath, dbName, GetDefaultDBOptions());  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
   
   std::vector<IndexInfo> indexes;
-  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);  
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);  
 
   Buffer documentData = GetTweetObject2();
-  db->Insert(collectionName, documentData);
-  db->Close();
+  db.Insert(collectionName, documentData);
 }
 
 TEST(Database, Insert_SingleIndex) {
   string dbName = "Insert_SingleIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);  
+  Database db(dbPath, dbName, GetDefaultDBOptions());  
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -156,12 +142,11 @@ TEST(Database, Insert_SingleIndex) {
   std::vector<IndexInfo> indexes;
   indexes.push_back(index);
 
-  db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
+  db.CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
                                   schema.c_str(), indexes);
   
   Buffer documentData = GetTweetObject2();
-  db->Insert(collectionName, documentData);
-  db->Close();
+  db.Insert(collectionName, documentData);
 }
 
 Buffer GetAllFieldTypeObjectBuffer() {
@@ -186,8 +171,7 @@ TEST(Database, Insert_AllIndexTypes) {
   string dbName = "Insert_AllIndexTypes";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);  
+  Database db(dbPath, dbName, GetDefaultDBOptions());  
 
   string filePath = g_SchemaFolderPath + "all_field_type.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -211,71 +195,63 @@ TEST(Database, Insert_AllIndexTypes) {
     indexes.push_back(index);
   } 
 
-  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
   Buffer documentData = GetAllFieldTypeObjectBuffer();
-  db->Insert(collectionName, documentData);
-  db->Close();
+  db.Insert(collectionName, documentData);
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {
   string dbName = "ExecuteSelect_MissingCollection";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, std::vector<IndexInfo>());
-  ASSERT_ANY_THROW(ResultSet rs = db->ExecuteSelect("select * from missingTable where text = 'hello'"));
-  db->Close();
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, std::vector<IndexInfo>());
+  ASSERT_ANY_THROW(ResultSet rs = db.ExecuteSelect("select * from missingTable where text = 'hello'"));
 }
 
 TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   string dbName = "ExecuteSelect_EmptyDB_NoIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
-  db->CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS, schema.c_str(), std::vector<IndexInfo>());
+  db.CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS, schema.c_str(), std::vector<IndexInfo>());
 
   int rows = 0;
-  ResultSet rs = db->ExecuteSelect("select * from tweet where text = 'hello'"); 
+  ResultSet rs = db.ExecuteSelect("select * from tweet where text = 'hello'"); 
   while (rs.Next()) {
     ++rows;
   }
   ASSERT_EQ(rows, 0);
   rs.Close();
-  db->Close();
 }
 
 TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   string dbName = "ExecuteSelect_NonEmptyDB_SingleIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   CreateInsertTweet(db, collectionName, true, 1);
   int rows = 0;
-  ResultSet rs = db->ExecuteSelect("select * from tweet where [user.name] = 'Zarian'");
+  ResultSet rs = db.ExecuteSelect("select * from tweet where [user.name] = 'Zarian'");
   while (rs.Next()) {
     ++rows;
   }
   ASSERT_EQ(rows, 1);
   rs.Close();
-  db->Close();
 }
 
 TEST(Database, ExecuteSelect_Testing) {
   string dbName = "ExecuteSelect_Testing";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  Database* db = Database::Open(dbPath, dbName, options);
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath.c_str());
@@ -299,13 +275,13 @@ TEST(Database, ExecuteSelect_Testing) {
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
-  db->CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
   Buffer documentData = GetTweetObject2();
-  db->Insert(collectionName, documentData);
+  db.Insert(collectionName, documentData);
   
   int rows = 0;
-  ResultSet rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
+  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
@@ -316,21 +292,21 @@ TEST(Database, ExecuteSelect_Testing) {
   ASSERT_EQ(rows, 1);
 
   rows = 0;
-  rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
   while (rs.Next()) {
     ++rows;
   }
   ASSERT_EQ(rows, 0);
 
   rows = 0;
-  rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
   while (rs.Next()) {
     ++rows;
   }
   ASSERT_EQ(rows, 1);
 
   rows = 0;
-  rs = db->ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
@@ -341,5 +317,85 @@ TEST(Database, ExecuteSelect_Testing) {
   ASSERT_EQ(rows, 1);  
 
   rs.Close();
-  db->Close();
 }
+
+/*TEST(Database, Insert_10K) {
+  string dbName = "Insert_100K";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Options opt;
+  opt.SetSynchronous(false);
+  Database db(dbPath, dbName, opt);
+
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
+  std::vector<IndexInfo> indexes;
+
+  IndexInfo index;
+  index.SetIndexName("IndexName1");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("user.name");
+  indexes.push_back(index);
+
+  index.SetIndexName("IndexName2");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("text");
+  indexes.push_back(index);
+
+  index.SetIndexName("IndexName3");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("id");
+  indexes.push_back(index);
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::string name = "Zarian";
+  std::string text = "Say hello to my little friend!";
+
+  Buffer documentData;
+  for (size_t i = 0; i < 100000; i++) {
+    GetTweetObject2(i, i, name, text, documentData);
+    db.Insert(collectionName, documentData);
+  }  
+
+  int rows = 0;
+  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ++rows;
+  }
+  ASSERT_EQ(rows, 1);
+
+  rows = 0;
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
+  while (rs.Next()) {
+    ++rows;
+  }
+  ASSERT_EQ(rows, 0);
+
+  rows = 0;
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
+  while (rs.Next()) {
+    rs.GetInteger(rs.GetColumnIndex("id"));
+    ++rows;
+  }
+  ASSERT_EQ(rows, 100000);
+
+  rows = 0;
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ++rows;
+  }
+  ASSERT_EQ(rows, 1);
+  
+  //rs.Close();
+}*/

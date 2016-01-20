@@ -3,23 +3,13 @@
 #include <string>
 #include <assert.h>
 #include <thread>
-
-#include "status.h"
 #include "sqlite3.h"
 #include "exception_utils.h"
 #include "constants.h"
 
 namespace jonoondb_api {
 class SQLiteUtils {
- public:
-  static Status ExecuteSQL(sqlite3* dbConnection, std::string sql) {
-    int sqliteCode = sqlite3_exec(dbConnection, sql.c_str(), NULL, NULL, NULL);
-    if (sqliteCode != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, "", __LINE__);
-
-    return Status();
-  }
-
+public:
   static void ClearAndResetStatement(sqlite3_stmt* statement) {
     //Reset all params back to null
     int sqliteCode1 = sqlite3_clear_bindings(statement);
@@ -31,10 +21,10 @@ class SQLiteUtils {
     assert(sqliteCode2 == SQLITE_OK || sqliteCode2 == SQLITE_CONSTRAINT);  //Duplicate key errors are reported as SQLITE_CONSTRAINT
 
     if (sqliteCode1 != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode1), __FILE__, "", __LINE__);
+      throw SQLException(sqlite3_errstr(sqliteCode1), __FILE__, __func__, __LINE__);
 
     if (sqliteCode2 != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode2), __FILE__, "", __LINE__);    
+      throw SQLException(sqlite3_errstr(sqliteCode2), __FILE__, __func__, __LINE__);    
   }
 
   static int SQLiteGenericBusyHandler(void* input, int retryCount) {

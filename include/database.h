@@ -7,8 +7,6 @@
 #include "enums.h"
 
 namespace jonoondb_api {
-
-
 //
 // StringView
 //
@@ -32,22 +30,20 @@ private:
 //
 // Status
 //
-class ex_Status {
+class Status {
 public:
-  ex_Status() : opaque(nullptr) {
+  Status() : opaque(nullptr) {
   }
 
-  ex_Status(status_ptr sts) : opaque(sts) {
+  Status(status_ptr sts) : opaque(sts) {
   }
 
-  ex_Status(ex_Status&& other) {
-    if (this != &other) {
-      this->opaque = other.opaque;
-      other.opaque = nullptr;
-    }
+  Status(Status&& other) {
+    this->opaque = other.opaque;
+    other.opaque = nullptr;
   }
 
-  ~ex_Status() {
+  ~Status() {
     if (opaque) {
       jonoondb_status_destruct(opaque);
     }
@@ -153,7 +149,7 @@ public:
   operator status_ptr*() { return &m_status.opaque; }
 
 private:
-  ex_Status m_status;
+  Status m_status;
 };
 
 //
@@ -342,34 +338,52 @@ private:
 //
 class Buffer {
 public:
-  //Buffer(const Buffer& other);
-  //Buffer& operator=(const Buffer& other);
-  Buffer() {
-    m_opaque = jonoondb_buffer_construct();
+  Buffer() : m_opaque(jonoondb_buffer_construct()) {
   }
-  
+
+  Buffer(size_t bufferCapacityInBytes) : 
+    m_opaque(jonoondb_buffer_construct2(bufferCapacityInBytes, ThrowOnError{})) {
+  }
+
+  Buffer(const char* buffer, std::size_t bufferLengthInBytes, std::size_t bufferCapacityInBytes) : 
+    m_opaque(jonoondb_buffer_construct3(buffer, bufferLengthInBytes,
+                                        bufferCapacityInBytes, ThrowOnError{})) {
+  }
+
+  Buffer(char* buffer, std::size_t bufferLengthInBytes,
+    std::size_t bufferCapacityInBytes, void(*customDeleterFunc)(char*)) :
+    m_opaque(jonoondb_buffer_construct4(buffer, bufferLengthInBytes,
+                                        bufferCapacityInBytes,
+                                        customDeleterFunc, ThrowOnError{})) {
+  }
+
+  Buffer(const Buffer& other) :
+    m_opaque(jonoondb_buffer_copy_construct(other.m_opaque, ThrowOnError{})) {
+  }
+
   Buffer(Buffer&& other) {
-    if (this != &other) {
-      this->m_opaque = other.m_opaque;
-      other.m_opaque = nullptr;
-    }
+    m_opaque = other.m_opaque;
+    other.m_opaque = jonoondb_buffer_construct();
+  }  
+
+  Buffer& operator=(const Buffer& other) {
+    jonoondb_buffer_copy_assignment(m_opaque, other.m_opaque, ThrowOnError{});
+    return *this;
+  }
+
+  Buffer& operator=(Buffer&& other) {
+    std::swap(m_opaque, other.m_opaque);
+    return *this;
+  }
+
+  ~Buffer() {
+    jonoondb_buffer_destruct(m_opaque);
   }
   
-  ~Buffer() {
-    if (m_opaque != nullptr) {
-      jonoondb_buffer_destruct(m_opaque);
-    }
+  bool operator<(const Buffer& other) const {
+    return (jonoondb_buffer_op_lessthan(m_opaque, other.m_opaque) != 0);
   }
-  /*Buffer& operator=(Buffer&& other);
-  bool operator<(const Buffer& other) const;
 
-  Status Assign(char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes, DeleterFuncPtr customDeleterFunc);
-  Status Assign(Buffer& buffer, DeleterFuncPtr customDeleterFunc);
-
-  Status Copy(const char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes);
-  Status Copy(const Buffer& buffer);*/
   void Copy(const char* srcBuffer, size_t bytesToCopy) {
     jonoondb_buffer_copy(m_opaque, srcBuffer, bytesToCopy, ThrowOnError{});
   }
@@ -378,14 +392,18 @@ public:
     jonoondb_buffer_resize(m_opaque, newBufferCapacityInBytes, ThrowOnError{});
   }
 
-  //void Reset();
-  //const char* GetData() const;
-  //char* GetDataForWrite();
+  const char* GetData() const {
+    return jonoondb_buffer_getdata(m_opaque);
+  }
+
+  const size_t GetLength() const {
+    return jonoondb_buffer_getlength(m_opaque);
+  }
+
   const size_t GetCapacity() const {
     return jonoondb_buffer_getcapacity(m_opaque);
-  }
-  //const size_t GetLength() const;
-  //Status SetLength(size_t value);*/
+  }  
+  
   jonoondb_buffer_ptr GetOpaqueType() const {
     return m_opaque;
   }
@@ -456,7 +474,6 @@ public:
     return jonoondb_resultset_getcolumnindex(m_opaque, columnLabel.c_str(),
       columnLabel.size(), ThrowOnError{});
   }
-
   
 private:
   resultset_ptr m_opaque;
@@ -464,20 +481,13 @@ private:
 
 class Database {
 public:
-  static Database* Open(const std::string& dbPath, const std::string& dbName,
-    const Options& opt) {
-    auto db = jonoondb_database_open(dbPath.c_str(), dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{});
-    return new Database(db);
+  Database(const std::string& dbPath, const std::string& dbName,
+    const Options& opt) : m_opaque(jonoondb_database_construct(dbPath.c_str(),
+    dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{})) {
   }
 
-  void Close() {
-    status_ptr sts = nullptr;
-    jonoondb_database_close(m_opaque, &sts);
-    if (sts != nullptr) {
-      //Todo: Handle/Log errors that can happen on shutdown
-    }
-    m_opaque = nullptr;
-    delete this;
+  ~Database() {
+    jonoondb_database_destruct(m_opaque);
   }
 
   void CreateCollection(const std::string& name, SchemaType schemaType,
@@ -502,12 +512,9 @@ public:
   ResultSet ExecuteSelect(const std::string& selectStatement) {
     auto rs = jonoondb_database_executeselect(m_opaque, selectStatement.c_str(), selectStatement.size(), ThrowOnError{});
     return ResultSet(rs);
-  }
+  }  
 
-  
-
-private:
-  Database(database_ptr db) : m_opaque(db) {}
+private:  
   database_ptr m_opaque;
 };
 

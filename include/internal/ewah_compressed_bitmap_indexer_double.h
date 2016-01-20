@@ -9,7 +9,6 @@
 #include <cmath>
 #include "indexer.h"
 #include "index_info_impl.h"
-#include "status.h"
 #include "string_utils.h"
 #include "document.h"
 #include "mama_jennies_bitmap.h"
@@ -42,7 +41,7 @@ public:
     }
 
     if (errorMsg.length() > 0) {
-      throw InvalidArgumentException(errorMsg, __FILE__, "", __LINE__);
+      throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
     }
 
     std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumnName(),
@@ -100,7 +99,7 @@ public:
       default:
         std::ostringstream ss;
         ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
-        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+        throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 
@@ -127,7 +126,7 @@ private:
         std::ostringstream ss;
         ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
           << " is not valid for EWAHCompressedBitmapIndexerDouble.";
-        throw JonoonDBException(ss.str(), __FILE__, "", __LINE__);
+        throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
       }
     }
 
