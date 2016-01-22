@@ -319,6 +319,47 @@ TEST(Database, ExecuteSelect_Testing) {
   rs.Close();
 }
 
+TEST(Database, MultiInsert) {
+  string dbName = "MultiInsert";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, GetDefaultDBOptions());
+
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath.c_str());
+  std::vector<IndexInfo> indexes;
+
+  IndexInfo index;
+  index.SetIndexName("IndexName1");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("user.name");
+  indexes.push_back(index);
+
+  index.SetIndexName("IndexName2");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("text");
+  indexes.push_back(index);
+
+  index.SetIndexName("IndexName3");
+  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetIsAscending(true);
+  index.SetColumnName("id");
+  indexes.push_back(index);
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text));
+  }
+
+  db.MultiInsert(collectionName, documents);  
+}
+
 /*TEST(Database, Insert_10K) {
   string dbName = "Insert_100K";
   string collectionName = "tweet";

@@ -37,6 +37,9 @@ endif()
 # add the include directories
 include_directories(${INCLUDE_PATH} ${INCLUDE_INTERNAL_PATH} ${THIRDPARTY_PATH})
 
+#gsl
+include_directories(${THIRDPARTY_PATH}/gsl/include)
+
 # sqlite
 add_library(
  sqlite

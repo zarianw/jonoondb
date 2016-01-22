@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <string>
 #include <cstdint>
+#include <boost/utility/string_ref.hpp>
+#include "gsl/span.h"
 #include "database_metadata_manager.h"
 #include "document_collection.h"
 #include "query_processor.h"
@@ -28,6 +30,7 @@ class DatabaseImpl final {
   void CreateCollection(const std::string& name, SchemaType schemaType,
                           const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
   void Insert(const char* collectionName, const BufferImpl& documentData);
+  void MultiInsert(const boost::string_ref& collectionName, gsl::span<const BufferImpl*>& documents);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
  private:  

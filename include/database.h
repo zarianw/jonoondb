@@ -509,6 +509,14 @@ public:
     jonoondb_database_insert(m_opaque, collectionName.c_str(), documentData.GetOpaqueType(), ThrowOnError{});
   }
 
+  void MultiInsert(const std::string& collectionName,
+                   const std::vector<Buffer>& documents) {
+    static_assert(sizeof(Buffer) == sizeof(jonoondb_buffer_ptr),
+                  "Critical Error. Size assumptions not correct for Buffer & jonoondb_buffer_ptr.");
+    jonoondb_database_multi_insert(m_opaque, collectionName.data(), collectionName.size(),
+                                   reinterpret_cast<const jonoondb_buffer_ptr*>(documents.data()), documents.size(), ThrowOnError{});
+  }
+
   ResultSet ExecuteSelect(const std::string& selectStatement) {
     auto rs = jonoondb_database_executeselect(m_opaque, selectStatement.c_str(), selectStatement.size(), ThrowOnError{});
     return ResultSet(rs);
