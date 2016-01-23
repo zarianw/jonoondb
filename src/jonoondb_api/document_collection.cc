@@ -66,11 +66,24 @@ void DocumentCollection::Insert(const BufferImpl& documentData) {
   m_blobManager->Put(documentData, blobMetadata);
   
   // Index the document
-  auto id = m_documentIDGenerator.ReserveID(1);
-  m_indexManager->IndexDocument(id, *doc.get());  
+  auto id = m_indexManager->IndexDocument(m_documentIDGenerator, *doc.get());
  
   m_documentIDMap.push_back(blobMetadata);
   assert(m_documentIDMap.size()-1 == id);
+}
+
+void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {
+  std::vector<BlobMetadata> blobMetadataVec(documents.size());
+  m_blobManager->MultiPut(documents, blobMetadataVec);
+
+  std::vector<std::unique_ptr<Document>> docs;
+  for (auto documentData : documents) {
+    docs.push_back(DocumentFactory::CreateDocument(m_documentSchema, *documentData));    
+  }
+
+  auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
+  assert(startID == m_documentIDMap.size());
+  m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(), blobMetadataVec.end());  
 }
 
 const std::string& DocumentCollection::GetName() {
@@ -81,8 +94,9 @@ const std::shared_ptr<DocumentSchema>& DocumentCollection::GetDocumentSchema() {
   return m_documentSchema;
 }
 
-bool DocumentCollection::TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
-  IndexStat& indexStat) {
+bool DocumentCollection::TryGetBestIndex(const std::string& columnName,
+                                         IndexConstraintOperator op,
+                                         IndexStat& indexStat) {
   return m_indexManager->TryGetBestIndex(columnName, op, indexStat);
 }
 

@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include <cstdint>
+#include "gsl/span.h"
 #include "index_manager.h"
 #include "document_id_generator.h"
 #include "blob_metadata.h"
@@ -33,6 +34,7 @@ class DocumentCollection final {
      std::unique_ptr<BlobManager> blobManager);  
 
   void Insert(const BufferImpl& documentData);
+  void MultiInsert(gsl::span<const BufferImpl*>& documents);
   const std::string& GetName();
   const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,

@@ -56,7 +56,8 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
   // TODO: we need to call m_queryProcessor->RemoveCollection if the below call fails
   m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes);  
 
-  m_collectionContainer[colName] = documentCollection;
+  m_collectionNameStore.push_back(colName);
+  m_collectionContainer[m_collectionNameStore.back()] = documentCollection;
 }
 
 void DatabaseImpl::Insert(const char* collectionName,
@@ -74,7 +75,16 @@ void DatabaseImpl::Insert(const char* collectionName,
 }
 
 void DatabaseImpl::MultiInsert(const boost::string_ref& collectionName,
-                               gsl::span<const BufferImpl*>& documents) {  
+                               gsl::span<const BufferImpl*>& documents) {
+  auto item = m_collectionContainer.find(collectionName);
+  if (item == m_collectionContainer.end()) {
+    std::ostringstream ss;
+    ss << "Collection \"" << collectionName << "\" not found.";
+    throw CollectionNotFoundException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  // Add data in collection
+  item->second->MultiInsert(documents);
 }
 
 ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {

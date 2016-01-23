@@ -396,10 +396,10 @@ TEST(Database, MultiInsert) {
   std::string text = "Say hello to my little friend!";
 
   Buffer documentData;
-  for (size_t i = 0; i < 100000; i++) {
-    GetTweetObject2(i, i, name, text, documentData);
+  for (size_t i = 0; i < 30000; i++) {
+    documentData = GetTweetObject2(i, i, name, text);
     db.Insert(collectionName, documentData);
-  }  
+  }
 
   int rows = 0;
   ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
@@ -437,6 +437,6 @@ TEST(Database, MultiInsert) {
     ++rows;
   }
   ASSERT_EQ(rows, 1);
-  
+
   //rs.Close();
 }*/

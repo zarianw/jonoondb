@@ -94,17 +94,22 @@ TEST(BlobManager, Multiput) {
   BlobManager bm(move(fnm), false, fileSize, true);
    
   const int SIZE = 10;
-  BlobMetadata metadataArray[SIZE];
-  BufferImpl bufferArray[SIZE];
+  std::vector<BlobMetadata> metadataArray(SIZE);
+  std::vector<BufferImpl> bufferArray;
+  std::vector<const BufferImpl*> bufferPtrArray;
   std::string data;
 
   for (size_t i = 0; i < SIZE; i++) {
     data = "This is the string " + std::to_string(i);
-    bufferArray[i].Resize(data.size());
-    bufferArray[i].Copy(data.c_str(), data.size());
+    BufferImpl buf(data.c_str(), data.size(), data.size());
+    bufferArray.push_back(buf);    
   }
 
-  bm.MultiPut(bufferArray, SIZE, metadataArray);
+  for (auto& buf : bufferArray) {
+    bufferPtrArray.push_back(&buf);
+  }
+
+  bm.MultiPut(bufferPtrArray, metadataArray);
 
   BufferImpl outBuffer;
   for (size_t i = 0; i < SIZE; i++) {

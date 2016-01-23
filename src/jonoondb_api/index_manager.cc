@@ -9,6 +9,7 @@
 #include "index_stat.h"
 #include "constraint.h"
 #include "mama_jennies_bitmap.h"
+#include "document_id_generator.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -42,19 +43,52 @@ void IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
   (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));  
 }
 
-void IndexManager::IndexDocument(uint64_t documentID,
-                                   const Document& document) {
+std::uint64_t IndexManager::IndexDocument(DocumentIDGenerator & documentIDGenerator,
+                                          const Document & document) {
   for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
     for (const auto& indexer : columnIndexerMapPair.second) {
       indexer->ValidateForInsert(document);      
     }
   }
-
-  for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
-    for (const auto& indexer : columnIndexerMapPair.second) {
-      indexer->Insert(documentID, document);
+  std::uint64_t documentID = 0;  
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    documentID = documentIDGenerator.ReserveID(1);
+    for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
+      for (const auto& indexer : columnIndexerMapPair.second) {
+        indexer->Insert(documentID, document);
+      }
     }
   }
+
+  return documentID;
+}
+
+std::uint64_t IndexManager::IndexDocuments(DocumentIDGenerator& documentIDGenerator,
+                                           const std::vector<std::unique_ptr<Document>>& documents) {
+  for (const auto& doc : documents) {
+    for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
+      for (const auto& indexer : columnIndexerMapPair.second) {
+        indexer->ValidateForInsert(*doc);
+      }
+    }
+  }  
+  std::uint64_t startID = 0;
+  {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    startID = documentIDGenerator.ReserveID(documents.size());
+    auto documentID = startID;
+    for (const auto& doc : documents) {
+      for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
+        for (const auto& indexer : columnIndexerMapPair.second) {
+          indexer->Insert(documentID, *doc);
+        }
+      }
+      ++documentID;
+    }
+  }
+
+  return startID;
 }
 
 bool IndexManager::TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
