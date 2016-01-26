@@ -25,8 +25,14 @@ namespace jonoondb_test {
 string g_TestRootDirectory;
 string g_SchemaFolderPath;
 
-string ReadTextFile(const char* path) {
-  std::ifstream ifs(path);  // "test/schemas/flatbuffers/tweet.fbs");
+string ReadTextFile(const std::string& path) {
+  std::ifstream ifs(path);
+  if (!ifs.is_open()) {
+    ostringstream ss;
+    ss << "Failed to open file at path " << path << ".";
+    throw std::exception(ss.str().c_str());
+  }
+
   std::string schema((std::istreambuf_iterator<char>(ifs)),
                      (std::istreambuf_iterator<char>()));
 
