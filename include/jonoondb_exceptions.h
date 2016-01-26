@@ -13,8 +13,7 @@ public:
     m_fileName(srcFileName), m_funcName(funcName), m_lineNum(lineNum) {
   }
 
-  // Todo Add noexcept for these functions once we move to vs 2015
-  const char* what() const throw() { return m_message.c_str(); }
+  const char* what() const noexcept { return m_message.c_str(); }
   const char* GetSourceFileName() const { return m_fileName.c_str(); }
   const char* GetFunctionName() const { return m_funcName.c_str(); }
   std::size_t GetLineNumber() const { return m_lineNum; }

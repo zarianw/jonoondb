@@ -57,8 +57,7 @@ public:
 //
 class ThrowOnError {
 public:
-  // TODO: change the throw to noexcept(false) when we move to vs2015
-  ~ThrowOnError() throw(std::exception) {
+  ~ThrowOnError() noexcept(false) {
     if (m_status.opaque) {
       switch (jonoondb_status_code(m_status.opaque)) {
         case status_genericerrorcode:
@@ -507,6 +506,14 @@ public:
 
   void Insert(const std::string& collectionName, const Buffer& documentData) {
     jonoondb_database_insert(m_opaque, collectionName.c_str(), documentData.GetOpaqueType(), ThrowOnError{});
+  }
+
+  void MultiInsert(const std::string& collectionName,
+                   const std::vector<Buffer>& documents) {
+    static_assert(sizeof(Buffer) == sizeof(jonoondb_buffer_ptr),
+                  "Critical Error. Size assumptions not correct for Buffer & jonoondb_buffer_ptr.");
+    jonoondb_database_multi_insert(m_opaque, collectionName.data(), collectionName.size(),
+                                   reinterpret_cast<const jonoondb_buffer_ptr*>(documents.data()), documents.size(), ThrowOnError{});
   }
 
   ResultSet ExecuteSelect(const std::string& selectStatement) {

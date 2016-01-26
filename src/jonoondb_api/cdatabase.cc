@@ -1,4 +1,6 @@
 #include <sstream>
+#include <boost/utility/string_ref.hpp>
+#include "gsl/span.h"
 #include "cdatabase.h"
 #include "options_impl.h"
 #include "database_impl.h"
@@ -7,7 +9,6 @@
 #include "enums.h"
 #include "buffer_impl.h"
 #include "resultset_impl.h"
-#include "boost/utility/string_ref.hpp"
 #include "status_impl.h"
 
 using namespace jonoondb_api;
@@ -464,6 +465,30 @@ void jonoondb_database_createcollection(database_ptr db, const char* name, int32
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts) {
   TranslateExceptions([&]{
     db->impl.Insert(collectionName, documentData->impl);
+  }, *sts);
+}
+
+void jonoondb_database_multi_insert(database_ptr db, const char * collectionName, uint64_t collectionNameLength,
+                                    const jonoondb_buffer_ptr* documentArr, uint64_t documentArrLength,
+                                    status_ptr * sts) {
+  TranslateExceptions([&] {
+    boost::string_ref colName(collectionName, collectionNameLength);
+    static_assert(sizeof(jonoondb_buffer) == sizeof(BufferImpl),
+                  "Critical Error. Size assumptions not correct for jonoondb_buffer & BufferImpl.");
+    if (sizeof(jonoondb_buffer) == sizeof(BufferImpl)) {
+      // Todo: Use a safer cast than C Style cast
+      const BufferImpl** start = (const BufferImpl**)documentArr;      
+      gsl::span<const BufferImpl*> documents(start, documentArrLength);
+      db->impl.MultiInsert(colName, documents);
+    }
+    else {
+      std::vector<const BufferImpl*> documentVec;
+      for (size_t i = 0; i < documentArrLength; i++) {
+        documentVec.push_back(&documentArr[i]->impl);
+      }
+      gsl::span<const BufferImpl*> documents(documentVec.data(), documentVec.size());
+      db->impl.MultiInsert(colName, documents);
+    }    
   }, *sts);
 }
 

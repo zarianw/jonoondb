@@ -4,6 +4,8 @@
 #include <memory>
 #include <map>
 #include <mutex>
+#include <vector>
+#include <gsl/span.h>
 #include "file_info.h"
 #include "memory_mapped_file.h"
 #include "concurrent_lru_cache.h"
@@ -25,7 +27,7 @@ public:
   BlobManager& operator=(const BlobManager&) = delete;
   BlobManager& operator=(BlobManager&&) = delete;
   void Put(const BufferImpl& blob, BlobMetadata& blobMetadata);
-  void MultiPut(const BufferImpl blobs[], const int arrayLength, BlobMetadata blobMetadatas[]);
+  void MultiPut(gsl::span<const BufferImpl*> blobs, std::vector<BlobMetadata>& blobMetadataVec);
   void Get(const BlobMetadata& blobMetadata, BufferImpl& blob);
   void UnmapLRUDataFiles();
 private:

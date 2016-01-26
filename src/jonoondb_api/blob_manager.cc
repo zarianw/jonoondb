@@ -115,16 +115,17 @@ void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata) {
   }
 }
 
-void BlobManager::MultiPut(const BufferImpl blobs[], const int arrayLength, BlobMetadata blobMetadatas[]) {
-  //Lock will be acquired on the next line and released when lock goes out of scope
-  lock_guard<mutex> lock(m_writeMutex);
+void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs, std::vector<BlobMetadata>& blobMetadataVec) {
+  assert(blobs.size() == blobMetadataVec.size());
   size_t bytesWritten = 0, totalBytesWrittenInFile = 0;
+  //Lock will be acquired on the next line and released when lock goes out of scope  
+  lock_guard<mutex> lock(m_writeMutex);  
   size_t baseOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();  
   int headerSize = 1 + 4 + 8;
-  for (int i = 0; i < arrayLength; i++) {
+  for (int i = 0; i < blobs.size(); i++) {
     size_t currentOffset = m_currentBlobFile->GetCurrentWriteOffset();
 
-    if (blobs[i].GetLength() + headerSize + currentOffset > m_maxDataFileSize) {
+    if (blobs[i]->GetLength() + headerSize + currentOffset > m_maxDataFileSize) {
       //The file size will exceed the m_maxDataFileSize if blob is written in the current file
       //First flush the contents if required
       try {
@@ -142,7 +143,7 @@ void BlobManager::MultiPut(const BufferImpl blobs[], const int arrayLength, Blob
     }
 
     try {
-      PutInternal(blobs[i], blobMetadatas[i], bytesWritten);
+      PutInternal(*blobs[i], blobMetadataVec[i], bytesWritten);
     } catch (...) {
       m_currentBlobFile->SetCurrentWriteOffset(baseOffsetInFile);
       throw;

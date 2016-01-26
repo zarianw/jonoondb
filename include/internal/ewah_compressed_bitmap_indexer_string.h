@@ -96,7 +96,7 @@ public:
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
         return GetBitmapGT(constraint, true);
       case jonoondb_api::IndexConstraintOperator::MATCH:
-        break;
+        // TODO: Handle this
       default:
         std::ostringstream ss;
         ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";

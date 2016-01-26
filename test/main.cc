@@ -25,8 +25,14 @@ namespace jonoondb_test {
 string g_TestRootDirectory;
 string g_SchemaFolderPath;
 
-string ReadTextFile(const char* path) {
-  std::ifstream ifs(path);  // "test/schemas/flatbuffers/tweet.fbs");
+string ReadTextFile(const std::string& path) {
+  std::ifstream ifs(path);
+  if (!ifs.is_open()) {
+    ostringstream ss;
+    ss << "Failed to open file at path " << path << ".";
+    throw std::exception(ss.str().c_str());
+  }
+
   std::string schema((std::istreambuf_iterator<char>(ifs)),
                      (std::istreambuf_iterator<char>()));
 
@@ -45,16 +51,12 @@ Buffer GetTweetObject2() {
 
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
-  Buffer buffer;
-  if (size > buffer.GetCapacity()) {
-    buffer.Resize(size);   
-  }
-
-  buffer.Copy((char*)fbb.GetBufferPointer(), size);
+  Buffer buffer((char*)fbb.GetBufferPointer(), size, size);
   return buffer;
 }
 
-void GetTweetObject2(int tweetId, int userId, std::string& nameStr, std::string& textStr, Buffer& buffer) {
+Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
+                       std::string& nameStr, std::string& textStr) {
   // create user object
   FlatBufferBuilder fbb;
   auto name = fbb.CreateString(nameStr);
@@ -67,11 +69,8 @@ void GetTweetObject2(int tweetId, int userId, std::string& nameStr, std::string&
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
   
-  if (size > buffer.GetCapacity()) {
-    buffer.Resize(size);
-  }
-
-  buffer.Copy((char*)fbb.GetBufferPointer(), size);  
+  Buffer buffer((char*)fbb.GetBufferPointer(), size, size);
+  return buffer;
 }
 
 BufferImpl GetTweetObject() {
