@@ -370,12 +370,11 @@ TEST(Database, MultiInsert) {
   ASSERT_EQ(rowCnt, 10);
 }
 
-/*TEST(Database, Insert_10K) {
+/*TEST(Database, Insert_100K) {
   string dbName = "Insert_100K";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   Options opt;
-  opt.SetSynchronous(false);
   Database db(dbPath, dbName, opt);
 
   string filePath = g_SchemaFolderPath + "tweet.fbs";
@@ -405,11 +404,18 @@ TEST(Database, MultiInsert) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
 
-  Buffer documentData;
-  for (size_t i = 0; i < 30000; i++) {
-    documentData = GetTweetObject2(i, i, name, text);
-    db.Insert(collectionName, documentData);
+  const size_t count = 2000 * 1000;
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < count; i++) {
+    //if (i % 2) {
+      name = "zarian_" + std::to_string(i);
+      text = "hello_" + std::to_string(i);
+    //}
+
+    documents.push_back(GetTweetObject2(i, i, name, text));
   }
+
+  db.MultiInsert(collectionName, documents);  
 
   int rows = 0;
   ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
