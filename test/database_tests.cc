@@ -357,7 +357,17 @@ TEST(Database, MultiInsert) {
     documents.push_back(GetTweetObject2(i, i, name, text));
   }
 
-  db.MultiInsert(collectionName, documents);  
+  db.MultiInsert(collectionName, documents);
+
+  // Now see if they were inserted correctly
+  auto rs = db.ExecuteSelect("SELECT [user.name] from tweet;");
+  auto rowCnt = 0;
+  while (rs.Next()) {
+    std::string name = "zarian_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 10);
 }
 
 /*TEST(Database, Insert_10K) {
