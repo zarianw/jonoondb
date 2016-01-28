@@ -152,3 +152,8 @@ add_executable(
  ${TEST_PATH}/options_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
+
+add_executable(
+ jonoondb_cli
+ ${SRC_PATH}/jonoondb_cli/main.cc)
+target_link_libraries(jonoondb_cli jonoondb_api)
