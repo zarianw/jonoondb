@@ -64,7 +64,7 @@ include_directories(${THIRDPARTY_PATH}/flatbuffers/include)
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread date_time chrono)
+find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread date_time chrono program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
 message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
@@ -153,7 +153,10 @@ add_executable(
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
 
+
+# Find a way to link against only the required boost libs
+# ${Boost_LIBRARIES} points to all the libs in find_package
 add_executable(
  jonoondb_cli
  ${SRC_PATH}/jonoondb_cli/main.cc)
-target_link_libraries(jonoondb_cli jonoondb_api)
+target_link_libraries(jonoondb_cli jonoondb_api ${Boost_LIBRARIES})
