@@ -29,12 +29,12 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
   std::unique_ptr<BlobManager> blobManager) : m_blobManager(move(blobManager)),
   m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
   // Validate function arguments
-  if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
-    throw InvalidArgumentException("Argument databaseMetadataFilePath is null or empty.", __FILE__, __func__, __LINE__);
+  if (databaseMetadataFilePath.size() == 0) {
+    throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.", __FILE__, __func__, __LINE__);
   }
 
-  if (StringUtils::IsNullOrEmpty(name)) {
-    throw InvalidArgumentException("Argument name is null or empty.", __FILE__, __func__, __LINE__);
+  if (name.size() == 0) {
+    throw InvalidArgumentException("Argument name is empty.", __FILE__, __func__, __LINE__);
   }
   m_name = name;
 

@@ -98,6 +98,7 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/constraint.h
  ${INCLUDE_INTERNAL_PATH}/file.h
  ${INCLUDE_INTERNAL_PATH}/object_pool.h
+ ${INCLUDE_INTERNAL_PATH}/path_utils.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_INTERNAL_PATH}/database_impl.h

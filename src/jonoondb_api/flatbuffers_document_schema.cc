@@ -19,8 +19,8 @@ FlatbuffersDocumentSchema::~FlatbuffersDocumentSchema() {
 
 FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(const std::string& schemaText, SchemaType schemaType) :
   m_schemaText(schemaText), m_schemaType(schemaType), m_parser(new Parser()) {
-  if (StringUtils::IsNullOrEmpty(schemaText)) {
-    throw InvalidArgumentException("Argument schemaText is null or empty.", __FILE__, __func__, __LINE__);
+  if (schemaText.size() == 0) {
+    throw InvalidArgumentException("Argument schemaText is empty.", __FILE__, __func__, __LINE__);
   }
 
   if (!m_parser->Parse(m_schemaText.c_str())) {

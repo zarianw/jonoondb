@@ -12,6 +12,7 @@
 #include "guard_funcs.h"
 #include "resultset_impl.h"
 #include "jonoondb_exceptions.h"
+#include "path_utils.h"
 
 using namespace jonoondb_api;
 using namespace boost::filesystem;
@@ -22,7 +23,8 @@ int jonoondb_vtable_init(sqlite3 *db, char **error,
 
 QueryProcessor::QueryProcessor(const std::string& dbPath, const std::string& dbName) :
 m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(nullptr), m_dbName(dbName) {
-  path pathObj(dbPath);
+  std::string normalizedDBPath = PathUtils::NormalizePath(dbPath);
+  path pathObj(normalizedDBPath);
 
   // check if the db folder exists
   if (!boost::filesystem::exists(pathObj)) {
@@ -33,7 +35,7 @@ m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(n
 
   pathObj += dbName;
   pathObj += ".dat";
-  m_fullDBpath = pathObj.string();
+  m_fullDBpath = pathObj.generic_string();
 
   if (!boost::filesystem::exists(pathObj)) {
     std::ostringstream ss;

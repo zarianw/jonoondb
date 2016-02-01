@@ -13,6 +13,7 @@
 #include "enums.h"
 #include "jonoondb_exceptions.h"
 #include "guard_funcs.h"
+#include "path_utils.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -21,26 +22,21 @@ using namespace jonoondb_api;
 DatabaseMetadataManager::DatabaseMetadataManager(const std::string& dbPath,
                                                  const std::string& dbName,
                                                  bool createDBIfMissing) :
-    m_dbPath(dbPath), m_dbName(dbName), m_metadataDBConnection(nullptr, GuardFuncs::SQLite3Close) {
+  m_metadataDBConnection(nullptr, GuardFuncs::SQLite3Close) {
   // Validate arguments
-  if (StringUtils::IsNullOrEmpty(m_dbPath)) {
-    throw InvalidArgumentException("Argument dbPath is null or empty.",
+  if (dbPath.size() == 0) {
+    throw InvalidArgumentException("Argument dbPath is empty.",
       __FILE__, __func__, __LINE__);
   }
 
-  if (StringUtils::IsNullOrEmpty(m_dbName)) {
-    throw InvalidArgumentException("Argument dbName is null or empty.",
+  if (dbName.size() == 0) {
+    throw InvalidArgumentException("Argument dbName is empty.",
       __FILE__, __func__, __LINE__);
   }  
+
+  m_dbPath = PathUtils::NormalizePath(dbPath);
+  m_dbName = dbName;
   
-  Initialize(createDBIfMissing);  
-}
-
-DatabaseMetadataManager::~DatabaseMetadataManager() {
-  FinalizeStatements();
-}
-
-void DatabaseMetadataManager::Initialize(bool createDBIfMissing) {
   path pathObj(m_dbPath);
 
   // check if the db folder exists
@@ -52,23 +48,27 @@ void DatabaseMetadataManager::Initialize(bool createDBIfMissing) {
 
   pathObj += m_dbName;
   pathObj += ".dat";
-  m_fullDbPath = pathObj.string();
+  m_fullDbPath = pathObj.generic_string();
 
   if (!boost::filesystem::exists(pathObj) && !createDBIfMissing) {
     std::ostringstream ss;
-    ss << "Database file " << m_fullDbPath << " does not exist.";    
+    ss << "Database file " << m_fullDbPath << " does not exist.";
     throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   sqlite3* db;
-  int sqliteCode = sqlite3_open(pathObj.string().c_str(), &db);
+  int sqliteCode = sqlite3_open(m_fullDbPath.c_str(), &db);
   m_metadataDBConnection.reset(db);
   if (sqliteCode != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
-   
+
   CreateTables();
   PrepareStatements();
+}
+
+DatabaseMetadataManager::~DatabaseMetadataManager() {
+  FinalizeStatements();
 }
 
 void DatabaseMetadataManager::CreateTables() {

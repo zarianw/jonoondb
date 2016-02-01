@@ -1,9 +1,11 @@
 #include <iostream>
+#include <fstream>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/tokenizer.hpp>
 #include "database.h"
 
 namespace po = boost::program_options;
@@ -11,27 +13,62 @@ using namespace std;
 using namespace jonoondb_api;
 using namespace boost::filesystem;
 
+string ReadTextFile(const std::string& path) {
+  std::ifstream ifs(path);
+  if (!ifs.is_open()) {
+    ostringstream ss;
+    ss << "Failed to open file at path " << path << ".";
+    throw std::exception(ss.str().c_str());
+  }
+
+  std::string schema((std::istreambuf_iterator<char>(ifs)),
+                     (std::istreambuf_iterator<char>()));
+
+  return schema;
+}
+
 int StartJonoonDBCLI(string dbName, string dbPath) {
   try {
     cout << "JonoonDB - Lets change things." << "\n";
+    cout << "DBNAME: " << dbName << endl;
+    cout << "DBPATH: " << dbPath << endl;
 
     Options opt;
     Database db(dbPath, dbName, opt);
-
-    std::string cmd;
+    std::string cmd;    
+    boost::char_separator<char> sep(" ");  
+    
     while (true) {
       cout << "JonoonDB> ";
-      cin >> cmd;
+      std::getline(std::cin, cmd);
+      if (cmd.size() == 0)
+        continue;
+
+      boost::tokenizer<boost::char_separator<char>> tokenizer(cmd, sep);
+      std::vector<std::string> tokens(tokenizer.begin(), tokenizer.end());
+      if (tokens.size() == 0)
+        continue;
+      
+      if (tokens[0] == ".cc") {
+        // create collection
+        // make sure we have enough params
+        if (tokens.size() < 3) {
+          cout << "Not enough parameters. USAGE: .cc COLLECTION_NAME SCHEMA_FILE" << endl;
+          continue;
+        }
+
+        auto schema = ReadTextFile(tokens[2]);
+        vector<IndexInfo> indexes;        
+        db.CreateCollection(tokens[1], SchemaType::FLAT_BUFFERS, schema, indexes);
+      }
+
       cout << "echo: " << cmd << endl;
-    }
-
-
-       
+    }       
   } catch (JonoonDBException& ex) {
-    cout << ex.to_string() << std::endl; 
+    cout << ex.to_string() << endl; 
     return 1;
   } catch (std::exception& ex) {
-    cout << "Exception: " << ex.what() << std::endl;
+    cout << "Exception: " << ex.what() << endl;
     return 1;
   }
 
@@ -66,14 +103,13 @@ int main(int argc, char **argv) {
   po::notify(vm);
 
   if (vm.count("help")) {
-    cout << desc << "\n";
+    cout << desc << endl;
     return 1;
   }
 
-  // ok at this point we have all our options
   if (vm_positional["db_name"].empty()) {
-    cout << "db_name not specified." << "\n";
-    cout << desc << "\n";
+    cout << "db_name not specified." << endl;
+    cout << desc << endl;
     return 1;
   }
   string dbName = vm_positional["db_name"].as<string>();
@@ -82,9 +118,10 @@ int main(int argc, char **argv) {
   if (!vm_positional["db_path"].empty()) {
     dbPath = vm_positional["db_path"].as<string>();
   } else {
-    dbPath = current_path().string();
-  }
+    dbPath = current_path().generic_string();
+  } 
 
+  // ok at this point we have all our options  
   return StartJonoonDBCLI(dbName, dbPath);  
 }
 

@@ -26,10 +26,10 @@ public:
     EWAHCompressedBitmapIndexerInteger*& obj) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
-    if (StringUtils::IsNullOrEmpty(indexInfo.GetIndexName())) {
-      errorMsg = "Argument indexInfo has null or empty name.";
-    } else if (StringUtils::IsNullOrEmpty(indexInfo.GetColumnName())) {
-      errorMsg = "Argument indexInfo has null or empty column name.";
+    if (indexInfo.GetIndexName().size() == 0) {
+      errorMsg = "Argument indexInfo has empty name.";
+    } else if (indexInfo.GetColumnName().size() == 0) {
+      errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::EWAHCompressedBitmap) {
       errorMsg =
         "Argument indexInfo can only have IndexType EWAHCompressedBitmap for EWAHCompressedBitmapIndexer.";
