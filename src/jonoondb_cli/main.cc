@@ -43,26 +43,51 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
       std::getline(std::cin, cmd);
       if (cmd.size() == 0)
         continue;
-
-      boost::tokenizer<boost::char_separator<char>> tokenizer(cmd, sep);
-      std::vector<std::string> tokens(tokenizer.begin(), tokenizer.end());
-      if (tokens.size() == 0)
-        continue;
       
-      if (tokens[0] == ".cc") {
-        // create collection
-        // make sure we have enough params
-        if (tokens.size() < 3) {
-          cout << "Not enough parameters. USAGE: .cc COLLECTION_NAME SCHEMA_FILE" << endl;
+      try {
+        boost::tokenizer<boost::char_separator<char>> tokenizer(cmd, sep);
+        std::vector<std::string> tokens(tokenizer.begin(), tokenizer.end());
+        if (tokens.size() == 0)
           continue;
+
+        if (tokens[0] == ".cc") {
+          // create collection command
+          // make sure we have enough params
+          if (tokens.size() < 3) {
+            cout << "Not enough parameters. USAGE: .cc COLLECTION_NAME SCHEMA_FILE" << endl;
+            continue;
+          }
+
+          auto schema = ReadTextFile(tokens[2]);
+          vector<IndexInfo> indexes;
+          db.CreateCollection(tokens[1], SchemaType::FLAT_BUFFERS, schema, indexes);
+        } else if (tokens[0] == ".i") {
+          // import command
+          // make sure we have enough params
+          if (tokens.size() < 3) {
+            cout << "Not enough parameters. USAGE: .i COLLECTION_NAME DATA_FILE" << endl;
+            continue;
+          }
+
+          std::ifstream file(tokens[1], ios::binary);
+          if (!file.is_open()) {
+            string msg = "Failed to open file ";
+            msg.append(tokens[1]).append(".");
+            cout << msg << endl;
+            continue;
+          }
+          std::vector<Buffer> documents;
+
+          while (!file.eof()) {
+            std::uint32_t size = 0;
+            file.read(reinterpret_cast<char*>(&size), sizeof(std::uint32_t));
+          }
         }
-
-        auto schema = ReadTextFile(tokens[2]);
-        vector<IndexInfo> indexes;        
-        db.CreateCollection(tokens[1], SchemaType::FLAT_BUFFERS, schema, indexes);
-      }
-
-      cout << "echo: " << cmd << endl;
+      } catch (JonoonDBException& ex) {
+        cout << ex.to_string() << endl;        
+      } catch (std::exception& ex) {
+        cout << "Exception: " << ex.what() << endl;        
+      }      
     }       
   } catch (JonoonDBException& ex) {
     cout << ex.to_string() << endl; 

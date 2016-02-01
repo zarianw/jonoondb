@@ -1,4 +1,6 @@
 #include <string>
+#include <fstream>
+#include <cstdio>
 #include "gtest/gtest.h"
 #include "flatbuffers/flatbuffers.h"
 #include "test_utils.h"
@@ -404,7 +406,7 @@ TEST(Database, MultiInsert) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
 
-  const size_t count = 2000 * 1000;
+  const size_t count = 1000 * 1000;
   std::vector<Buffer> documents;
   for (size_t i = 0; i < count; i++) {
     //if (i % 2) {
@@ -415,44 +417,17 @@ TEST(Database, MultiInsert) {
     documents.push_back(GetTweetObject2(i, i, name, text));
   }
 
+  // dump to file
+  {
+    std::remove("tweets.fb");
+    std::ofstream file("tweet.fb", ios::binary);
+    std::uint32_t size = 0;
+    for (auto& doc : documents) {
+      size = doc.GetLength();
+      file.write((const char *)&size, sizeof(std::uint32_t));
+      file.write(doc.GetData(), doc.GetLength());
+    }
+  }
+
   db.MultiInsert(collectionName, documents);  
-
-  int rows = 0;
-  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
-  while (rs.Next()) {
-    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
-    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
-    ++rows;
-  }
-  ASSERT_EQ(rows, 1);
-
-  rows = 0;
-  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
-  while (rs.Next()) {
-    ++rows;
-  }
-  ASSERT_EQ(rows, 0);
-
-  rows = 0;
-  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
-  while (rs.Next()) {
-    rs.GetInteger(rs.GetColumnIndex("id"));
-    ++rows;
-  }
-  ASSERT_EQ(rows, 100000);
-
-  rows = 0;
-  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");
-  while (rs.Next()) {
-    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
-    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
-    ++rows;
-  }
-  ASSERT_EQ(rows, 1);
-
-  //rs.Close();
 }*/
