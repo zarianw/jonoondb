@@ -82,8 +82,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           char* basePosition = reinterpret_cast<char*>(mappedRegion.get_address());
           char* currentPostion = reinterpret_cast<char*>(mappedRegion.get_address());
           std::vector<Buffer> documents;
-          // We can use pointer subtraction safely because the size of the object they point to
-          // is 1 byte (char).
+          // We can use pointer subtraction safely because the size of the object
+          // they point to is 1 byte (char).
           while ((currentPostion - basePosition) < fileSize) {
             memcpy(&size, currentPostion, sizeof(std::uint32_t));
             currentPostion += sizeof(std::uint32_t);
@@ -91,22 +91,9 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             currentPostion += size;
           }
 
-          db.MultiInsert(tokens[1], documents);
-
-
-          /*std::ifstream file(tokens[1], ios::binary);
-          if (!file.is_open()) {
-            string msg = "Failed to open file ";
-            msg.append(tokens[1]).append(".");
-            cout << msg << endl;
-            continue;
-          }
-          std::vector<Buffer> documents;
-
-          while (!file.eof()) {
-            std::uint32_t size = 0;
-            file.read(reinterpret_cast<char*>(&size), sizeof(std::uint32_t));
-          }*/
+          db.MultiInsert(tokens[1], documents);          
+        } else if (tokens[0] == "exit") {
+          return 0;
         }
       } catch (JonoonDBException& ex) {
         cout << ex.to_string() << endl;        
