@@ -6,6 +6,8 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 #include "database.h"
 
 namespace po = boost::program_options;
@@ -25,6 +27,9 @@ string ReadTextFile(const std::string& path) {
                      (std::istreambuf_iterator<char>()));
 
   return schema;
+}
+
+inline void DeleteNoOp(char *) {
 }
 
 int StartJonoonDBCLI(string dbName, string dbPath) {
@@ -69,7 +74,27 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             continue;
           }
 
-          std::ifstream file(tokens[1], ios::binary);
+          auto fileMapping = boost::interprocess::file_mapping(tokens[2].c_str(), boost::interprocess::read_only);
+          auto mappedRegion = boost::interprocess::mapped_region(fileMapping, boost::interprocess::read_only);
+          std::uint32_t size = 0;
+          auto fileSize = mappedRegion.get_size();
+          std::size_t bytesRead = 0;
+          char* basePosition = reinterpret_cast<char*>(mappedRegion.get_address());
+          char* currentPostion = reinterpret_cast<char*>(mappedRegion.get_address());
+          std::vector<Buffer> documents;
+          // We can use pointer subtraction safely because the size of the object they point to
+          // is 1 byte (char).
+          while ((currentPostion - basePosition) < fileSize) {
+            memcpy(&size, currentPostion, sizeof(std::uint32_t));
+            currentPostion += sizeof(std::uint32_t);
+            documents.push_back(Buffer(currentPostion, size, size, DeleteNoOp));
+            currentPostion += size;
+          }
+
+          db.MultiInsert(tokens[1], documents);
+
+
+          /*std::ifstream file(tokens[1], ios::binary);
           if (!file.is_open()) {
             string msg = "Failed to open file ";
             msg.append(tokens[1]).append(".");
@@ -81,7 +106,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           while (!file.eof()) {
             std::uint32_t size = 0;
             file.read(reinterpret_cast<char*>(&size), sizeof(std::uint32_t));
-          }
+          }*/
         }
       } catch (JonoonDBException& ex) {
         cout << ex.to_string() << endl;        
