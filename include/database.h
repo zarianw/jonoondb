@@ -473,6 +473,24 @@ public:
     return jonoondb_resultset_getcolumnindex(m_opaque, columnLabel.c_str(),
       columnLabel.size(), ThrowOnError{});
   }
+
+  std::int32_t GetColumnCount() {
+    return jonoondb_resultset_getcolumncount(m_opaque);
+  }
+
+  SqlType GetColumnType(std::int32_t columnIndex) {
+    return static_cast<SqlType>(jonoondb_resultset_getcolumntype(
+      m_opaque, columnIndex, ThrowOnError{}));
+  }
+
+  StringView GetColumnLabel(std::int32_t columnIndex) {
+    std::uint64_t size;
+    std::uint64_t* sizePtr = &size;
+    const char* str = jonoondb_resultset_getcolumnlabel(m_opaque,
+                                                        columnIndex, &sizePtr,
+                                                        ThrowOnError{});
+    return StringView(str, size);
+  }
   
 private:
   resultset_ptr m_opaque;

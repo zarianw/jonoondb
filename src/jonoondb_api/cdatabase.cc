@@ -426,6 +426,28 @@ int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLa
   return val;
 }
 
+int32_t jonoondb_resultset_getcolumncount(resultset_ptr rs) {
+  return rs->impl.GetColumnCount();
+}
+
+int32_t jonoondb_resultset_getcolumntype(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
+  int32_t val;
+  TranslateExceptions([&] {
+    val = static_cast<int32_t>(rs->impl.GetColumnType(columnIndex));
+  }, *sts);
+  return val;
+}
+
+const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts) {
+  char* strPtr;
+  TranslateExceptions([&] {
+    const std::string& str = rs->impl.GetColumnLabel(columnIndex);
+    **retValSize = str.size();
+    strPtr = const_cast<char*>(str.c_str());
+  }, *sts);
+  return strPtr;
+}
+
 //
 // Database
 //

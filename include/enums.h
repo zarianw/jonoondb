@@ -55,4 +55,10 @@ enum class IndexConstraintOperator
   GREATER_THAN_EQUAL,
   MATCH
 };
+
+enum class SqlType : std::int32_t {
+  INTEGER = 1,
+  DOUBLE = 2,
+  TEXT = 3
+};
 }  // namespace jonoondb_api

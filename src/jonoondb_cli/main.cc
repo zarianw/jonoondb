@@ -35,13 +35,18 @@ inline void DeleteNoOp(char *) {
 
 void PrintResultSet(ResultSet& rs) {
   // Print header
+  std::int32_t colCount = rs.GetColumnCount();
+  for (std::int32_t i = 0; i < colCount; i++) {
+    cout << rs.GetColumnLabel(i).str() << "|";
+  }
+  cout << endl;
   
   // Print values
   while (rs.Next()) {
-    cout << rs.GetInteger(rs.GetColumnIndex("id")) << "|";
-    cout << rs.GetString(rs.GetColumnIndex("text")).str() << "|";
-    cout << rs.GetInteger(rs.GetColumnIndex("user.id")) << "|";
-    cout << rs.GetString(rs.GetColumnIndex("user.name")).str() << endl;
+    for (std::int32_t i = 0; i < colCount; i++) {
+      cout << rs.GetString(i).str() << "|";
+    }
+    cout << endl;
   }
 }
 
