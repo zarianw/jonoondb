@@ -8,6 +8,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include "database.h"
 
 namespace po = boost::program_options;
@@ -32,6 +33,18 @@ string ReadTextFile(const std::string& path) {
 inline void DeleteNoOp(char *) {
 }
 
+void PrintResultSet(ResultSet& rs) {
+  // Print header
+  
+  // Print values
+  while (rs.Next()) {
+    cout << rs.GetInteger(rs.GetColumnIndex("id")) << "|";
+    cout << rs.GetString(rs.GetColumnIndex("text")).str() << "|";
+    cout << rs.GetInteger(rs.GetColumnIndex("user.id")) << "|";
+    cout << rs.GetString(rs.GetColumnIndex("user.name")).str() << endl;
+  }
+}
+
 int StartJonoonDBCLI(string dbName, string dbPath) {
   try {
     cout << "JonoonDB - Lets change things." << "\n";
@@ -50,6 +63,13 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
         continue;
       
       try {
+        if (boost::starts_with(cmd, "select ") || boost::starts_with(cmd, "SELECT ")) {
+          //select command
+          auto rs = db.ExecuteSelect(cmd);          
+          PrintResultSet(rs);
+          continue;
+        }
+
         boost::tokenizer<boost::char_separator<char>> tokenizer(cmd, sep);
         std::vector<std::string> tokens(tokenizer.begin(), tokenizer.end());
         if (tokens.size() == 0)
