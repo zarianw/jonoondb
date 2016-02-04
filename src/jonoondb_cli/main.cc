@@ -9,11 +9,14 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string.hpp>
 #include "database.h"
+#include "jonoondb_utils/stopwatch.h"
 
 namespace po = boost::program_options;
 using namespace std;
 using namespace jonoondb_api;
+using namespace jonoondb_utils;
 using namespace boost::filesystem;
 
 string ReadTextFile(const std::string& path) {
@@ -60,6 +63,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     Database db(dbPath, dbName, opt);
     std::string cmd;    
     boost::char_separator<char> sep(" ");  
+    bool isTimerOn = false;
     
     while (true) {
       cout << "JonoonDB> ";
@@ -94,6 +98,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
         } else if (tokens[0] == ".i") {
           // import command
           // make sure we have enough params
+          Stopwatch sw(true);
           if (tokens.size() < 3) {
             cout << "Not enough parameters. USAGE: .i COLLECTION_NAME DATA_FILE" << endl;
             continue;
@@ -116,7 +121,28 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             currentPostion += size;
           }
 
-          db.MultiInsert(tokens[1], documents);          
+          db.MultiInsert(tokens[1], documents);    
+          if (isTimerOn) {
+            sw.Stop();
+            cout << "Run Time: " << sw.ElapsedMilliSeconds() << " millisecs." << endl;
+          }
+        } else if (tokens[0] == ".timer") {
+          // timer command
+          // make sure we have enough params
+          if (tokens.size() < 2) {
+            cout << "Not enough parameters. USAGE: .timer on|off" << endl;
+            continue;
+          }
+
+          if (boost::iequals(tokens[1], "on")) {
+            isTimerOn = true;
+          } else if (boost::iequals(tokens[1], "off")) {
+            isTimerOn = false;
+          }
+          else {
+            cout << "ERROR: Not a boolean value: \"" << tokens[1]
+              << "\". Assuming \"no\"." << endl;
+          }
         } else if (tokens[0] == "exit") {
           return 0;
         }
