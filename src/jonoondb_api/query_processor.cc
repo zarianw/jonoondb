@@ -13,6 +13,7 @@
 #include "resultset_impl.h"
 #include "jonoondb_exceptions.h"
 #include "path_utils.h"
+#include "string_utils.h"
 
 using namespace jonoondb_api;
 using namespace boost::filesystem;
@@ -108,7 +109,8 @@ void BuildCreateTableStatement(const Field* complexField,
     } else {
       auto fullName = prefix;
       fullName.append(field->GetName());
-      columnNames.push_back(ColumnInfo(fullName, field->GetType()));
+      columnNames.push_back(ColumnInfo(fullName, field->GetType(),
+                                       StringUtils::Split(fullName, ".")));
       stringStream << "'" << fullName << "'" << " "
         << GetSQLiteTypeString(field->GetType());
       stringStream << ", ";
@@ -132,7 +134,8 @@ void GenerateCreateTableStatementForCollection(const std::shared_ptr<DocumentCol
       prefix.append(".");
       BuildCreateTableStatement(field, prefix, stringStream, columnNames);      
     } else {
-      columnNames.push_back(ColumnInfo(field->GetName(), field->GetType()));
+      columnNames.push_back(ColumnInfo(field->GetName(), field->GetType(),
+                                       StringUtils::Split(field->GetName(), ".")));
       stringStream << field->GetName() << " " << GetSQLiteTypeString(field->GetType());
       stringStream << ", ";
     }

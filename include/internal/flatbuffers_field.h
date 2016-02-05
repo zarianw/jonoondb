@@ -7,7 +7,7 @@
 namespace jonoondb_api {
 class FlatbuffersField final : public Field {
  public:
-  const char* GetName() const override;
+  const std::string& GetName() const override;
   FieldType GetType() const override;
   std::size_t GetSubFieldCount() const override;
   void GetSubField(size_t index, Field*& field) const override;

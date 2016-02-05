@@ -5,8 +5,8 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace std;
 
-const char* FlatbuffersField::GetName() const {
-  return m_fieldDef->name.c_str();
+const std::string& FlatbuffersField::GetName() const {
+  return m_fieldDef->name;
 }
 
 FieldType FlatbuffersField::GetType() const {

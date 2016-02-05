@@ -53,6 +53,10 @@ void PrintResultSet(ResultSet& rs) {
   }
 }
 
+void PrintTime(Stopwatch sw) {
+  cout << "Run Time: " << sw.ElapsedMilliSeconds() << " millisecs." << endl;
+}
+
 int StartJonoonDBCLI(string dbName, string dbPath) {
   try {
     cout << "JonoonDB - Lets change things." << "\n";
@@ -74,8 +78,13 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
       try {
         if (boost::starts_with(cmd, "select ") || boost::starts_with(cmd, "SELECT ")) {
           //select command
+          Stopwatch sw(true);
           auto rs = db.ExecuteSelect(cmd);          
           PrintResultSet(rs);
+          if (isTimerOn) {
+            sw.Stop();
+            PrintTime(sw);
+          }
           continue;
         }
 
@@ -121,10 +130,10 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             currentPostion += size;
           }
 
-          db.MultiInsert(tokens[1], documents);    
+          db.MultiInsert(tokens[1], documents);              
           if (isTimerOn) {
             sw.Stop();
-            cout << "Run Time: " << sw.ElapsedMilliSeconds() << " millisecs." << endl;
+            PrintTime(sw);
           }
         } else if (tokens[0] == ".timer") {
           // timer command
