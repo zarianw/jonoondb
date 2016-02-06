@@ -13,7 +13,7 @@ extern SchemaType ToSchemaType(std::int32_t type);
 
 enum class IndexType
   : std::int32_t {
-    EWAHCompressedBitmap = 1
+    EWAH_COMPRESSED_BITMAP = 1
 };
 extern IndexType ToIndexType(std::int32_t type);
 

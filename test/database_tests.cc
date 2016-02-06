@@ -22,7 +22,7 @@ void CreateInsertTweet(Database& db, std::string& collectionName, bool createInd
   if (createIndexes) {
     IndexInfo index;
     index.SetIndexName("IndexName1");
-    index.SetType(IndexType::EWAHCompressedBitmap);
+    index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
     index.SetIsAscending(true);
     index.SetColumnName("user.name");
     indexes.push_back(index);
@@ -138,7 +138,7 @@ TEST(Database, Insert_SingleIndex) {
   string schema = ReadTextFile(filePath);
   IndexInfo index;
   index.SetIndexName("IndexName1");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("user.name");
   std::vector<IndexInfo> indexes;
@@ -184,7 +184,7 @@ TEST(Database, Insert_AllIndexTypes) {
   for (auto i = 0; i < indexLength; i++) {    
     auto indexName = "IndexName_" + std::to_string(i);
     index.SetIndexName(indexName);
-    index.SetType(IndexType::EWAHCompressedBitmap);
+    index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
     index.SetIsAscending(true);
     string fieldName;
     if (i < 12) {
@@ -261,19 +261,19 @@ TEST(Database, ExecuteSelect_Testing) {
 
   IndexInfo index;
   index.SetIndexName("IndexName1");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("user.name");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName2");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("text");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName3");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
@@ -333,19 +333,19 @@ TEST(Database, MultiInsert) {
 
   IndexInfo index;
   index.SetIndexName("IndexName1");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("user.name");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName2");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("text");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName3");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
@@ -385,19 +385,19 @@ TEST(Database, MultiInsert) {
 
   IndexInfo index;
   index.SetIndexName("IndexName1");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("user.name");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName2");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("text");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName3");
-  index.SetType(IndexType::EWAHCompressedBitmap);
+  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);

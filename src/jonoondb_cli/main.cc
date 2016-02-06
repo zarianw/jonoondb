@@ -12,6 +12,7 @@
 #include <boost/algorithm/string.hpp>
 #include "database.h"
 #include "jonoondb_utils/stopwatch.h"
+#include <boost/algorithm/string/trim.hpp>
 
 namespace po = boost::program_options;
 using namespace std;
@@ -97,12 +98,59 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           // create collection command
           // make sure we have enough params
           if (tokens.size() < 3) {
-            cout << "Not enough parameters. USAGE: .cc COLLECTION_NAME SCHEMA_FILE" << endl;
+            cout << "Not enough parameters. USAGE: .cc COLLECTION_NAME SCHEMA_FILE [INDEX_FILE]" << endl;
             continue;
           }
 
-          auto schema = ReadTextFile(tokens[2]);
           vector<IndexInfo> indexes;
+          if (tokens.size() == 4) {
+            // We have a index file lets read the indexes from it
+            auto& indexFile = tokens[3];
+            std::ifstream file(indexFile);
+            if (!file.is_open()) {
+              ostringstream ss;
+              ss << "Filed to open INDEX_FILE " << indexFile << ".";
+              throw std::runtime_error(ss.str());
+            }
+
+            string line;
+            boost::char_separator<char> csvSep(",");
+            while (getline(file, line)) {
+              boost::tokenizer<boost::char_separator<char>> idxTokenizer(line, csvSep);
+              std::vector<std::string> idxTokens(idxTokenizer.begin(), idxTokenizer.end());
+              if (idxTokens.size() == 0)
+                continue;
+
+              // Get type of index
+              if (idxTokens.size() < 4) {
+                ostringstream ss;
+                ss << "Not enough values specified for index in INDEX_FILE " << indexFile << ". " <<
+                  "Line: " << line << "." << endl;
+                throw std::runtime_error(ss.str());
+              }
+
+              // trim all tokens
+              for (auto& tok : idxTokens) {
+                boost::trim(tok);
+              }
+
+              if (idxTokens[1] == "EWAH_COMPRESSED_BITMAP") {
+                bool isAscending = false;
+                if (boost::iequals("ASC", idxTokens[3])) {
+                  isAscending = true;
+                }
+                indexes.push_back(IndexInfo(idxTokens[0], IndexType::EWAH_COMPRESSED_BITMAP,
+                                            idxTokens[2], isAscending));
+              } else {
+                ostringstream ss;
+                ss << "Unknown index type \"" << idxTokens[1] << "\" specified in INDEX_FILE " <<
+                  indexFile << ". Line: " << line << ". Index types are case sensitive." << endl;
+                throw std::runtime_error(ss.str());
+              }
+            }
+          }
+
+          auto schema = ReadTextFile(tokens[2]);          
           db.CreateCollection(tokens[1], SchemaType::FLAT_BUFFERS, schema, indexes);
         } else if (tokens[0] == ".i") {
           // import command
@@ -111,7 +159,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           if (tokens.size() < 3) {
             cout << "Not enough parameters. USAGE: .i COLLECTION_NAME DATA_FILE" << endl;
             continue;
-          }
+          }         
 
           auto fileMapping = boost::interprocess::file_mapping(tokens[2].c_str(), boost::interprocess::read_only);
           auto mappedRegion = boost::interprocess::mapped_region(fileMapping, boost::interprocess::read_only);

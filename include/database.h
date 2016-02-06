@@ -245,7 +245,8 @@ public:
   }
 
   IndexInfo(const std::string& indexName, IndexType type, const std::string& columnName, bool isAscending) {
-    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), 0, columnName.c_str(), isAscending, ThrowOnError{});
+    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), static_cast<int32_t>(type),
+                                             columnName.c_str(), isAscending, ThrowOnError{});
   }
 
   IndexInfo(IndexInfo&& other) {

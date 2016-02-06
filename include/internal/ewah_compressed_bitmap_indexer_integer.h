@@ -30,9 +30,9 @@ public:
       errorMsg = "Argument indexInfo has empty name.";
     } else if (indexInfo.GetColumnName().size() == 0) {
       errorMsg = "Argument indexInfo has empty column name.";
-    } else if (indexInfo.GetType() != IndexType::EWAHCompressedBitmap) {
+    } else if (indexInfo.GetType() != IndexType::EWAH_COMPRESSED_BITMAP) {
       errorMsg =
-        "Argument indexInfo can only have IndexType EWAHCompressedBitmap for EWAHCompressedBitmapIndexer.";
+        "Argument indexInfo can only have IndexType EWAH_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
