@@ -25,7 +25,7 @@ string ReadTextFile(const std::string& path) {
   if (!ifs.is_open()) {
     ostringstream ss;
     ss << "Failed to open file at path " << path << ".";
-    throw std::exception(ss.str().c_str());
+    throw std::runtime_error(ss.str().c_str());
   }
 
   std::string schema((std::istreambuf_iterator<char>(ifs)),
