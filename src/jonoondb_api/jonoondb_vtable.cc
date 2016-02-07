@@ -17,6 +17,8 @@
 #include "index_stat.h"
 #include "constraint.h"
 #include "mama_jennies_bitmap.h"
+#include "buffer_impl.h"
+#include "document.h"
 
 
 using namespace jonoondb_api;
@@ -32,7 +34,8 @@ struct jonoondb_vtab {
 };
 
 struct jonoondb_cursor {
-  jonoondb_cursor(std::shared_ptr<DocumentCollectionInfo>& colInfo) : collectionInfo(colInfo) {
+  jonoondb_cursor(std::shared_ptr<DocumentCollectionInfo>& colInfo) : 
+    collectionInfo(colInfo), documentID(0), document(nullptr) {
   }
 
   sqlite3_vtab_cursor cur;  
@@ -42,6 +45,9 @@ struct jonoondb_cursor {
   std::shared_ptr<MamaJenniesBitmap> filteredIds;
   std::unique_ptr<MamaJenniesBitmap::const_iterator> iter;
   std::unique_ptr<MamaJenniesBitmap::const_iterator> end;
+  BufferImpl buffer; // buffer to keep the current doc
+  std::unique_ptr<Document> document;
+  std::uint64_t documentID;
 };
 
 static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
@@ -306,23 +312,78 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
   int cidx) {
   try {
     jonoondb_cursor* jdbCursor = (jonoondb_cursor*)cur;
-    if (jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_STRING) {
-      auto val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsString(jdbCursor->iter->operator*(), jdbCursor->collectionInfo->columnsInfo[cidx].columnName);
-      sqlite3_result_text(ctx, val.c_str(), val.size(), SQLITE_TRANSIENT); // SQLITE_TRANSIENT causes SQLite to copy the string on its side
-    } else if (jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT64 ||
-      jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT32 ||
-      jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT16 ||
-      jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_INT8 ||
-      jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_UINT64 ||
-      jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_UINT32 ||
-      jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_UINT16 ||
-      jdbCursor->collectionInfo->columnsInfo[cidx].columnType == FieldType::BASE_TYPE_UINT8) {
+    auto& columnsInfo = jdbCursor->collectionInfo->columnsInfo[cidx];
+    if (columnsInfo.columnType == FieldType::BASE_TYPE_STRING) {
+      // Get the string value
+      auto currentDocID = jdbCursor->iter->operator*();
+      std::string val;
+      // First check if we have the current document already cached on our side
+      if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
+        if (columnsInfo.columnNameTokens.size() > 1) {
+          auto subDoc = DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document, columnsInfo.columnNameTokens);
+          val = subDoc->GetStringValue(columnsInfo.columnNameTokens.back());
+        } else {
+          val = jdbCursor->document->GetStringValue(columnsInfo.columnNameTokens.back());
+        }
+      } else {
+        jdbCursor->documentID = currentDocID;
+        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsString(currentDocID,
+                                                                               columnsInfo.columnNameTokens,
+                                                                               jdbCursor->buffer,
+                                                                               jdbCursor->document);
+      }
+
+      // SQLITE_TRANSIENT causes SQLite to copy the string on its side
+      sqlite3_result_text(ctx, val.c_str(), val.size(), SQLITE_TRANSIENT);
+
+    } else if (columnsInfo.columnType == FieldType::BASE_TYPE_INT64 ||
+               columnsInfo.columnType == FieldType::BASE_TYPE_INT32 ||
+               columnsInfo.columnType == FieldType::BASE_TYPE_INT16 ||
+               columnsInfo.columnType == FieldType::BASE_TYPE_INT8 ||
+               columnsInfo.columnType == FieldType::BASE_TYPE_UINT64 ||
+               columnsInfo.columnType == FieldType::BASE_TYPE_UINT32 ||
+               columnsInfo.columnType == FieldType::BASE_TYPE_UINT16 ||
+               columnsInfo.columnType == FieldType::BASE_TYPE_UINT8) {
       // Get the integer value
-      auto val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsInteger(jdbCursor->iter->operator*(), jdbCursor->collectionInfo->columnsInfo[cidx].columnName);
+      auto currentDocID = jdbCursor->iter->operator*();
+      std::int64_t val;      
+      // First check if we have the current document already cached on our side
+      if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
+        if (columnsInfo.columnNameTokens.size() > 1) {
+          auto subDoc = DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document, columnsInfo.columnNameTokens);
+          val = subDoc->GetIntegerValueAsInt64(columnsInfo.columnNameTokens.back());
+        } else {
+          val = jdbCursor->document->GetIntegerValueAsInt64(columnsInfo.columnNameTokens.back());
+        }
+      } else {
+        jdbCursor->documentID = currentDocID;
+        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsInteger(currentDocID,
+                                                                               columnsInfo.columnNameTokens,
+                                                                               jdbCursor->buffer,
+                                                                               jdbCursor->document);
+      }
+
       sqlite3_result_int64(ctx, val);
     } else {
       // Get the floating value
-      auto val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsDouble(jdbCursor->iter->operator*(), jdbCursor->collectionInfo->columnsInfo[cidx].columnName);
+      auto currentDocID = jdbCursor->iter->operator*();
+      double val;
+      // First check if we have the current document already cached on our side
+      if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
+        if (columnsInfo.columnNameTokens.size() > 1) {
+          auto subDoc = DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document, columnsInfo.columnNameTokens);
+          val = subDoc->GetFloatingValueAsDouble(columnsInfo.columnNameTokens.back());
+        } else {
+          val = jdbCursor->document->GetFloatingValueAsDouble(columnsInfo.columnNameTokens.back());
+        }
+      } else {
+        jdbCursor->documentID = currentDocID;
+        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsDouble(currentDocID,
+                                                                              columnsInfo.columnNameTokens,
+                                                                              jdbCursor->buffer,
+                                                                              jdbCursor->document);
+      }
+
       sqlite3_result_double(ctx, val);
     }
   } catch (std::exception& ex) {

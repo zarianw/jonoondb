@@ -29,8 +29,7 @@ class DatabaseMetadataManager final {
   const std::string& GetDBPath() const;
   const std::string& GetDBName() const;
 
- private:  
-  void Initialize(bool createDBIfMissing);
+ private:
   void CreateTables();
   void PrepareStatements();
   void CreateIndex(const std::string& collectionName, const IndexInfoImpl& indexInfo);

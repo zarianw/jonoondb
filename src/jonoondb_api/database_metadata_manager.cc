@@ -13,6 +13,7 @@
 #include "enums.h"
 #include "jonoondb_exceptions.h"
 #include "guard_funcs.h"
+#include "path_utils.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -21,26 +22,21 @@ using namespace jonoondb_api;
 DatabaseMetadataManager::DatabaseMetadataManager(const std::string& dbPath,
                                                  const std::string& dbName,
                                                  bool createDBIfMissing) :
-    m_dbPath(dbPath), m_dbName(dbName), m_metadataDBConnection(nullptr, GuardFuncs::SQLite3Close) {
+  m_metadataDBConnection(nullptr, GuardFuncs::SQLite3Close) {
   // Validate arguments
-  if (StringUtils::IsNullOrEmpty(m_dbPath)) {
-    throw InvalidArgumentException("Argument dbPath is null or empty.",
+  if (dbPath.size() == 0) {
+    throw InvalidArgumentException("Argument dbPath is empty.",
       __FILE__, __func__, __LINE__);
   }
 
-  if (StringUtils::IsNullOrEmpty(m_dbName)) {
-    throw InvalidArgumentException("Argument dbName is null or empty.",
+  if (dbName.size() == 0) {
+    throw InvalidArgumentException("Argument dbName is empty.",
       __FILE__, __func__, __LINE__);
   }  
+
+  m_dbPath = PathUtils::NormalizePath(dbPath);
+  m_dbName = dbName;
   
-  Initialize(createDBIfMissing);  
-}
-
-DatabaseMetadataManager::~DatabaseMetadataManager() {
-  FinalizeStatements();
-}
-
-void DatabaseMetadataManager::Initialize(bool createDBIfMissing) {
   path pathObj(m_dbPath);
 
   // check if the db folder exists
@@ -52,23 +48,27 @@ void DatabaseMetadataManager::Initialize(bool createDBIfMissing) {
 
   pathObj += m_dbName;
   pathObj += ".dat";
-  m_fullDbPath = pathObj.string();
+  m_fullDbPath = pathObj.generic_string();
 
   if (!boost::filesystem::exists(pathObj) && !createDBIfMissing) {
     std::ostringstream ss;
-    ss << "Database file " << m_fullDbPath << " does not exist.";    
+    ss << "Database file " << m_fullDbPath << " does not exist.";
     throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   sqlite3* db;
-  int sqliteCode = sqlite3_open(pathObj.string().c_str(), &db);
+  int sqliteCode = sqlite3_open(m_fullDbPath.c_str(), &db);
   m_metadataDBConnection.reset(db);
   if (sqliteCode != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
   }
-   
+
   CreateTables();
   PrepareStatements();
+}
+
+DatabaseMetadataManager::~DatabaseMetadataManager() {
+  FinalizeStatements();
 }
 
 void DatabaseMetadataManager::CreateTables() {
@@ -97,17 +97,21 @@ void DatabaseMetadataManager::CreateTables() {
   }
 
   // Create the necessary tables if they do not exist
-  string sql = "create table if not exists CollectionSchema("
-    "CollectionName text primary key, CollectionSchema text, "
-    "CollectionSchemaType int)";
+  string sql = "CREATE TABLE IF NOT EXISTS CollectionSchema ("
+    "CollectionName TEXT PRIMARY KEY, "
+    "CollectionSchema TEXT, "
+    "CollectionSchemaType INT)";
   sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, __func__, __LINE__);
   }  
 
-  sql = "create table if not exists CollectionIndex("
-    "IndexName text primary key, CollectionName text, IndexInfo blob)";
+  sql = "CREATE TABLE IF NOT EXISTS CollectionIndex ("
+    "IndexName TEXT, "
+    "CollectionName TEXT, "
+    "IndexInfo BLOB, "
+    "PRIMARY KEY (IndexName, CollectionName))";
   sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
@@ -115,9 +119,11 @@ void DatabaseMetadataManager::CreateTables() {
   }
 
   //sql = "create table if not exists CollectionDocumentFile(FileKey int primary key, FileName text, FileDataLength int, foreign key(CollectionName) references CollectionMetadata(CollectionName))";
-  sql = "create table if not exists CollectionDocumentFile("
-    "FileKey int primary key, FileName text, "
-    "FileDataLength int, CollectionName text)";
+  sql = "CREATE TABLE IF NOT EXISTS CollectionDocumentFile("
+    "FileKey INT PRIMARY KEY, "
+    "FileName TEXT, "
+    "FileDataLength INT, "
+    "CollectionName TEXT)";
   sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
@@ -129,7 +135,7 @@ void DatabaseMetadataManager::PrepareStatements() {
   int sqliteCode =
       sqlite3_prepare_v2(
           m_metadataDBConnection.get(),
-          "insert into CollectionIndex (IndexName, CollectionName, IndexInfo) values (?, ?, ?)",  // stmt
+          "INSERT INTO CollectionIndex (IndexName, CollectionName, IndexInfo) VALUES (?, ?, ?)",  // stmt
           -1,  // If greater than zero, then stmt is read up to the first null terminator
           &m_insertCollectionIndexStmt,  //Statement that is to be prepared
           0  // Pointer to unused portion of stmt
@@ -143,7 +149,7 @@ void DatabaseMetadataManager::PrepareStatements() {
   sqliteCode =
       sqlite3_prepare_v2(
           m_metadataDBConnection.get(),
-          "insert into CollectionSchema (CollectionName, CollectionSchema, CollectionSchemaType) values (?, ?, ?)",  // stmt
+          "INSERT INTO CollectionSchema (CollectionName, CollectionSchema, CollectionSchemaType) VALUES (?, ?, ?)",  // stmt
           -1,  // If greater than zero, then stmt is read up to the first null terminator
           &m_insertCollectionSchemaStmt,  //Statement that is to be prepared
           0  // Pointer to unused portion of stmt

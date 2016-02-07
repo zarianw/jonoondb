@@ -55,7 +55,7 @@ void BlobManager::SwitchToNewDataFile() {
   m_fileNameManager->GetNextDataFileInfo(fileInfo);
   File::FastAllocate(fileInfo.fileNameWithPath, m_maxDataFileSize);  
 
-  auto file = std::make_unique<MemoryMappedFile>(fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadOnly, 0, !m_synchronous);
+  auto file = std::make_unique<MemoryMappedFile>(fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadWrite, 0, !m_synchronous);
   m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
 
   //Set the evictable flag on the current file before switching

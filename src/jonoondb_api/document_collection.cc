@@ -29,12 +29,12 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
   std::unique_ptr<BlobManager> blobManager) : m_blobManager(move(blobManager)),
   m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
   // Validate function arguments
-  if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
-    throw InvalidArgumentException("Argument databaseMetadataFilePath is null or empty.", __FILE__, __func__, __LINE__);
+  if (databaseMetadataFilePath.size() == 0) {
+    throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.", __FILE__, __func__, __LINE__);
   }
 
-  if (StringUtils::IsNullOrEmpty(name)) {
-    throw InvalidArgumentException("Argument name is null or empty.", __FILE__, __func__, __LINE__);
+  if (name.size() == 0) {
+    throw InvalidArgumentException("Argument name is empty.", __FILE__, __func__, __LINE__);
   }
   m_name = name;
 
@@ -126,12 +126,12 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
   }
 }
 
-//Todo: Need to avoid the string creation/copy cost
-std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID,
-  const std::string& fieldName) const {
-  if (fieldName.size() == 0) {
-    throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
-      "", __LINE__);
+std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
+  std::uint64_t docID, std::vector<std::string>& tokens,
+  BufferImpl& buffer, std::unique_ptr<Document>& document) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
   }
 
   if (docID >= m_documentIDMap.size()) {
@@ -140,56 +140,23 @@ std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID,
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  // TODO: buffer should come from object pool
-  BufferImpl buffer;
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
-
-  // TODO: tokens should be cached in collection class
-  std::vector<std::string> tokens = StringUtils::Split(fieldName, ".");
-  // TODO: Document should be cached
-  auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+    
+  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
   if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
-    return subDoc->GetStringValue(tokens.back());
-  } else {
-    return doc->GetStringValue(fieldName);
-  }  
-}
-
-std::int64_t DocumentCollection::GetDocumentFieldAsInteger(std::uint64_t docID,
-  const std::string& fieldName) const {
-  if (fieldName.size() == 0) {
-    throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
-      "", __LINE__);
-  }
-
-  if (docID >= m_documentIDMap.size()) {
-    ostringstream ss;
-    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
-    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
-  }
-
-  // TODO: buffer should come from object pool
-  BufferImpl buffer;
-  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
-
-  // TODO: tokens should be cached in collection class
-  std::vector<std::string> tokens = StringUtils::Split(fieldName, ".");
-  // TODO: Document should be cached  
-  auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
-  if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
+    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
     return subDoc->GetIntegerValueAsInt64(tokens.back());
   } else {
-    return doc->GetIntegerValueAsInt64(fieldName);
+    return document->GetIntegerValueAsInt64(tokens.front());
   }
 }
 
-double DocumentCollection::GetDocumentFieldAsDouble(std::uint64_t docID,
-  const std::string& fieldName) const {
-  if (fieldName.size() == 0) {
-    throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
-      "", __LINE__);
+double DocumentCollection::GetDocumentFieldAsDouble(
+  std::uint64_t docID, std::vector<std::string>& tokens,
+  BufferImpl& buffer, std::unique_ptr<Document>& document) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
   }
 
   if (docID >= m_documentIDMap.size()) {
@@ -198,18 +165,39 @@ double DocumentCollection::GetDocumentFieldAsDouble(std::uint64_t docID,
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  // TODO: buffer should come from object pool
-  BufferImpl buffer;
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
 
-  // TODO: tokens should be cached in collection class
-  std::vector<std::string> tokens = StringUtils::Split(fieldName, ".");
-  // TODO: Document should be cached  
-  auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
   if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
+    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
     return subDoc->GetFloatingValueAsDouble(tokens.back());
   } else {
-    return doc->GetFloatingValueAsDouble(fieldName);
+    return document->GetFloatingValueAsDouble(tokens.front());
+  }
+}
+
+// Todo: Need to avoid the string creation/copy cost
+std::string DocumentCollection::GetDocumentFieldAsString(
+  std::uint64_t docID, std::vector<std::string>& tokens,
+  BufferImpl& buffer, std::unique_ptr<Document>& document) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
+  }
+
+  if (docID >= m_documentIDMap.size()) {
+    ostringstream ss;
+    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
+
+  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+  if (tokens.size() > 1) {
+    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
+    return subDoc->GetStringValue(tokens.back());
+  } else {
+    return document->GetStringValue(tokens.front());
   }
 }

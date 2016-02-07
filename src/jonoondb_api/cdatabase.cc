@@ -116,10 +116,10 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
 //
 IndexType ToIndexType(std::int32_t type) {
   switch (static_cast<IndexType>(type)) {
-    case IndexType::EWAHCompressedBitmap:
+    case IndexType::EWAH_COMPRESSED_BITMAP:
       return static_cast<IndexType>(type);
     default:
-      throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAHCompressedBitmap = 1}.",
+      throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAH_COMPRESSED_BITMAP = 1}.",
         __FILE__, __func__, __LINE__);
   }
 }
@@ -207,8 +207,9 @@ struct indexinfo {
   indexinfo() : impl() {
   }
 
-  indexinfo(const char* indexName, IndexType type, const char* columnName, bool isAscending) {
-  } 
+  indexinfo(const char* indexName, IndexType type, const char* columnName, bool isAscending) :
+    impl(indexName, type, columnName, isAscending) {
+  }
 
   IndexInfoImpl impl;
 };
@@ -424,6 +425,28 @@ int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLa
     val = rs->impl.GetColumnIndex(strRef);
   }, *sts);
   return val;
+}
+
+int32_t jonoondb_resultset_getcolumncount(resultset_ptr rs) {
+  return rs->impl.GetColumnCount();
+}
+
+int32_t jonoondb_resultset_getcolumntype(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
+  int32_t val;
+  TranslateExceptions([&] {
+    val = static_cast<int32_t>(rs->impl.GetColumnType(columnIndex));
+  }, *sts);
+  return val;
+}
+
+const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts) {
+  char* strPtr;
+  TranslateExceptions([&] {
+    const std::string& str = rs->impl.GetColumnLabel(columnIndex);
+    **retValSize = str.size();
+    strPtr = const_cast<char*>(str.c_str());
+  }, *sts);
+  return strPtr;
 }
 
 //

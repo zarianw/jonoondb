@@ -59,9 +59,7 @@ TEST(BlobManager, Putx2) {
 
 TEST(BlobManager, Get) {
   std::string dbName = "BlobManager_Get";
-  std::string dbPath = g_TestRootDirectory;
-  boost::filesystem::path pathObj(g_TestRootDirectory);
-  pathObj += "BlobManager_Get.0";
+  std::string dbPath = g_TestRootDirectory;  
   auto fileSize = 1024 * 1024;
   auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
@@ -87,8 +85,6 @@ TEST(BlobManager, Get) {
 TEST(BlobManager, Multiput) {
   std::string dbName = "BlobManager_Multiput";
   std::string dbPath = g_TestRootDirectory;
-  boost::filesystem::path pathObj(g_TestRootDirectory);
-  pathObj += "BlobManager_Multiput.0";
   auto fileSize = 1024 * 1024;
   auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
@@ -117,5 +113,50 @@ TEST(BlobManager, Multiput) {
     bm.Get(metadataArray[i], outBuffer);
     ASSERT_EQ(data.size(), outBuffer.GetLength());
     ASSERT_EQ(memcmp(data.data(), outBuffer.GetData(), outBuffer.GetLength()), 0);    
-  }  
+  }
+}
+
+TEST(BlobManager, Multiput_SwitchFile) {
+  std::string dbName = "BlobManager_Multiput_SwitchFile";
+  std::string dbPath = g_TestRootDirectory;
+  // Small file size to make sure we end up with multiple data files
+  auto fileSize = 128;
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  BlobManager bm(move(fnm), false, fileSize, true);
+
+  const int SIZE = 20;
+  std::vector<BlobMetadata> metadataArray(SIZE);
+  std::vector<BufferImpl> bufferArray;
+  std::vector<const BufferImpl*> bufferPtrArray;
+  std::string data;
+
+  for (size_t i = 0; i < SIZE; i++) {
+    data = "This is the string " + std::to_string(i);
+    BufferImpl buf(data.c_str(), data.size(), data.size());
+    bufferArray.push_back(buf);
+  }
+
+  for (auto& buf : bufferArray) {
+    bufferPtrArray.push_back(&buf);
+  }
+
+  bm.MultiPut(bufferPtrArray, metadataArray);
+
+  // Make sure that we wrote to multiple files
+  bool hasMutipleFiles = false;
+  for (auto& md : metadataArray) {
+    if (md.fileKey > 1) {
+      hasMutipleFiles = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(hasMutipleFiles);
+
+  BufferImpl outBuffer;
+  for (size_t i = 0; i < SIZE; i++) {
+    data = "This is the string " + std::to_string(i);
+    bm.Get(metadataArray[i], outBuffer);
+    ASSERT_EQ(data.size(), outBuffer.GetLength());
+    ASSERT_EQ(memcmp(data.data(), outBuffer.GetData(), outBuffer.GetLength()), 0);
+  }
 }
