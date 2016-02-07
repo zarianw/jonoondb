@@ -14,6 +14,13 @@ class IndexInfoImpl;
 enum class SchemaType
 : std::int32_t;
 
+struct CollectionMetadata {
+  std::string collectionName;
+  std::string schema;
+  SchemaType schemaType;
+  std::vector<IndexInfoImpl> indexes;
+};
+
 class DatabaseMetadataManager final {
  public:
    DatabaseMetadataManager(const DatabaseMetadataManager&) = delete;
@@ -24,10 +31,11 @@ class DatabaseMetadataManager final {
                            bool createDBIfMissing);
   ~DatabaseMetadataManager();
   void AddCollection(const std::string& name, SchemaType schemaType,
-                       const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
+                     const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
   const std::string& GetFullDBPath() const;
   const std::string& GetDBPath() const;
   const std::string& GetDBName() const;
+  std::vector<CollectionMetadata> GetExistingCollections();
 
  private:
   void CreateTables();

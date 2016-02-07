@@ -15,7 +15,6 @@
 #include "guard_funcs.h"
 #include "path_utils.h"
 
-using namespace std;
 using namespace boost::filesystem;
 using namespace jonoondb_api;
 
@@ -97,7 +96,7 @@ void DatabaseMetadataManager::CreateTables() {
   }
 
   // Create the necessary tables if they do not exist
-  string sql = "CREATE TABLE IF NOT EXISTS CollectionSchema ("
+  std::string sql = "CREATE TABLE IF NOT EXISTS CollectionSchema ("
     "CollectionName TEXT PRIMARY KEY, "
     "CollectionSchema TEXT, "
     "CollectionSchemaType INT)";
@@ -164,7 +163,7 @@ void DatabaseMetadataManager::PrepareStatements() {
 void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType schemaType,
   const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
-  unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
+  std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
   
 
@@ -202,7 +201,7 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
   if (code != SQLITE_DONE) {
     if (code == SQLITE_CONSTRAINT) {
       //Key already exists
-      ostringstream ss;
+      std::ostringstream ss;
       ss << "Collection with name \"" << name << "\" already exists.";
       std::string errorMsg = ss.str();
       sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
@@ -247,9 +246,14 @@ const std::string& DatabaseMetadataManager::GetDBName() const {
   return m_dbName;
 }
 
+std::vector<CollectionMetadata> jonoondb_api::DatabaseMetadataManager::GetExistingCollections() {
+  //std::string stmt = "SELECT * FROM "
+  return std::vector<CollectionMetadata>();
+}
+
 void DatabaseMetadataManager::CreateIndex(const std::string& collectionName,
                                             const IndexInfoImpl& indexInfo) {
-  unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
+  std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
       m_insertCollectionIndexStmt, SQLiteUtils::ClearAndResetStatement);
 
   int sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 1,  // Index of wildcard
@@ -277,7 +281,7 @@ void DatabaseMetadataManager::CreateIndex(const std::string& collectionName,
   if (sqliteCode != SQLITE_DONE) {
     if (sqliteCode == SQLITE_CONSTRAINT) {
       //Key already exists
-      ostringstream ss;
+      std::ostringstream ss;
       ss << "Index with name " << indexInfo.GetIndexName() << " already exists.";
       throw IndexAlreadyExistException(ss.str(), __FILE__, __func__, __LINE__);
     } else {

@@ -10,11 +10,10 @@
 using namespace jonoondb_api;
 
 FileNameManager::FileNameManager(const std::string& dbPath, const std::string& dbName,
-  bool createDBIfMissing)
-  : m_dbPath(dbPath), m_dbName(dbName), m_db(nullptr, GuardFuncs::SQLite3Close),
-  m_getFileNameStatement(nullptr), m_getLastFileKeyStatement(nullptr),
-  m_putStatement(nullptr), m_updateStatement(nullptr) {  
-
+                                 const std::string& collectionName, bool createDBIfMissing)
+  : m_dbPath(dbPath), m_dbName(dbName), m_collectionName(collectionName),
+  m_db(nullptr, GuardFuncs::SQLite3Close), m_getFileNameStatement(nullptr),
+  m_getLastFileKeyStatement(nullptr), m_putStatement(nullptr), m_updateStatement(nullptr) {
   // check if the db folder exists
   if (!boost::filesystem::exists(m_dbPath)) {
     std::ostringstream ss;
@@ -45,7 +44,11 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
   }
 
   //Create the necessary tables if they do not exist
-  std::string sql = "create table if not exists ObjectFile(FileKey int primary key, FileName text, FileDataLength int)";
+  std::string sql = "CREATE TABLE IF NOT EXISTS ObjectFile ("
+    "FileKey INT PRIMARY KEY, "
+    "FileName TEXT, "
+    "FileDataLength INT)";
+
   sqliteCode = sqlite3_exec(m_db.get(), sql.c_str(), nullptr, nullptr, nullptr);
   if (sqliteCode != SQLITE_OK)
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
@@ -58,7 +61,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   sqliteCode = sqlite3_prepare_v2(
     m_db.get(),
-    "insert into ObjectFile (FileKey, FileName, FileDataLength) values (?, ?, ?)",  // stmt
+    "INSERT INTO ObjectFile (FileKey, FileName, FileDataLength) VALUES (?, ?, ?)",  // stmt
     -1, // If greater than zero, then stmt is read up to the first null terminator
     &m_putStatement, //Statement that is to be prepared
     0  // Pointer to unused portion of stmt
@@ -71,7 +74,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   sqliteCode = sqlite3_prepare_v2(
     m_db.get(),
-    "select FileName from ObjectFile where FileKey = ?",  // stmt
+    "SELECT FileName FROM ObjectFile WHERE FileKey = ?",  // stmt
     -1, // If greater than zero, then stmt is read up to the first null terminator
     &m_getFileNameStatement, //Statement that is to be prepared
     0  // Pointer to unused portion of stmt
@@ -84,7 +87,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   sqliteCode = sqlite3_prepare_v2(
     m_db.get(),
-    "select FileKey, FileDataLength from ObjectFile order by FileKey desc limit 1",  // stmt
+    "SELECT FileKey, FileDataLength FROM ObjectFile ORDER BY FileKey DESC LIMIT 1",  // stmt
     -1, // If greater than zero, then stmt is read up to the first null terminator
     &m_getLastFileKeyStatement, //Statement that is to be prepared
     0  // Pointer to unused portion of stmt
@@ -97,7 +100,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   sqliteCode = sqlite3_prepare_v2(
     m_db.get(),
-    "update ObjectFile set FileDataLength=? where FileKey = ?",  // stmt
+    "UPDATE ObjectFile SET FileDataLength=? WHERE FileKey = ?",  // stmt
     -1, // If greater than zero, then stmt is read up to the first null terminator
     &m_updateStatement, //Statement that is to be prepared
     0  // Pointer to unused portion of stmt
@@ -131,7 +134,7 @@ void FileNameManager::GetCurrentDataFileInfo(bool createIfMissing, FileInfo& fil
         int fileKey = 0;
 
         std::ostringstream ss;
-        ss << m_dbName << "." << fileKey;
+        ss << m_dbName << "_" << m_collectionName << "." << fileKey;
         std::string newFileName = ss.str();
 
         AddFileRecord(fileKey, newFileName);
@@ -152,7 +155,7 @@ void FileNameManager::GetCurrentDataFileInfo(bool createIfMissing, FileInfo& fil
     //Read the last FileKey
     auto fileKey = sqlite3_column_int(m_getLastFileKeyStatement, 0);
     std::ostringstream ss;
-    ss << m_dbName << "." << fileKey;
+    ss << m_dbName << "_" << m_collectionName << "." << fileKey;
     std::string newFileName = ss.str();
 
     fileInfo.fileKey = fileKey;
@@ -190,7 +193,7 @@ void FileNameManager::GetNextDataFileInfo(FileInfo& fileInfo) {
     fileKey = sqlite3_column_int(m_getLastFileKeyStatement, 0);
     fileKey++;
     std::ostringstream ss;
-    ss << m_dbName << "." << fileKey;
+    ss << m_dbName << "_" << m_collectionName << "." << fileKey;
     newFileName = ss.str();
   }
 

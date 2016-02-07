@@ -9,22 +9,24 @@ using namespace std;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
 
-TEST(FileNameManager, FileNameManager_Initialize_MissingDatabaseFile) {
+TEST(FileNameManager, Initialize_MissingDatabaseFile) {
   string dbName = "FileNameManager_Initialize_MissingDatabaseFile";
   string dbPath = g_TestRootDirectory;
-  ASSERT_THROW(FileNameManager fileNameManager(dbPath, dbName, false), MissingDatabaseFileException);
+  string collectionName = "Collection";
+  ASSERT_THROW(FileNameManager fileNameManager(dbPath, dbName, collectionName, false), MissingDatabaseFileException);
 }
 
-TEST(FileNameManager, FileNameManager_GetCurrentDataFileInfo) {
+TEST(FileNameManager, GetCurrentDataFileInfo) {
   string dbName = "FileNameManager_GetCurrentDataFileInfo";
-  string dbPath = g_TestRootDirectory;  
-  FileNameManager fileNameManager(dbPath, dbName, true);
+  string dbPath = g_TestRootDirectory;
+  string collectionName = "Collection";
+  FileNameManager fileNameManager(dbPath, dbName, collectionName, true);
 
   FileInfo fileInfo;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentDataFileInfo.0");
-  std::string completePath = dbPath + "FileNameManager_GetCurrentDataFileInfo.0";
+  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentDataFileInfo_Collection.0");
+  std::string completePath = dbPath + "FileNameManager_GetCurrentDataFileInfo_Collection.0";
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.c_str());
 
   //Again get the same thing and make sure we get the same file
@@ -35,13 +37,14 @@ TEST(FileNameManager, FileNameManager_GetCurrentDataFileInfo) {
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
 }
 
-TEST(FileNameManager, FileNameManager_GetNextDataFileInfo) {
+TEST(FileNameManager, GetNextDataFileInfo) {
   string dbName = "FileNameManager_GetNextDataFileInfo";
   string dbPath = g_TestRootDirectory;
-  FileNameManager fileNameManager(dbPath, dbName, true);
+  string collectionName = "Collection";
+  FileNameManager fileNameManager(dbPath, dbName, collectionName, true);
 
   FileInfo fileInfo;
-  string fileNamePattern = "FileNameManager_GetNextDataFileInfo.%d";
+  string fileNamePattern = "FileNameManager_GetNextDataFileInfo_Collection.%d";
   string fileNameWithPathPattern = (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
@@ -65,18 +68,19 @@ TEST(FileNameManager, FileNameManager_GetNextDataFileInfo) {
   }
 }
 
-TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined) {
+TEST(FileNameManager, GetCurrentAndNextFileInfoCombined) {
   string dbName = "FileNameManager_GetCurrentAndNextFileInfoCombined";
   string dbPath = g_TestRootDirectory;
-  FileNameManager fileNameManager(dbPath, dbName, true);
+  string collectionName = "Collection";
+  FileNameManager fileNameManager(dbPath, dbName, collectionName, true);
 
   FileInfo fileInfo;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined.0");
+  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0");
   boost::filesystem::path completePath(dbPath);
-  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined.0";
+  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0";
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.generic_string().c_str());
 
   //Again get the same thing and make sure we get the same file
@@ -86,7 +90,7 @@ TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined) {
   ASSERT_STREQ(fileInfo.fileName.c_str(), fileInfo2.fileName.c_str());
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
 
-  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined.%d";
+  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.%d";
   string fileNameWithPathPattern = (completePath.parent_path() / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
@@ -105,18 +109,19 @@ TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined) {
   }
 }
 
-TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd) {
-  string dbName = "FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd";
-  string dbPath = g_TestRootDirectory.substr(0, g_TestRootDirectory.size()-1);  
-  FileNameManager fileNameManager(dbPath, dbName, true);
+TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_NoEndSlash) {
+  string dbName = "FileNameManager_GetCurrentAndNextFileInfoCombined_NoEndSlash";
+  string dbPath = g_TestRootDirectory.substr(0, g_TestRootDirectory.size() - 1);
+  string collectionName = "Collection";
+  FileNameManager fileNameManager(dbPath, dbName, collectionName, true);
 
   FileInfo fileInfo;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd.0");
+  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined_NoEndSlash_Collection.0");
   boost::filesystem::path completePath(dbPath);
-  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd.0";
+  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined_NoEndSlash_Collection.0";
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.generic_string().c_str());
 
   //Again get the same thing and make sure we get the same file
@@ -126,7 +131,7 @@ TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSl
   ASSERT_STREQ(fileInfo.fileName.c_str(), fileInfo2.fileName.c_str());
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
 
-  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSlashAtEnd.%d";
+  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined_NoEndSlash_Collection.%d";
   string fileNameWithPathPattern = (completePath.parent_path() / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
@@ -145,13 +150,14 @@ TEST(FileNameManager, FileNameManager_GetCurrentAndNextFileInfoCombined_WithNoSl
   }
 }
 
-TEST(FileNameManager, FileNameManager_GetDataFileInfo) {
+TEST(FileNameManager, GetDataFileInfo) {
   string dbName = "FileNameManager_GetDataFileInfo";
   string dbPath = g_TestRootDirectory;
-  FileNameManager fileNameManager(dbPath, dbName, true);
+  string collectionName = "Collection";
+  FileNameManager fileNameManager(dbPath, dbName, collectionName, true);
 
   FileInfo fileInfo;
-  string fileNamePattern = "FileNameManager_GetDataFileInfo.%d";
+  string fileNamePattern = "FileNameManager_GetDataFileInfo_Collection.%d";
   string fileNameWithPathPattern = (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];

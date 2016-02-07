@@ -13,10 +13,11 @@ using namespace jonoondb_test;
 TEST(BlobManager, Constructor) {
   std::string dbName = "BlobManager_Constructor";
   std::string dbPath = g_TestRootDirectory;
+  std::string collectionName = "Collection";
   boost::filesystem::path pathObj(g_TestRootDirectory);
-  pathObj += "BlobManager_Constructor.0";
+  pathObj += dbName + "_" + collectionName + ".0";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
 
   // make sure the file is there and it is the same size
@@ -28,8 +29,9 @@ TEST(BlobManager, Constructor) {
 TEST(BlobManager, Put) {
   std::string dbName = "BlobManager_Put";
   std::string dbPath = g_TestRootDirectory;  
+  std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
@@ -42,8 +44,9 @@ TEST(BlobManager, Put) {
 TEST(BlobManager, Putx2) {
   std::string dbName = "BlobManager_Putx2";
   std::string dbPath = g_TestRootDirectory;
+  std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
@@ -60,8 +63,9 @@ TEST(BlobManager, Putx2) {
 TEST(BlobManager, Get) {
   std::string dbName = "BlobManager_Get";
   std::string dbPath = g_TestRootDirectory;  
+  std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
@@ -85,8 +89,9 @@ TEST(BlobManager, Get) {
 TEST(BlobManager, Multiput) {
   std::string dbName = "BlobManager_Multiput";
   std::string dbPath = g_TestRootDirectory;
+  std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
    
   const int SIZE = 10;
@@ -119,9 +124,10 @@ TEST(BlobManager, Multiput) {
 TEST(BlobManager, Multiput_SwitchFile) {
   std::string dbName = "BlobManager_Multiput_SwitchFile";
   std::string dbPath = g_TestRootDirectory;
+  std::string collectionName = "Collection";
   // Small file size to make sure we end up with multiple data files
   auto fileSize = 128;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
 
   const int SIZE = 20;

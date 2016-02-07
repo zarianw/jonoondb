@@ -33,13 +33,16 @@ class DatabaseImpl final {
   void MultiInsert(const boost::string_ref& collectionName, gsl::span<const BufferImpl*>& documents);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
- private:  
+ private:
+   std::shared_ptr<DocumentCollection> CreateCollectionInternal(
+     const std::string& name, SchemaType schemaType, const std::string& schema,
+     const std::vector<IndexInfoImpl*>& indexes);
   std::unique_ptr<DatabaseMetadataManager> m_dbMetadataMgrImpl;
   // m_collectionNameStore stores the collection name as string, m_collectionContainer just uses
   // string_ref as the key. m_collectionNameStore should be declared before m_collectionContainer.
   // This insures that they get destroyed in reverse order i.e. m_collectionContainer first and then
   // m_collectionNameStore.
-  std::vector<std::string> m_collectionNameStore;
+  std::vector<std::unique_ptr<std::string>> m_collectionNameStore;
   std::map<boost::string_ref, std::shared_ptr<DocumentCollection>> m_collectionContainer;
   std::unique_ptr<QueryProcessor> m_queryProcessor;
   OptionsImpl m_options;
