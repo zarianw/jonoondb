@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <sstream>
+#include <string>
 #include "sqlite3.h"
 #include "guard_funcs.h"
 #include "object_pool.h"
@@ -18,6 +19,7 @@ public:
   QueryProcessor(QueryProcessor&&) = delete;
   QueryProcessor& operator=(const QueryProcessor&) = delete;  
   void AddCollection(const std::shared_ptr<DocumentCollection>& collection);
+  void RemoveCollection(const std::string& collectionName);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
 private:  

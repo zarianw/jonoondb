@@ -34,22 +34,22 @@ void CreateInsertTweet(Database& db, std::string& collectionName, bool createInd
   db.Insert(collectionName, documentData);
 }
 
-TEST(Database, Open_InvalidArguments) {
+TEST(Database, Ctor_InvalidArguments) {
   Options options;
   ASSERT_THROW(Database db("somePath", "", options), InvalidArgumentException);
   ASSERT_THROW(Database db("", "someDbName", options), InvalidArgumentException);  
 }
 
-TEST(Database, Open_MissingDatabaseFile) {
-  string dbName = "Database_Open_New";
+TEST(Database, Ctor_MissingDatabaseFile) {
+  string dbName = "Database_Ctor_MissingDatabaseFile";
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(false);
   ASSERT_THROW(Database db(dbPath, dbName, options), MissingDatabaseFileException);  
 }
 
-TEST(Database, Open_MissingDatabaseFolder) {
-  string dbName = "Database_Open_New";
+TEST(Database, Ctor_MissingDatabaseFolder) {
+  string dbName = "Database_Ctor_MissingDatabaseFolder";
   string dbPath = g_TestRootDirectory;
   Options options;  
   ASSERT_THROW(Database db(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
@@ -61,14 +61,14 @@ Options GetDefaultDBOptions() {
   return opt;
 }
 
-TEST(Database, Open_New) {
-  string dbName = "Database_Open_New";
+TEST(Database, Ctor_New) {
+  string dbName = "Database_Ctor_New";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
 }
 
-TEST(Database, Open_Existing) {
-  string dbName = "Database_Open_Existing";
+TEST(Database, Ctor_Existing) {
+  string dbName = "Database_Ctor_Existing";
   string dbPath = g_TestRootDirectory;
   {
     Database db(dbPath, dbName, GetDefaultDBOptions());
@@ -79,12 +79,12 @@ TEST(Database, Open_Existing) {
   }
 }
 
-TEST(Database, Open_CreateIfMissing) {
-  Database db(g_TestRootDirectory, "Database_Open_CreateIfMissing", GetDefaultDBOptions());  
+TEST(Database, Ctor_CreateIfMissing) {
+  Database db(g_TestRootDirectory, "Database_Ctor_CreateIfMissing", GetDefaultDBOptions());  
 }
 
 TEST(Database, CreateCollection_InvalidSchema) {
-  string dbName = "CreateCollection_New";
+  string dbName = "Database_CreateCollection_InvalidSchema";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
@@ -92,7 +92,7 @@ TEST(Database, CreateCollection_InvalidSchema) {
 }
 
 TEST(Database, CreateCollection_New) {
-  string dbName = "CreateCollection_New";
+  string dbName = "Database_CreateCollection_New";
   string dbPath = g_TestRootDirectory;
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath);
@@ -102,7 +102,7 @@ TEST(Database, CreateCollection_New) {
 }
 
 TEST(Database, CreateCollection_CollectionAlreadyExist) {
-  string dbName = "CreateCollection_CollectionAlreadyExist";
+  string dbName = "Database_CreateCollection_CollectionAlreadyExist";
   string dbPath = g_TestRootDirectory;
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath);
@@ -112,8 +112,26 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   ASSERT_THROW(db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes), CollectionAlreadyExistException);  
 }
 
+TEST(Database, CreateCollection_DuplicateIndex) {
+  string dbName = "Database_CreateCollection_DuplicateIndex";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, GetDefaultDBOptions());
+
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes;
+  indexes.push_back(IndexInfo("index1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true));
+  indexes.push_back(IndexInfo("index1", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true));
+  ASSERT_THROW(db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes), IndexAlreadyExistException);
+
+  // Now try to create the collection without duplicate index
+  indexes.pop_back();
+  ASSERT_NO_THROW(db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes));
+}
+
 TEST(Database, Insert_NoIndex) {
-  string dbName = "Insert_NoIndex";
+  string dbName = "Database_Insert_NoIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());  
@@ -129,7 +147,7 @@ TEST(Database, Insert_NoIndex) {
 }
 
 TEST(Database, Insert_SingleIndex) {
-  string dbName = "Insert_SingleIndex";
+  string dbName = "Database_Insert_SingleIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());  
@@ -170,7 +188,7 @@ Buffer GetAllFieldTypeObjectBuffer() {
 }
 
 TEST(Database, Insert_AllIndexTypes) {
-  string dbName = "Insert_AllIndexTypes";
+  string dbName = "Database_Insert_AllIndexTypes";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());  
@@ -204,7 +222,7 @@ TEST(Database, Insert_AllIndexTypes) {
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {
-  string dbName = "ExecuteSelect_MissingCollection";
+  string dbName = "Database_ExecuteSelect_MissingCollection";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
@@ -216,7 +234,7 @@ TEST(Database, ExecuteSelect_MissingCollection) {
 }
 
 TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
-  string dbName = "ExecuteSelect_EmptyDB_NoIndex";
+  string dbName = "Database_ExecuteSelect_EmptyDB_NoIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
@@ -234,7 +252,7 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
 }
 
 TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
-  string dbName = "ExecuteSelect_NonEmptyDB_SingleIndex";
+  string dbName = "Database_ExecuteSelect_NonEmptyDB_SingleIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
@@ -250,7 +268,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
 }
 
 TEST(Database, ExecuteSelect_Testing) {
-  string dbName = "ExecuteSelect_Testing";
+  string dbName = "Database_ExecuteSelect_Testing";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
@@ -322,7 +340,7 @@ TEST(Database, ExecuteSelect_Testing) {
 }
 
 TEST(Database, MultiInsert) {
-  string dbName = "MultiInsert";
+  string dbName = "Database_MultiInsert";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
@@ -373,7 +391,7 @@ TEST(Database, MultiInsert) {
 }
 
 /*TEST(Database, Insert_100K) {
-  string dbName = "Insert_100K";
+  string dbName = "Database_Insert_100K";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   Options opt;

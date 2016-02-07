@@ -53,8 +53,19 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
   }
   
   m_queryProcessor->AddCollection(documentCollection);  
-  // TODO: we need to call m_queryProcessor->RemoveCollection if the below call fails
-  m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes);  
+  
+  try {
+    m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes);
+  } catch (...) {
+    try {
+      m_queryProcessor->RemoveCollection(name);
+    } catch (...) {
+      // This is bad and we should log the error and terminate the program
+      // Todo: Log the std::current_exception(), also mark the collection for cleanup on startup
+      std::terminate();
+    }
+    throw;
+  }
 
   m_collectionNameStore.push_back(colName);
   m_collectionContainer[m_collectionNameStore.back()] = documentCollection;

@@ -150,7 +150,8 @@ add_executable(
  ${TEST_PATH}/flatbuffers_document_tests.cc
  ${TEST_PATH}/blob_manager_tests.cc
  ${TEST_PATH}/object_pool_tests.cc
- ${TEST_PATH}/options_tests.cc)
+ ${TEST_PATH}/options_tests.cc
+ ${TEST_PATH}/index_info_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
 

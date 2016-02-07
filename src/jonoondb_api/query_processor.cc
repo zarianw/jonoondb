@@ -169,7 +169,9 @@ void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& co
   char* errMsg;
   int code = sqlite3_exec(m_readWriteDBConnection.get(), sqlStmt.str().c_str(), nullptr, nullptr, &errMsg);  
   if (code != SQLITE_OK) {
-    // Remove the collection from dictionary
+    // DocumentCollectionDictionary should have the collection after successful addition.
+    // This is required when jonoondb_connect is called instead on jonoondb_create.
+    // However if we fail to add the collection then it should be removed.    
     DocumentCollectionDictionary::Instance()->Remove(key);
     if (errMsg != nullptr) {
       std::string sqliteErrorMsg = errMsg;
@@ -181,10 +183,27 @@ void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& co
   }
 }
 
+void jonoondb_api::QueryProcessor::RemoveCollection(const std::string & collectionName) {
+  std::string stmt = "DROP TABLE IF EXISTS ";
+  stmt.append(collectionName);
+  char* errMsg;
+  int code = sqlite3_exec(m_readWriteDBConnection.get(), stmt.c_str(), nullptr, nullptr, &errMsg);
+  if (code != SQLITE_OK) {
+    if (errMsg != nullptr) {
+      std::string sqliteErrorMsg = errMsg;
+      sqlite3_free(errMsg);
+      throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
+    }
+
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+  }
+}
+
 ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) {
   // connection comming from m_dbConnectionPool are readonly
   // so we dont have to worry about sql injection
-  return ResultSetImpl(ObjectPoolGuard<sqlite3>(m_dbConnectionPool.get(), m_dbConnectionPool->Take()), selectStatement);
+  return ResultSetImpl(ObjectPoolGuard<sqlite3>(m_dbConnectionPool.get(),
+                                                m_dbConnectionPool->Take()), selectStatement);
 }
 
 sqlite3* QueryProcessor::OpenConnection() {

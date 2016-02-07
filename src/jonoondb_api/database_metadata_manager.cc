@@ -97,17 +97,21 @@ void DatabaseMetadataManager::CreateTables() {
   }
 
   // Create the necessary tables if they do not exist
-  string sql = "create table if not exists CollectionSchema("
-    "CollectionName text primary key, CollectionSchema text, "
-    "CollectionSchemaType int)";
+  string sql = "CREATE TABLE IF NOT EXISTS CollectionSchema ("
+    "CollectionName TEXT PRIMARY KEY, "
+    "CollectionSchema TEXT, "
+    "CollectionSchemaType INT)";
   sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, __func__, __LINE__);
   }  
 
-  sql = "create table if not exists CollectionIndex("
-    "IndexName text primary key, CollectionName text, IndexInfo blob)";
+  sql = "CREATE TABLE IF NOT EXISTS CollectionIndex ("
+    "IndexName TEXT, "
+    "CollectionName TEXT, "
+    "IndexInfo BLOB, "
+    "PRIMARY KEY (IndexName, CollectionName))";
   sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
@@ -115,9 +119,11 @@ void DatabaseMetadataManager::CreateTables() {
   }
 
   //sql = "create table if not exists CollectionDocumentFile(FileKey int primary key, FileName text, FileDataLength int, foreign key(CollectionName) references CollectionMetadata(CollectionName))";
-  sql = "create table if not exists CollectionDocumentFile("
-    "FileKey int primary key, FileName text, "
-    "FileDataLength int, CollectionName text)";
+  sql = "CREATE TABLE IF NOT EXISTS CollectionDocumentFile("
+    "FileKey INT PRIMARY KEY, "
+    "FileName TEXT, "
+    "FileDataLength INT, "
+    "CollectionName TEXT)";
   sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
@@ -129,7 +135,7 @@ void DatabaseMetadataManager::PrepareStatements() {
   int sqliteCode =
       sqlite3_prepare_v2(
           m_metadataDBConnection.get(),
-          "insert into CollectionIndex (IndexName, CollectionName, IndexInfo) values (?, ?, ?)",  // stmt
+          "INSERT INTO CollectionIndex (IndexName, CollectionName, IndexInfo) VALUES (?, ?, ?)",  // stmt
           -1,  // If greater than zero, then stmt is read up to the first null terminator
           &m_insertCollectionIndexStmt,  //Statement that is to be prepared
           0  // Pointer to unused portion of stmt
@@ -143,7 +149,7 @@ void DatabaseMetadataManager::PrepareStatements() {
   sqliteCode =
       sqlite3_prepare_v2(
           m_metadataDBConnection.get(),
-          "insert into CollectionSchema (CollectionName, CollectionSchema, CollectionSchemaType) values (?, ?, ?)",  // stmt
+          "INSERT INTO CollectionSchema (CollectionName, CollectionSchema, CollectionSchemaType) VALUES (?, ?, ?)",  // stmt
           -1,  // If greater than zero, then stmt is read up to the first null terminator
           &m_insertCollectionSchemaStmt,  //Statement that is to be prepared
           0  // Pointer to unused portion of stmt
