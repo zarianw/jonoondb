@@ -76,7 +76,7 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   sqliteCode = sqlite3_prepare_v2(
     m_db.get(),
-    "SELECT FileName FROM CollectionDataFile WHERE CollectioName = ? AND FileKey = ?",  // stmt
+    "SELECT FileName FROM CollectionDataFile WHERE CollectionName = ? AND FileKey = ?",  // stmt
     -1, // If greater than zero, then stmt is read up to the first null terminator
     &m_getFileNameStatement, //Statement that is to be prepared
     0  // Pointer to unused portion of stmt
@@ -105,9 +105,9 @@ FileNameManager::FileNameManager(const std::string& dbPath, const std::string& d
 
   sqliteCode = sqlite3_prepare_v2(
     m_db.get(),
-    "UPDATE CollectionDataFile SET FileDataLength=? WHERE FileKey = ?",  // stmt
+    "UPDATE CollectionDataFile SET FileDataLength = ? WHERE CollectionName = ? AND FileKey = ?",  // stmt
     -1, // If greater than zero, then stmt is read up to the first null terminator
-    &m_updateStatement, //Statement that is to be prepared
+    &m_updateStatement, // Statement that is to be prepared
     0  // Pointer to unused portion of stmt
     );
 
@@ -242,20 +242,30 @@ void FileNameManager::UpdateDataFileLength(int fileKey, int64_t length) {
     1,  // Index of wildcard
     length);
 
-  if (sqliteCode != SQLITE_OK) {
+  if (sqliteCode != SQLITE_OK)
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
-  }
+
+  sqliteCode = sqlite3_bind_text(
+    m_updateStatement,
+    2,  // Index of wildcard
+    m_collectionName.c_str(),
+    -1, // -1 means go until NULL char
+    SQLITE_STATIC);
+
+  if (sqliteCode != SQLITE_OK)
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
+
+  
 
   sqliteCode = sqlite3_bind_int(
     m_updateStatement,
-    2,  // Index of wildcard
+    3,  // Index of wildcard
     fileKey);
 
-  if (sqliteCode != SQLITE_OK) {
+  if (sqliteCode != SQLITE_OK)
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
-  }
 
-  //Now insert the record
+  // Now insert the record
   sqliteCode = sqlite3_step(m_updateStatement);
   if (sqliteCode != SQLITE_DONE) {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
