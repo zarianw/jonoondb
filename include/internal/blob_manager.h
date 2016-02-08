@@ -17,6 +17,11 @@ struct BlobMetadata;
 class BufferImpl;
 class FileNameManager;
 
+class BufferBatchIterator {
+  bool Next();
+  std::vector<BufferImpl> Current();
+};
+
 // This class is responsible for reading/writing blobs into the data files
 class BlobManager final {
 public:

@@ -96,7 +96,7 @@ void DatabaseMetadataManager::CreateTables() {
   }
 
   // Create the necessary tables if they do not exist
-  std::string sql = "CREATE TABLE IF NOT EXISTS CollectionSchema ("
+  std::string sql = "CREATE TABLE IF NOT EXISTS Collection ("
     "CollectionName TEXT PRIMARY KEY, "
     "CollectionSchema TEXT, "
     "CollectionSchemaType INT)";
@@ -104,13 +104,13 @@ void DatabaseMetadataManager::CreateTables() {
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, __func__, __LINE__);
-  }  
+  }
 
   sql = "CREATE TABLE IF NOT EXISTS CollectionIndex ("
-    "IndexName TEXT, "
     "CollectionName TEXT, "
+    "IndexName TEXT, "
     "IndexInfo BLOB, "
-    "PRIMARY KEY (IndexName, CollectionName))";
+    "PRIMARY KEY (CollectionName, IndexName))";
   sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
@@ -118,7 +118,7 @@ void DatabaseMetadataManager::CreateTables() {
   }
 
   //sql = "create table if not exists CollectionDocumentFile(FileKey int primary key, FileName text, FileDataLength int, foreign key(CollectionName) references CollectionMetadata(CollectionName))";
-  sql = "CREATE TABLE IF NOT EXISTS CollectionDocumentFile("
+  sql = "CREATE TABLE IF NOT EXISTS CollectionDocumentFile ("
     "FileKey INT PRIMARY KEY, "
     "FileName TEXT, "
     "FileDataLength INT, "
@@ -134,7 +134,7 @@ void DatabaseMetadataManager::PrepareStatements() {
   int sqliteCode =
       sqlite3_prepare_v2(
           m_metadataDBConnection.get(),
-          "INSERT INTO CollectionIndex (IndexName, CollectionName, IndexInfo) VALUES (?, ?, ?)",  // stmt
+          "INSERT INTO CollectionIndex (CollectionName, IndexName, IndexInfo) VALUES (?, ?, ?)",  // stmt
           -1,  // If greater than zero, then stmt is read up to the first null terminator
           &m_insertCollectionIndexStmt,  //Statement that is to be prepared
           0  // Pointer to unused portion of stmt
@@ -148,7 +148,7 @@ void DatabaseMetadataManager::PrepareStatements() {
   sqliteCode =
       sqlite3_prepare_v2(
           m_metadataDBConnection.get(),
-          "INSERT INTO CollectionSchema (CollectionName, CollectionSchema, CollectionSchemaType) VALUES (?, ?, ?)",  // stmt
+          "INSERT INTO Collection (CollectionName, CollectionSchema, CollectionSchemaType) VALUES (?, ?, ?)",  // stmt
           -1,  // If greater than zero, then stmt is read up to the first null terminator
           &m_insertCollectionSchemaStmt,  //Statement that is to be prepared
           0  // Pointer to unused portion of stmt
@@ -167,7 +167,7 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
       m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
   
 
-  // 1. Prepare stmt to add data in CollectionSchema table
+  // 1. Prepare stmt to add data in Collection table
   int code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 1,  // Index of wildcard
                                      name.c_str(),  // CollectionName
                                      -1,  // length of the string is the number of bytes up to the first zero terminator
@@ -252,18 +252,18 @@ std::vector<CollectionMetadata> jonoondb_api::DatabaseMetadataManager::GetExisti
 }
 
 void DatabaseMetadataManager::CreateIndex(const std::string& collectionName,
-                                            const IndexInfoImpl& indexInfo) {
+                                          const IndexInfoImpl& indexInfo) {
   std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
-      m_insertCollectionIndexStmt, SQLiteUtils::ClearAndResetStatement);
+    m_insertCollectionIndexStmt, SQLiteUtils::ClearAndResetStatement);
 
   int sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 1,  // Index of wildcard
-                                     indexInfo.GetIndexName().c_str(), -1,  // length of the string is the number of bytes up to the first zero terminator
+                                     collectionName.c_str(), -1,  // length of the string is the number of bytes up to the first zero terminator
                                      SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
 
   sqliteCode = sqlite3_bind_text(m_insertCollectionIndexStmt, 2,  // Index of wildcard
-                                 collectionName.c_str(), -1,  // length of the string is the number of bytes up to the first zero terminator
+                                 indexInfo.GetIndexName().c_str(), -1,  // length of the string is the number of bytes up to the first zero terminator
                                  SQLITE_STATIC);
   if (sqliteCode != SQLITE_OK)
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
