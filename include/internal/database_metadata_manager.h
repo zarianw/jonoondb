@@ -15,7 +15,7 @@ enum class SchemaType
 : std::int32_t;
 
 struct CollectionMetadata {
-  std::string collectionName;
+  std::string name;
   std::string schema;
   SchemaType schemaType;
   std::vector<IndexInfoImpl> indexes;
@@ -35,7 +35,7 @@ class DatabaseMetadataManager final {
   const std::string& GetFullDBPath() const;
   const std::string& GetDBPath() const;
   const std::string& GetDBName() const;
-  std::vector<CollectionMetadata> GetExistingCollections();
+  void GetExistingCollections(std::vector<CollectionMetadata>& collections);
 
  private:
   void CreateTables();
@@ -51,4 +51,3 @@ class DatabaseMetadataManager final {
   sqlite3_stmt* m_insertCollectionIndexStmt;
 };
 }
-

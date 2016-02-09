@@ -24,15 +24,16 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
   m_dbMetadataMgrImpl = std::make_unique<DatabaseMetadataManager>(
     dbPath, dbName, options.GetCreateDBIfMissing());
 
-  auto collectionsInfo = m_dbMetadataMgrImpl->GetExistingCollections();
+  std::vector<CollectionMetadata> collectionsInfo;
+  m_dbMetadataMgrImpl->GetExistingCollections(collectionsInfo);
   
   for (auto& colInfo : collectionsInfo) {
     std::vector<IndexInfoImpl*> indexes;
-    auto documentCollection = CreateCollectionInternal(colInfo.collectionName,
+    auto documentCollection = CreateCollectionInternal(colInfo.name,
                                                        colInfo.schemaType, colInfo.schema,
                                                        indexes);
 
-    m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.collectionName));
+    m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
   }
 

@@ -428,7 +428,7 @@ TEST(Database, Ctor_ReOpen) {
   Database db(dbPath, dbName, opt);
 
   // Now see if we can read all the inserted data correctly
-  std::string sqlStmt = "SELECT [user.name] from " + collectionName1 + ";";
+  std::string sqlStmt = "SELECT [user.name] FROM " + collectionName1 + ";";
   auto rs = db.ExecuteSelect(sqlStmt);
   auto rowCnt = 0;
   while (rs.Next()) {
