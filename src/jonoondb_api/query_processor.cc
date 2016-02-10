@@ -185,7 +185,7 @@ void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& co
 
 void jonoondb_api::QueryProcessor::RemoveCollection(const std::string & collectionName) {
   std::string stmt = "DROP TABLE IF EXISTS ";
-  stmt.append(collectionName);
+  stmt.append(collectionName).append(";");
   char* errMsg;
   int code = sqlite3_exec(m_readWriteDBConnection.get(), stmt.c_str(), nullptr, nullptr, &errMsg);
   if (code != SQLITE_OK) {
@@ -197,6 +197,24 @@ void jonoondb_api::QueryProcessor::RemoveCollection(const std::string & collecti
 
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
+
+  std::string key("'");
+  key.append(m_dbName).append(">").append(collectionName).append("'");
+  DocumentCollectionDictionary::Instance()->Remove(key);
+}
+
+void QueryProcessor::AddExistingCollection(const std::shared_ptr<DocumentCollection>& collection) {
+  std::ostringstream ss;
+  auto docColInfo = std::make_shared<DocumentCollectionInfo>();
+  GenerateCreateTableStatementForCollection(collection, ss, docColInfo->columnsInfo);
+  docColInfo->createVTableStmt = ss.str();
+  docColInfo->collection = collection;
+
+  // Generate key and insert the collection in a singleton dictionary.
+  // vtable will use this key to get the collectionInfo  
+  std::string key("'");
+  key.append(m_dbName).append(">").append(collection->GetName()).append("'");
+  DocumentCollectionDictionary::Instance()->Insert(key, docColInfo);
 }
 
 ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) {

@@ -126,7 +126,7 @@ static int jonoondb_create(sqlite3 *db, void *udp, int argc,
         " in the dictionary using key " << key << ".";
       auto str = errMessage.str();
       *errmsg = (char*)sqlite3_malloc(str.size() + 1);
-      std::strncpy(*errmsg, str.c_str(), str.size());
+      std::strncpy(*errmsg, str.c_str(), str.size() + 1);
     }
     return SQLITE_MISUSE;
   }

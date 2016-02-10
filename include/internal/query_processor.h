@@ -20,6 +20,7 @@ public:
   QueryProcessor& operator=(const QueryProcessor&) = delete;  
   void AddCollection(const std::shared_ptr<DocumentCollection>& collection);
   void RemoveCollection(const std::string& collectionName);
+  void AddExistingCollection(const std::shared_ptr<DocumentCollection>& collection);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
 private:  

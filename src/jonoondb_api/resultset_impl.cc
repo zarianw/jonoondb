@@ -10,7 +10,16 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
   sqlite3_stmt* stmt = nullptr;
   int code = sqlite3_prepare_v2(m_db, selectStmt.c_str(), selectStmt.size(), &stmt, nullptr);
   m_stmt.reset(stmt);
-  if (code != SQLITE_OK) {    
+  if (code != SQLITE_OK) {
+    // We can safely use sqlite3_errmsg because each ResultSetImpl
+    // has a dedicated sqlite3 connection, so it will only be used 
+    // by one thread at any given time.
+    const char* errMsg = sqlite3_errmsg(m_db);
+    if (errMsg != nullptr) {
+      std::string sqliteErrorMsg = errMsg;
+      throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
+    }
+
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 

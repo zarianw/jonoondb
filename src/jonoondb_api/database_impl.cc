@@ -24,6 +24,9 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
   m_dbMetadataMgrImpl = std::make_unique<DatabaseMetadataManager>(
     dbPath, dbName, options.GetCreateDBIfMissing());
 
+  // Initialize query processor
+  m_queryProcessor = std::make_unique<QueryProcessor>(dbPath, dbName);
+
   std::vector<CollectionMetadata> collectionsInfo;
   m_dbMetadataMgrImpl->GetExistingCollections(collectionsInfo);
   
@@ -33,12 +36,13 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
                                                        colInfo.schemaType, colInfo.schema,
                                                        indexes);
 
+    m_queryProcessor->AddExistingCollection(documentCollection);
+
     m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
   }
 
-  // Initialize query processor
-  m_queryProcessor = std::make_unique<QueryProcessor>(dbPath, dbName);  
+  
 }
 
 DatabaseImpl::~DatabaseImpl() {
