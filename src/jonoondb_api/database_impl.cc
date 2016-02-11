@@ -36,13 +36,14 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
                                                        colInfo.schemaType, colInfo.schema,
                                                        indexes);
 
+    // Add all the existing data in the collection
+
+
     m_queryProcessor->AddExistingCollection(documentCollection);
 
     m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
-  }
-
-  
+  }  
 }
 
 DatabaseImpl::~DatabaseImpl() {

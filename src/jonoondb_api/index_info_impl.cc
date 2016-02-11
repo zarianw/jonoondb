@@ -15,13 +15,13 @@ struct IndexInfoImpl::IndexInfoData {
   IndexType Type;
 };
 
-IndexInfoImpl::IndexInfoImpl(const std::string& name, IndexType type, const std::string& columnName,
-                     bool isAscending) {
+IndexInfoImpl::IndexInfoImpl(std::string name, IndexType type, std::string columnName,
+                             bool isAscending) {
   m_indexInfoData = new IndexInfoData();
-  m_indexInfoData->Name = name;  
+  m_indexInfoData->Name = std::move(name);  
   m_indexInfoData->IsAscending = isAscending;
   m_indexInfoData->Type = type;
-  m_indexInfoData->ColumnName = columnName;
+  m_indexInfoData->ColumnName = std::move(columnName);
 }
 
 IndexInfoImpl::IndexInfoImpl()

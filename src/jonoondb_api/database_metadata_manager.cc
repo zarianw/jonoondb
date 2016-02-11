@@ -14,6 +14,8 @@
 #include "jonoondb_exceptions.h"
 #include "guard_funcs.h"
 #include "path_utils.h"
+#include "serializer_utils.h"
+#include "standard_deleters.h"
 
 using namespace boost::filesystem;
 using namespace jonoondb_api;
@@ -248,56 +250,69 @@ const std::string& DatabaseMetadataManager::GetDBName() const {
 }
 
 void jonoondb_api::DatabaseMetadataManager::GetExistingCollections(std::vector<CollectionMetadata>& collections) {
-  static std::string sqlText = "SELECT c.CollectionName, c.CollectionSchema, c.CollectionSchemaType, "
-    "ci.IndexName, ci.IndexType, ci.BinData "
-    "FROM Collection c LEFT JOIN CollectionIndex ci ON c.CollectionName = ci.CollectionName;";
-  collections.clear();
-  sqlite3_stmt* sqlStmt = nullptr;
-     
-  int code =
-    sqlite3_prepare_v2(
-      m_metadataDBConnection.get(),
-      sqlText.c_str(),
-      sqlText.size(),
-      &sqlStmt,  // statement that is to be prepared
-      nullptr  // pointer to unused portion of stmt
-      );  
+  {
+    static std::string sqlText = "SELECT c.CollectionName, c.CollectionSchema, c.CollectionSchemaType, "
+      "ci.IndexName, ci.IndexType, ci.BinData "
+      "FROM Collection c LEFT JOIN CollectionIndex ci ON c.CollectionName = ci.CollectionName "
+      "ORDER BY c.CollectionName;";
+    collections.clear();
+    sqlite3_stmt* sqlStmt = nullptr;
+
+    int code =
+      sqlite3_prepare_v2(
+        m_metadataDBConnection.get(),
+        sqlText.c_str(),
+        sqlText.size(),
+        &sqlStmt,  // statement that is to be prepared
+        nullptr  // pointer to unused portion of stmt
+        );
+
+    if (code != SQLITE_OK) {
+      throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+    }
+
+    std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
+      sqlStmt, GuardFuncs::SQLite3Finalize);
+
+    code = sqlite3_step(sqlStmt);
+    if (code == SQLITE_ROW) {
+      do {
+        std::string collectionName(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 0)),
+                                   sqlite3_column_bytes(sqlStmt, 0));
+        if (collections.size() == 0 || collections.back().name != collectionName) {
+          // we have a new collection here
+          CollectionMetadata metadata;
+          metadata.name = collectionName;
+          metadata.schema = std::string(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 1)),
+                                        sqlite3_column_bytes(sqlStmt, 1));
+          metadata.schemaType = static_cast<SchemaType>(sqlite3_column_int(sqlStmt, 2));
+          collections.push_back(metadata);
+        }
+
+        // see if we have a index record
+        std::string indexName(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 3)),
+                              sqlite3_column_bytes(sqlStmt, 3));
+        if (indexName.size() > 0) {
+          auto binData = sqlite3_column_blob(sqlStmt, 5);
+          auto binDataSize = sqlite3_column_bytes(sqlStmt, 5);
+          BufferImpl buffer((char*)binData, binDataSize,
+                            binDataSize, StandardDeleteNoOp);
+          
+          collections.back().indexes.push_back(SerializerUtils::BytesToIndexInfo(buffer));          
+        }
+
+      } while ((code = sqlite3_step(sqlStmt)) == SQLITE_ROW);
+    }
+
+    if (code != SQLITE_DONE) {
+      // An error occured
+      throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+    }
+  }
   
-  if (code != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
-  }
+  // Now get the data files
+  if (collections.size() > 0) {
 
-  std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
-    sqlStmt, GuardFuncs::SQLite3Finalize);
-
-  code = sqlite3_step(sqlStmt);
-  if (code == SQLITE_ROW) {
-    do {
-      std::string collectionName(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 0)),
-                                 sqlite3_column_bytes(sqlStmt, 0));
-      if (collections.size() == 0 || collections.back().name != collectionName) {
-        // we have a new collection here
-        CollectionMetadata metadata;
-        metadata.name = collectionName;
-        metadata.schema = std::string(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 1)),
-                                      sqlite3_column_bytes(sqlStmt, 1));
-        metadata.schemaType = static_cast<SchemaType>(sqlite3_column_int(sqlStmt, 2));
-        collections.push_back(metadata);
-      }
-
-      // see if we have a index record
-      std::string indexName(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 3)),
-                            sqlite3_column_bytes(sqlStmt, 3));
-      if (indexName.size() != 0) {
-        // 
-      }
-
-    } while ((code = sqlite3_step(sqlStmt)) == SQLITE_ROW);
-  }
-
-  if (code != SQLITE_DONE) {
-    // An error occured
-    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 }
 
