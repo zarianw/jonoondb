@@ -16,6 +16,7 @@
 #include "path_utils.h"
 #include "serializer_utils.h"
 #include "standard_deleters.h"
+#include "file_info.h"
 
 using namespace boost::filesystem;
 using namespace jonoondb_api;
@@ -118,19 +119,7 @@ void DatabaseMetadataManager::CreateTables() {
   if (sqliteCode != SQLITE_OK) {
     std::string msg = sqlite3_errstr(sqliteCode);
     throw SQLException(msg, __FILE__, __func__, __LINE__);
-  }
-
-  //sql = "create table if not exists CollectionDocumentFile(FileKey int primary key, FileName text, FileDataLength int, foreign key(CollectionName) references CollectionMetadata(CollectionName))";
-  sql = "CREATE TABLE IF NOT EXISTS CollectionDocumentFile ("
-    "FileKey INT PRIMARY KEY, "
-    "FileName TEXT, "
-    "FileDataLength INT, "
-    "CollectionName TEXT)";
-  sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
-  if (sqliteCode != SQLITE_OK) {
-    std::string msg = sqlite3_errstr(sqliteCode);
-    throw SQLException(msg, __FILE__, __func__, __LINE__);
-  }
+  }  
 }
 
 void DatabaseMetadataManager::PrepareStatements() {
@@ -297,10 +286,9 @@ void jonoondb_api::DatabaseMetadataManager::GetExistingCollections(std::vector<C
           auto binDataSize = sqlite3_column_bytes(sqlStmt, 5);
           BufferImpl buffer((char*)binData, binDataSize,
                             binDataSize, StandardDeleteNoOp);
-          
-          collections.back().indexes.push_back(SerializerUtils::BytesToIndexInfo(buffer));          
-        }
 
+          collections.back().indexes.push_back(SerializerUtils::BytesToIndexInfo(buffer));
+        }
       } while ((code = sqlite3_step(sqlStmt)) == SQLITE_ROW);
     }
 
@@ -309,10 +297,83 @@ void jonoondb_api::DatabaseMetadataManager::GetExistingCollections(std::vector<C
       throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
     }
   }
-  
+
   // Now get the data files
   if (collections.size() > 0) {
+    static std::string sqlText = "SELECT c.CollectionName, "
+      "cdf.FileKey, cdf.FileName, cdf.FileDataLength "
+      "FROM Collection c LEFT JOIN CollectionDataFile cdf ON c.CollectionName = cdf.CollectionName "
+      "ORDER BY c.CollectionName, cdf.FileKey;";   
+    sqlite3_stmt* sqlStmt = nullptr;
 
+    int code =
+      sqlite3_prepare_v2(
+        m_metadataDBConnection.get(),
+        sqlText.c_str(),
+        sqlText.size(),
+        &sqlStmt,  // statement that is to be prepared
+        nullptr  // pointer to unused portion of stmt
+        );
+
+    if (code != SQLITE_OK) {
+      throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+    }
+
+    std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
+      sqlStmt, GuardFuncs::SQLite3Finalize);
+
+    code = sqlite3_step(sqlStmt);
+    int index = 0;
+    if (code == SQLITE_ROW) {
+      do {
+        std::string collectionName(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 0)),
+                                   sqlite3_column_bytes(sqlStmt, 0));
+        if (collections[index].name == collectionName) {
+          auto fileName = std::string(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 2)),
+                                      sqlite3_column_bytes(sqlStmt, 2));
+          if (fileName.size() > 0) {
+            FileInfo fi;
+            fi.fileKey = sqlite3_column_int(sqlStmt, 1);
+            fi.fileNameWithPath = m_dbPath + fileName;
+            fi.dataLength = sqlite3_column_int(sqlStmt, 3);
+            fi.fileName = std::move(fileName);
+            collections[index].dataFiles.push_back(std::move(fi));
+          }
+        } else {
+          // we are onto the next collection
+          index++;
+          if (index >= collections.size()) {
+            // Todo: remove this check once we have foreign key constraints in sqlite tables
+            // This means we have more records in CollectionDataFile table that do not have a corresponding
+            // collection record in Collection table. This should never happen.
+            std::ostringstream ss;
+            ss << "Error occured while trying to read data files for collection " << collectionName
+              << ". CollectionDataFiles have no corresponding collection.";
+            throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+          }
+
+          if (collections[index].name != collectionName) {
+            // this should never happen because we order the collections vector (the first query)
+            // and the current query on CollectionName
+            std::ostringstream ss;
+            ss << "Error occured while tring to read data files for collection " << collections[index].name
+              << ". The sort order of vector and sql resultset is not same.";
+            throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+          }
+
+          auto fileName = std::string(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 2)),
+                                      sqlite3_column_bytes(sqlStmt, 2));
+          if (fileName.size() > 0) {
+            FileInfo fi;
+            fi.fileKey = sqlite3_column_int(sqlStmt, 1);
+            fi.fileNameWithPath = m_dbPath + fileName;
+            fi.dataLength = sqlite3_column_int(sqlStmt, 3);
+            fi.fileName = std::move(fileName);
+            collections[index].dataFiles.push_back(std::move(fi));
+          }
+        }
+      } while ((code = sqlite3_step(sqlStmt)) == SQLITE_ROW);
+    }
   }
 }
 
