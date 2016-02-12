@@ -55,7 +55,7 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
   auto documentCollection = CreateCollectionInternal(name, schemaType, schema, indexes,
                                                      std::vector<FileInfo>());
 
-  //check if collection already exists
+  // check if collection already exists
   std::string colName = name;
   if (m_collectionContainer.find(colName) != m_collectionContainer.end()) {
     std::ostringstream ss;

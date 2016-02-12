@@ -37,9 +37,9 @@ BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager, bool compr
   m_readerFiles.Add(m_currentBlobFileInfo.fileKey, m_currentBlobFile, false);
 }
 
-BlobManager::~BlobManager(void) {
-  //Todo: Error handing
-  //We should persist the length of the current blob file
+BlobManager::~BlobManager() {
+  // Todo: Error handing
+  // We should persist the length of the current blob file
   if (m_fileNameManager && m_currentBlobFile) {
     try {
       m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
@@ -47,7 +47,6 @@ BlobManager::~BlobManager(void) {
       // Todo: Log this error, we should not throw exceptions from dtors
       // Google "throwing exceptions from destructors" to know why
     }
-
   }
 }
 
