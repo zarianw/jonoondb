@@ -34,10 +34,7 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
     std::vector<IndexInfoImpl*> indexes;
     auto documentCollection = CreateCollectionInternal(colInfo.name,
                                                        colInfo.schemaType, colInfo.schema,
-                                                       indexes);
-
-    // Add all the existing data in the collection
-
+                                                       indexes, colInfo.dataFiles);    
 
     m_queryProcessor->AddExistingCollection(documentCollection);
 
@@ -55,7 +52,8 @@ DatabaseImpl::~DatabaseImpl() {
 void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,
   const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
 
-  auto documentCollection = CreateCollectionInternal(name, schemaType, schema, indexes);
+  auto documentCollection = CreateCollectionInternal(name, schemaType, schema, indexes,
+                                                     std::vector<FileInfo>());
 
   //check if collection already exists
   std::string colName = name;
@@ -117,7 +115,7 @@ ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {
 
 std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
   const std::string& name, SchemaType schemaType, const std::string& schema,
-  const std::vector<IndexInfoImpl*>& indexes) {
+  const std::vector<IndexInfoImpl*>& indexes, const std::vector<FileInfo>& dataFilesToLoad) {
 
   //First create FileNameManager and BlobManager
   auto fnm = std::make_unique<FileNameManager>(m_dbMetadataMgrImpl->GetDBPath(),
@@ -131,5 +129,5 @@ std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
 
   return std::make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(),
                                               name, schemaType, schema,
-                                              indexes, move(bm));
+                                              indexes, move(bm), dataFilesToLoad);
 }

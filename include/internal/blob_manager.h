@@ -17,11 +17,6 @@ struct BlobMetadata;
 class BufferImpl;
 class FileNameManager;
 
-class BufferBatchIterator {
-  bool Next();
-  std::vector<BufferImpl> Current();
-};
-
 // This class is responsible for reading/writing blobs into the data files
 class BlobManager final {
 public:
@@ -48,5 +43,16 @@ private:
   ConcurrentLRUCache<int32_t, MemoryMappedFile> m_readerFiles;
   std::mutex m_writeMutex;
   bool m_synchronous;  
+};
+
+class BlobIterator {
+public:
+  BlobIterator(FileInfo fileInfo);
+  std::size_t GetNextBatch(std::vector<BufferImpl>& blobs,
+                           std::vector<BlobMetadata>& metadataVec);
+private:
+  MemoryMappedFile m_memMapFile;
+  std::int64_t m_currentPosition;
+  FileInfo m_fileInfo;
 };
 } // namespace jonoondb_api

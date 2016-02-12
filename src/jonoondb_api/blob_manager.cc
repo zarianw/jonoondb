@@ -7,6 +7,7 @@
 #include "blob_metadata.h"
 #include "filename_manager.h"
 #include "file.h"
+#include "standard_deleters.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -210,3 +211,52 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
 void BlobManager::UnmapLRUDataFiles() {
   m_readerFiles.PerformEviction();
 }
+
+BlobIterator::BlobIterator(FileInfo fileInfo) : 
+  m_memMapFile(fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadOnly, 0, true),
+  m_fileInfo(std::move(fileInfo)), m_currentPosition(0) {
+}
+
+std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
+                                       std::vector<BlobMetadata>& blobMetadataVec) {
+  assert(blobs.size() == blobMetadataVec.size());
+  assert(blobs.size() > 0);
+
+  std::size_t batchSize = 0;
+  
+  for (size_t i = 0; i < blobs.size(); i++) {
+    if (m_currentPosition >= m_fileInfo.dataLength) {
+      // We are at the end of file
+      break;
+    }
+
+    // Read the data from the file
+    char* offsetAddress = m_memMapFile.GetOffsetAddressAsCharPtr(m_currentPosition);
+
+    // Now read the header. 
+    // Header: CompressionEnabledFlag (1 Byte) + CRC (4 Bytes) + SizeOfBlob (8 bytes) + BlobData (SizeOfBlob)
+    bool compressionFlag;
+    int32_t crc;
+    uint64_t blobSize;
+
+    memcpy(&compressionFlag, offsetAddress, 1);
+    ++offsetAddress;
+
+    memcpy(&crc, offsetAddress, 4);
+    offsetAddress += 4;
+
+    memcpy(&blobSize, offsetAddress, 8);
+    offsetAddress += 8;
+
+    blobs[i] = std::move(BufferImpl(offsetAddress, blobSize, blobSize, StandardDeleteNoOp));
+    blobMetadataVec[i].fileKey = m_fileInfo.fileKey;
+    blobMetadataVec[i].offset = m_currentPosition;
+        
+    m_currentPosition += (1 + 4 + 8) + blobSize;
+    ++batchSize;
+  }
+
+  return batchSize;  
+}
+
+
