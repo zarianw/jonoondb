@@ -152,12 +152,14 @@ static int jonoondb_connect(sqlite3 *db, void *udp, int argc,
 }
 
 static int jonoondb_disconnect(sqlite3_vtab* vtab) {
-  delete vtab;  
+  jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
+  delete jdbVtab;
   return SQLITE_OK;
 }
 
 static int jonoondb_destroy(sqlite3_vtab* vtab) {
-  delete vtab;  
+  jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
+  delete jdbVtab;
   return SQLITE_OK;
 }
 

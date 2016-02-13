@@ -76,7 +76,8 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
 
       auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
       assert(startID == m_documentIDMap.size());
-      m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(), blobMetadataVec.end());
+      m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(),
+                             blobMetadataVec.begin() + actualBatchSize);
     }
   }
 }
