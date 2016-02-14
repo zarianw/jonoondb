@@ -428,10 +428,29 @@ TEST(Database, Ctor_ReOpen) {
   Database db(dbPath, dbName, opt);
 
   // Now see if we can read all the inserted data correctly
-  std::string sqlStmt = "SELECT [user.name] FROM " + collectionName1 + ";";
+  std::string sqlStmt = "SELECT id, text, [user.id], [user.name] FROM " + collectionName1 + ";";
   auto rs = db.ExecuteSelect(sqlStmt);
   auto rowCnt = 0;
   while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    std::string text = "hello_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
+    std::string name = "zarian_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 10);
+
+  // Now check collection2
+  sqlStmt = "SELECT id, text, [user.id], [user.name] FROM " + collectionName2 + ";";
+  rs = db.ExecuteSelect(sqlStmt);
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    std::string text = "hello_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
     std::string name = "zarian_" + std::to_string(rowCnt);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());
     rowCnt++;
@@ -455,7 +474,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
   db.MultiInsert("tweet", documents);
 
   int rowCnt = 0;
-  ResultSet rs = db.ExecuteSelect("SELECT * FROM tweet WHERE id < 5;");
+  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id < 5;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
     std::string text = "hello_" + std::to_string(rowCnt);
