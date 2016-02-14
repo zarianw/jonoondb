@@ -65,14 +65,18 @@ std::uint64_t IndexManager::IndexDocument(DocumentIDGenerator & documentIDGenera
 }
 
 std::uint64_t IndexManager::IndexDocuments(DocumentIDGenerator& documentIDGenerator,
-                                           const std::vector<std::unique_ptr<Document>>& documents) {
-  for (const auto& doc : documents) {
-    for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
-      for (const auto& indexer : columnIndexerMapPair.second) {
-        indexer->ValidateForInsert(*doc);
+                                           const std::vector<std::unique_ptr<Document>>& documents,
+                                           bool performValidation) {
+  if (performValidation) {
+    for (const auto& doc : documents) {
+      for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
+        for (const auto& indexer : columnIndexerMapPair.second) {
+          indexer->ValidateForInsert(*doc);
+        }
       }
     }
-  }  
+  }
+
   std::uint64_t startID = 0;
   {
     std::unique_lock<std::mutex> lock(m_mutex);

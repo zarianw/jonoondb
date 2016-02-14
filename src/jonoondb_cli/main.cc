@@ -66,8 +66,10 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     cout << "Loading DB ..." << endl;
 
     Options opt;
+    Stopwatch loadSW(true);
     Database db(dbPath, dbName, opt);
-    cout << "Loading Complete." << endl;
+    loadSW.Stop();
+    cout << "Loading completed in " << loadSW.ElapsedMilliSeconds() << " millisecs." << endl;
     std::string cmd;    
     boost::char_separator<char> sep(" ");  
     bool isTimerOn = false;
