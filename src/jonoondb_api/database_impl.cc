@@ -32,6 +32,11 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
   
   for (auto& colInfo : collectionsInfo) {
     std::vector<IndexInfoImpl*> indexes;
+    // Todo: make this conversion cleaner
+    for (auto& index : colInfo.indexes) {
+      indexes.push_back(&index);
+    }
+
     auto documentCollection = CreateCollectionInternal(colInfo.name,
                                                        colInfo.schemaType, colInfo.schema,
                                                        indexes, colInfo.dataFiles);    

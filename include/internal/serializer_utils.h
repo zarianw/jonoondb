@@ -27,7 +27,7 @@ public:
   static IndexInfoImpl BytesToIndexInfo(const BufferImpl& buffer) {
     auto fbObj = flatbuffers::GetRoot<IndexInfoFB>(buffer.GetData());
     auto indexName = std::string(fbObj->name()->c_str(), fbObj->name()->size());
-    auto columnName = std::string(fbObj->column()->c_str(), fbObj->name()->size());
+    auto columnName = std::string(fbObj->column()->c_str(), fbObj->column()->size());
 
     return IndexInfoImpl(std::move(indexName), static_cast<IndexType>(fbObj->type()),
                          std::move(columnName), fbObj->is_ascending());
