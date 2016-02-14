@@ -439,6 +439,37 @@ TEST(Database, Ctor_ReOpen) {
   ASSERT_EQ(rowCnt, 10);
 }
 
+TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_LessThanInteger", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes;
+  IndexInfo index("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true);
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text));
+  }
+  db.MultiInsert("tweet", documents);
+
+  int rowCnt = 0;
+  ResultSet rs = db.ExecuteSelect("SELECT * FROM tweet WHERE id < 5;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    std::string text = "hello_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());    
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
+    std::string name = "zarian_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());    
+    rowCnt++;
+  }
+
+  ASSERT_EQ(rowCnt, 5);
+}
+
 /*TEST(Database, Insert_100K) {
   string dbName = "Database_Insert_100K";
   string collectionName = "tweet";

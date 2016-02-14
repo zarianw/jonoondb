@@ -202,6 +202,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           }
         } else if (tokens[0] == "exit") {
           return 0;
+        } else {
+          cout << "Unknow command " << tokens[0] << "." << endl;
         }
       } catch (JonoonDBException& ex) {
         cout << ex.to_string() << endl;        
