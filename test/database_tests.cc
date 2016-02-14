@@ -443,8 +443,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
   Database db(g_TestRootDirectory, "ExecuteSelect_LessThanInteger", GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath);
-  std::vector<IndexInfo> indexes;
-  IndexInfo index("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true) };
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;

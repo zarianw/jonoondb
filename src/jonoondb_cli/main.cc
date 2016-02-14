@@ -67,12 +67,12 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
 
     Options opt;
     Database db(dbPath, dbName, opt);
+    cout << "Loading Complete." << endl;
     std::string cmd;    
     boost::char_separator<char> sep(" ");  
     bool isTimerOn = false;
     
     while (true) {
-      cout << "Loading Complete." << endl;
       cout << "JonoonDB> ";
       std::getline(std::cin, cmd);
       if (cmd.size() == 0)
