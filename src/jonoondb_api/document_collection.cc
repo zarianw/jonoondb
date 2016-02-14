@@ -20,14 +20,15 @@
 #include "blob_manager.h"
 #include "constraint.h"
 #include "buffer_impl.h"
+#include "file_info.h"
 
 using namespace jonoondb_api;
 
 DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePath,
   const std::string& name, SchemaType schemaType,
   const std::string& schema, const std::vector<IndexInfoImpl*>& indexes,
-  std::unique_ptr<BlobManager> blobManager) : m_blobManager(move(blobManager)),
-  m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
+  std::unique_ptr<BlobManager> blobManager, const std::vector<FileInfo>& dataFilesToLoad) :
+  m_blobManager(move(blobManager)), m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
   // Validate function arguments
   if (databaseMetadataFilePath.size() == 0) {
     throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.", __FILE__, __func__, __LINE__);
@@ -57,7 +58,28 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
   
   unordered_map<string, FieldType> columnTypes;
   PopulateColumnTypes(indexes, *m_documentSchema.get(), columnTypes);
-  m_indexManager.reset(new IndexManager(indexes, columnTypes));      
+  m_indexManager.reset(new IndexManager(indexes, columnTypes));    
+
+  // Load the data files
+  for (auto& file : dataFilesToLoad) {
+    BlobIterator iter(file);
+    const std::size_t desiredBatchSize = 10000;
+    std::vector<BufferImpl> blobs(desiredBatchSize);
+    std::vector<BlobMetadata> blobMetadataVec(desiredBatchSize);
+    std::size_t actualBatchSize = 0;
+
+    while ((actualBatchSize = iter.GetNextBatch(blobs, blobMetadataVec)) > 0) {
+      std::vector<std::unique_ptr<Document>> docs;
+      for (size_t i = 0; i < actualBatchSize; i++) {
+        docs.push_back(DocumentFactory::CreateDocument(m_documentSchema, blobs[i]));
+      }      
+
+      auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
+      assert(startID == m_documentIDMap.size());
+      m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(),
+                             blobMetadataVec.begin() + actualBatchSize);
+    }
+  }
 }
 
 void DocumentCollection::Insert(const BufferImpl& documentData) {

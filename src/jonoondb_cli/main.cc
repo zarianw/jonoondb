@@ -25,7 +25,7 @@ string ReadTextFile(const std::string& path) {
   if (!ifs.is_open()) {
     ostringstream ss;
     ss << "Failed to open file at path " << path << ".";
-    throw std::exception(ss.str().c_str());
+    throw std::runtime_error(ss.str().c_str());
   }
 
   std::string schema((std::istreambuf_iterator<char>(ifs)),
@@ -43,14 +43,14 @@ void PrintResultSet(ResultSet& rs) {
   for (std::int32_t i = 0; i < colCount; i++) {
     cout << rs.GetColumnLabel(i).str() << "|";
   }
-  cout << endl;
+  cout << "\n";
   
   // Print values
   while (rs.Next()) {
     for (std::int32_t i = 0; i < colCount; i++) {
       cout << rs.GetString(i).str() << "|";
     }
-    cout << endl;
+    cout << "\n";
   }
 }
 
@@ -61,11 +61,13 @@ void PrintTime(Stopwatch sw) {
 int StartJonoonDBCLI(string dbName, string dbPath) {
   try {
     cout << "JonoonDB - Lets change things." << "\n";
-    cout << "DBNAME: " << dbName << endl;
-    cout << "DBPATH: " << dbPath << endl;
+    cout << "DBNAME: " << dbName << "\n";
+    cout << "DBPATH: " << dbPath << "\n";
+    cout << "Loading DB ..." << endl;
 
     Options opt;
     Database db(dbPath, dbName, opt);
+    cout << "Loading Complete." << endl;
     std::string cmd;    
     boost::char_separator<char> sep(" ");  
     bool isTimerOn = false;
@@ -202,6 +204,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           }
         } else if (tokens[0] == "exit") {
           return 0;
+        } else {
+          cout << "Unknow command " << tokens[0] << "." << endl;
         }
       } catch (JonoonDBException& ex) {
         cout << ex.to_string() << endl;        

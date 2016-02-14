@@ -390,6 +390,104 @@ TEST(Database, MultiInsert) {
   ASSERT_EQ(rowCnt, 10);
 }
 
+TEST(Database, Ctor_ReOpen) {
+  string dbName = "Database_Ctor_ReOpen";
+  string collectionName1 = "tweet1";
+  string collectionName2 = "tweet2";
+  string dbPath = g_TestRootDirectory;
+  
+  {
+    //scope for database
+    Database db(dbPath, dbName, GetDefaultDBOptions());
+    string filePath = g_SchemaFolderPath + "tweet.fbs";
+    string schema = ReadTextFile(filePath);
+    std::vector<IndexInfo> indexes;
+    indexes.push_back(IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true));
+    indexes.push_back(IndexInfo("IndexName2", IndexType::EWAH_COMPRESSED_BITMAP, "text", true));
+    indexes.push_back(IndexInfo("IndexName3", IndexType::EWAH_COMPRESSED_BITMAP, "user.id", true));
+    indexes.push_back(IndexInfo("IndexName4", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true));
+
+    db.CreateCollection(collectionName1, SchemaType::FLAT_BUFFERS, schema, indexes);
+    db.CreateCollection(collectionName2, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+    std::vector<Buffer> documents;
+    for (size_t i = 0; i < 10; i++) {
+      std::string name = "zarian_" + std::to_string(i);
+      std::string text = "hello_" + std::to_string(i);
+      documents.push_back(GetTweetObject2(i, i, name, text));
+    }
+
+    db.MultiInsert(collectionName1, documents);
+    db.MultiInsert(collectionName2, documents);
+    // db will be closed on next line because of scope
+  }
+
+  //lets reopen the db
+  Options opt = GetDefaultDBOptions();
+  opt.SetCreateDBIfMissing(false);
+  Database db(dbPath, dbName, opt);
+
+  // Now see if we can read all the inserted data correctly
+  std::string sqlStmt = "SELECT id, text, [user.id], [user.name] FROM " + collectionName1 + ";";
+  auto rs = db.ExecuteSelect(sqlStmt);
+  auto rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    std::string text = "hello_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
+    std::string name = "zarian_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 10);
+
+  // Now check collection2
+  sqlStmt = "SELECT id, text, [user.id], [user.name] FROM " + collectionName2 + ";";
+  rs = db.ExecuteSelect(sqlStmt);
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    std::string text = "hello_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
+    std::string name = "zarian_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 10);
+}
+
+TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_LessThanInteger", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true) };
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text));
+  }
+  db.MultiInsert("tweet", documents);
+
+  int rowCnt = 0;
+  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id < 5;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    std::string text = "hello_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());    
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
+    std::string name = "zarian_" + std::to_string(rowCnt);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());    
+    rowCnt++;
+  }
+
+  ASSERT_EQ(rowCnt, 5);
+}
+
 /*TEST(Database, Insert_100K) {
   string dbName = "Database_Insert_100K";
   string collectionName = "tweet";

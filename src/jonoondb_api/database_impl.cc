@@ -14,17 +14,38 @@
 #include "filename_manager.h"
 #include "blob_manager.h"
 #include "document_collection_dictionary.h"
+#include "index_info_impl.h"
 
 using namespace jonoondb_api;
 
 DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
   const OptionsImpl& options) : m_options(options) {
   // Initialize DatabaseMetadataManager
-  m_dbMetadataMgrImpl = std::make_unique<DatabaseMetadataManager>(dbPath,
-    dbName, options.GetCreateDBIfMissing());
+  m_dbMetadataMgrImpl = std::make_unique<DatabaseMetadataManager>(
+    dbPath, dbName, options.GetCreateDBIfMissing());
 
   // Initialize query processor
-  m_queryProcessor = std::make_unique<QueryProcessor>(dbPath, dbName);  
+  m_queryProcessor = std::make_unique<QueryProcessor>(dbPath, dbName);
+
+  std::vector<CollectionMetadata> collectionsInfo;
+  m_dbMetadataMgrImpl->GetExistingCollections(collectionsInfo);
+  
+  for (auto& colInfo : collectionsInfo) {
+    std::vector<IndexInfoImpl*> indexes;
+    // Todo: make this conversion cleaner
+    for (auto& index : colInfo.indexes) {
+      indexes.push_back(&index);
+    }
+
+    auto documentCollection = CreateCollectionInternal(colInfo.name,
+                                                       colInfo.schemaType, colInfo.schema,
+                                                       indexes, colInfo.dataFiles);    
+
+    m_queryProcessor->AddExistingCollection(documentCollection);
+
+    m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
+    m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
+  }  
 }
 
 DatabaseImpl::~DatabaseImpl() {
@@ -36,15 +57,10 @@ DatabaseImpl::~DatabaseImpl() {
 void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,
   const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
 
-  //First create FileNameManager and BlobManager
-  auto fnm = std::make_unique<FileNameManager>(m_dbMetadataMgrImpl->GetDBPath(),
-    m_dbMetadataMgrImpl->GetDBName(), false);
-  auto bm = std::make_unique<BlobManager>(move(fnm), m_options.GetCompressionEnabled(), m_options.GetMaxDataFileSize(), m_options.GetSynchronous());
+  auto documentCollection = CreateCollectionInternal(name, schemaType, schema, indexes,
+                                                     std::vector<FileInfo>());
 
-  std::shared_ptr<DocumentCollection> documentCollection =
-    std::make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes, move(bm));
-
-  //check if collection already exists
+  // check if collection already exists
   std::string colName = name;
   if (m_collectionContainer.find(colName) != m_collectionContainer.end()) {
     std::ostringstream ss;
@@ -67,8 +83,8 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
     throw;
   }
 
-  m_collectionNameStore.push_back(colName);
-  m_collectionContainer[m_collectionNameStore.back()] = documentCollection;
+  m_collectionNameStore.push_back(std::make_unique<std::string>(colName));
+  m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
 }
 
 void DatabaseImpl::Insert(const char* collectionName,
@@ -100,4 +116,23 @@ void DatabaseImpl::MultiInsert(const boost::string_ref& collectionName,
 
 ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {
   return m_queryProcessor->ExecuteSelect(selectStatement);
+}
+
+std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
+  const std::string& name, SchemaType schemaType, const std::string& schema,
+  const std::vector<IndexInfoImpl*>& indexes, const std::vector<FileInfo>& dataFilesToLoad) {
+
+  //First create FileNameManager and BlobManager
+  auto fnm = std::make_unique<FileNameManager>(m_dbMetadataMgrImpl->GetDBPath(),
+                                               m_dbMetadataMgrImpl->GetDBName(),
+                                               name, false);
+
+  auto bm = std::make_unique<BlobManager>(move(fnm),
+                                          m_options.GetCompressionEnabled(),
+                                          m_options.GetMaxDataFileSize(),
+                                          m_options.GetSynchronous());
+
+  return std::make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(),
+                                              name, schemaType, schema,
+                                              indexes, move(bm), dataFilesToLoad);
 }

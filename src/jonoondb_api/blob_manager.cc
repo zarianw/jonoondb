@@ -7,6 +7,7 @@
 #include "blob_metadata.h"
 #include "filename_manager.h"
 #include "file.h"
+#include "standard_deleters.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -36,9 +37,9 @@ BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager, bool compr
   m_readerFiles.Add(m_currentBlobFileInfo.fileKey, m_currentBlobFile, false);
 }
 
-BlobManager::~BlobManager(void) {
-  //Todo: Error handing
-  //We should persist the length of the current blob file
+BlobManager::~BlobManager() {
+  // Todo: Error handing
+  // We should persist the length of the current blob file
   if (m_fileNameManager && m_currentBlobFile) {
     try {
       m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
@@ -46,7 +47,6 @@ BlobManager::~BlobManager(void) {
       // Todo: Log this error, we should not throw exceptions from dtors
       // Google "throwing exceptions from destructors" to know why
     }
-
   }
 }
 
@@ -210,3 +210,52 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
 void BlobManager::UnmapLRUDataFiles() {
   m_readerFiles.PerformEviction();
 }
+
+BlobIterator::BlobIterator(FileInfo fileInfo) : 
+  m_memMapFile(fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadOnly, 0, true),
+  m_fileInfo(std::move(fileInfo)), m_currentPosition(0) {
+}
+
+std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
+                                       std::vector<BlobMetadata>& blobMetadataVec) {
+  assert(blobs.size() == blobMetadataVec.size());
+  assert(blobs.size() > 0);
+
+  std::size_t batchSize = 0;
+  
+  for (size_t i = 0; i < blobs.size(); i++) {
+    if (m_currentPosition >= m_fileInfo.dataLength) {
+      // We are at the end of file
+      break;
+    }
+
+    // Read the data from the file
+    char* offsetAddress = m_memMapFile.GetOffsetAddressAsCharPtr(m_currentPosition);
+
+    // Now read the header. 
+    // Header: CompressionEnabledFlag (1 Byte) + CRC (4 Bytes) + SizeOfBlob (8 bytes) + BlobData (SizeOfBlob)
+    bool compressionFlag;
+    int32_t crc;
+    uint64_t blobSize;
+
+    memcpy(&compressionFlag, offsetAddress, 1);
+    ++offsetAddress;
+
+    memcpy(&crc, offsetAddress, 4);
+    offsetAddress += 4;
+
+    memcpy(&blobSize, offsetAddress, 8);
+    offsetAddress += 8;
+
+    blobs[i] = std::move(BufferImpl(offsetAddress, blobSize, blobSize, StandardDeleteNoOp));
+    blobMetadataVec[i].fileKey = m_fileInfo.fileKey;
+    blobMetadataVec[i].offset = m_currentPosition;
+        
+    m_currentPosition += (1 + 4 + 8) + blobSize;
+    ++batchSize;
+  }
+
+  return batchSize;  
+}
+
+
