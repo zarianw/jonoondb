@@ -43,14 +43,14 @@ void PrintResultSet(ResultSet& rs) {
   for (std::int32_t i = 0; i < colCount; i++) {
     cout << rs.GetColumnLabel(i).str() << "|";
   }
-  cout << endl;
+  cout << "\n";
   
   // Print values
   while (rs.Next()) {
     for (std::int32_t i = 0; i < colCount; i++) {
       cout << rs.GetString(i).str() << "|";
     }
-    cout << endl;
+    cout << "\n";
   }
 }
 
@@ -61,8 +61,9 @@ void PrintTime(Stopwatch sw) {
 int StartJonoonDBCLI(string dbName, string dbPath) {
   try {
     cout << "JonoonDB - Lets change things." << "\n";
-    cout << "DBNAME: " << dbName << endl;
-    cout << "DBPATH: " << dbPath << endl;
+    cout << "DBNAME: " << dbName << "\n";
+    cout << "DBPATH: " << dbPath << "\n";
+    cout << "Loading DB ..." << endl;
 
     Options opt;
     Database db(dbPath, dbName, opt);
@@ -71,6 +72,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     bool isTimerOn = false;
     
     while (true) {
+      cout << "Loading Complete." << endl;
       cout << "JonoonDB> ";
       std::getline(std::cin, cmd);
       if (cmd.size() == 0)
