@@ -245,7 +245,8 @@ public:
   }
 
   IndexInfo(const std::string& indexName, IndexType type, const std::string& columnName, bool isAscending) {
-    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), 0, columnName.c_str(), isAscending, ThrowOnError{});
+    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), static_cast<int32_t>(type),
+                                             columnName.c_str(), isAscending, ThrowOnError{});
   }
 
   IndexInfo(IndexInfo&& other) {
@@ -472,6 +473,24 @@ public:
   std::int32_t GetColumnIndex(std::string columnLabel) {
     return jonoondb_resultset_getcolumnindex(m_opaque, columnLabel.c_str(),
       columnLabel.size(), ThrowOnError{});
+  }
+
+  std::int32_t GetColumnCount() {
+    return jonoondb_resultset_getcolumncount(m_opaque);
+  }
+
+  SqlType GetColumnType(std::int32_t columnIndex) {
+    return static_cast<SqlType>(jonoondb_resultset_getcolumntype(
+      m_opaque, columnIndex, ThrowOnError{}));
+  }
+
+  StringView GetColumnLabel(std::int32_t columnIndex) {
+    std::uint64_t size;
+    std::uint64_t* sizePtr = &size;
+    const char* str = jonoondb_resultset_getcolumnlabel(m_opaque,
+                                                        columnIndex, &sizePtr,
+                                                        ThrowOnError{});
+    return StringView(str, size);
   }
   
 private:

@@ -7,6 +7,12 @@
 *.cproject
 *.project
 /unittests
+[Rr]elWithDebInfo/
+*.opendb
+*.dat
+*.dat-wal
+*.dat-shm
+*.[0123456789]
 
 #cmake
 CMakeCache.txt

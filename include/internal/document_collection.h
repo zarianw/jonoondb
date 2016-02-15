@@ -25,13 +25,14 @@ enum class SchemaType
 struct Constraint;
 class MamaJenniesBitmap;
 class BlobManager;
+class FileInfo;
 
 class DocumentCollection final {
  public:
    DocumentCollection(const std::string& databaseMetadataFilePath,
      const std::string& name, SchemaType schemaType,
      const std::string& schema, const std::vector<IndexInfoImpl*>& indexes,
-     std::unique_ptr<BlobManager> blobManager);  
+     std::unique_ptr<BlobManager> blobManager, const std::vector<FileInfo>& dataFilesToLoad);
 
   void Insert(const BufferImpl& documentData);
   void MultiInsert(gsl::span<const BufferImpl*>& documents);
@@ -42,9 +43,12 @@ class DocumentCollection final {
   std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
 
   //Document Access Functions
-  std::string GetDocumentFieldAsString(std::uint64_t docID, const std::string& fieldName) const;
-  std::int64_t GetDocumentFieldAsInteger(std::uint64_t docID, const std::string& fieldName) const;
-  double GetDocumentFieldAsDouble(std::uint64_t docID, const std::string& fieldName) const;
+  std::int64_t GetDocumentFieldAsInteger(std::uint64_t docID, std::vector<std::string>& tokens,
+                                         BufferImpl& buffer, std::unique_ptr<Document>& document) const;
+  double GetDocumentFieldAsDouble(std::uint64_t docID, std::vector<std::string>& tokens,
+                                  BufferImpl& buffer, std::unique_ptr<Document>& document) const;
+  std::string GetDocumentFieldAsString(std::uint64_t docID, std::vector<std::string>& tokens,
+                                       BufferImpl& buffer, std::unique_ptr<Document>& document) const;
 
  private:
   void PopulateColumnTypes(

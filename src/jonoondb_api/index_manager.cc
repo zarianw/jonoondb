@@ -65,14 +65,18 @@ std::uint64_t IndexManager::IndexDocument(DocumentIDGenerator & documentIDGenera
 }
 
 std::uint64_t IndexManager::IndexDocuments(DocumentIDGenerator& documentIDGenerator,
-                                           const std::vector<std::unique_ptr<Document>>& documents) {
-  for (const auto& doc : documents) {
-    for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
-      for (const auto& indexer : columnIndexerMapPair.second) {
-        indexer->ValidateForInsert(*doc);
+                                           const std::vector<std::unique_ptr<Document>>& documents,
+                                           bool performValidation) {
+  if (performValidation) {
+    for (const auto& doc : documents) {
+      for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
+        for (const auto& indexer : columnIndexerMapPair.second) {
+          indexer->ValidateForInsert(*doc);
+        }
       }
     }
-  }  
+  }
+
   std::uint64_t startID = 0;
   {
     std::unique_lock<std::mutex> lock(m_mutex);
@@ -118,14 +122,16 @@ std::shared_ptr<MamaJenniesBitmap> IndexManager::Filter(const std::vector<Constr
     // Todo: When we have different kinds of indexes, 
     // Add the logic to select the best index for the column  
     auto bm = columnIndexerIter->second[0]->Filter(constraint);
-    if (bm.size() == 0) {
+    // Todo: Uncomment the code below which is an optimization.
+    // But first we need a fast way to check if bitmap is empty.
+    /*if (bm->IsEmpty()) {
       // no need to proceed further as the AND opaeration will yield
       // an empty bitmap in the end
       bitmaps.clear();
       break;
-    }
-    bitmaps.insert(bitmaps.end(), bm.begin(), bm.end());    
+    }*/
+    bitmaps.push_back(bm);
   }
 
-  return MamaJenniesBitmap::LogicalAnd(bitmaps);  
+  return MamaJenniesBitmap::LogicalAND(bitmaps);  
 }

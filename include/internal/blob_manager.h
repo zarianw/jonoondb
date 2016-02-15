@@ -44,4 +44,15 @@ private:
   std::mutex m_writeMutex;
   bool m_synchronous;  
 };
+
+class BlobIterator {
+public:
+  BlobIterator(FileInfo fileInfo);
+  std::size_t GetNextBatch(std::vector<BufferImpl>& blobs,
+                           std::vector<BlobMetadata>& metadataVec);
+private:
+  MemoryMappedFile m_memMapFile;
+  std::int64_t m_currentPosition;
+  FileInfo m_fileInfo;
+};
 } // namespace jonoondb_api

@@ -26,13 +26,13 @@ public:
     EWAHCompressedBitmapIndexerDouble*& obj) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
-    if (StringUtils::IsNullOrEmpty(indexInfo.GetIndexName())) {
-      errorMsg = "Argument indexInfo has null or empty name.";
-    } else if (StringUtils::IsNullOrEmpty(indexInfo.GetColumnName())) {
-      errorMsg = "Argument indexInfo has null or empty column name.";
-    } else if (indexInfo.GetType() != IndexType::EWAHCompressedBitmap) {
+    if (indexInfo.GetIndexName().size() == 0) {
+      errorMsg = "Argument indexInfo has empty name.";
+    } else if (indexInfo.GetColumnName().size() == 0) {
+      errorMsg = "Argument indexInfo has empty column name.";
+    } else if (indexInfo.GetType() != IndexType::EWAH_COMPRESSED_BITMAP) {
       errorMsg =
-        "Argument indexInfo can only have IndexType EWAHCompressedBitmap for EWAHCompressedBitmapIndexer.";
+        "Argument indexInfo can only have IndexType EWAH_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
@@ -82,7 +82,7 @@ public:
     return m_indexStat;
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> Filter(const Constraint& constraint) override {
+  std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
@@ -140,7 +140,7 @@ private:
     }
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapEQ(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     if (constraint.operandType == OperandType::INTEGER) {
       auto iter = m_compressedBitmaps.find(constraint.operand.int64Val);
@@ -157,10 +157,10 @@ private:
 
     // In all other cases the operand cannot be equal. The cases are:
     // Operand is a string value, this should not happen because the query should fail before reaching this point   
-    return bitmaps;
+    return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapLT(const Constraint& constraint, bool orEqual) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint, bool orEqual) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;    
     
     if (constraint.operandType == OperandType::INTEGER) {
@@ -190,10 +190,10 @@ private:
 
     // In all other cases the operand cannot be equal. The cases are:
     // Operand is a string value, this should not happen because the query should fail before reaching this point   
-    return bitmaps;
+    return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapGT(const Constraint& constraint) {    
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint) {    
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     double operandVal;
     if (constraint.operandType == OperandType::DOUBLE) {
@@ -208,10 +208,10 @@ private:
       iter++;
     }   
     
-    return bitmaps;
+    return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-  std::vector<std::shared_ptr<MamaJenniesBitmap>> GetBitmapGTE(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(const Constraint& constraint) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     double operandVal;
     if (constraint.operandType == OperandType::DOUBLE) {
@@ -226,7 +226,7 @@ private:
       iter++;
     }
 
-    return bitmaps;
+    return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
   IndexStat m_indexStat;

@@ -27,8 +27,11 @@ class IndexManager {
   IndexManager(const std::vector<IndexInfoImpl*>& indexes, const std::unordered_map<std::string, FieldType>& columnTypes);
   void CreateIndex(const IndexInfoImpl& indexInfo, const std::unordered_map<std::string, FieldType>& columnTypes);
   std::uint64_t IndexDocument(DocumentIDGenerator& documentIDGenerator, const Document& document);
+  // performValidation flag must only be set to false on startup because if we run into exception during startup
+  // then we will not create Collection and consequently Database object. After startup we must set it to true for every call.
   std::uint64_t IndexDocuments(DocumentIDGenerator& documentIDGenerator,
-                               const std::vector<std::unique_ptr<Document>>& documents);
+                               const std::vector<std::unique_ptr<Document>>& documents,
+                               bool performValidation = true);
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
     IndexStat& indexStat);
   std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
