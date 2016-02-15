@@ -1,0 +1,14 @@
+namespace dbgen_converter;
+
+table SUPPLIER
+{
+S_SUPPKEY:int;
+S_NAME:string;
+S_ADDRESS:string;
+S_NATIONKEY:int;
+S_PHONE:string;
+S_ACCTBAL:double;
+S_COMMENT:string;
+}
+
+root_type SUPPLIER;

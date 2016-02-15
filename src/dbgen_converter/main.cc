@@ -1,15 +1,15 @@
 #include <iostream>
 #include <fstream>
 #include <boost/tokenizer.hpp>
-#include "C:\code\jonoondb\test\schemas\flatbuffers\region_generated.h"
-#include "C:\code\jonoondb\test\schemas\flatbuffers\nation_generated.h"
-#include "C:\code\jonoondb\test\schemas\flatbuffers\lineitem_generated.h"
-#include "C:\code\jonoondb\test\schemas\flatbuffers\partsupp_generated.h"
-#include "C:\code\jonoondb\test\schemas\flatbuffers\part_generated.h"
-#include "C:\code\jonoondb\test\schemas\flatbuffers\orders_generated.h"
 #include "flatbuffers/flatbuffers.h"
+#include "dbgen_converter/region_generated.h"
+#include "dbgen_converter/nation_generated.h"
+#include "dbgen_converter/lineitem_generated.h"
+#include "dbgen_converter/partsupp_generated.h"
+#include "dbgen_converter/part_generated.h"
+#include "dbgen_converter/orders_generated.h"
 
-using namespace dbgen_loader;
+using namespace dbgen_converter;
 using namespace std;
 using namespace boost;
 using namespace flatbuffers;
@@ -24,14 +24,20 @@ int main(int argc, char **argv) {
 
   cout << "DBGen Tool." << endl;
 
+  if (argc != 2) {
+    cout << "Usage: dbgen_converter DIRECTORY_PATH" << endl;
+    return 1;
+  }
+
+  string directoryPath = argv[1];
 
   // - Read csv (*.tbl) files line by line
   // - For each line (record) generate a corresponding flatbuffer object using the generated headers.
   // - (Inside the loop) Write the size of the object (which is a int) in a output file
   //    then write the object in the same file
   // Loop END
-  {
-    string filePath("C:/code/tpch_2_14_3/dbgen/region.tbl");
+  {    
+    string filePath(directoryPath + "region.tbl");
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -40,8 +46,9 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    std::remove("region.fb");
-    ofstream outputFile("region.fb", ios::binary);
+    string destFilePath = directoryPath + "region.fb";
+    std::remove(destFilePath.c_str());
+    ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
 
     while (getline(file, line))
@@ -51,10 +58,10 @@ int main(int argc, char **argv) {
 
       // create region flatbuffer object here
       FlatBufferBuilder fbb;
-      auto R_NAME = fbb.CreateString(tokens[1]);
+      auto name = fbb.CreateString(tokens[1]);
       auto R_COMMENT = fbb.CreateString(tokens[2]);
       auto R_REGIONKEY = stoi(tokens[0]);
-      auto region = CreateREGION(fbb, R_REGIONKEY, R_NAME, R_COMMENT);
+      auto region = CreateREGION(fbb, R_REGIONKEY, name, R_COMMENT);
       fbb.Finish(region);
 
       // Now write the object size std::int32_t (4 Bytes) and the object data
