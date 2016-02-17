@@ -96,7 +96,6 @@ int main(int argc, char **argv) {
       int32_t size = static_cast<int32_t>(fbb.GetSize());
       outputFile.write(reinterpret_cast<char*>(&size), sizeof(int32_t));
       outputFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), size);
-
     }
   }
   {
