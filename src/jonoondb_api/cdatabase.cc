@@ -117,9 +117,10 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
 IndexType ToIndexType(std::int32_t type) {
   switch (static_cast<IndexType>(type)) {
     case IndexType::EWAH_COMPRESSED_BITMAP:
-      return static_cast<IndexType>(type);
+    case IndexType::VECTOR:
+      return static_cast<IndexType>(type);    
     default:
-      throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAH_COMPRESSED_BITMAP = 1}.",
+      throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAH_COMPRESSED_BITMAP = 1, VECTOR = 2}.",
         __FILE__, __func__, __LINE__);
   }
 }

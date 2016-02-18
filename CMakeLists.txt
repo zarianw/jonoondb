@@ -99,6 +99,7 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/file.h
  ${INCLUDE_INTERNAL_PATH}/object_pool.h
  ${INCLUDE_INTERNAL_PATH}/path_utils.h
+ ${INCLUDE_INTERNAL_PATH}/vector_integer_indexer.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_INTERNAL_PATH}/database_impl.h

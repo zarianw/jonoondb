@@ -162,6 +162,15 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  // First lets see if we can get this value from any index
+  std::int64_t val;
+  // Todo: use full column name instead of tokens
+  if (m_indexManager->TryGetIntegerValue(docID, tokens[0], val)) {
+    if(document)
+      document.reset();
+    return val;
+  }
+
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
     
   document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
@@ -183,7 +192,7 @@ double DocumentCollection::GetDocumentFieldAsDouble(
 
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
+    ss << "Document with ID '" << docID << "' does not exist in collection " << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
@@ -209,7 +218,7 @@ std::string DocumentCollection::GetDocumentFieldAsString(
 
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
+    ss << "Document with ID '" << docID << "' does not exist in collection " << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 

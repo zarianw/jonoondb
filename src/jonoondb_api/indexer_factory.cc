@@ -6,6 +6,7 @@
 #include "ewah_compressed_bitmap_indexer_string.h"
 #include "ewah_compressed_bitmap_indexer_double.h"
 #include "jonoondb_exceptions.h"
+#include "vector_integer_indexer.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -30,6 +31,14 @@ Indexer* IndexerFactory::CreateIndexer(
         return static_cast<Indexer*>(ewahIndexer);
       }
     }
+    case IndexType::VECTOR: {
+      if (fieldType == FieldType::BASE_TYPE_STRING) {
+      } else if (fieldType == FieldType::BASE_TYPE_DOUBLE) {
+      } else {
+        return new VectorIntegerIndexer(indexInfo, fieldType);
+      }
+    }
+
     default:
       std::ostringstream ss;
       ss << "Cannot create Indexer. Index type '" << static_cast<int32_t>(indexInfo.GetType()) << "' is unknown.";

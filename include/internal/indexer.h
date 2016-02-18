@@ -3,7 +3,6 @@
 #include <memory>
 
 namespace jonoondb_api {
-
 // Forward declarations
 class IndexInfoImpl;
 class Document;
@@ -21,5 +20,8 @@ class Indexer {
   virtual void Insert(std::uint64_t documentID, const Document& document) = 0;
   virtual const IndexStat& GetIndexStats() = 0;
   virtual std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) = 0;
+  virtual bool TryGetIntegerValue(std::uint64_t documentID, std::int64_t& val) {
+    return false;
+  }
 };
-}
+} // namespace jonoondb_api

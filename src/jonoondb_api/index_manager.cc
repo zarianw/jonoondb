@@ -135,3 +135,19 @@ std::shared_ptr<MamaJenniesBitmap> IndexManager::Filter(const std::vector<Constr
 
   return MamaJenniesBitmap::LogicalAND(bitmaps);  
 }
+
+bool jonoondb_api::IndexManager::TryGetIntegerValue(std::uint64_t documentID,
+                                                    const std::string& columnName,
+                                                    std::int64_t& val) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
+        indexer->TryGetIntegerValue(documentID, val);
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
