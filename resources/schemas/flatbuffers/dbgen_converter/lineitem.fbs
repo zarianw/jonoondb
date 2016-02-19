@@ -1,0 +1,23 @@
+namespace dbgen_converter;
+
+table LINEITEM
+{
+L_ORDERKEY:int;
+L_PARTKEY:int;
+L_SUPPKEY:int;
+L_LINENUMBER:int;
+L_QUANTITY:double;
+L_EXTENDEDPRICE:double;
+L_DISCOUNT:double;
+L_TAX:double;
+L_RETURNFLAG:string;
+L_LINESTATUS:string;
+L_SHIPDATE:string;
+L_COMMITDATE:string;
+L_RECEIPTDATE:string;
+L_SHIPINSTRUCT:string;
+L_SHIPMODE:string;
+L_COMMENT:string;
+}
+
+root_type LINEITEM;

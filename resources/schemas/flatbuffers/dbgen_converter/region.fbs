@@ -1,0 +1,10 @@
+namespace dbgen_converter;
+
+table REGION
+{
+R_REGIONKEY:int;
+R_NAME:string;
+R_COMMENT:string;
+}
+
+root_type REGION;
