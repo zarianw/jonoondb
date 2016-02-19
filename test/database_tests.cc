@@ -15,25 +15,6 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
 
-void CreateInsertTweet(Database& db, std::string& collectionName, bool createIndexes, int numToInsert) {
-  string filePath = g_SchemaFolderPath + "tweet.fbs";
-  string schema = ReadTextFile(filePath);
-  std::vector<IndexInfo> indexes;
-  if (createIndexes) {
-    IndexInfo index;
-    index.SetIndexName("IndexName1");
-    index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
-    index.SetIsAscending(true);
-    index.SetColumnName("user.name");
-    indexes.push_back(index);
-  }
-
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
-  
-  Buffer documentData = GetTweetObject2();
-  db.Insert(collectionName, documentData);
-}
-
 TEST(Database, Ctor_InvalidArguments) {
   Options options;
   ASSERT_THROW(Database db("somePath", "", options), InvalidArgumentException);
@@ -141,8 +122,9 @@ TEST(Database, Insert_NoIndex) {
   
   std::vector<IndexInfo> indexes;
   db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);  
-
-  Buffer documentData = GetTweetObject2();
+  std::string name = "Zarian";
+  std::string text = "Say hello to my little friend!";
+  Buffer documentData = GetTweetObject2(1, 1, name, text, 2.0);
   db.Insert(collectionName, documentData);
 }
 
@@ -164,8 +146,10 @@ TEST(Database, Insert_SingleIndex) {
 
   db.CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
                                   schema.c_str(), indexes);
+  std::string name = "Zarian";
+  std::string text = "Say hello to my little friend!";
+  Buffer documentData = GetTweetObject2(1, 1, name, text, 2.0);  
   
-  Buffer documentData = GetTweetObject2();
   db.Insert(collectionName, documentData);
 }
 
@@ -257,7 +241,16 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
 
-  CreateInsertTweet(db, collectionName, true, 1);
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::string name = "Zarian";
+  std::string text = "Say hello to my little friend!";
+  Buffer documentData = GetTweetObject2(1, 1, name, text, 2.0);
+  db.Insert(collectionName, documentData);
+
   int rows = 0;
   ResultSet rs = db.ExecuteSelect("select * from tweet where [user.name] = 'Zarian'");
   while (rs.Next()) {
@@ -297,7 +290,9 @@ TEST(Database, ExecuteSelect_Testing) {
   indexes.push_back(index);
   db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
-  Buffer documentData = GetTweetObject2();
+  std::string name = "Zarian";
+  std::string text = "Say hello to my little friend!";
+  Buffer documentData = GetTweetObject2(1, 1, name, text, 2.0);
   db.Insert(collectionName, documentData);
   
   int rows = 0;
@@ -374,7 +369,7 @@ TEST(Database, MultiInsert) {
     
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text));
+    documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
   }
 
   db.MultiInsert(collectionName, documents);
@@ -414,7 +409,7 @@ TEST(Database, Ctor_ReOpen) {
     for (size_t i = 0; i < 10; i++) {
       std::string name = "zarian_" + std::to_string(i);
       std::string text = "hello_" + std::to_string(i);
-      documents.push_back(GetTweetObject2(i, i, name, text));
+      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
     }
 
     db.MultiInsert(collectionName1, documents);
@@ -469,7 +464,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text));
+    documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
   }
   db.MultiInsert("tweet", documents);
 
@@ -482,6 +477,40 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
     std::string name = "zarian_" + std::to_string(rowCnt);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());    
+    rowCnt++;
+  }
+
+  ASSERT_EQ(rowCnt, 5);
+}
+
+TEST(Database, ExecuteSelect_VectorIndexer) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_VectorIndexer", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
+    IndexInfo("IndexName2", IndexType::VECTOR, "rating", true) };
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+  }
+  db.MultiInsert("tweet", documents);
+
+  int rowCnt = 0;
+  ResultSet rs = db.ExecuteSelect("SELECT id, rating FROM tweet WHERE id < 5;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    ASSERT_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), double(rowCnt));
+    rowCnt++;
+  }
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating FROM tweet WHERE rating < 5.0;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    ASSERT_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), double(rowCnt));
     rowCnt++;
   }
 

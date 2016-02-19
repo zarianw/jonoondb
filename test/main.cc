@@ -39,24 +39,9 @@ string ReadTextFile(const std::string& path) {
   return schema;
 }
 
-Buffer GetTweetObject2() {
-  // create user object
-  FlatBufferBuilder fbb;
-  auto name = fbb.CreateString("Zarian");
-  auto user = CreateUser(fbb, name, 1);
-
-  // create tweet
-  auto text = fbb.CreateString("Say hello to my little friend!");
-  auto tweet = CreateTweet(fbb, 1, text, user);
-
-  fbb.Finish(tweet);
-  auto size = fbb.GetSize();
-  Buffer buffer((char*)fbb.GetBufferPointer(), size, size);
-  return buffer;
-}
-
 Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
-                       std::string& nameStr, std::string& textStr) {
+                       std::string& nameStr, std::string& textStr,
+                       double rating) {
   // create user object
   FlatBufferBuilder fbb;
   auto name = fbb.CreateString(nameStr);
@@ -64,7 +49,7 @@ Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
 
   // create tweet
   auto text = fbb.CreateString(textStr);
-  auto tweet = CreateTweet(fbb, tweetId, text, user);
+  auto tweet = CreateTweet(fbb, tweetId, text, user, rating);
 
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
@@ -85,13 +70,7 @@ BufferImpl GetTweetObject() {
 
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
-  BufferImpl buffer;
-  if (size > buffer.GetCapacity()) {
-    buffer.Resize(size);    
-  }
-  buffer.Copy((char*) fbb.GetBufferPointer(), size);
-  
-  return buffer;
+  return BufferImpl((char*)fbb.GetBufferPointer(), size, size);
 }
 
 void RemoveAndCreateFile(const char* path, size_t fileSize) {

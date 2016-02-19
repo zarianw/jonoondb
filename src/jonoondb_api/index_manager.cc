@@ -136,18 +136,32 @@ std::shared_ptr<MamaJenniesBitmap> IndexManager::Filter(const std::vector<Constr
   return MamaJenniesBitmap::LogicalAND(bitmaps);  
 }
 
-bool jonoondb_api::IndexManager::TryGetIntegerValue(std::uint64_t documentID,
-                                                    const std::string& columnName,
-                                                    std::int64_t& val) {
+bool IndexManager::TryGetIntegerValue(std::uint64_t documentID,
+                                      const std::string& columnName,
+                                      std::int64_t& val) {
   auto columnIndexerIter = m_columnIndexerMap->find(columnName);
   if (columnIndexerIter != m_columnIndexerMap->end()) {
     for (auto& indexer : columnIndexerIter->second) {
       if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
-        indexer->TryGetIntegerValue(documentID, val);
-        return true;
+        return indexer->TryGetIntegerValue(documentID, val);        
       }
     }
   }
-  
+
+  return false;
+}
+
+bool IndexManager::TryGetDoubleValue(std::uint64_t documentID,
+                                     const std::string& columnName,
+                                     double& val) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
+        return indexer->TryGetDoubleValue(documentID, val);        
+      }
+    }
+  }
+
   return false;
 }

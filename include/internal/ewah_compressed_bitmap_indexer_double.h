@@ -148,7 +148,6 @@ private:
         bitmaps.push_back(iter->second);
       }
     } else if (constraint.operandType == OperandType::DOUBLE) {
-      // Check if double has no fractional part      
       auto iter = m_compressedBitmaps.find(constraint.operand.doubleVal);
       if (iter != m_compressedBitmaps.end()) {
         bitmaps.push_back(iter->second);

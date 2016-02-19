@@ -196,6 +196,15 @@ double DocumentCollection::GetDocumentFieldAsDouble(
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  // First lets see if we can get this value from any index
+  double val;
+  // Todo: use full column name instead of tokens
+  if (m_indexManager->TryGetDoubleValue(docID, tokens[0], val)) {
+    if (document)
+      document.reset();
+    return val;
+  }
+
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
 
   document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
