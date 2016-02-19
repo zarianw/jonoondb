@@ -1,0 +1,11 @@
+namespace dbgen_converter;
+
+table NATION	
+{
+  N_NATIONKEY:int;
+  N_NAME:string;
+  N_REGIONKEY:int;
+  N_COMMENT:string;
+}
+
+root_type NATION;

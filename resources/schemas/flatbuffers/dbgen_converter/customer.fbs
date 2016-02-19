@@ -1,0 +1,15 @@
+namespace dbgen_converter;
+
+table CUSTOMER
+{
+  C_CUSTKEY:int;
+  C_NAME:string;
+  C_ADDRESS:string;
+  C_NATIONKEY:int;
+  C_PHONE:int;
+  C_ACCTBAL:double;
+  C_MKTSEGMENT:string;
+  C_COMMENT:string;
+}
+
+root_type CUSTOMER;

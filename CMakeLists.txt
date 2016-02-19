@@ -134,6 +134,7 @@ add_subdirectory(${GTEST_PATH} ${GTEST_PATH}/bin)
 enable_testing(true)
 include_directories(${gtest_SOURCE_DIR}/include)
 
+# jonoondb_test
 add_executable(
  jonoondb_test
  ${TEST_PATH}/test_utils.h
@@ -162,3 +163,9 @@ add_executable(
  jonoondb_cli
  ${SRC_PATH}/jonoondb_cli/main.cc)
 target_link_libraries(jonoondb_cli jonoondb_api ${Boost_LIBRARIES})
+
+# dbgen_converter
+add_executable(
+ dbgen_converter
+ ${SRC_PATH}/dbgen_converter/main.cc)
+target_link_libraries(dbgen_converter ${Boost_LIBRARIES})

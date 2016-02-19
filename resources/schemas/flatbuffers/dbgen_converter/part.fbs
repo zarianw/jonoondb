@@ -1,0 +1,16 @@
+namespace dbgen_converter;
+
+table PART
+{
+P_PARTKEY:int;
+P_NAME:string;
+P_MFGR:string;
+P_BRAND:string;
+P_TYPE:string;
+P_SIZE:int;
+P_CONTAINER:string;	
+P_RETAILPRICE:double;	
+P_COMMENT:string;
+}
+
+root_type PART;
