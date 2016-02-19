@@ -86,11 +86,11 @@ int main(int argc, char **argv) {
       tokens.assign(tok.begin(), tok.end());
 
       FlatBufferBuilder fbb;
-      auto N_NAME = fbb.CreateString(tokens[1]);
-      auto N_COMMENT = fbb.CreateString(tokens[3]);
+      auto name = fbb.CreateString(tokens[1]);
+      auto comment = fbb.CreateString(tokens[3]);
       auto nationKey = stoi(tokens[0]);
       auto regionKey = stoi(tokens[2]);
-      auto nation = CreateNATION(fbb, nationKey, N_NAME, regionKey, N_COMMENT);
+      auto nation = CreateNATION(fbb, nationKey, name, regionKey, comment);
       fbb.Finish(nation);
 
       int32_t size = static_cast<int32_t>(fbb.GetSize());
@@ -98,6 +98,7 @@ int main(int argc, char **argv) {
       outputFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), size);
     }
   }
+
   {
     string filePath(directoryPath + "lineitem.tbl");
 
@@ -135,16 +136,15 @@ int main(int argc, char **argv) {
       auto discount = stod(tokens[6]);
       auto tax = stod(tokens[7]);
       auto lineItem = CreateLINEITEM(fbb, orderKey, partKey, suppKey, lineNumber, quantity, extendedPrice,
-        discount, tax, returnFlag, lineStatus, shipDate, commitDate, receiptDate, shipInstruct, shipMode, comment);
+                                     discount, tax, returnFlag, lineStatus, shipDate, commitDate, receiptDate, shipInstruct, shipMode, comment);
 
       fbb.Finish(lineItem);
       int32_t size = static_cast<int32_t>(fbb.GetSize());
       outputFile.write(reinterpret_cast<char*>(&size), sizeof(int32_t));
       outputFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), size);
-
     }
-
   }
+
   {
     string filePath(directoryPath + "partsupp.tbl");
 
@@ -209,7 +209,6 @@ int main(int argc, char **argv) {
       int32_t size = static_cast<int32_t>(fbb.GetSize()); // get size of the flat buffer
       outputFile.write(reinterpret_cast<char*>(&size), sizeof(int32_t));
       outputFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), size);
-
     }
   }
 
