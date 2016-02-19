@@ -84,14 +84,12 @@ public:
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
-        return GetBitmapLT(constraint);
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN:        
       case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
-        return GetBitmapLTE(constraint);
-      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
-        return GetBitmapGT(constraint);
+        return GetBitmapLT(constraint);
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:        
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
-        return GetBitmapGTE(constraint);
+        return GetBitmapGT(constraint);
       case jonoondb_api::IndexConstraintOperator::MATCH:
         // TODO: Handle this
       default:
@@ -203,29 +201,11 @@ private:
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapLTE(const Constraint& constraint) {
-    auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    int64_t ceiling;
-    if (constraint.operandType == OperandType::DOUBLE) {
-      ceiling = static_cast<int64_t>(std::ceil(constraint.operand.doubleVal));
-    } else {
-      ceiling = constraint.operand.int64Val;
-    }
-
-    for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] <= ceiling) {
-        bitmap->Add(i);
-      }
-    }
-
-    return bitmap;
-  }
-
   std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     int64_t operandVal;
     if (constraint.operandType == OperandType::DOUBLE) {
-      operandVal = static_cast<int64_t>(std::ceil(constraint.operand.doubleVal));
+      operandVal = static_cast<int64_t>(std::floor(constraint.operand.doubleVal));
     } else {
       operandVal = constraint.operand.int64Val;
     }
@@ -237,25 +217,7 @@ private:
     }
 
     return bitmap;
-  }
-
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(const Constraint& constraint) {
-    auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    int64_t operandVal;
-    if (constraint.operandType == OperandType::DOUBLE) {
-      operandVal = static_cast<int64_t>(std::ceil(constraint.operand.doubleVal));
-    } else {
-      operandVal = constraint.operand.int64Val;
-    }
-
-    for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] >= operandVal) {
-        bitmap->Add(i);
-      }
-    }
-
-    return bitmap;
-  }
+  }  
 
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
