@@ -488,7 +488,8 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath);
   std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
-    IndexInfo("IndexName2", IndexType::VECTOR, "rating", true) };
+    IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
+    IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true) };
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
@@ -506,14 +507,25 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
     ASSERT_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), double(rowCnt));
     rowCnt++;
   }
+  ASSERT_EQ(rowCnt, 5);
 
+  rowCnt = 0;
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating FROM tweet WHERE rating < 5.0;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
     ASSERT_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), double(rowCnt));
     rowCnt++;
   }
+  ASSERT_EQ(rowCnt, 5);
 
+  rowCnt = 0;
+  rs = db.ExecuteSelect("SELECT id, rating, [user.id] FROM tweet WHERE [user.id] < 5;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
+    ASSERT_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), double(rowCnt));
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
+    rowCnt++;
+  }
   ASSERT_EQ(rowCnt, 5);
 }
 

@@ -34,7 +34,10 @@ Indexer* IndexerFactory::CreateIndexer(
     }
     case IndexType::VECTOR: {
       if (fieldType == FieldType::BASE_TYPE_STRING) {
-      } else if (fieldType == FieldType::BASE_TYPE_DOUBLE) {
+        throw JonoonDBException("VECTOR indexer is not yet supported for field of type string.",
+                                __FILE__, __func__, __LINE__);
+      } else if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
+                 fieldType == FieldType::BASE_TYPE_FLOAT32) {
         return new VectorDoubleIndexer(indexInfo, fieldType);
       } else {
         return new VectorIntegerIndexer(indexInfo, fieldType);
