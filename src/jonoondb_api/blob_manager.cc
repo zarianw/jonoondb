@@ -37,19 +37,6 @@ BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager, bool compr
   m_readerFiles.Add(m_currentBlobFileInfo.fileKey, m_currentBlobFile, false);
 }
 
-BlobManager::~BlobManager() {
-  // Todo: Error handing
-  // We should persist the length of the current blob file
-  if (m_fileNameManager && m_currentBlobFile) {
-    try {
-      m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
-    } catch (std::exception&) {
-      // Todo: Log this error, we should not throw exceptions from dtors
-      // Google "throwing exceptions from destructors" to know why
-    }
-  }
-}
-
 void BlobManager::SwitchToNewDataFile() {
   FileInfo fileInfo;
   m_fileNameManager->GetNextDataFileInfo(fileInfo);
@@ -113,12 +100,15 @@ void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata) {
     m_currentBlobFile->SetCurrentWriteOffset(currentOffsetInFile);
     throw;
   }
+
+  // Set the file length
+  m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
 }
 
 void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs, std::vector<BlobMetadata>& blobMetadataVec) {
   assert(blobs.size() == blobMetadataVec.size());
   size_t bytesWritten = 0, totalBytesWrittenInFile = 0;
-  //Lock will be acquired on the next line and released when lock goes out of scope  
+  // Lock will be acquired on the next line and released when lock goes out of scope  
   lock_guard<mutex> lock(m_writeMutex);  
   size_t baseOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();  
   int headerSize = 1 + 4 + 8;
@@ -126,18 +116,18 @@ void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs, std::vector<BlobM
     size_t currentOffset = m_currentBlobFile->GetCurrentWriteOffset();
 
     if (blobs[i]->GetLength() + headerSize + currentOffset > m_maxDataFileSize) {
-      //The file size will exceed the m_maxDataFileSize if blob is written in the current file
-      //First flush the contents if required
+      // The file size will exceed the m_maxDataFileSize if blob is written in the current file
+      // First flush the contents if required
       try {
         Flush(baseOffsetInFile, totalBytesWrittenInFile);
       } catch (...) {
         m_currentBlobFile->SetCurrentWriteOffset(baseOffsetInFile);
         throw;
       }
-      //Now lets switch to a new file
+      // Now lets switch to a new file
       SwitchToNewDataFile();
 
-      //Reset baseOffset and totalBytesWritten
+      // Reset baseOffset and totalBytesWritten
       baseOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();
       totalBytesWrittenInFile = 0;
     }
@@ -152,13 +142,16 @@ void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs, std::vector<BlobM
     totalBytesWrittenInFile += bytesWritten;
   }
 
-  //Flush to make sure all blobs are written to disk
+  // Flush to make sure all blobs are written to disk
   try {
     Flush(baseOffsetInFile, totalBytesWrittenInFile);
   } catch (...) {
     m_currentBlobFile->SetCurrentWriteOffset(baseOffsetInFile);
     throw;
   }
+
+  // Set the file length
+  m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
 }
 
 inline void BlobManager::Flush(size_t offset, size_t numBytes) {

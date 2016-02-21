@@ -43,40 +43,18 @@ void IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
   (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));  
 }
 
-std::uint64_t IndexManager::IndexDocument(DocumentIDGenerator & documentIDGenerator,
-                                          const Document & document) {
-  for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
-    for (const auto& indexer : columnIndexerMapPair.second) {
-      indexer->ValidateForInsert(document);      
-    }
-  }
-  std::uint64_t documentID = 0;  
-  {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    documentID = documentIDGenerator.ReserveID(1);
+void IndexManager::ValidateForIndexing(const std::vector<std::unique_ptr<Document>>& documents) {
+  for (const auto& doc : documents) {
     for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
       for (const auto& indexer : columnIndexerMapPair.second) {
-        indexer->Insert(documentID, document);
+        indexer->ValidateForInsert(*doc);
       }
     }
   }
-
-  return documentID;
 }
 
 std::uint64_t IndexManager::IndexDocuments(DocumentIDGenerator& documentIDGenerator,
-                                           const std::vector<std::unique_ptr<Document>>& documents,
-                                           bool performValidation) {
-  if (performValidation) {
-    for (const auto& doc : documents) {
-      for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
-        for (const auto& indexer : columnIndexerMapPair.second) {
-          indexer->ValidateForInsert(*doc);
-        }
-      }
-    }
-  }
-
+                                           const std::vector<std::unique_ptr<Document>>& documents) {
   std::uint64_t startID = 0;
   {
     std::unique_lock<std::mutex> lock(m_mutex);

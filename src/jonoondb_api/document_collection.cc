@@ -72,9 +72,9 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
       std::vector<std::unique_ptr<Document>> docs;
       for (size_t i = 0; i < actualBatchSize; i++) {
         docs.push_back(DocumentFactory::CreateDocument(m_documentSchema, blobs[i]));
-      }      
+      }
 
-      auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs, false);
+      auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
       assert(startID == m_documentIDMap.size());
       m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(),
                              blobMetadataVec.begin() + actualBatchSize);
@@ -83,28 +83,32 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
 }
 
 void DocumentCollection::Insert(const BufferImpl& documentData) {
-  auto doc = DocumentFactory::CreateDocument(m_documentSchema, documentData);
-  BlobMetadata blobMetadata;
-  m_blobManager->Put(documentData, blobMetadata);
-  
-  // Index the document
-  auto id = m_indexManager->IndexDocument(m_documentIDGenerator, *doc.get());
- 
-  m_documentIDMap.push_back(blobMetadata);
-  assert(m_documentIDMap.size()-1 == id);
+  std::vector<const BufferImpl*> vec = { &documentData };
+  gsl::span<const BufferImpl*> span = vec;
+  MultiInsert(span);
 }
 
-void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {
-  std::vector<BlobMetadata> blobMetadataVec(documents.size());
-  m_blobManager->MultiPut(documents, blobMetadataVec);
-
+void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {  
   std::vector<std::unique_ptr<Document>> docs;
   for (auto documentData : documents) {
     docs.push_back(DocumentFactory::CreateDocument(m_documentSchema, *documentData));    
   }
 
-  auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
-  assert(startID == m_documentIDMap.size());
+  m_indexManager->ValidateForIndexing(docs);  
+
+  std::vector<BlobMetadata> blobMetadataVec(documents.size());
+  // Indexing should not fail after we have called ValidateForIndexing
+  try {
+    auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
+    assert(startID == m_documentIDMap.size());    
+    m_blobManager->MultiPut(documents, blobMetadataVec);
+  } catch (...) {
+    // This is a serious error. Exception at this point will leave DB in a invalid state.
+    // Only thing we can do here is to log the error and terminate the process.
+    // Todo: log and terminate the process
+    throw;
+  }
+
   m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(), blobMetadataVec.end());  
 }
 
