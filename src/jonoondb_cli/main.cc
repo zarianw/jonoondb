@@ -145,6 +145,13 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
                 }
                 indexes.push_back(IndexInfo(idxTokens[0], IndexType::EWAH_COMPRESSED_BITMAP,
                                             idxTokens[2], isAscending));
+              } else if (idxTokens[1] == "VECTOR") {
+                bool isAscending = false;
+                if (boost::iequals("ASC", idxTokens[3])) {
+                  isAscending = true;
+                }
+                indexes.push_back(IndexInfo(idxTokens[0], IndexType::VECTOR,
+                                            idxTokens[2], isAscending));
               } else {
                 ostringstream ss;
                 ss << "Unknown index type \"" << idxTokens[1] << "\" specified in INDEX_FILE " <<

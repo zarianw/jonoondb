@@ -12,13 +12,17 @@ struct User;
 struct Tweet;
 
 struct User FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(4); }
-  uint64_t id() const { return GetField<uint64_t>(6, 0); }
+  enum {
+    VT_NAME = 4,
+    VT_ID = 6,
+  };
+  const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(VT_NAME); }
+  uint64_t id() const { return GetField<uint64_t>(VT_ID, 0); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 4 /* name */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
-           VerifyField<uint64_t>(verifier, 6 /* id */) &&
+           VerifyField<uint64_t>(verifier, VT_ID) &&
            verifier.EndTable();
   }
 };
@@ -26,8 +30,8 @@ struct User FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct UserBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(4, name); }
-  void add_id(uint64_t id) { fbb_.AddElement<uint64_t>(6, id, 0); }
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(User::VT_NAME, name); }
+  void add_id(uint64_t id) { fbb_.AddElement<uint64_t>(User::VT_ID, id, 0); }
   UserBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   UserBuilder &operator=(const UserBuilder &);
   flatbuffers::Offset<User> Finish() {
@@ -46,16 +50,24 @@ inline flatbuffers::Offset<User> CreateUser(flatbuffers::FlatBufferBuilder &_fbb
 }
 
 struct Tweet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  uint64_t id() const { return GetField<uint64_t>(4, 0); }
-  const flatbuffers::String *text() const { return GetPointer<const flatbuffers::String *>(6); }
-  const User *user() const { return GetPointer<const User *>(8); }
+  enum {
+    VT_ID = 4,
+    VT_TEXT = 6,
+    VT_USER = 8,
+    VT_RATING = 10,
+  };
+  uint64_t id() const { return GetField<uint64_t>(VT_ID, 0); }
+  const flatbuffers::String *text() const { return GetPointer<const flatbuffers::String *>(VT_TEXT); }
+  const User *user() const { return GetPointer<const User *>(VT_USER); }
+  double rating() const { return GetField<double>(VT_RATING, 0); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<uint64_t>(verifier, 4 /* id */) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 6 /* text */) &&
+           VerifyField<uint64_t>(verifier, VT_ID) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TEXT) &&
            verifier.Verify(text()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 8 /* user */) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_USER) &&
            verifier.VerifyTable(user()) &&
+           VerifyField<double>(verifier, VT_RATING) &&
            verifier.EndTable();
   }
 };
@@ -63,13 +75,14 @@ struct Tweet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct TweetBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_id(uint64_t id) { fbb_.AddElement<uint64_t>(4, id, 0); }
-  void add_text(flatbuffers::Offset<flatbuffers::String> text) { fbb_.AddOffset(6, text); }
-  void add_user(flatbuffers::Offset<User> user) { fbb_.AddOffset(8, user); }
+  void add_id(uint64_t id) { fbb_.AddElement<uint64_t>(Tweet::VT_ID, id, 0); }
+  void add_text(flatbuffers::Offset<flatbuffers::String> text) { fbb_.AddOffset(Tweet::VT_TEXT, text); }
+  void add_user(flatbuffers::Offset<User> user) { fbb_.AddOffset(Tweet::VT_USER, user); }
+  void add_rating(double rating) { fbb_.AddElement<double>(Tweet::VT_RATING, rating, 0); }
   TweetBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   TweetBuilder &operator=(const TweetBuilder &);
   flatbuffers::Offset<Tweet> Finish() {
-    auto o = flatbuffers::Offset<Tweet>(fbb_.EndTable(start_, 3));
+    auto o = flatbuffers::Offset<Tweet>(fbb_.EndTable(start_, 4));
     return o;
   }
 };
@@ -77,19 +90,21 @@ struct TweetBuilder {
 inline flatbuffers::Offset<Tweet> CreateTweet(flatbuffers::FlatBufferBuilder &_fbb,
    uint64_t id = 0,
    flatbuffers::Offset<flatbuffers::String> text = 0,
-   flatbuffers::Offset<User> user = 0) {
+   flatbuffers::Offset<User> user = 0,
+   double rating = 0) {
   TweetBuilder builder_(_fbb);
+  builder_.add_rating(rating);
   builder_.add_id(id);
   builder_.add_user(user);
   builder_.add_text(text);
   return builder_.Finish();
 }
 
-inline const Tweet *GetTweet(const void *buf) { return flatbuffers::GetRoot<Tweet>(buf); }
+inline const jonoondb_test::Tweet *GetTweet(const void *buf) { return flatbuffers::GetRoot<jonoondb_test::Tweet>(buf); }
 
-inline bool VerifyTweetBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<Tweet>(); }
+inline bool VerifyTweetBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<jonoondb_test::Tweet>(); }
 
-inline void FinishTweetBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<Tweet> root) { fbb.Finish(root); }
+inline void FinishTweetBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<jonoondb_test::Tweet> root) { fbb.Finish(root); }
 
 }  // namespace jonoondb_test
 

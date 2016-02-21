@@ -35,6 +35,8 @@ class IndexManager {
   bool TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
     IndexStat& indexStat);
   std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
+  bool TryGetIntegerValue(std::uint64_t documentID, const std::string& columnName, std::int64_t& val);
+  bool TryGetDoubleValue(std::uint64_t documentID, const std::string& columnName, double& val);
 private:
   std::unique_ptr<ColumnIndexderMap> m_columnIndexerMap;
   std::mutex m_mutex;

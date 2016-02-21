@@ -43,12 +43,15 @@ class DocumentCollection final {
   std::shared_ptr<MamaJenniesBitmap> Filter(const std::vector<Constraint>& constraints);
 
   //Document Access Functions
-  std::int64_t GetDocumentFieldAsInteger(std::uint64_t docID, std::vector<std::string>& tokens,
-                                         BufferImpl& buffer, std::unique_ptr<Document>& document) const;
-  double GetDocumentFieldAsDouble(std::uint64_t docID, std::vector<std::string>& tokens,
-                                  BufferImpl& buffer, std::unique_ptr<Document>& document) const;
-  std::string GetDocumentFieldAsString(std::uint64_t docID, std::vector<std::string>& tokens,
-                                       BufferImpl& buffer, std::unique_ptr<Document>& document) const;
+  std::int64_t GetDocumentFieldAsInteger(std::uint64_t docID, const std::string& columnName,
+                                         std::vector<std::string>& tokens, BufferImpl& buffer,
+                                         std::unique_ptr<Document>& document) const;
+  double GetDocumentFieldAsDouble(std::uint64_t docID, const std::string& columnName,
+                                  std::vector<std::string>& tokens, BufferImpl& buffer,
+                                  std::unique_ptr<Document>& document) const;
+  std::string GetDocumentFieldAsString(std::uint64_t docID, const std::string& columnName,
+                                       std::vector<std::string>& tokens, BufferImpl& buffer,
+                                       std::unique_ptr<Document>& document) const;
 
  private:
   void PopulateColumnTypes(

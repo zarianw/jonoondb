@@ -143,12 +143,11 @@ private:
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     if (constraint.operandType == OperandType::INTEGER) {
-      auto iter = m_compressedBitmaps.find(constraint.operand.int64Val);
+      auto iter = m_compressedBitmaps.find(static_cast<double>(constraint.operand.int64Val));
       if (iter != m_compressedBitmaps.end()) {
         bitmaps.push_back(iter->second);
       }
     } else if (constraint.operandType == OperandType::DOUBLE) {
-      // Check if double has no fractional part      
       auto iter = m_compressedBitmaps.find(constraint.operand.doubleVal);
       if (iter != m_compressedBitmaps.end()) {
         bitmaps.push_back(iter->second);
@@ -164,7 +163,7 @@ private:
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;    
     
     if (constraint.operandType == OperandType::INTEGER) {
-      double dVal = constraint.operand.int64Val;
+      double dVal = static_cast<double>(constraint.operand.int64Val);
       for (auto& item : m_compressedBitmaps) {
         if (item.first < dVal) {
           bitmaps.push_back(item.second);
@@ -199,7 +198,7 @@ private:
     if (constraint.operandType == OperandType::DOUBLE) {
       operandVal = constraint.operand.doubleVal;
     } else {
-      operandVal = constraint.operand.int64Val;
+      operandVal = static_cast<double>(constraint.operand.int64Val);
     }
 
     auto iter = m_compressedBitmaps.upper_bound(operandVal);
@@ -217,7 +216,7 @@ private:
     if (constraint.operandType == OperandType::DOUBLE) {
       operandVal = constraint.operand.doubleVal;
     } else {
-      operandVal = constraint.operand.int64Val;
+      operandVal = static_cast<double>(constraint.operand.int64Val);
     }
 
     auto iter = m_compressedBitmaps.lower_bound(operandVal);

@@ -149,8 +149,9 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
 }
 
 std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
-  std::uint64_t docID, std::vector<std::string>& tokens,
-  BufferImpl& buffer, std::unique_ptr<Document>& document) const {
+  std::uint64_t docID, const std::string& columnName,
+  std::vector<std::string>& tokens, BufferImpl& buffer,
+  std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
                                    "", __LINE__);
@@ -160,6 +161,14 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
     ostringstream ss;
     ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  // First lets see if we can get this value from any index
+  std::int64_t val;
+  if (m_indexManager->TryGetIntegerValue(docID, columnName, val)) {
+    if(document)
+      document.reset();
+    return val;
   }
 
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
@@ -174,8 +183,9 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
 }
 
 double DocumentCollection::GetDocumentFieldAsDouble(
-  std::uint64_t docID, std::vector<std::string>& tokens,
-  BufferImpl& buffer, std::unique_ptr<Document>& document) const {
+  std::uint64_t docID, const std::string& columnName,
+  std::vector<std::string>& tokens, BufferImpl& buffer,
+  std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
                                    "", __LINE__);
@@ -183,8 +193,16 @@ double DocumentCollection::GetDocumentFieldAsDouble(
 
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
+    ss << "Document with ID '" << docID << "' does not exist in collection " << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  // First lets see if we can get this value from any index
+  double val;
+  if (m_indexManager->TryGetDoubleValue(docID, columnName, val)) {
+    if (document)
+      document.reset();
+    return val;
   }
 
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
@@ -200,8 +218,9 @@ double DocumentCollection::GetDocumentFieldAsDouble(
 
 // Todo: Need to avoid the string creation/copy cost
 std::string DocumentCollection::GetDocumentFieldAsString(
-  std::uint64_t docID, std::vector<std::string>& tokens,
-  BufferImpl& buffer, std::unique_ptr<Document>& document) const {
+  std::uint64_t docID, const std::string& columnName, 
+  std::vector<std::string>& tokens, BufferImpl& buffer,
+  std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
                                    "", __LINE__);
@@ -209,9 +228,11 @@ std::string DocumentCollection::GetDocumentFieldAsString(
 
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
+    ss << "Document with ID '" << docID << "' does not exist in collection " << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
+
+  // Todo: First lets see if we can get this value from any index
 
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
 
