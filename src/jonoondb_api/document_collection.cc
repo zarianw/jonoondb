@@ -21,6 +21,7 @@
 #include "constraint.h"
 #include "buffer_impl.h"
 #include "file_info.h"
+#include "filename_manager.h"
 
 using namespace jonoondb_api;
 

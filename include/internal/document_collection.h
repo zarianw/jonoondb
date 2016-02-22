@@ -25,7 +25,7 @@ enum class SchemaType
 struct Constraint;
 class MamaJenniesBitmap;
 class BlobManager;
-class FileInfo;
+struct FileInfo;
 
 class DocumentCollection final {
  public:

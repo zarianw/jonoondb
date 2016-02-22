@@ -11,7 +11,7 @@ struct sqlite3_stmt;
 namespace jonoondb_api {
 //Forward declaration
 class IndexInfoImpl;
-class FileInfo;
+struct FileInfo;
 enum class SchemaType
 : std::int32_t;
 
