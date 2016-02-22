@@ -72,7 +72,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     cout << "Loading completed in " << loadSW.ElapsedMilliSeconds() << " millisecs." << endl;
     std::string cmd;    
     boost::char_separator<char> sep(" ");  
-    bool isTimerOn = false;
+    bool isTimerOn = true;
     
     while (true) {
       cout << "JonoonDB> ";
@@ -81,8 +81,9 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
         continue;
       
       try {
-        if (boost::starts_with(cmd, "select ") || boost::starts_with(cmd, "SELECT ")) {
-          //select command
+        if (boost::starts_with(cmd, "select ") || boost::starts_with(cmd, "SELECT ") ||
+            boost::starts_with(cmd, "explain select ") || boost::starts_with(cmd, "EXPLAIN SELECT ")) {
+          //select command or explain select command
           Stopwatch sw(true);
           auto rs = db.ExecuteSelect(cmd);          
           PrintResultSet(rs);
