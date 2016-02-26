@@ -529,6 +529,88 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
   ASSERT_EQ(rowCnt, 5);
 }
 
+TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_VECTORIndexed_DoubleExpression", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "rating", true) };
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text, (double)i/100.0));
+  }
+  db.MultiInsert("tweet", documents);
+
+  int rowCnt = 0;
+  auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                             "FROM tweet WHERE rating "
+                             "between round(0.06 - 0.01, 2) and round(0.06 + 0.01, 2);");
+  double ratingVal = 0.05;
+  while (rs.Next()) {
+    ASSERT_DOUBLE_EQ(ratingVal, rs.GetDouble(rs.GetColumnIndex("rating")));
+    ratingVal += 0.01;
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 3);  
+}
+
+TEST(Database, ExecuteSelect_DoubleExpression) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_DoubleExpression", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes;
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text, (double)i / 100.0));
+  }
+  db.MultiInsert("tweet", documents);
+
+  int rowCnt = 0;
+  auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                             "FROM tweet WHERE rating "
+                             "between round(0.06 - 0.01, 2) and round(0.06 + 0.01, 2);");
+  double ratingVal = 0.05;
+  while (rs.Next()) {
+    ASSERT_DOUBLE_EQ(ratingVal, rs.GetDouble(rs.GetColumnIndex("rating")));
+    ratingVal += 0.01;
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 3);
+}
+
+TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_EWAHIndexed_String_GTE", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text, (double)i / 100.0));
+  }
+  db.MultiInsert("tweet", documents);
+
+  auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                             "FROM tweet WHERE [user.name] >= 'zarian_3';");
+  int counter = 3;
+  while (rs.Next()) {
+    std::string expectedName = "zarian_" + std::to_string(counter);
+    ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+    counter++;
+  }
+  ASSERT_EQ(counter, 10);
+}
+
 /*TEST(Database, Insert_100K) {
   string dbName = "Database_Insert_100K";
   string collectionName = "tweet";

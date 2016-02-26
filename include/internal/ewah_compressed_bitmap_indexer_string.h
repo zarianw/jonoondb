@@ -174,8 +174,8 @@ private:
       } else {
         iter = m_compressedBitmaps.upper_bound(constraint.strVal);
       }
-
-      if (iter != m_compressedBitmaps.end()) {
+      
+      while (iter != m_compressedBitmaps.end()) {
         bitmaps.push_back(iter->second);
         iter++;
       }
