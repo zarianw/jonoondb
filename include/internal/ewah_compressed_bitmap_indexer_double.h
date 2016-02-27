@@ -103,6 +103,36 @@ public:
     }
   }
 
+  std::shared_ptr<MamaJenniesBitmap> FilterRange(
+    const Constraint& lowerConstraint,
+    const Constraint& upperConstraint) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    double lowerVal = GetOperandVal(lowerConstraint);
+    double upperVal = GetOperandVal(upperConstraint);
+    std::map<double, std::shared_ptr<MamaJenniesBitmap>>::const_iterator startIter, endIter;
+
+    if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL) {
+      startIter = m_compressedBitmaps.lower_bound(lowerVal);
+    } else {
+      startIter = m_compressedBitmaps.upper_bound(lowerVal);
+    }
+
+    while (startIter != m_compressedBitmaps.end()) {
+      if (startIter->first < upperVal) {
+        bitmaps.push_back(startIter->second);
+      } else if (upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL
+                 && startIter->first == upperVal) {
+        bitmaps.push_back(startIter->second);
+      } else {
+        break;
+      }
+
+      startIter++;
+    }
+
+    return MamaJenniesBitmap::LogicalOR(bitmaps);
+  }
+
 private:
   EWAHCompressedBitmapIndexerDouble(const IndexStat& indexStat,
     std::vector<std::string>& fieldNameTokens)
@@ -226,6 +256,18 @@ private:
     }
 
     return MamaJenniesBitmap::LogicalOR(bitmaps);
+  }
+
+  inline double GetOperandVal(const Constraint& constraint) {
+    double val = 0;
+    if (constraint.operandType == OperandType::INTEGER) {
+      val = static_cast<double>(constraint.operand.int64Val);
+    } else if (constraint.operandType == OperandType::DOUBLE) {
+      val = constraint.operand.doubleVal;
+    }
+
+    // Todo: See if we should throw exception in case of string operand
+    return val;
   }
 
   IndexStat m_indexStat;

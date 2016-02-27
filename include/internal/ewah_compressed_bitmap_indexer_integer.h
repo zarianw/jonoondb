@@ -109,6 +109,56 @@ public:
     }
   }
 
+  std::shared_ptr<MamaJenniesBitmap> FilterRange(
+      const Constraint& lowerConstraint,
+      const Constraint& upperConstraint) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    std::int64_t lowerVal, upperVal;
+    if (lowerConstraint.operandType == OperandType::DOUBLE) {
+      if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN) {
+        lowerVal = static_cast<std::int64_t>(std::floor(lowerConstraint.operand.doubleVal));
+      } else {
+        lowerVal = static_cast<std::int64_t>(std::ceil(lowerConstraint.operand.doubleVal));
+      }
+    } else {
+      lowerVal = lowerConstraint.operand.int64Val;
+    }
+
+    if (upperConstraint.operandType == OperandType::DOUBLE) {
+      upperVal = static_cast<std::int64_t>(std::ceil(upperConstraint.operand.doubleVal));      
+    } else {
+      upperVal = upperConstraint.operand.int64Val;
+    }
+
+    std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>>::const_iterator startIter, endIter;
+
+    if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN) {
+      startIter = m_compressedBitmaps.upper_bound(lowerVal);
+    } else {
+      startIter = m_compressedBitmaps.lower_bound(lowerVal);
+    }
+
+    while (startIter != m_compressedBitmaps.end()) {
+      if (startIter->first < upperVal) {
+        bitmaps.push_back(startIter->second);
+      } else if (upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+        if (upperConstraint.operandType == OperandType::DOUBLE) {
+          if (static_cast<double>(startIter->first) == upperConstraint.operand.doubleVal)
+            bitmaps.push_back(startIter->second);
+        } else {
+          if (startIter->first == upperConstraint.operand.int64Val)
+            bitmaps.push_back(startIter->second);          
+        }
+      } else {
+        break;
+      }
+
+      startIter++;
+    }
+
+    return MamaJenniesBitmap::LogicalOR(bitmaps);
+  }
+
 private:
   EWAHCompressedBitmapIndexerInteger(const IndexStat& indexStat,
     std::vector<std::string>& fieldNameTokens)

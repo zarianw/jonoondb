@@ -611,6 +611,32 @@ TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
   ASSERT_EQ(counter, 10);
 }
 
+TEST(Database, ExecuteSelect_EWAHIndexed_String_Range) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_EWAHIndexed_String_Range", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text, (double)i / 100.0));
+  }
+  db.MultiInsert("tweet", documents);
+
+  auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                             "FROM tweet WHERE [user.name] >= 'zarian_3' AND [user.name] <= 'zarian_7';");
+  int counter = 3;
+  while (rs.Next()) {
+    std::string expectedName = "zarian_" + std::to_string(counter);
+    ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+    counter++;
+  }
+  ASSERT_EQ(counter, 8);
+}
+
 /*TEST(Database, Insert_100K) {
   string dbName = "Database_Insert_100K";
   string collectionName = "tweet";
