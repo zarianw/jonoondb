@@ -611,30 +611,61 @@ TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
   ASSERT_EQ(counter, 10);
 }
 
-TEST(Database, ExecuteSelect_EWAHIndexed_String_Range) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_EWAHIndexed_String_Range", GetDefaultDBOptions());
+void ValidateTweetResultSet(ResultSet& rs, int lowerCount, int upperCount) {  
+  while (rs.Next()) {
+    std::string expectedName = "zarian_" + std::to_string(lowerCount);
+    ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+    ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("id")), );
+    ASSERT_DOUBLE_EQ(double(lowerCount), rs.GetDouble(rs.GetColumnIndex("rating")));
+    ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("user.id")));
+    lowerCount++;
+  }
+  ASSERT_EQ(upperCount, lowerCount);
+}
+
+TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_EWAHIndexed_Range", GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "tweet.fbs";
   string schema = ReadTextFile(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true),
+    IndexInfo("IndexName2", IndexType::EWAH_COMPRESSED_BITMAP, "rating", true),
+    IndexInfo("IndexName3", IndexType::EWAH_COMPRESSED_BITMAP, "user.id", true),
+    IndexInfo("IndexName4", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, (double)i / 100.0));
+    documents.push_back(GetTweetObject2(i, i, name, text, static_cast<double>(i)));
   }
   db.MultiInsert("tweet", documents);
 
   auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
                              "FROM tweet WHERE [user.name] >= 'zarian_3' AND [user.name] <= 'zarian_7';");
-  int counter = 3;
-  while (rs.Next()) {
-    std::string expectedName = "zarian_" + std::to_string(counter);
-    ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
-    counter++;
-  }
-  ASSERT_EQ(counter, 8);
+  ValidateTweetResultSet(rs, 3, 8);
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet WHERE [user.name] >= 'zarian_3' AND [user.name] < 'zarian_7';");
+  ValidateTweetResultSet(rs, 3, 7);
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet WHERE [user.name] > 'zarian_3' AND [user.name] <= 'zarian_7';");
+  ValidateTweetResultSet(rs, 4, 8);
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet WHERE [user.name] > 'zarian_3' AND [user.name] < 'zarian_7';");
+  ValidateTweetResultSet(rs, 4, 7);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet WHERE [user.name] >= 'zarian_3' AND [user.name] <= 'zarian_7';");
+  ValidateTweetResultSet(rs, 3, 8);
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet WHERE [user.name] >= 'zarian_3' AND [user.name] < 'zarian_7';");
+  ValidateTweetResultSet(rs, 3, 7);
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet WHERE [user.name] > 'zarian_3' AND [user.name] <= 'zarian_7';");
+  ValidateTweetResultSet(rs, 4, 8);
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet WHERE [user.name] > 'zarian_3' AND [user.name] < 'zarian_7';");
+  ValidateTweetResultSet(rs, 4, 7);  
 }
 
 /*TEST(Database, Insert_100K) {
