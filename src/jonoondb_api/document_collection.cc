@@ -237,7 +237,12 @@ std::string DocumentCollection::GetDocumentFieldAsString(
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  // Todo: First lets see if we can get this value from any index
+  string val;
+  if (m_indexManager->TryGetStringValue(docID, columnName, val)) {
+    if (document)
+      document.reset();
+    return val;
+  }
 
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
 

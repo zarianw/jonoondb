@@ -676,8 +676,8 @@ TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
   // Todo: Enable tests for string Vector indexer once we have implemented that.
   std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
     IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
-    IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true)/*,
-    IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true)*/ };
+    IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true),
+    IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true) };
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
@@ -688,10 +688,10 @@ TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
   }
   db.MultiInsert("tweet", documents);
 
-  /*ValidateTweetResultSet(db, 3, 8, "[user.name]", ">=", "'zarian_3'", "[user.name]", "<=", "'zarian_7'");
+  ValidateTweetResultSet(db, 3, 8, "[user.name]", ">=", "'zarian_3'", "[user.name]", "<=", "'zarian_7'");
   ValidateTweetResultSet(db, 3, 7, "[user.name]", ">=", "'zarian_3'", "[user.name]", "<", "'zarian_7'");
   ValidateTweetResultSet(db, 4, 8, "[user.name]", ">", "'zarian_3'", "[user.name]", "<=", "'zarian_7'");
-  ValidateTweetResultSet(db, 4, 7, "[user.name]", ">", "'zarian_3'", "[user.name]", "<", "'zarian_7'");*/
+  ValidateTweetResultSet(db, 4, 7, "[user.name]", ">", "'zarian_3'", "[user.name]", "<", "'zarian_7'");
 
   ValidateTweetResultSet(db, 3, 8, "id", ">=", "3", "id", "<=", "7");
   ValidateTweetResultSet(db, 3, 7, "id", ">=", "3", "id", "<", "7");
