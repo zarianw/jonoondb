@@ -20,21 +20,23 @@
 #include "blob_manager.h"
 #include "constraint.h"
 #include "buffer_impl.h"
+#include "file_info.h"
+#include "filename_manager.h"
 
 using namespace jonoondb_api;
 
 DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePath,
   const std::string& name, SchemaType schemaType,
   const std::string& schema, const std::vector<IndexInfoImpl*>& indexes,
-  std::unique_ptr<BlobManager> blobManager) : m_blobManager(move(blobManager)),
-  m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
+  std::unique_ptr<BlobManager> blobManager, const std::vector<FileInfo>& dataFilesToLoad) :
+  m_blobManager(move(blobManager)), m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
   // Validate function arguments
-  if (StringUtils::IsNullOrEmpty(databaseMetadataFilePath)) {
-    throw InvalidArgumentException("Argument databaseMetadataFilePath is null or empty.", __FILE__, __func__, __LINE__);
+  if (databaseMetadataFilePath.size() == 0) {
+    throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.", __FILE__, __func__, __LINE__);
   }
 
-  if (StringUtils::IsNullOrEmpty(name)) {
-    throw InvalidArgumentException("Argument name is null or empty.", __FILE__, __func__, __LINE__);
+  if (name.size() == 0) {
+    throw InvalidArgumentException("Argument name is empty.", __FILE__, __func__, __LINE__);
   }
   m_name = name;
 
@@ -57,20 +59,58 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
   
   unordered_map<string, FieldType> columnTypes;
   PopulateColumnTypes(indexes, *m_documentSchema.get(), columnTypes);
-  m_indexManager.reset(new IndexManager(indexes, columnTypes));      
+  m_indexManager.reset(new IndexManager(indexes, columnTypes));    
+
+  // Load the data files
+  for (auto& file : dataFilesToLoad) {
+    BlobIterator iter(file);
+    const std::size_t desiredBatchSize = 10000;
+    std::vector<BufferImpl> blobs(desiredBatchSize);
+    std::vector<BlobMetadata> blobMetadataVec(desiredBatchSize);
+    std::size_t actualBatchSize = 0;
+
+    while ((actualBatchSize = iter.GetNextBatch(blobs, blobMetadataVec)) > 0) {
+      std::vector<std::unique_ptr<Document>> docs;
+      for (size_t i = 0; i < actualBatchSize; i++) {
+        docs.push_back(DocumentFactory::CreateDocument(m_documentSchema, blobs[i]));
+      }
+
+      auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
+      assert(startID == m_documentIDMap.size());
+      m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(),
+                             blobMetadataVec.begin() + actualBatchSize);
+    }
+  }
 }
 
 void DocumentCollection::Insert(const BufferImpl& documentData) {
-  auto doc = DocumentFactory::CreateDocument(m_documentSchema, documentData);
-  BlobMetadata blobMetadata;
-  m_blobManager->Put(documentData, blobMetadata);
-  
-  // Index the document
-  auto id = m_documentIDGenerator.ReserveID(1);
-  m_indexManager->IndexDocument(id, *doc.get());  
- 
-  m_documentIDMap.push_back(blobMetadata);
-  assert(m_documentIDMap.size()-1 == id);
+  std::vector<const BufferImpl*> vec = { &documentData };
+  gsl::span<const BufferImpl*> span = vec;
+  MultiInsert(span);
+}
+
+void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {  
+  std::vector<std::unique_ptr<Document>> docs;
+  for (auto documentData : documents) {
+    docs.push_back(DocumentFactory::CreateDocument(m_documentSchema, *documentData));    
+  }
+
+  m_indexManager->ValidateForIndexing(docs);  
+
+  std::vector<BlobMetadata> blobMetadataVec(documents.size());
+  // Indexing should not fail after we have called ValidateForIndexing
+  try {
+    auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
+    assert(startID == m_documentIDMap.size());    
+    m_blobManager->MultiPut(documents, blobMetadataVec);
+  } catch (...) {
+    // This is a serious error. Exception at this point will leave DB in a invalid state.
+    // Only thing we can do here is to log the error and terminate the process.
+    // Todo: log and terminate the process
+    throw;
+  }
+
+  m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(), blobMetadataVec.end());  
 }
 
 const std::string& DocumentCollection::GetName() {
@@ -81,8 +121,9 @@ const std::shared_ptr<DocumentSchema>& DocumentCollection::GetDocumentSchema() {
   return m_documentSchema;
 }
 
-bool DocumentCollection::TryGetBestIndex(const std::string& columnName, IndexConstraintOperator op,
-  IndexStat& indexStat) {
+bool DocumentCollection::TryGetBestIndex(const std::string& columnName,
+                                         IndexConstraintOperator op,
+                                         IndexStat& indexStat) {
   return m_indexManager->TryGetBestIndex(columnName, op, indexStat);
 }
 
@@ -112,12 +153,13 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
   }
 }
 
-//Todo: Need to avoid the string creation/copy cost
-std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID,
-  const std::string& fieldName) const {
-  if (fieldName.size() == 0) {
-    throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
-      "", __LINE__);
+std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
+  std::uint64_t docID, const std::string& columnName,
+  std::vector<std::string>& tokens, BufferImpl& buffer,
+  std::unique_ptr<Document>& document) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
   }
 
   if (docID >= m_documentIDMap.size()) {
@@ -126,76 +168,84 @@ std::string DocumentCollection::GetDocumentFieldAsString(std::uint64_t docID,
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  // TODO: buffer should come from object pool
-  BufferImpl buffer;
-  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
-
-  // TODO: tokens should be cached in collection class
-  std::vector<std::string> tokens = StringUtils::Split(fieldName, ".");
-  // TODO: Document should be cached
-  auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
-  if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
-    return subDoc->GetStringValue(tokens.back());
-  } else {
-    return doc->GetStringValue(fieldName);
-  }  
-}
-
-std::int64_t DocumentCollection::GetDocumentFieldAsInteger(std::uint64_t docID,
-  const std::string& fieldName) const {
-  if (fieldName.size() == 0) {
-    throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
-      "", __LINE__);
+  // First lets see if we can get this value from any index
+  std::int64_t val;
+  if (m_indexManager->TryGetIntegerValue(docID, columnName, val)) {
+    if(document)
+      document.reset();
+    return val;
   }
 
-  if (docID >= m_documentIDMap.size()) {
-    ostringstream ss;
-    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
-    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
-  }
-
-  // TODO: buffer should come from object pool
-  BufferImpl buffer;
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
-
-  // TODO: tokens should be cached in collection class
-  std::vector<std::string> tokens = StringUtils::Split(fieldName, ".");
-  // TODO: Document should be cached  
-  auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+    
+  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
   if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
+    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
     return subDoc->GetIntegerValueAsInt64(tokens.back());
   } else {
-    return doc->GetIntegerValueAsInt64(fieldName);
+    return document->GetIntegerValueAsInt64(tokens.front());
   }
 }
 
-double DocumentCollection::GetDocumentFieldAsDouble(std::uint64_t docID,
-  const std::string& fieldName) const {
-  if (fieldName.size() == 0) {
-    throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
-      "", __LINE__);
+double DocumentCollection::GetDocumentFieldAsDouble(
+  std::uint64_t docID, const std::string& columnName,
+  std::vector<std::string>& tokens, BufferImpl& buffer,
+  std::unique_ptr<Document>& document) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
   }
 
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
+    ss << "Document with ID '" << docID << "' does not exist in collection " << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  // TODO: buffer should come from object pool
-  BufferImpl buffer;
+  // First lets see if we can get this value from any index
+  double val;
+  if (m_indexManager->TryGetDoubleValue(docID, columnName, val)) {
+    if (document)
+      document.reset();
+    return val;
+  }
+
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
 
-  // TODO: tokens should be cached in collection class
-  std::vector<std::string> tokens = StringUtils::Split(fieldName, ".");
-  // TODO: Document should be cached  
-  auto doc = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
   if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*doc, tokens);
+    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
     return subDoc->GetFloatingValueAsDouble(tokens.back());
   } else {
-    return doc->GetFloatingValueAsDouble(fieldName);
+    return document->GetFloatingValueAsDouble(tokens.front());
+  }
+}
+
+// Todo: Need to avoid the string creation/copy cost
+std::string DocumentCollection::GetDocumentFieldAsString(
+  std::uint64_t docID, const std::string& columnName, 
+  std::vector<std::string>& tokens, BufferImpl& buffer,
+  std::unique_ptr<Document>& document) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
+  }
+
+  if (docID >= m_documentIDMap.size()) {
+    ostringstream ss;
+    ss << "Document with ID '" << docID << "' does not exist in collection " << m_name << ".";
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  // Todo: First lets see if we can get this value from any index
+
+  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
+
+  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+  if (tokens.size() > 1) {
+    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
+    return subDoc->GetStringValue(tokens.back());
+  } else {
+    return document->GetStringValue(tokens.front());
   }
 }

@@ -3,9 +3,9 @@ namespace jonoondb_api;
 table IndexInfoFB
 {
   name:string;
-  columns:[string];
+  column:string;
   is_ascending:bool = true;
-  type:short = 0;	
+  type:int = 1;	
 }
 
 root_type IndexInfoFB;

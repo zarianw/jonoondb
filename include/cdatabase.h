@@ -114,6 +114,9 @@ int64_t jonoondb_resultset_getinteger(resultset_ptr rs, int32_t columnIndex, sta
 double jonoondb_resultset_getdouble(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 const char* jonoondb_resultset_getstring(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts);
 int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLabel, uint64_t columnLabelLength, status_ptr* sts);
+int32_t jonoondb_resultset_getcolumncount(resultset_ptr rs);
+int32_t jonoondb_resultset_getcolumntype(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
+const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts);
 
 //
 // Database Functions
@@ -124,6 +127,9 @@ void jonoondb_database_destruct(database_ptr db);
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
                                         indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts);
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts);
+void jonoondb_database_multi_insert(database_ptr db, const char* collectionName, uint64_t collectionNameLength,
+                                    const jonoondb_buffer_ptr* documentArr, uint64_t documentArrLength,
+                                    status_ptr* sts);
 resultset_ptr jonoondb_database_executeselect(database_ptr db, const char* selectStmt, uint64_t selectStmtLength, status_ptr* sts);
 
 #ifdef __cplusplus

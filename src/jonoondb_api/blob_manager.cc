@@ -7,6 +7,7 @@
 #include "blob_metadata.h"
 #include "filename_manager.h"
 #include "file.h"
+#include "standard_deleters.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -36,26 +37,12 @@ BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager, bool compr
   m_readerFiles.Add(m_currentBlobFileInfo.fileKey, m_currentBlobFile, false);
 }
 
-BlobManager::~BlobManager(void) {
-  //Todo: Error handing
-  //We should persist the length of the current blob file
-  if (m_fileNameManager && m_currentBlobFile) {
-    try {
-      m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
-    } catch (std::exception&) {
-      // Todo: Log this error, we should not throw exceptions from dtors
-      // Google "throwing exceptions from destructors" to know why
-    }
-
-  }
-}
-
 void BlobManager::SwitchToNewDataFile() {
   FileInfo fileInfo;
   m_fileNameManager->GetNextDataFileInfo(fileInfo);
   File::FastAllocate(fileInfo.fileNameWithPath, m_maxDataFileSize);  
 
-  auto file = std::make_unique<MemoryMappedFile>(fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadOnly, 0, !m_synchronous);
+  auto file = std::make_unique<MemoryMappedFile>(fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadWrite, 0, !m_synchronous);
   m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
 
   //Set the evictable flag on the current file before switching
@@ -113,36 +100,40 @@ void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata) {
     m_currentBlobFile->SetCurrentWriteOffset(currentOffsetInFile);
     throw;
   }
+
+  // Set the file length
+  m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
 }
 
-void BlobManager::MultiPut(const BufferImpl blobs[], const int arrayLength, BlobMetadata blobMetadatas[]) {
-  //Lock will be acquired on the next line and released when lock goes out of scope
-  lock_guard<mutex> lock(m_writeMutex);
+void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs, std::vector<BlobMetadata>& blobMetadataVec) {
+  assert(blobs.size() == blobMetadataVec.size());
   size_t bytesWritten = 0, totalBytesWrittenInFile = 0;
+  // Lock will be acquired on the next line and released when lock goes out of scope  
+  lock_guard<mutex> lock(m_writeMutex);  
   size_t baseOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();  
   int headerSize = 1 + 4 + 8;
-  for (int i = 0; i < arrayLength; i++) {
+  for (int i = 0; i < blobs.size(); i++) {
     size_t currentOffset = m_currentBlobFile->GetCurrentWriteOffset();
 
-    if (blobs[i].GetLength() + headerSize + currentOffset > m_maxDataFileSize) {
-      //The file size will exceed the m_maxDataFileSize if blob is written in the current file
-      //First flush the contents if required
+    if (blobs[i]->GetLength() + headerSize + currentOffset > m_maxDataFileSize) {
+      // The file size will exceed the m_maxDataFileSize if blob is written in the current file
+      // First flush the contents if required
       try {
         Flush(baseOffsetInFile, totalBytesWrittenInFile);
       } catch (...) {
         m_currentBlobFile->SetCurrentWriteOffset(baseOffsetInFile);
         throw;
       }
-      //Now lets switch to a new file
+      // Now lets switch to a new file
       SwitchToNewDataFile();
 
-      //Reset baseOffset and totalBytesWritten
+      // Reset baseOffset and totalBytesWritten
       baseOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();
       totalBytesWrittenInFile = 0;
     }
 
     try {
-      PutInternal(blobs[i], blobMetadatas[i], bytesWritten);
+      PutInternal(*blobs[i], blobMetadataVec[i], bytesWritten);
     } catch (...) {
       m_currentBlobFile->SetCurrentWriteOffset(baseOffsetInFile);
       throw;
@@ -151,13 +142,16 @@ void BlobManager::MultiPut(const BufferImpl blobs[], const int arrayLength, Blob
     totalBytesWrittenInFile += bytesWritten;
   }
 
-  //Flush to make sure all blobs are written to disk
+  // Flush to make sure all blobs are written to disk
   try {
     Flush(baseOffsetInFile, totalBytesWrittenInFile);
   } catch (...) {
     m_currentBlobFile->SetCurrentWriteOffset(baseOffsetInFile);
     throw;
   }
+
+  // Set the file length
+  m_fileNameManager->UpdateDataFileLength(m_currentBlobFileInfo.fileKey, m_currentBlobFile->GetCurrentWriteOffset());
 }
 
 inline void BlobManager::Flush(size_t offset, size_t numBytes) {
@@ -209,3 +203,52 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
 void BlobManager::UnmapLRUDataFiles() {
   m_readerFiles.PerformEviction();
 }
+
+BlobIterator::BlobIterator(FileInfo fileInfo) : 
+  m_memMapFile(fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadOnly, 0, true),
+  m_fileInfo(std::move(fileInfo)), m_currentPosition(0) {
+}
+
+std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
+                                       std::vector<BlobMetadata>& blobMetadataVec) {
+  assert(blobs.size() == blobMetadataVec.size());
+  assert(blobs.size() > 0);
+
+  std::size_t batchSize = 0;
+  
+  for (size_t i = 0; i < blobs.size(); i++) {
+    if (m_currentPosition >= m_fileInfo.dataLength) {
+      // We are at the end of file
+      break;
+    }
+
+    // Read the data from the file
+    char* offsetAddress = m_memMapFile.GetOffsetAddressAsCharPtr(m_currentPosition);
+
+    // Now read the header. 
+    // Header: CompressionEnabledFlag (1 Byte) + CRC (4 Bytes) + SizeOfBlob (8 bytes) + BlobData (SizeOfBlob)
+    bool compressionFlag;
+    int32_t crc;
+    uint64_t blobSize;
+
+    memcpy(&compressionFlag, offsetAddress, 1);
+    ++offsetAddress;
+
+    memcpy(&crc, offsetAddress, 4);
+    offsetAddress += 4;
+
+    memcpy(&blobSize, offsetAddress, 8);
+    offsetAddress += 8;
+
+    blobs[i] = std::move(BufferImpl(offsetAddress, blobSize, blobSize, StandardDeleteNoOp));
+    blobMetadataVec[i].fileKey = m_fileInfo.fileKey;
+    blobMetadataVec[i].offset = m_currentPosition;
+        
+    m_currentPosition += (1 + 4 + 8) + blobSize;
+    ++batchSize;
+  }
+
+  return batchSize;  
+}
+
+

@@ -12,19 +12,12 @@ class SQLiteUtils {
 public:
   static void ClearAndResetStatement(sqlite3_stmt* statement) {
     //Reset all params back to null
-    int sqliteCode1 = sqlite3_clear_bindings(statement);
-
+    auto code = sqlite3_clear_bindings(statement);
     //Reset the statement so that it can be re-executed
-    int sqliteCode2 = sqlite3_reset(statement);
+    sqlite3_reset(statement);    
 
-    assert(sqliteCode1 == SQLITE_OK);
-    assert(sqliteCode2 == SQLITE_OK || sqliteCode2 == SQLITE_CONSTRAINT);  //Duplicate key errors are reported as SQLITE_CONSTRAINT
-
-    if (sqliteCode1 != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode1), __FILE__, __func__, __LINE__);
-
-    if (sqliteCode2 != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(sqliteCode2), __FILE__, __func__, __LINE__);    
+    if (code != SQLITE_OK)
+      throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);    
   }
 
   static int SQLiteGenericBusyHandler(void* input, int retryCount) {

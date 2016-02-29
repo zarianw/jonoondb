@@ -57,8 +57,7 @@ public:
 //
 class ThrowOnError {
 public:
-  // TODO: change the throw to noexcept(false) when we move to vs2015
-  ~ThrowOnError() throw(std::exception) {
+  ~ThrowOnError() noexcept(false) {
     if (m_status.opaque) {
       switch (jonoondb_status_code(m_status.opaque)) {
         case status_genericerrorcode:
@@ -246,7 +245,8 @@ public:
   }
 
   IndexInfo(const std::string& indexName, IndexType type, const std::string& columnName, bool isAscending) {
-    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), 0, columnName.c_str(), isAscending, ThrowOnError{});
+    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), static_cast<int32_t>(type),
+                                             columnName.c_str(), isAscending, ThrowOnError{});
   }
 
   IndexInfo(IndexInfo&& other) {
@@ -474,6 +474,24 @@ public:
     return jonoondb_resultset_getcolumnindex(m_opaque, columnLabel.c_str(),
       columnLabel.size(), ThrowOnError{});
   }
+
+  std::int32_t GetColumnCount() {
+    return jonoondb_resultset_getcolumncount(m_opaque);
+  }
+
+  SqlType GetColumnType(std::int32_t columnIndex) {
+    return static_cast<SqlType>(jonoondb_resultset_getcolumntype(
+      m_opaque, columnIndex, ThrowOnError{}));
+  }
+
+  StringView GetColumnLabel(std::int32_t columnIndex) {
+    std::uint64_t size;
+    std::uint64_t* sizePtr = &size;
+    const char* str = jonoondb_resultset_getcolumnlabel(m_opaque,
+                                                        columnIndex, &sizePtr,
+                                                        ThrowOnError{});
+    return StringView(str, size);
+  }
   
 private:
   resultset_ptr m_opaque;
@@ -507,6 +525,14 @@ public:
 
   void Insert(const std::string& collectionName, const Buffer& documentData) {
     jonoondb_database_insert(m_opaque, collectionName.c_str(), documentData.GetOpaqueType(), ThrowOnError{});
+  }
+
+  void MultiInsert(const std::string& collectionName,
+                   const std::vector<Buffer>& documents) {
+    static_assert(sizeof(Buffer) == sizeof(jonoondb_buffer_ptr),
+                  "Critical Error. Size assumptions not correct for Buffer & jonoondb_buffer_ptr.");
+    jonoondb_database_multi_insert(m_opaque, collectionName.data(), collectionName.size(),
+                                   reinterpret_cast<const jonoondb_buffer_ptr*>(documents.data()), documents.size(), ThrowOnError{});
   }
 
   ResultSet ExecuteSelect(const std::string& selectStatement) {

@@ -12,8 +12,8 @@ enum class IndexType
 
 class IndexInfoImpl {
  public:
-  IndexInfoImpl(const std::string& name, IndexType type, const std::string& columnName,
-            bool isAscending);
+  IndexInfoImpl(std::string name, IndexType type, std::string columnName,
+                bool isAscending);
   IndexInfoImpl();
   IndexInfoImpl(const IndexInfoImpl& other);
   ~IndexInfoImpl();

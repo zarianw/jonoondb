@@ -10,7 +10,8 @@ table Tweet
 {
   id:ulong;	
   text:string;
-  user:User;  
+  user:User;
+  rating:double;
 }
 
 root_type Tweet;

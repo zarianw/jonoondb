@@ -13,10 +13,11 @@ using namespace jonoondb_test;
 TEST(BlobManager, Constructor) {
   std::string dbName = "BlobManager_Constructor";
   std::string dbPath = g_TestRootDirectory;
+  std::string collectionName = "Collection";
   boost::filesystem::path pathObj(g_TestRootDirectory);
-  pathObj += "BlobManager_Constructor.0";
+  pathObj += dbName + "_" + collectionName + ".0";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
 
   // make sure the file is there and it is the same size
@@ -28,8 +29,9 @@ TEST(BlobManager, Constructor) {
 TEST(BlobManager, Put) {
   std::string dbName = "BlobManager_Put";
   std::string dbPath = g_TestRootDirectory;  
+  std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
@@ -42,8 +44,9 @@ TEST(BlobManager, Put) {
 TEST(BlobManager, Putx2) {
   std::string dbName = "BlobManager_Putx2";
   std::string dbPath = g_TestRootDirectory;
+  std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
@@ -59,11 +62,10 @@ TEST(BlobManager, Putx2) {
 
 TEST(BlobManager, Get) {
   std::string dbName = "BlobManager_Get";
-  std::string dbPath = g_TestRootDirectory;
-  boost::filesystem::path pathObj(g_TestRootDirectory);
-  pathObj += "BlobManager_Get.0";
+  std::string dbPath = g_TestRootDirectory;  
+  std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
@@ -87,24 +89,28 @@ TEST(BlobManager, Get) {
 TEST(BlobManager, Multiput) {
   std::string dbName = "BlobManager_Multiput";
   std::string dbPath = g_TestRootDirectory;
-  boost::filesystem::path pathObj(g_TestRootDirectory);
-  pathObj += "BlobManager_Multiput.0";
+  std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
-  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, true);
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);
    
   const int SIZE = 10;
-  BlobMetadata metadataArray[SIZE];
-  BufferImpl bufferArray[SIZE];
+  std::vector<BlobMetadata> metadataArray(SIZE);
+  std::vector<BufferImpl> bufferArray;
+  std::vector<const BufferImpl*> bufferPtrArray;
   std::string data;
 
   for (size_t i = 0; i < SIZE; i++) {
     data = "This is the string " + std::to_string(i);
-    bufferArray[i].Resize(data.size());
-    bufferArray[i].Copy(data.c_str(), data.size());
+    BufferImpl buf(data.c_str(), data.size(), data.size());
+    bufferArray.push_back(buf);    
   }
 
-  bm.MultiPut(bufferArray, SIZE, metadataArray);
+  for (auto& buf : bufferArray) {
+    bufferPtrArray.push_back(&buf);
+  }
+
+  bm.MultiPut(bufferPtrArray, metadataArray);
 
   BufferImpl outBuffer;
   for (size_t i = 0; i < SIZE; i++) {
@@ -112,5 +118,51 @@ TEST(BlobManager, Multiput) {
     bm.Get(metadataArray[i], outBuffer);
     ASSERT_EQ(data.size(), outBuffer.GetLength());
     ASSERT_EQ(memcmp(data.data(), outBuffer.GetData(), outBuffer.GetLength()), 0);    
-  }  
+  }
+}
+
+TEST(BlobManager, Multiput_SwitchFile) {
+  std::string dbName = "BlobManager_Multiput_SwitchFile";
+  std::string dbPath = g_TestRootDirectory;
+  std::string collectionName = "Collection";
+  // Small file size to make sure we end up with multiple data files
+  auto fileSize = 128;
+  auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
+  BlobManager bm(move(fnm), false, fileSize, true);
+
+  const int SIZE = 20;
+  std::vector<BlobMetadata> metadataArray(SIZE);
+  std::vector<BufferImpl> bufferArray;
+  std::vector<const BufferImpl*> bufferPtrArray;
+  std::string data;
+
+  for (size_t i = 0; i < SIZE; i++) {
+    data = "This is the string " + std::to_string(i);
+    BufferImpl buf(data.c_str(), data.size(), data.size());
+    bufferArray.push_back(buf);
+  }
+
+  for (auto& buf : bufferArray) {
+    bufferPtrArray.push_back(&buf);
+  }
+
+  bm.MultiPut(bufferPtrArray, metadataArray);
+
+  // Make sure that we wrote to multiple files
+  bool hasMutipleFiles = false;
+  for (auto& md : metadataArray) {
+    if (md.fileKey > 1) {
+      hasMutipleFiles = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(hasMutipleFiles);
+
+  BufferImpl outBuffer;
+  for (size_t i = 0; i < SIZE; i++) {
+    data = "This is the string " + std::to_string(i);
+    bm.Get(metadataArray[i], outBuffer);
+    ASSERT_EQ(data.size(), outBuffer.GetLength());
+    ASSERT_EQ(memcmp(data.data(), outBuffer.GetData(), outBuffer.GetLength()), 0);
+  }
 }

@@ -1,0 +1,16 @@
+namespace dbgen_converter;
+
+table ORDERS
+{
+ O_ORDERKEY:int;
+ O_CUSTKEY:int;      
+ O_ORDERSTATUS:string;
+ O_TOTALPRICE:double;
+ O_ORDERDATE:string;
+ O_ORDERPRIORITY:string;
+ O_CLERK:string;
+ O_SHIPPRIORITY:int;
+ O_COMMENT:string;
+}
+
+root_type ORDERS;

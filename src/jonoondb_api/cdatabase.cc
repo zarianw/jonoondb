@@ -1,4 +1,6 @@
 #include <sstream>
+#include <boost/utility/string_ref.hpp>
+#include "gsl/span.h"
 #include "cdatabase.h"
 #include "options_impl.h"
 #include "database_impl.h"
@@ -7,7 +9,6 @@
 #include "enums.h"
 #include "buffer_impl.h"
 #include "resultset_impl.h"
-#include "boost/utility/string_ref.hpp"
 #include "status_impl.h"
 
 using namespace jonoondb_api;
@@ -115,10 +116,11 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
 //
 IndexType ToIndexType(std::int32_t type) {
   switch (static_cast<IndexType>(type)) {
-    case IndexType::EWAHCompressedBitmap:
-      return static_cast<IndexType>(type);
+    case IndexType::EWAH_COMPRESSED_BITMAP:
+    case IndexType::VECTOR:
+      return static_cast<IndexType>(type);    
     default:
-      throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAHCompressedBitmap = 1}.",
+      throw InvalidArgumentException("Argument type is not valid. Allowed values are {EWAH_COMPRESSED_BITMAP = 1, VECTOR = 2}.",
         __FILE__, __func__, __LINE__);
   }
 }
@@ -206,8 +208,9 @@ struct indexinfo {
   indexinfo() : impl() {
   }
 
-  indexinfo(const char* indexName, IndexType type, const char* columnName, bool isAscending) {
-  } 
+  indexinfo(const char* indexName, IndexType type, const char* columnName, bool isAscending) :
+    impl(indexName, type, columnName, isAscending) {
+  }
 
   IndexInfoImpl impl;
 };
@@ -425,6 +428,28 @@ int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLa
   return val;
 }
 
+int32_t jonoondb_resultset_getcolumncount(resultset_ptr rs) {
+  return rs->impl.GetColumnCount();
+}
+
+int32_t jonoondb_resultset_getcolumntype(resultset_ptr rs, int32_t columnIndex, status_ptr* sts) {
+  int32_t val;
+  TranslateExceptions([&] {
+    val = static_cast<int32_t>(rs->impl.GetColumnType(columnIndex));
+  }, *sts);
+  return val;
+}
+
+const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts) {
+  char* strPtr;
+  TranslateExceptions([&] {
+    const std::string& str = rs->impl.GetColumnLabel(columnIndex);
+    **retValSize = str.size();
+    strPtr = const_cast<char*>(str.c_str());
+  }, *sts);
+  return strPtr;
+}
+
 //
 // Database
 //
@@ -464,6 +489,30 @@ void jonoondb_database_createcollection(database_ptr db, const char* name, int32
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts) {
   TranslateExceptions([&]{
     db->impl.Insert(collectionName, documentData->impl);
+  }, *sts);
+}
+
+void jonoondb_database_multi_insert(database_ptr db, const char * collectionName, uint64_t collectionNameLength,
+                                    const jonoondb_buffer_ptr* documentArr, uint64_t documentArrLength,
+                                    status_ptr * sts) {
+  TranslateExceptions([&] {
+    boost::string_ref colName(collectionName, collectionNameLength);
+    static_assert(sizeof(jonoondb_buffer) == sizeof(BufferImpl),
+                  "Critical Error. Size assumptions not correct for jonoondb_buffer & BufferImpl.");
+    if (sizeof(jonoondb_buffer) == sizeof(BufferImpl)) {
+      // Todo: Use a safer cast than C Style cast
+      const BufferImpl** start = (const BufferImpl**)documentArr;      
+      gsl::span<const BufferImpl*> documents(start, documentArrLength);
+      db->impl.MultiInsert(colName, documents);
+    }
+    else {
+      std::vector<const BufferImpl*> documentVec;
+      for (size_t i = 0; i < documentArrLength; i++) {
+        documentVec.push_back(&documentArr[i]->impl);
+      }
+      gsl::span<const BufferImpl*> documents(documentVec.data(), documentVec.size());
+      db->impl.MultiInsert(colName, documents);
+    }    
   }, *sts);
 }
 

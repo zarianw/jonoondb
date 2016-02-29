@@ -1,0 +1,12 @@
+namespace dbgen_converter;
+
+table PARTSUPP
+{
+PS_PARTKEY:int;
+   PS_SUPPKEY:int;
+   PS_AVAILQTY:int;
+   PS_SUPPLYCOST:double;
+   PS_COMMENT:string;
+}
+
+root_type PARTSUPP;

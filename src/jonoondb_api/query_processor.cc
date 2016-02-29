@@ -12,6 +12,8 @@
 #include "guard_funcs.h"
 #include "resultset_impl.h"
 #include "jonoondb_exceptions.h"
+#include "path_utils.h"
+#include "string_utils.h"
 
 using namespace jonoondb_api;
 using namespace boost::filesystem;
@@ -22,7 +24,8 @@ int jonoondb_vtable_init(sqlite3 *db, char **error,
 
 QueryProcessor::QueryProcessor(const std::string& dbPath, const std::string& dbName) :
 m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(nullptr), m_dbName(dbName) {
-  path pathObj(dbPath);
+  std::string normalizedDBPath = PathUtils::NormalizePath(dbPath);
+  path pathObj(normalizedDBPath);
 
   // check if the db folder exists
   if (!boost::filesystem::exists(pathObj)) {
@@ -33,7 +36,7 @@ m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close), m_dbConnectionPool(n
 
   pathObj += dbName;
   pathObj += ".dat";
-  m_fullDBpath = pathObj.string();
+  m_fullDBpath = pathObj.generic_string();
 
   if (!boost::filesystem::exists(pathObj)) {
     std::ostringstream ss;
@@ -106,7 +109,8 @@ void BuildCreateTableStatement(const Field* complexField,
     } else {
       auto fullName = prefix;
       fullName.append(field->GetName());
-      columnNames.push_back(ColumnInfo(fullName, field->GetType()));
+      columnNames.push_back(ColumnInfo(fullName, field->GetType(),
+                                       StringUtils::Split(fullName, ".")));
       stringStream << "'" << fullName << "'" << " "
         << GetSQLiteTypeString(field->GetType());
       stringStream << ", ";
@@ -130,7 +134,8 @@ void GenerateCreateTableStatementForCollection(const std::shared_ptr<DocumentCol
       prefix.append(".");
       BuildCreateTableStatement(field, prefix, stringStream, columnNames);      
     } else {
-      columnNames.push_back(ColumnInfo(field->GetName(), field->GetType()));
+      columnNames.push_back(ColumnInfo(field->GetName(), field->GetType(),
+                                       StringUtils::Split(field->GetName(), ".")));
       stringStream << field->GetName() << " " << GetSQLiteTypeString(field->GetType());
       stringStream << ", ";
     }
@@ -164,7 +169,9 @@ void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& co
   char* errMsg;
   int code = sqlite3_exec(m_readWriteDBConnection.get(), sqlStmt.str().c_str(), nullptr, nullptr, &errMsg);  
   if (code != SQLITE_OK) {
-    // Remove the collection from dictionary
+    // DocumentCollectionDictionary should have the collection after successful addition.
+    // This is required when jonoondb_connect is called instead on jonoondb_create.
+    // However if we fail to add the collection then it should be removed.    
     DocumentCollectionDictionary::Instance()->Remove(key);
     if (errMsg != nullptr) {
       std::string sqliteErrorMsg = errMsg;
@@ -176,10 +183,45 @@ void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& co
   }
 }
 
+void jonoondb_api::QueryProcessor::RemoveCollection(const std::string & collectionName) {
+  std::string stmt = "DROP TABLE IF EXISTS ";
+  stmt.append(collectionName).append(";");
+  char* errMsg;
+  int code = sqlite3_exec(m_readWriteDBConnection.get(), stmt.c_str(), nullptr, nullptr, &errMsg);
+  if (code != SQLITE_OK) {
+    if (errMsg != nullptr) {
+      std::string sqliteErrorMsg = errMsg;
+      sqlite3_free(errMsg);
+      throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
+    }
+
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+  }
+
+  std::string key("'");
+  key.append(m_dbName).append(">").append(collectionName).append("'");
+  DocumentCollectionDictionary::Instance()->Remove(key);
+}
+
+void QueryProcessor::AddExistingCollection(const std::shared_ptr<DocumentCollection>& collection) {
+  std::ostringstream ss;
+  auto docColInfo = std::make_shared<DocumentCollectionInfo>();
+  GenerateCreateTableStatementForCollection(collection, ss, docColInfo->columnsInfo);
+  docColInfo->createVTableStmt = ss.str();
+  docColInfo->collection = collection;
+
+  // Generate key and insert the collection in a singleton dictionary.
+  // vtable will use this key to get the collectionInfo  
+  std::string key("'");
+  key.append(m_dbName).append(">").append(collection->GetName()).append("'");
+  DocumentCollectionDictionary::Instance()->Insert(key, docColInfo);
+}
+
 ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) {
   // connection comming from m_dbConnectionPool are readonly
   // so we dont have to worry about sql injection
-  return ResultSetImpl(ObjectPoolGuard<sqlite3>(m_dbConnectionPool.get(), m_dbConnectionPool->Take()), selectStatement);
+  return ResultSetImpl(ObjectPoolGuard<sqlite3>(m_dbConnectionPool.get(),
+                                                m_dbConnectionPool->Take()), selectStatement);
 }
 
 sqlite3* QueryProcessor::OpenConnection() {

@@ -18,7 +18,7 @@ struct FileInfo;
 class FileNameManager {
 public:
   FileNameManager(const std::string& dbPath, const std::string& dbName,
-    bool createDBIfMissing);
+                  const std::string& collectionName, bool createDBIfMissing);
   ~FileNameManager();
   void GetCurrentDataFileInfo(bool createIfMissing, FileInfo& fileInfo);
   void GetNextDataFileInfo(FileInfo& fileInfo);
@@ -29,6 +29,7 @@ private:
   void FinalizeStatements();
   std::string m_dbName;
   boost::filesystem::path m_dbPath;
+  std::string m_collectionName;
   std::unique_ptr<sqlite3, void(*)(sqlite3*)> m_db;
   sqlite3_stmt* m_putStatement;
   sqlite3_stmt* m_getFileNameStatement;

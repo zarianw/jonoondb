@@ -37,6 +37,9 @@ endif()
 # add the include directories
 include_directories(${INCLUDE_PATH} ${INCLUDE_INTERNAL_PATH} ${THIRDPARTY_PATH})
 
+#gsl
+include_directories(${THIRDPARTY_PATH}/gsl/include)
+
 # sqlite
 add_library(
  sqlite
@@ -61,7 +64,7 @@ include_directories(${THIRDPARTY_PATH}/flatbuffers/include)
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread date_time chrono)
+find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread date_time chrono program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
 message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
@@ -95,6 +98,9 @@ add_library(
  ${INCLUDE_INTERNAL_PATH}/constraint.h
  ${INCLUDE_INTERNAL_PATH}/file.h
  ${INCLUDE_INTERNAL_PATH}/object_pool.h
+ ${INCLUDE_INTERNAL_PATH}/path_utils.h
+ ${INCLUDE_INTERNAL_PATH}/vector_integer_indexer.h
+ ${INCLUDE_INTERNAL_PATH}/vector_double_indexer.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_INTERNAL_PATH}/database_impl.h
@@ -130,6 +136,7 @@ add_subdirectory(${GTEST_PATH} ${GTEST_PATH}/bin)
 enable_testing(true)
 include_directories(${gtest_SOURCE_DIR}/include)
 
+# jonoondb_test
 add_executable(
  jonoondb_test
  ${TEST_PATH}/test_utils.h
@@ -146,6 +153,21 @@ add_executable(
  ${TEST_PATH}/flatbuffers_document_tests.cc
  ${TEST_PATH}/blob_manager_tests.cc
  ${TEST_PATH}/object_pool_tests.cc
- ${TEST_PATH}/options_tests.cc)
+ ${TEST_PATH}/options_tests.cc
+ ${TEST_PATH}/index_info_tests.cc)
 target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
+
+
+# Find a way to link against only the required boost libs
+# ${Boost_LIBRARIES} points to all the libs in find_package
+add_executable(
+ jonoondb_cli
+ ${SRC_PATH}/jonoondb_cli/main.cc)
+target_link_libraries(jonoondb_cli jonoondb_api ${Boost_LIBRARIES})
+
+# dbgen_converter
+add_executable(
+ dbgen_converter
+ ${SRC_PATH}/dbgen_converter/main.cc)
+target_link_libraries(dbgen_converter ${Boost_LIBRARIES})

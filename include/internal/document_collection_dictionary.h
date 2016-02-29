@@ -12,11 +12,13 @@ namespace jonoondb_api {
 class DocumentCollection;
 
 struct ColumnInfo {
-  ColumnInfo(const std::string& colName, FieldType colType) :
-    columnName(colName), columnType(colType) {
+  ColumnInfo(const std::string& colName, FieldType colType,
+             const std::vector<std::string>& colNameTokens) :
+    columnName(colName), columnType(colType), columnNameTokens(colNameTokens) {
   }
   std::string columnName;
   FieldType columnType;
+  std::vector<std::string> columnNameTokens;
 };
 
 struct DocumentCollectionInfo {

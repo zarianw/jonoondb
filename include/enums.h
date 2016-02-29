@@ -13,7 +13,8 @@ extern SchemaType ToSchemaType(std::int32_t type);
 
 enum class IndexType
   : std::int32_t {
-    EWAHCompressedBitmap = 1
+    EWAH_COMPRESSED_BITMAP = 1,
+    VECTOR = 2,
 };
 extern IndexType ToIndexType(std::int32_t type);
 
@@ -54,5 +55,11 @@ enum class IndexConstraintOperator
   GREATER_THAN,
   GREATER_THAN_EQUAL,
   MATCH
+};
+
+enum class SqlType : std::int32_t {
+  INTEGER = 1,
+  DOUBLE = 2,
+  TEXT = 3
 };
 }  // namespace jonoondb_api
