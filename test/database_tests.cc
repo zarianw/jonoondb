@@ -611,6 +611,104 @@ TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
   ASSERT_EQ(counter, 10);
 }
 
+void ValidateTweetResultSet(Database& db, int lowerCount, int upperCount,
+                            const std::string& lowerColName, const std::string& lowerOp, const std::string& lowerColVal,
+                            const std::string& upperColName, const std::string& upperOp, const std::string& upperColVal) {
+  std::string sql = "SELECT id, text, [user.id], [user.name], rating FROM tweet WHERE ";
+  sql.append(lowerColName).append(" ").append(lowerOp).append(" ").
+    append(lowerColVal).append(" AND ").append(upperColName).append(" ").
+    append(upperOp).append(" ").append(upperColVal).append(";");
+  auto rs = db.ExecuteSelect(sql);
+  while (rs.Next()) {
+    std::string expectedName = "zarian_" + std::to_string(lowerCount);
+    ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+    ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("id")), );
+    ASSERT_DOUBLE_EQ(double(lowerCount), rs.GetDouble(rs.GetColumnIndex("rating")));
+    ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("user.id")));
+    lowerCount++;
+  }
+  ASSERT_EQ(upperCount, lowerCount);
+}
+
+TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_EWAHIndexed_Range", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true),
+    IndexInfo("IndexName2", IndexType::EWAH_COMPRESSED_BITMAP, "rating", true),
+    IndexInfo("IndexName3", IndexType::EWAH_COMPRESSED_BITMAP, "user.id", true),
+    IndexInfo("IndexName4", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text, static_cast<double>(i)));
+  }
+  db.MultiInsert("tweet", documents);
+
+  ValidateTweetResultSet(db, 3, 8, "[user.name]", ">=", "'zarian_3'", "[user.name]", "<=", "'zarian_7'");
+  ValidateTweetResultSet(db, 3, 7, "[user.name]", ">=", "'zarian_3'", "[user.name]", "<", "'zarian_7'");
+  ValidateTweetResultSet(db, 4, 8, "[user.name]", ">", "'zarian_3'", "[user.name]", "<=", "'zarian_7'");
+  ValidateTweetResultSet(db, 4, 7, "[user.name]", ">", "'zarian_3'", "[user.name]", "<", "'zarian_7'");
+
+  ValidateTweetResultSet(db, 3, 8, "id", ">=", "3", "id", "<=", "7");
+  ValidateTweetResultSet(db, 3, 7, "id", ">=", "3", "id", "<", "7");
+  ValidateTweetResultSet(db, 4, 8, "id", ">", "3", "id", "<=", "7");
+  ValidateTweetResultSet(db, 4, 7, "id", ">", "3", "id", "<", "7");
+
+  ValidateTweetResultSet(db, 3, 8, "[user.id]", ">=", "3", "[user.id]", "<=", "7");
+  ValidateTweetResultSet(db, 3, 7, "[user.id]", ">=", "3", "[user.id]", "<", "7");
+  ValidateTweetResultSet(db, 4, 8, "[user.id]", ">", "3", "[user.id]", "<=", "7");
+  ValidateTweetResultSet(db, 4, 7, "[user.id]", ">", "3", "[user.id]", "<", "7");
+
+  ValidateTweetResultSet(db, 3, 8, "rating", ">=", "3.0", "rating", "<=", "7.0");
+  ValidateTweetResultSet(db, 3, 7, "rating", ">=", "3.0", "rating", "<", "7.0");
+  ValidateTweetResultSet(db, 4, 8, "rating", ">", "3.0", "rating", "<=", "7.0");
+  ValidateTweetResultSet(db, 4, 7, "rating", ">", "3.0", "rating", "<", "7.0"); 
+}
+
+TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_VECTORIndexed_Range", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+  // Todo: Enable tests for string Vector indexer once we have implemented that.
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
+    IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
+    IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true)/*,
+    IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true)*/ };
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    documents.push_back(GetTweetObject2(i, i, name, text, static_cast<double>(i)));
+  }
+  db.MultiInsert("tweet", documents);
+
+  /*ValidateTweetResultSet(db, 3, 8, "[user.name]", ">=", "'zarian_3'", "[user.name]", "<=", "'zarian_7'");
+  ValidateTweetResultSet(db, 3, 7, "[user.name]", ">=", "'zarian_3'", "[user.name]", "<", "'zarian_7'");
+  ValidateTweetResultSet(db, 4, 8, "[user.name]", ">", "'zarian_3'", "[user.name]", "<=", "'zarian_7'");
+  ValidateTweetResultSet(db, 4, 7, "[user.name]", ">", "'zarian_3'", "[user.name]", "<", "'zarian_7'");*/
+
+  ValidateTweetResultSet(db, 3, 8, "id", ">=", "3", "id", "<=", "7");
+  ValidateTweetResultSet(db, 3, 7, "id", ">=", "3", "id", "<", "7");
+  ValidateTweetResultSet(db, 4, 8, "id", ">", "3", "id", "<=", "7");
+  ValidateTweetResultSet(db, 4, 7, "id", ">", "3", "id", "<", "7");
+
+  ValidateTweetResultSet(db, 3, 8, "[user.id]", ">=", "3", "[user.id]", "<=", "7");
+  ValidateTweetResultSet(db, 3, 7, "[user.id]", ">=", "3", "[user.id]", "<", "7");
+  ValidateTweetResultSet(db, 4, 8, "[user.id]", ">", "3", "[user.id]", "<=", "7");
+  ValidateTweetResultSet(db, 4, 7, "[user.id]", ">", "3", "[user.id]", "<", "7");
+
+  ValidateTweetResultSet(db, 3, 8, "rating", ">=", "3.0", "rating", "<=", "7.0");
+  ValidateTweetResultSet(db, 3, 7, "rating", ">=", "3.0", "rating", "<", "7.0");
+  ValidateTweetResultSet(db, 4, 8, "rating", ">", "3.0", "rating", "<=", "7.0");
+  ValidateTweetResultSet(db, 4, 7, "rating", ">", "3.0", "rating", "<", "7.0");
+}
+
 /*TEST(Database, Insert_100K) {
   string dbName = "Database_Insert_100K";
   string collectionName = "tweet";

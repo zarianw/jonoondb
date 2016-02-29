@@ -94,6 +94,46 @@ public:
     }
   }
 
+  std::shared_ptr<MamaJenniesBitmap> FilterRange(
+    const Constraint& lowerConstraint,
+    const Constraint& upperConstraint) {
+    auto bitmap = std::make_shared<MamaJenniesBitmap>();
+    double lowerVal = GetOperandVal(lowerConstraint);
+    double upperVal = GetOperandVal(upperConstraint);
+
+    if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
+        && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
+      for (size_t i = 0; i < m_dataVector.size(); i++) {
+        if (m_dataVector[i] > lowerVal && m_dataVector[i] < upperVal) {
+          bitmap->Add(i);
+        }
+      }
+    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
+               && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+      for (size_t i = 0; i < m_dataVector.size(); i++) {
+        if (m_dataVector[i] > lowerVal && m_dataVector[i] <= upperVal) {
+          bitmap->Add(i);
+        }
+      }
+    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
+               && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
+      for (size_t i = 0; i < m_dataVector.size(); i++) {
+        if (m_dataVector[i] >= lowerVal && m_dataVector[i] < upperVal) {
+          bitmap->Add(i);
+        }
+      }
+    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
+               && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+      for (size_t i = 0; i < m_dataVector.size(); i++) {
+        if (m_dataVector[i] >= lowerVal && m_dataVector[i] <= upperVal) {
+          bitmap->Add(i);
+        }
+      }
+    }
+
+    return bitmap;
+  }
+
   bool TryGetDoubleValue(std::uint64_t documentID, double& val) override {
     if (documentID < m_dataVector.size()) {
       val = m_dataVector[documentID];
