@@ -622,7 +622,7 @@ void ValidateTweetResultSet(Database& db, int lowerCount, int upperCount,
   while (rs.Next()) {
     std::string expectedName = "zarian_" + std::to_string(lowerCount);
     ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
-    ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("id")), );
+    ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("id")));
     ASSERT_DOUBLE_EQ(double(lowerCount), rs.GetDouble(rs.GetColumnIndex("rating")));
     ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("user.id")));
     lowerCount++;
