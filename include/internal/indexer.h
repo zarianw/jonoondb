@@ -31,5 +31,9 @@ class Indexer {
   virtual bool TryGetDoubleValue(std::uint64_t documentID, double& val) {
     return false;
   }
+
+  virtual bool TryGetStringValue(std::uint64_t documentID, std::string& val) {
+    return false;
+  }
 };
 } // namespace jonoondb_api
