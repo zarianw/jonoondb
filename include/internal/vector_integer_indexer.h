@@ -84,12 +84,14 @@ public:
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN:        
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN:   
+        return GetBitmapLT(constraint, false);
       case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
-        return GetBitmapLT(constraint);
-      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:        
+        return GetBitmapLT(constraint, true);
+      case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
+        return GetBitmapLT(constraint, false);
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
-        return GetBitmapGT(constraint);
+        return GetBitmapGT(constraint, true);
       case jonoondb_api::IndexConstraintOperator::MATCH:
         // TODO: Handle this
       default:
@@ -97,6 +99,43 @@ public:
         ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
+  }
+
+  std::shared_ptr<MamaJenniesBitmap> FilterRange(
+    const Constraint& lowerConstraint,
+    const Constraint& upperConstraint) {
+    auto bitmap = std::make_shared<MamaJenniesBitmap>();
+    std::int64_t lowerVal, upperVal;
+
+    if (lowerConstraint.operandType == OperandType::DOUBLE) {
+      lowerVal = static_cast<int64_t>(std::floor(lowerConstraint.operand.doubleVal));
+    } else {
+      if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL) {
+        // Subtracting 1 here allows us to use > operator in the loop below
+        lowerVal = lowerConstraint.operand.int64Val - 1;
+      } else {
+        lowerVal = lowerConstraint.operand.int64Val;
+      }
+    }
+
+    if (upperConstraint.operandType == OperandType::DOUBLE) {
+      upperVal = static_cast<int64_t>(std::ceil(upperConstraint.operand.doubleVal));
+    } else {
+      if (upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+        // Adding 1 here allows us to use < operator in the loop below
+        upperVal = upperConstraint.operand.int64Val + 1;
+      } else {
+        upperVal = upperConstraint.operand.int64Val;
+      }
+    }
+
+    for (size_t i = 0; i < m_dataVector.size(); i++) {
+      if (m_dataVector[i] > lowerVal && m_dataVector[i] < upperVal) {
+        bitmap->Add(i);
+      }
+    }    
+
+    return bitmap;
   }
 
   bool TryGetIntegerValue(std::uint64_t documentID, std::int64_t& val) override {
@@ -183,17 +222,22 @@ private:
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint, bool orEqual) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    int64_t ceiling;
+    int64_t valToCmp;
     if (constraint.operandType == OperandType::DOUBLE) {
-      ceiling = static_cast<int64_t>(std::ceil(constraint.operand.doubleVal));
+      valToCmp = static_cast<int64_t>(std::ceil(constraint.operand.doubleVal));
     } else {
-      ceiling = constraint.operand.int64Val;
+      if (orEqual) {
+        // Adding 1 here allows us to use < operator in the loop below
+        valToCmp = constraint.operand.int64Val + 1;
+      } else {
+        valToCmp = constraint.operand.int64Val;
+      }
     }
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] < ceiling) {
+      if (m_dataVector[i] < valToCmp) {
         bitmap->Add(i);
       }
     }
@@ -201,17 +245,22 @@ private:
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint, bool orEqual) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    int64_t operandVal;
+    int64_t valToCmp;
     if (constraint.operandType == OperandType::DOUBLE) {
-      operandVal = static_cast<int64_t>(std::floor(constraint.operand.doubleVal));
+      valToCmp = static_cast<int64_t>(std::floor(constraint.operand.doubleVal));
     } else {
-      operandVal = constraint.operand.int64Val;
+      if (orEqual) {
+        // Subtracting 1 here allows us to use > operator in the loop below
+        valToCmp = constraint.operand.int64Val - 1;
+      } else {
+        valToCmp = constraint.operand.int64Val;
+      }
     }
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] > operandVal) {
+      if (m_dataVector[i] > valToCmp) {
         bitmap->Add(i);
       }
     }

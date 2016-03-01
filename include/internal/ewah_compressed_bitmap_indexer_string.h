@@ -104,6 +104,37 @@ public:
     }
   }
 
+  std::shared_ptr<MamaJenniesBitmap> FilterRange(
+      const Constraint& lowerConstraint,
+      const Constraint& upperConstraint) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    if (lowerConstraint.operandType == OperandType::STRING && 
+        upperConstraint.operandType == OperandType::STRING) {
+      std::map<std::string, std::shared_ptr<MamaJenniesBitmap>>::const_iterator startIter, endIter;
+
+      if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL) {
+        startIter = m_compressedBitmaps.lower_bound(lowerConstraint.strVal);
+      } else {
+        startIter = m_compressedBitmaps.upper_bound(lowerConstraint.strVal);
+      }
+
+      while (startIter != m_compressedBitmaps.end()) {
+        if (startIter->first < upperConstraint.strVal) {
+          bitmaps.push_back(startIter->second);
+        } else if (upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL
+                   && startIter->first == upperConstraint.strVal) {
+          bitmaps.push_back(startIter->second);
+        } else {
+          break;
+        }
+
+        startIter++;
+      }
+    }
+
+    return MamaJenniesBitmap::LogicalOR(bitmaps);
+  }
+
 private:
   EWAHCompressedBitmapIndexerString(const IndexStat& indexStat,
     std::vector<std::string>& fieldNameTokens)
@@ -174,8 +205,8 @@ private:
       } else {
         iter = m_compressedBitmaps.upper_bound(constraint.strVal);
       }
-
-      if (iter != m_compressedBitmaps.end()) {
+      
+      while (iter != m_compressedBitmaps.end()) {
         bitmaps.push_back(iter->second);
         iter++;
       }

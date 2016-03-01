@@ -119,14 +119,7 @@ int main(int argc, char **argv) {
       tokens.assign(tok.begin(), tok.end());
 
       FlatBufferBuilder fbb;
-      auto returnFlag = fbb.CreateString(tokens[8]);
-      auto lineStatus = fbb.CreateString(tokens[9]);
-      auto shipDate = fbb.CreateString(tokens[10]);
-      auto commitDate = fbb.CreateString(tokens[11]);
-      auto receiptDate = fbb.CreateString(tokens[12]);
-      auto shipInstruct = fbb.CreateString(tokens[13]);
-      auto shipMode = fbb.CreateString(tokens[14]);
-      auto comment = fbb.CreateString(tokens[15]);
+      
       auto orderKey = stoi(tokens[0]);
       auto partKey = stoi(tokens[1]);
       auto suppKey = stoi(tokens[2]);
@@ -135,8 +128,19 @@ int main(int argc, char **argv) {
       auto extendedPrice = stod(tokens[5]);
       auto discount = stod(tokens[6]);
       auto tax = stod(tokens[7]);
-      auto lineItem = CreateLINEITEM(fbb, orderKey, partKey, suppKey, lineNumber, quantity, extendedPrice,
-                                     discount, tax, returnFlag, lineStatus, shipDate, commitDate, receiptDate, shipInstruct, shipMode, comment);
+      
+      auto returnFlag = fbb.CreateString(tokens[8]);
+      auto lineStatus = fbb.CreateString(tokens[9]);
+      auto shipDate = fbb.CreateString(tokens[10]);
+      auto commitDate = fbb.CreateString(tokens[11]);
+      auto receiptDate = fbb.CreateString(tokens[12]);
+      auto shipInstruct = fbb.CreateString(tokens[13]);
+      auto shipMode = fbb.CreateString(tokens[14]);
+      auto comment = fbb.CreateString(tokens[15]);
+      
+      auto lineItem = CreateLINEITEM(fbb, orderKey, partKey, suppKey, lineNumber, quantity,
+                                     extendedPrice, discount, tax, returnFlag, lineStatus, shipDate,
+                                     commitDate, receiptDate, shipInstruct, shipMode, comment);
 
       fbb.Finish(lineItem);
       int32_t size = static_cast<int32_t>(fbb.GetSize());

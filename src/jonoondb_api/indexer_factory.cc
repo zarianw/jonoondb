@@ -8,6 +8,7 @@
 #include "jonoondb_exceptions.h"
 #include "vector_integer_indexer.h"
 #include "vector_double_indexer.h"
+#include "vector_string_indexer.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -34,8 +35,7 @@ Indexer* IndexerFactory::CreateIndexer(
     }
     case IndexType::VECTOR: {
       if (fieldType == FieldType::BASE_TYPE_STRING) {
-        throw JonoonDBException("VECTOR indexer is not yet supported for field of type string.",
-                                __FILE__, __func__, __LINE__);
+        return new VectorStringIndexer(indexInfo, fieldType);
       } else if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
                  fieldType == FieldType::BASE_TYPE_FLOAT32) {
         return new VectorDoubleIndexer(indexInfo, fieldType);

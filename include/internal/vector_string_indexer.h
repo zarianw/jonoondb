@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <cstdint>
 #include <sstream>
 #include <vector>
@@ -16,10 +15,10 @@
 #include "enums.h"
 
 namespace jonoondb_api {
-class VectorDoubleIndexer final : public Indexer {
+class VectorStringIndexer final : public Indexer {
 public:
-  VectorDoubleIndexer(const IndexInfoImpl& indexInfo,
-                       const FieldType& fieldType) {
+  VectorStringIndexer(const IndexInfoImpl& indexInfo,
+                      const FieldType& fieldType) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
     if (indexInfo.GetIndexName().size() == 0) {
@@ -28,11 +27,11 @@ public:
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::VECTOR) {
       errorMsg =
-        "Argument indexInfo can only have IndexType VECTOR for VectorDoubleIndexer.";
+        "Argument indexInfo can only have IndexType VECTOR for VectorStringIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-        << " is not valid for VectorDoubleIndexer.";
+        << " is not valid for VectorStringIndexer.";
       errorMsg = ss.str();
     }
 
@@ -45,8 +44,7 @@ public:
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::BASE_TYPE_FLOAT32
-            || fieldType == FieldType::BASE_TYPE_DOUBLE);
+    return (fieldType == FieldType::BASE_TYPE_STRING);
   }
 
   void ValidateForInsert(const Document& document) override {
@@ -98,8 +96,8 @@ public:
     const Constraint& lowerConstraint,
     const Constraint& upperConstraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    double lowerVal = GetOperandVal(lowerConstraint);
-    double upperVal = GetOperandVal(upperConstraint);
+    auto lowerVal = GetOperandVal(lowerConstraint);
+    auto upperVal = GetOperandVal(upperConstraint);
 
     if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
         && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
@@ -134,32 +132,28 @@ public:
     return bitmap;
   }
 
-  bool TryGetDoubleValue(std::uint64_t documentID, double& val) override {
+  bool TryGetStringValue(std::uint64_t documentID, std::string& val) override {
     if (documentID < m_dataVector.size()) {
       val = m_dataVector[documentID];
       return true;
     }
 
     return false;
-  }
+  }  
 
 private:
   void InsertInternal(std::uint64_t documentID, const Document& document) {
-    double val;
+    std::string val;
     switch (m_indexStat.GetFieldType()) {
-      case FieldType::BASE_TYPE_FLOAT32: {
-        val = document.GetScalarValueAsFloat(m_fieldNameTokens.back());
+      case FieldType::BASE_TYPE_STRING: {
+        val = document.GetStringValue(m_fieldNameTokens.back());
         break;
-      }
-      case FieldType::BASE_TYPE_DOUBLE: {
-        val = document.GetScalarValueAsDouble(m_fieldNameTokens.back());
-        break;
-      }
+      }      
       default: {
         // This can never happen
         std::ostringstream ss;
         ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-          << " is not valid for VectorDoubleIndexer.";
+          << " is not valid for VectorStringIndexer.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
       }
     }
@@ -168,36 +162,33 @@ private:
     m_dataVector.push_back(val);
   }
 
-  inline double GetOperandVal(const Constraint& constraint) {
-    double val = 0;
+  inline std::string GetOperandVal(const Constraint& constraint) {
+    std::string val;
     if (constraint.operandType == OperandType::INTEGER) {
-      val = static_cast<double>(constraint.operand.int64Val);
+      return std::to_string(constraint.operand.int64Val);
     } else if (constraint.operandType == OperandType::DOUBLE) {
-      val = constraint.operand.doubleVal;
+      return std::to_string(constraint.operand.doubleVal);
+    } else {
+      return constraint.strVal;
     }
-
-    // Todo: See if we should throw exception in case of string operand
-    return val;
   }
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    double val = GetOperandVal(constraint);
+    auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
       if (m_dataVector[i] == val) {
         bitmap->Add(i);
       }
     }
-
-    // In all other cases the operand cannot be equal. The cases are:
-    // Operand is a string value, this should not happen because the query should fail before reaching this point   
+   
     return bitmap;
   }
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    double val = GetOperandVal(constraint);
+    auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
       if (m_dataVector[i] < val) {
@@ -210,7 +201,7 @@ private:
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapLTE(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    double val = GetOperandVal(constraint);
+    auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
       if (m_dataVector[i] <= val) {
@@ -223,7 +214,7 @@ private:
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    double val = GetOperandVal(constraint);
+    auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
       if (m_dataVector[i] > val) {
@@ -236,7 +227,7 @@ private:
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
-    double val = GetOperandVal(constraint);
+    auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
       if (m_dataVector[i] >= val) {
@@ -249,6 +240,6 @@ private:
 
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
-  std::vector<double> m_dataVector;
+  std::vector<std::string> m_dataVector;
 };
 } // namespace jonoondb_api
