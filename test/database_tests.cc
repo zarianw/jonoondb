@@ -576,44 +576,49 @@ TEST(Database, ExecuteSelect_LessThan) {
   }
   ASSERT_EQ(rowCnt, 5);
 
+  rowCnt = 0;
   rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field1 < 3;");
   while (rs.Next()) {
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 3);
 
+  rowCnt = 0;
   rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field12 < 'usman_3';");
   while (rs.Next()) {
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 3);
 
- rowCnt = 0;
- rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 0;");
-while (rs.Next()) {
-  rowCnt++;
-}
-ASSERT_EQ(rowCnt, 0);
+  rowCnt = 0;
+  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 0;");
+  while (rs.Next()) {
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 0);
 
-rowCnt = 0;
-rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 5;");
-while (rs.Next()) {
-  rowCnt++;
-}
-ASSERT_EQ(rowCnt, 5);
+  rowCnt = 0;
+  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 5;");
+  while (rs.Next()) {
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
 
-rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 3;");
-while (rs.Next()) {
-  rowCnt++;
-}
-ASSERT_EQ(rowCnt, 3);
+  rowCnt = 0;
+  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 3;");
+  while (rs.Next()) {
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 3);
 
-rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field12 < 'usman_3';");
-while (rs.Next()) {
-  rowCnt++;
+  rowCnt = 0;
+  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field12 < 'usman_3';");
+  while (rs.Next()) {
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 3);
 }
-ASSERT_EQ(rowCnt, 3);
-}
+
 TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
   Database db(g_TestRootDirectory, "ExecuteSelect_VECTORIndexed_DoubleExpression", GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "tweet.fbs";
