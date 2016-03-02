@@ -101,6 +101,13 @@ int GetSQLiteType(FieldType fieldType) {
   }
 }
 
+void AllocateAndCopy(const std::string& src, char** dest) {
+  // Its important to use sqlite3_malloc here because sqlite
+  // internally will use sqlite3_free to free the memory.
+  *dest = (char*)sqlite3_malloc(src.size() + 1);
+  std::strncpy(*dest, src.c_str(), src.size() + 1);
+}
+
 static int jonoondb_create(sqlite3 *db, void *udp, int argc,
                            const char * const *argv, sqlite3_vtab **vtab,
                            char **errmsg) {  
@@ -110,8 +117,7 @@ static int jonoondb_create(sqlite3 *db, void *udp, int argc,
     if (errmsg != nullptr) {
       errMessage << "jonnondb_vtable needs 4 arguments, but only " << argc << " arguments were provided.";
       auto str = errMessage.str();
-      *errmsg = (char*)sqlite3_malloc(str.size() + 1);
-      std::strncpy(*errmsg, str.c_str(), str.size());
+      AllocateAndCopy(str, errmsg);      
     }
     return SQLITE_MISUSE;
   } 
@@ -125,8 +131,7 @@ static int jonoondb_create(sqlite3 *db, void *udp, int argc,
       errMessage << "jonnondb_vtable could not find collection info for " << collectionName <<
         " in the dictionary using key " << key << ".";
       auto str = errMessage.str();
-      *errmsg = (char*)sqlite3_malloc(str.size() + 1);
-      std::strncpy(*errmsg, str.c_str(), str.size() + 1);
+      AllocateAndCopy(str, errmsg);      
     }
     return SQLITE_MISUSE;
   }
@@ -164,47 +169,58 @@ static int jonoondb_destroy(sqlite3_vtab* vtab) {
 }
 
 static int jonoondb_bestindex(sqlite3_vtab* vtab, sqlite3_index_info *info) {  
-  jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
-  IndexStat indexStat;
-  int argvIndex = 0;  
-  std::string sbuf;
-  for (int i = 0; i < info->nConstraint; i++) {
-    if (info->aConstraint[i].usable) {
-      if (info->aConstraint[i].iColumn == -1) {
-        // Means someone has used RowID in contraint
-        // "Queries on RowID are not allowed.";
-        return SQLITE_ERROR;
-      }
+  try {
+    jonoondb_vtab* jdbVtab = reinterpret_cast<jonoondb_vtab*>(vtab);
+    IndexStat indexStat;
+    int argvIndex = 0;
+    std::string sbuf;
+    for (int i = 0; i < info->nConstraint; i++) {
+      if (info->aConstraint[i].usable) {
+        if (info->aConstraint[i].iColumn == -1) {
+          // Means someone has used RowID in contraint
+          // "Queries on RowID are not allowed.";
+          return SQLITE_ERROR;
+        }
 
-      IndexConstraintOperator op = MapSQLiteToJonoonDBOperator(info->aConstraint[i].op);
-      if (jdbVtab->collectionInfo->collection->TryGetBestIndex(jdbVtab->collectionInfo->columnsInfo[info->aConstraint[i].iColumn].columnName,
-                                               op,
-                                               indexStat)) {
-        info->aConstraintUsage[i].argvIndex = ++argvIndex;
-        info->aConstraintUsage[i].omit = 1;
-        assert(sizeof(int) == sizeof(info->aConstraint[i].iColumn));
-        assert(sizeof(IndexConstraintOperator) == sizeof(op));
-        // type of info->aConstraint[i].iColumn is int
-        sbuf.append((char*)&info->aConstraint[i].iColumn, sizeof(int)); 
-        sbuf.append((char*)&op, sizeof(IndexConstraintOperator));
+        IndexConstraintOperator op = MapSQLiteToJonoonDBOperator(info->aConstraint[i].op);
+        if (jdbVtab->collectionInfo->collection->TryGetBestIndex(jdbVtab->collectionInfo->columnsInfo[info->aConstraint[i].iColumn].columnName,
+                                                                 op,
+                                                                 indexStat)) {
+          info->aConstraintUsage[i].argvIndex = ++argvIndex;
+          info->aConstraintUsage[i].omit = 1;
+          assert(sizeof(int) == sizeof(info->aConstraint[i].iColumn));
+          assert(sizeof(IndexConstraintOperator) == sizeof(op));
+          // type of info->aConstraint[i].iColumn is int
+          sbuf.append((char*)&info->aConstraint[i].iColumn, sizeof(int));
+          sbuf.append((char*)&op, sizeof(IndexConstraintOperator));
+        }
       }
-    }    
-  }
-  
-  if (sbuf.size() > 0) {    
-    info->idxStr = (char*)sqlite3_malloc(sbuf.size());
-    if (info->idxStr == nullptr) {
-      return SQLITE_NOMEM;
     }
-    info->needToFreeIdxStr = 1;
-    info->idxNum = sbuf.size();    
-    
-    std::memcpy(info->idxStr, sbuf.data(), sbuf.size());    
+
+    if (sbuf.size() > 0) {
+      info->idxStr = (char*)sqlite3_malloc(sbuf.size());
+      if (info->idxStr == nullptr) {
+        return SQLITE_NOMEM;
+      }
+      info->needToFreeIdxStr = 1;
+      info->idxNum = sbuf.size();
+
+      std::memcpy(info->idxStr, sbuf.data(), sbuf.size());
+    }
+
+    info->orderByConsumed = 0;
+
+    return SQLITE_OK;
+  } catch (JonoonDBException& ex) {
+    AllocateAndCopy(ex.to_string(), &vtab->zErrMsg);
+    return SQLITE_ERROR;
+  } catch (std::exception& ex) {
+    std::ostringstream errMessage;
+    errMessage << "Exception caugth in jonoondb_column function. Error: " << ex.what();
+    auto str = errMessage.str();
+    AllocateAndCopy(str, &vtab->zErrMsg);
+    return SQLITE_ERROR;
   }
-
-  info->orderByConsumed = 0;    
-
-  return SQLITE_OK;
 }
 
 static int jonoondb_open(sqlite3_vtab* vtab, sqlite3_vtab_cursor** cur) {
@@ -281,7 +297,15 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
       cursor->iter = cursor->filteredIds->begin_pointer();
       cursor->end = cursor->filteredIds->end_pointer();
     }
-  } catch (std::exception&) {
+  } catch (JonoonDBException& ex) {
+    AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);
+    return SQLITE_ERROR;
+  } catch (std::exception& ex) {
+    std::ostringstream errMessage;
+    errMessage << "Exception caugth in jonoondb_filter function. Error: " << ex.what();
+    auto str = errMessage.str();
+    AllocateAndCopy(str, &cur->pVtab->zErrMsg);
+
     return SQLITE_ERROR;
   }
 
@@ -390,8 +414,15 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
 
       sqlite3_result_double(ctx, val);
     }
+  } catch (JonoonDBException& ex) {
+    AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);
+    return SQLITE_ERROR;
   } catch (std::exception& ex) {
-    //Todo: Log the error
+    std::ostringstream errMessage;
+    errMessage << "Exception caugth in jonoondb_column function. Error: " << ex.what();
+    auto str = errMessage.str();
+    AllocateAndCopy(str, &cur->pVtab->zErrMsg);    
+
     return SQLITE_ERROR;
   }
 
