@@ -43,12 +43,12 @@ include_directories(${THIRDPARTY_PATH}/gsl/include)
 # sqlite
 add_library(
  sqlite
- ${THIRDPARTY_PATH}/sqlite-amalgamation-3080803/sqlite3ext.h
- ${THIRDPARTY_PATH}/sqlite-amalgamation-3080803/sqlite3.c ${THIRDPARTY_PATH}/sqlite-amalgamation-3080803/sqlite3.h)
+ ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100/sqlite3ext.h
+ ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100/sqlite3.c ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100/sqlite3.h)
 if(CMAKE_COMPILER_IS_GNUCXX)
   target_link_libraries(sqlite pthread dl)
 endif()
-include_directories(${THIRDPARTY_PATH}/sqlite-amalgamation-3080803)
+include_directories(${THIRDPARTY_PATH}/sqlite-amalgamation-3110100)
 
 # flatbuffers
 add_library(
