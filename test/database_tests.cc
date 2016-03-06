@@ -171,7 +171,7 @@ Buffer GetAllFieldTypeObjectBuffer() {
   return buffer;
 }
 
-Buffer GetAllFieldTypeObjectBuffer(char field1, unsigned char field2, bool field3, int16_t field4,
+Buffer GetAllFieldTypeObjectBuffer(char field1, unsigned char field2, uint8_t field3, int16_t field4,
                                    uint16_t field5,int32_t field6, uint32_t field7,float field8,int64_t field9,
                                    uint64_t field10,double field11, const std::string& field12) {
   FlatBufferBuilder fbb;
@@ -546,6 +546,21 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
   ASSERT_EQ(rowCnt, 5);
 }
 
+void ExecuteAndValidateResultset(Database& db, const std::string& fieldName,
+                                 const std::string& op, const std::string& valueToCompare,
+                                 int expectedRowCount) {
+  int rowCnt = 0;
+  std::string sqlStr = "SELECT * FROM all_field_collection WHERE ";
+  sqlStr.append(fieldName).append(" ").append(op)
+    .append(" ").append(valueToCompare).append(";");
+
+  ResultSet rs = db.ExecuteSelect(sqlStr);
+  while (rs.Next()) {
+    rowCnt++;
+  }
+  ASSERT_EQ(expectedRowCount, rowCnt);
+}
+
 TEST(Database, ExecuteSelect_LessThan) {
   Database db(g_TestRootDirectory, "ExecuteSelect_LessThan", GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "all_field_type.fbs";
@@ -555,68 +570,81 @@ TEST(Database, ExecuteSelect_LessThan) {
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
-    std::string field12 = "usman_" + std::to_string(i);
-    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i), i, (bool)i, i, i, i, i, (float)i,
-                                                    i, i, (double)i, field12));
+    std::string field12 = std::to_string(i);
+    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i), static_cast<uint8_t>(i),
+                                                    static_cast<uint8_t>(i), static_cast<int16_t>(i),
+                                                    static_cast<uint16_t>(i), static_cast<int32_t>(i),
+                                                    static_cast<uint32_t>(i), (float)i, static_cast<int64_t>(i),
+                                                    static_cast<uint64_t>(i), (double)i, field12));
+  }
+
+  db.MultiInsert("all_field_collection", documents);    
+
+  for (size_t i = 1; i < 12; i++) {
+    std::string fieldName = "field" + std::to_string(i);
+    ExecuteAndValidateResultset(db, fieldName, "<", "0", 0);
+    ExecuteAndValidateResultset(db, fieldName, "<", "10", 10);
+    ExecuteAndValidateResultset(db, fieldName, "<", "5", 5);
+  }
+
+  ExecuteAndValidateResultset(db, "field12", "<", "'0'", 0);
+  ExecuteAndValidateResultset(db, "field12", "<", "'99'", 10);
+  ExecuteAndValidateResultset(db, "field12", "<", "'5'", 5);    
+ 
+  for (size_t i = 1; i < 12; i++) {
+    std::string fieldName = "[nestedField.field" + std::to_string(i) + "]";
+    ExecuteAndValidateResultset(db, fieldName, "<", "0", 0);
+    ExecuteAndValidateResultset(db, fieldName, "<", "10", 10);
+    ExecuteAndValidateResultset(db, fieldName, "<", "5", 5);
+  }
+
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", "<", "'0'", 0);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", "<", "'99'", 10);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", "<", "'5'", 5);
+
+}
+
+TEST(Database, ExecuteSelect_GreaterThan) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_GreaterThan", GetDefaultDBOptions());
+  string filePath = g_SchemaFolderPath + "all_field_type.fbs";
+  string schema = ReadTextFile(filePath);
+  std::vector<IndexInfo> indexes{};
+  db.CreateCollection("all_field_collection", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string field12 = std::to_string(i);
+    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i), static_cast<uint8_t>(i),
+                                                    static_cast<uint8_t>(i), static_cast<int16_t>(i),
+                                                    static_cast<uint16_t>(i), static_cast<int32_t>(i),
+                                                    static_cast<uint32_t>(i), (float)i, static_cast<int64_t>(i),
+                                                    static_cast<uint64_t>(i), (double)i, field12));
   }
 
   db.MultiInsert("all_field_collection", documents);
 
-  int rowCnt = 0;
-  ResultSet rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field1 < 0;");
-  while (rs.Next()) {
-    rowCnt++;
+  for (size_t i = 1; i < 12 ; i++) {
+    std::string fieldName = "field" + std::to_string(i);
+    ExecuteAndValidateResultset(db, fieldName, ">", "-1", 10);
+    ExecuteAndValidateResultset(db, fieldName, ">", "10", 0);
+    ExecuteAndValidateResultset(db, fieldName, ">", "5", 4);
   }
-  ASSERT_EQ(rowCnt, 0);
 
-  rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field1 < 5;");
-  while (rs.Next()) {
-    rowCnt++;
-  }
-  ASSERT_EQ(rowCnt, 5);
+  ExecuteAndValidateResultset(db, "field12", ">", "''", 10);
+  ExecuteAndValidateResultset(db, "field12", ">", "'99'", 0);
+  ExecuteAndValidateResultset(db, "field12", ">", "'5'", 4);
 
-  rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field1 < 3;");
-  while (rs.Next()) {
-    rowCnt++;
+  
+  for (size_t i = 1; i < 12; i++) {
+    std::string fieldName = "[nestedField.field" + std::to_string(i) + "]";
+    ExecuteAndValidateResultset(db, fieldName, ">", "-1", 10);
+    ExecuteAndValidateResultset(db, fieldName, ">", "10", 0);
+    ExecuteAndValidateResultset(db, fieldName, ">", "5", 4);
   }
-  ASSERT_EQ(rowCnt, 3);
 
-  rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field12 < 'usman_3';");
-  while (rs.Next()) {
-    rowCnt++;
-  }
-  ASSERT_EQ(rowCnt, 3);
-
-  rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 0;");
-  while (rs.Next()) {
-    rowCnt++;
-  }
-  ASSERT_EQ(rowCnt, 0);
-
-  rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 5;");
-  while (rs.Next()) {
-    rowCnt++;
-  }
-  ASSERT_EQ(rowCnt, 5);
-
-  rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field2 < 3;");
-  while (rs.Next()) {
-    rowCnt++;
-  }
-  ASSERT_EQ(rowCnt, 3);
-
-  rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT * FROM all_field_collection WHERE field12 < 'usman_3';");
-  while (rs.Next()) {
-    rowCnt++;
-  }
-  ASSERT_EQ(rowCnt, 3);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", ">", "''", 10);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", ">", "'99'", 0);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", ">", "'5'", 4);
 }
 
 TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
@@ -646,7 +674,6 @@ TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
   }
   ASSERT_EQ(rowCnt, 3);  
 }
-
 TEST(Database, ExecuteSelect_DoubleExpression) {
   Database db(g_TestRootDirectory, "ExecuteSelect_DoubleExpression", GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "tweet.fbs";
