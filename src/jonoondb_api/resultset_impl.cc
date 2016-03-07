@@ -69,7 +69,13 @@ bool ResultSetImpl::Next() {
   } else if (code == SQLITE_DONE) {
     return false;
   } else {
-    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+    const char* errMsg = sqlite3_errmsg(m_db);
+    if (errMsg != nullptr) {
+      std::string sqliteErrorMsg = errMsg;
+      throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
+    }
+
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);    
   }
 }
 

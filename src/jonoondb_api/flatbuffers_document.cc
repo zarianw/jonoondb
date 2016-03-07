@@ -135,7 +135,10 @@ std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fiel
 
   int64_t val;
   switch (fieldDef->value.type.base_type) {
+    case BaseType::BASE_TYPE_BOOL:
     case BaseType::BASE_TYPE_UCHAR: {
+      // Flatbuffer represents boolean as uint8_t (0=false, 1=true) 
+      // so for fb we can convert bool to an integer value
       val = m_dynTableReader->GetScalarValueAs<std::uint8_t>(fieldDef);
       break;
     }
@@ -166,7 +169,7 @@ std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fiel
     case BaseType::BASE_TYPE_LONG: {
       val = m_dynTableReader->GetScalarValueAs<std::int64_t>(fieldDef);
       break;
-    }
+    }    
     default: {
       std::ostringstream ss;
       ss << "Field " << fieldName << " has FieldType " << fieldDef->value.type.base_type
