@@ -633,8 +633,7 @@ TEST(Database, ExecuteSelect_GreaterThan) {
   ExecuteAndValidateResultset(db, "field12", ">", "''", 10);
   ExecuteAndValidateResultset(db, "field12", ">", "'99'", 0);
   ExecuteAndValidateResultset(db, "field12", ">", "'5'", 4);
-
-  
+    
   for (size_t i = 1; i < 12; i++) {
     std::string fieldName = "[nestedField.field" + std::to_string(i) + "]";
     ExecuteAndValidateResultset(db, fieldName, ">", "-1", 10);
