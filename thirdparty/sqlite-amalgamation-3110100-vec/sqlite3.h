@@ -4696,6 +4696,8 @@ SQLITE_API void SQLITE_STDCALL sqlite3_result_value(sqlite3_context*, sqlite3_va
 SQLITE_API void SQLITE_STDCALL sqlite3_result_zeroblob(sqlite3_context*, int n);
 SQLITE_API int SQLITE_STDCALL sqlite3_result_zeroblob64(sqlite3_context*, sqlite3_uint64 n);
 
+SQLITE_API void SQLITE_STDCALL sqlite3_result_int64_vec(sqlite3_context*, const void*, int, void(*)(void*));
+
 
 /*
 ** CAPI3REF: Setting The Subtype Of An SQL Function
@@ -5597,6 +5599,9 @@ struct sqlite3_module {
   int (*xSavepoint)(sqlite3_vtab *pVTab, int);
   int (*xRelease)(sqlite3_vtab *pVTab, int);
   int (*xRollbackTo)(sqlite3_vtab *pVTab, int);
+  // Vector functions
+  int(*xColumnVec)(sqlite3_vtab_cursor*, sqlite3_context*, int);
+  int(*xNextVec)(sqlite3_vtab_cursor*);
 };
 
 /*

@@ -319,6 +319,13 @@ static int jonoondb_next(sqlite3_vtab_cursor* cur) {
   return SQLITE_OK;
 }
 
+static int jonoondb_next_vec(sqlite3_vtab_cursor* cur) {
+  auto jdbCursor = (jonoondb_cursor*)cur;
+  ++(*jdbCursor->iter);
+
+  return SQLITE_OK;
+}
+
 static int jonoondb_eof(sqlite3_vtab_cursor* cur) {
   auto jdbCursor = (jonoondb_cursor*)cur;
   if (*(jdbCursor->iter) >= *(jdbCursor->end)) {
@@ -429,6 +436,98 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
   return SQLITE_OK;
 }
 
+static int jonoondb_column_vec(sqlite3_vtab_cursor* cur,
+                               sqlite3_context *ctx,
+                               int cidx) {
+  try {
+    jonoondb_cursor* jdbCursor = (jonoondb_cursor*)cur;
+    auto& columnInfo = jdbCursor->collectionInfo->columnsInfo[cidx];
+    if (columnInfo.columnType == FieldType::BASE_TYPE_STRING) {
+      // Get the string value
+      auto currentDocID = jdbCursor->iter->operator*();
+      std::string val;
+      // First check if we have the current document already cached on our side
+      if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
+        if (columnInfo.columnNameTokens.size() > 1) {
+          auto subDoc = DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document, columnInfo.columnNameTokens);
+          val = subDoc->GetStringValue(columnInfo.columnNameTokens.back());
+        } else {
+          val = jdbCursor->document->GetStringValue(columnInfo.columnNameTokens.back());
+        }
+      } else {
+        jdbCursor->documentID = currentDocID;
+        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsString(currentDocID,
+                                                                              columnInfo.columnName,
+                                                                              columnInfo.columnNameTokens,
+                                                                              jdbCursor->buffer,
+                                                                              jdbCursor->document);
+      }
+
+      // SQLITE_TRANSIENT causes SQLite to copy the string on its side
+      sqlite3_result_text(ctx, val.c_str(), val.size(), SQLITE_TRANSIENT);
+    } else if (columnInfo.columnType == FieldType::BASE_TYPE_INT64 ||
+               columnInfo.columnType == FieldType::BASE_TYPE_INT32 ||
+               columnInfo.columnType == FieldType::BASE_TYPE_INT16 ||
+               columnInfo.columnType == FieldType::BASE_TYPE_INT8 ||
+               columnInfo.columnType == FieldType::BASE_TYPE_UINT64 ||
+               columnInfo.columnType == FieldType::BASE_TYPE_UINT32 ||
+               columnInfo.columnType == FieldType::BASE_TYPE_UINT16 ||
+               columnInfo.columnType == FieldType::BASE_TYPE_UINT8) {
+      // Get the integer vector
+      
+      const int VEC_SIZE = 100;
+      std::vector<std::uint64_t> docIDs;
+      for (int i = 0; i < VEC_SIZE; i++) {
+        if (*(jdbCursor->iter) >= *(jdbCursor->end)) {
+          break;
+        }
+        docIDs.push_back(jdbCursor->iter->operator*());
+        //++(*jdbCursor->iter);       
+      }
+
+      std::vector<std::int64_t> values;
+      values.resize(docIDs.size());
+      jdbCursor->collectionInfo->collection->GetDocumentFieldsAsIntegerVector(
+          docIDs, columnInfo.columnName, columnInfo.columnNameTokens, values);
+      sqlite3_result_int64_vec(ctx, (void*)values.data(), values.size(), SQLITE_TRANSIENT);
+    } else {
+      // Get the floating value
+      auto currentDocID = jdbCursor->iter->operator*();
+      double val;
+      // First check if we have the current document already cached on our side
+      if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
+        if (columnInfo.columnNameTokens.size() > 1) {
+          auto subDoc = DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document, columnInfo.columnNameTokens);
+          val = subDoc->GetFloatingValueAsDouble(columnInfo.columnNameTokens.back());
+        } else {
+          val = jdbCursor->document->GetFloatingValueAsDouble(columnInfo.columnNameTokens.back());
+        }
+      } else {
+        jdbCursor->documentID = currentDocID;
+        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsDouble(currentDocID,
+                                                                              columnInfo.columnName,
+                                                                              columnInfo.columnNameTokens,
+                                                                              jdbCursor->buffer,
+                                                                              jdbCursor->document);
+      }
+
+      sqlite3_result_double(ctx, val);
+    }
+  } catch (JonoonDBException& ex) {
+    AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);
+    return SQLITE_ERROR;
+  } catch (std::exception& ex) {
+    std::ostringstream errMessage;
+    errMessage << "Exception caugth in jonoondb_column function. Error: " << ex.what();
+    auto str = errMessage.str();
+    AllocateAndCopy(str, &cur->pVtab->zErrMsg);
+
+    return SQLITE_ERROR;
+  }
+
+  return SQLITE_OK;
+}
+
 static int jonoondb_rename(sqlite3_vtab* vtab, const char *newname) {
   // printf("RENAME\n");
   return SQLITE_OK;
@@ -489,26 +588,32 @@ static int jonoondb_xFindFunction(
     ) {
 }
 
-static sqlite3_module jonoondb_mod = { 1, /* iVersion        */
-jonoondb_create, /* xCreate()       */
-jonoondb_connect, /* xConnect()      */
-jonoondb_bestindex, /* xBestIndex()    */
-jonoondb_disconnect, /* xDisconnect()   */
-jonoondb_destroy, /* xDestroy()      */
-jonoondb_open, /* xOpen()         */
-jonoondb_close, /* xClose()        */
-jonoondb_filter, /* xFilter()       */
-jonoondb_next, /* xNext()         */
-jonoondb_eof, /* xEof()          */
-jonoondb_column, /* xColumn()       */
-jonoondb_rowid, /* xRowid()        */
-jonoondb_update, /* xUpdate()       */
-jonoondb_begin, /* xBegin()        */
-jonoondb_sync, /* xSync()         */
-jonoondb_commit, /* xCommit()       */
-jonoondb_rollback, /* xRollback()     */
-NULL,/* xFindFunction() */
-jonoondb_rename /* xRename()       */
+static sqlite3_module jonoondb_mod = {
+1,                      /* iVersion        */
+jonoondb_create,        /* xCreate()       */
+jonoondb_connect,       /* xConnect()      */
+jonoondb_bestindex,     /* xBestIndex()    */
+jonoondb_disconnect,    /* xDisconnect()   */
+jonoondb_destroy,       /* xDestroy()      */
+jonoondb_open,          /* xOpen()         */
+jonoondb_close,         /* xClose()        */
+jonoondb_filter,        /* xFilter()       */
+jonoondb_next,          /* xNext()         */
+jonoondb_eof,           /* xEof()          */
+jonoondb_column,        /* xColumn()       */
+jonoondb_rowid,         /* xRowid()        */
+jonoondb_update,        /* xUpdate()       */
+jonoondb_begin,         /* xBegin()        */
+jonoondb_sync,          /* xSync()         */
+jonoondb_commit,        /* xCommit()       */
+jonoondb_rollback,      /* xRollback()     */
+NULL,                   /* xFindFunction() */
+jonoondb_rename,        /* xRename()       */
+NULL,                   /* xSavepoint()    */
+NULL,                   /* xRelease()      */
+NULL,                   /* xRollbackTo()   */
+jonoondb_column_vec,    /* xColumnVec()    */
+jonoondb_next_vec       /* xNextVec()      */
 };
 
 int jonoondb_vtable_init(sqlite3 *db, char **error,

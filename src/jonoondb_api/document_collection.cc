@@ -187,6 +187,43 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
   }
 }
 
+void DocumentCollection::GetDocumentFieldsAsIntegerVector(
+    const std::vector<std::uint64_t>& docIDs, const std::string& columnName,
+    std::vector<std::string>& tokens,
+    std::vector<std::int64_t>& values) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
+  }
+
+  if (m_indexManager->TryGetIntegerVector(docIDs, columnName, values)) {
+    // We have the values
+    return;
+  }
+
+  BufferImpl buffer;
+  int index = 0;
+  for (auto docID : docIDs) {
+    if (docID >= m_documentIDMap.size()) {
+      ostringstream ss;
+      ss << "Document with ID '" << docID 
+        << "' does exist in collection " << m_name << ".";
+      throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+    }   
+
+    m_blobManager->Get(m_documentIDMap.at(docID), buffer);
+
+    auto document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+    if (tokens.size() > 1) {
+      auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
+                                                             tokens);
+      values[index] = subDoc->GetIntegerValueAsInt64(tokens.back());
+    } else {
+      values[index] = document->GetIntegerValueAsInt64(tokens.front());
+    }
+  }  
+}
+
 double DocumentCollection::GetDocumentFieldAsDouble(
   std::uint64_t docID, const std::string& columnName,
   std::vector<std::string>& tokens, BufferImpl& buffer,

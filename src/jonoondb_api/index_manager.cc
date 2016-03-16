@@ -142,6 +142,22 @@ bool IndexManager::TryGetIntegerValue(std::uint64_t documentID,
   return false;
 }
 
+bool IndexManager::TryGetIntegerVector(
+    const std::vector<std::uint64_t>& documentIDs,
+    const std::string & columnName,
+    std::vector<std::int64_t>& values) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
+        return indexer->TryGetIntegerVector(documentIDs, values);
+      }
+    }
+  }
+
+  return false;
+}
+
 bool IndexManager::TryGetDoubleValue(std::uint64_t documentID,
                                      const std::string& columnName,
                                      double& val) {

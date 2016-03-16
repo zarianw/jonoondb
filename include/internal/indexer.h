@@ -28,6 +28,12 @@ class Indexer {
     return false;
   }
 
+  virtual bool TryGetIntegerVector(
+      const std::vector<std::uint64_t>& documentIDs,
+      std::vector<std::int64_t>& values) {
+    return false;
+  }
+
   virtual bool TryGetDoubleValue(std::uint64_t documentID, double& val) {
     return false;
   }
