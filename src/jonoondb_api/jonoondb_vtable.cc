@@ -19,6 +19,7 @@
 #include "mama_jennies_bitmap.h"
 #include "buffer_impl.h"
 #include "document.h"
+#include "id_seq.h"
 
 
 using namespace jonoondb_api;
@@ -35,16 +36,16 @@ struct jonoondb_vtab {
 
 struct jonoondb_cursor {
   jonoondb_cursor(std::shared_ptr<DocumentCollectionInfo>& colInfo) : 
-    collectionInfo(colInfo), documentID(0), document(nullptr) {
+    collectionInfo(colInfo), documentID(0), document(nullptr),
+    idSeq_index(0) {
   }
 
   sqlite3_vtab_cursor cur;  
   // we can keep reference here because we will always close the
   // jonoondb_cursor before closing the jonoondb_vtab
-  std::shared_ptr<DocumentCollectionInfo>& collectionInfo;  
-  std::shared_ptr<MamaJenniesBitmap> filteredIds;
-  std::unique_ptr<MamaJenniesBitmap::const_iterator> iter;
-  std::unique_ptr<MamaJenniesBitmap::const_iterator> end;
+  std::shared_ptr<DocumentCollectionInfo>& collectionInfo;
+  std::unique_ptr<IDSequence> idSeq;
+  int idSeq_index;  
   BufferImpl buffer; // buffer to keep the current doc
   std::unique_ptr<Document> document;
   std::uint64_t documentID;
@@ -287,15 +288,13 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
         constraints.push_back(std::move(constraint)); 
         value++;
       }
-
-      cursor->filteredIds = cursor->collectionInfo->collection->Filter(constraints);
-      cursor->iter = cursor->filteredIds->begin_pointer();
-      cursor->end = cursor->filteredIds->end_pointer();
+            
+      cursor->idSeq = std::make_unique<IDSequence>(
+        cursor->collectionInfo->collection->Filter(constraints), 100);      
     } else {
       // We need to do a full scan
-      cursor->filteredIds = cursor->collectionInfo->collection->Filter(std::vector<Constraint>());
-      cursor->iter = cursor->filteredIds->begin_pointer();
-      cursor->end = cursor->filteredIds->end_pointer();
+      cursor->idSeq = std::make_unique<IDSequence>(
+        cursor->collectionInfo->collection->Filter(std::vector<Constraint>()), 100);      
     }
   } catch (JonoonDBException& ex) {
     AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);
@@ -314,30 +313,42 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
 
 static int jonoondb_next(sqlite3_vtab_cursor* cur) {
   auto jdbCursor = (jonoondb_cursor*)cur;
-  ++(*jdbCursor->iter);
+  ++jdbCursor->idSeq_index;
   
   return SQLITE_OK;
 }
 
 static int jonoondb_next_vec(sqlite3_vtab_cursor* cur) {
   auto jdbCursor = (jonoondb_cursor*)cur;
-  ++(*jdbCursor->iter);
+  jdbCursor->idSeq->Next();
 
   return SQLITE_OK;
 }
 
 static int jonoondb_eof(sqlite3_vtab_cursor* cur) {
   auto jdbCursor = (jonoondb_cursor*)cur;
-  if (*(jdbCursor->iter) >= *(jdbCursor->end)) {
-    return 1;
-  }
-  
-  return 0;
+  if (jdbCursor->idSeq_index == -1) {
+    // -1 represent we are begining the scan
+    if (jdbCursor->idSeq->Next()) {      
+      // Seq has more ids
+      jdbCursor->idSeq_index = 0;
+      return 0;
+    }
+  } else if (jdbCursor->idSeq_index >= jdbCursor->idSeq->Current().size()) {
+    // This case takes care of both vector and non-vector iteration
+    if (jdbCursor->idSeq->Next()) {
+      // Seq has more ids
+      jdbCursor->idSeq_index = 0;
+      return 0;
+    } 
+  } 
+
+  return 1;
 }
 
 static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64 *rowid) {
   jonoondb_cursor* jdbCursor = (jonoondb_cursor*)cur;  
-  *rowid = jdbCursor->iter->operator*();
+  *rowid = jdbCursor->idSeq->Current()[jdbCursor->idSeq_index];
   return SQLITE_OK;
 }
 
@@ -346,9 +357,9 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
   try {
     jonoondb_cursor* jdbCursor = (jonoondb_cursor*)cur;
     auto& columnInfo = jdbCursor->collectionInfo->columnsInfo[cidx];
+    auto currentDocID = jdbCursor->idSeq->Current()[jdbCursor->idSeq_index];
     if (columnInfo.columnType == FieldType::BASE_TYPE_STRING) {
-      // Get the string value
-      auto currentDocID = jdbCursor->iter->operator*();
+      // Get the string value      
       std::string val;
       // First check if we have the current document already cached on our side
       if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
@@ -377,8 +388,7 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
                columnInfo.columnType == FieldType::BASE_TYPE_UINT32 ||
                columnInfo.columnType == FieldType::BASE_TYPE_UINT16 ||
                columnInfo.columnType == FieldType::BASE_TYPE_UINT8) {
-      // Get the integer value
-      auto currentDocID = jdbCursor->iter->operator*();
+      // Get the integer value      
       std::int64_t val;      
       // First check if we have the current document already cached on our side
       if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
@@ -399,8 +409,7 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
 
       sqlite3_result_int64(ctx, val);
     } else {
-      // Get the floating value
-      auto currentDocID = jdbCursor->iter->operator*();
+      // Get the floating value      
       double val;
       // First check if we have the current document already cached on our side
       if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
@@ -442,29 +451,10 @@ static int jonoondb_column_vec(sqlite3_vtab_cursor* cur,
   try {
     jonoondb_cursor* jdbCursor = (jonoondb_cursor*)cur;
     auto& columnInfo = jdbCursor->collectionInfo->columnsInfo[cidx];
+    
     if (columnInfo.columnType == FieldType::BASE_TYPE_STRING) {
-      // Get the string value
-      auto currentDocID = jdbCursor->iter->operator*();
-      std::string val;
-      // First check if we have the current document already cached on our side
-      if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
-        if (columnInfo.columnNameTokens.size() > 1) {
-          auto subDoc = DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document, columnInfo.columnNameTokens);
-          val = subDoc->GetStringValue(columnInfo.columnNameTokens.back());
-        } else {
-          val = jdbCursor->document->GetStringValue(columnInfo.columnNameTokens.back());
-        }
-      } else {
-        jdbCursor->documentID = currentDocID;
-        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsString(currentDocID,
-                                                                              columnInfo.columnName,
-                                                                              columnInfo.columnNameTokens,
-                                                                              jdbCursor->buffer,
-                                                                              jdbCursor->document);
-      }
-
-      // SQLITE_TRANSIENT causes SQLite to copy the string on its side
-      sqlite3_result_text(ctx, val.c_str(), val.size(), SQLITE_TRANSIENT);
+      // Get the string value      
+      
     } else if (columnInfo.columnType == FieldType::BASE_TYPE_INT64 ||
                columnInfo.columnType == FieldType::BASE_TYPE_INT32 ||
                columnInfo.columnType == FieldType::BASE_TYPE_INT16 ||
@@ -477,12 +467,9 @@ static int jonoondb_column_vec(sqlite3_vtab_cursor* cur,
       
       const int VEC_SIZE = 100;
       std::vector<std::uint64_t> docIDs;
-      for (int i = 0; i < VEC_SIZE; i++) {
-        if (*(jdbCursor->iter) >= *(jdbCursor->end)) {
-          break;
-        }
-        docIDs.push_back(jdbCursor->iter->operator*());
-        //++(*jdbCursor->iter);       
+      // Todo: Change the apis down below to use span instead of vector
+      for (int i = 0; i < jdbCursor->idSeq->Current().size(); i++) {
+        docIDs.push_back(jdbCursor->idSeq->Current()[i]);
       }
 
       std::vector<std::int64_t> values;
@@ -492,26 +479,7 @@ static int jonoondb_column_vec(sqlite3_vtab_cursor* cur,
       sqlite3_result_int64_vec(ctx, (void*)values.data(), values.size(), SQLITE_TRANSIENT);
     } else {
       // Get the floating value
-      auto currentDocID = jdbCursor->iter->operator*();
-      double val;
-      // First check if we have the current document already cached on our side
-      if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
-        if (columnInfo.columnNameTokens.size() > 1) {
-          auto subDoc = DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document, columnInfo.columnNameTokens);
-          val = subDoc->GetFloatingValueAsDouble(columnInfo.columnNameTokens.back());
-        } else {
-          val = jdbCursor->document->GetFloatingValueAsDouble(columnInfo.columnNameTokens.back());
-        }
-      } else {
-        jdbCursor->documentID = currentDocID;
-        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsDouble(currentDocID,
-                                                                              columnInfo.columnName,
-                                                                              columnInfo.columnNameTokens,
-                                                                              jdbCursor->buffer,
-                                                                              jdbCursor->document);
-      }
-
-      sqlite3_result_double(ctx, val);
+      
     }
   } catch (JonoonDBException& ex) {
     AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);
