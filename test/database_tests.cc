@@ -825,6 +825,39 @@ TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
   ValidateTweetResultSet(db, 4, 7, "rating", ">", "3.0", "rating", "<", "7.0");
 }
 
+TEST(Database, ExecuteSelect_ScanForIDSeq) {
+  // This test checks the boundary conditions for IDSeq
+  std::vector<int> idCounts = {0, 1, 50, 100, 101, 150, 200, 201};
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+
+  for (auto idCnt: idCounts) {
+    string dbName = "ExecuteSelect_ScanForIDSeq_" + to_string(idCnt);    
+    Database db(dbPath, dbName, GetDefaultDBOptions());    
+    std::vector<IndexInfo> indexes;    
+    db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+    std::vector<Buffer> documents;
+    std::string text = "hello";
+    std::string name = "zarian";
+    for (size_t i = 0; i < idCnt; i++) {      
+      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+    }
+
+    db.MultiInsert(collectionName, documents);
+
+    auto rs = db.ExecuteSelect("SELECT id FROM tweet;");
+    auto rowCnt = 0;
+    while (rs.Next()) {
+      ASSERT_EQ(rowCnt, rs.GetInteger(rs.GetColumnIndex("id")));
+      rowCnt++;
+    }
+    ASSERT_EQ(idCnt, rowCnt);
+  }  
+}
+
 /*TEST(Database, Insert_100K) {
   string dbName = "Database_Insert_100K";
   string collectionName = "tweet";

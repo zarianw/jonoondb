@@ -7,8 +7,8 @@ IDSequence::IDSequence(std::shared_ptr<MamaJenniesBitmap> bitmap, int vecSize) :
   m_bitmap(move(bitmap)) {
   m_currentVector.resize(vecSize);
   m_currentSpan = span<std::uint64_t>(m_currentVector.data(), 0);
-  m_iter = bitmap->begin_pointer();
-  m_end = bitmap->end_pointer();
+  m_iter = m_bitmap->begin_pointer();
+  m_end = m_bitmap->end_pointer();
 }
 
 const span<std::uint64_t>& IDSequence::Current() {

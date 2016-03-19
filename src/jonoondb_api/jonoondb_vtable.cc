@@ -37,7 +37,7 @@ struct jonoondb_vtab {
 struct jonoondb_cursor {
   jonoondb_cursor(std::shared_ptr<DocumentCollectionInfo>& colInfo) : 
     collectionInfo(colInfo), documentID(0), document(nullptr),
-    idSeq_index(0) {
+    idSeq_index(-1) {
   }
 
   sqlite3_vtab_cursor cur;  
@@ -288,13 +288,13 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
         constraints.push_back(std::move(constraint)); 
         value++;
       }
-            
+      
       cursor->idSeq = std::make_unique<IDSequence>(
-        cursor->collectionInfo->collection->Filter(constraints), 100);      
+        cursor->collectionInfo->collection->Filter(constraints), 100);
     } else {
-      // We need to do a full scan
+      // We need to do a full scan      
       cursor->idSeq = std::make_unique<IDSequence>(
-        cursor->collectionInfo->collection->Filter(std::vector<Constraint>()), 100);      
+        cursor->collectionInfo->collection->Filter(std::vector<Constraint>()), 100);
     }
   } catch (JonoonDBException& ex) {
     AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);
@@ -334,8 +334,11 @@ static int jonoondb_eof(sqlite3_vtab_cursor* cur) {
       jdbCursor->idSeq_index = 0;
       return 0;
     }
-  } else if (jdbCursor->idSeq_index >= jdbCursor->idSeq->Current().size()) {
-    // This case takes care of both vector and non-vector iteration
+  } else if (jdbCursor->idSeq_index < jdbCursor->idSeq->Current().size()) {
+    return 0;
+  } else {
+    // case: jdbCursor->idSeq_index >= jdbCursor->idSeq->Current().size()
+    // This case takes care of both vector and non-vector iteration    
     if (jdbCursor->idSeq->Next()) {
       // Seq has more ids
       jdbCursor->idSeq_index = 0;
