@@ -858,6 +858,43 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
   }  
 }
 
+TEST(Database, ExecuteSelect_Aggregation) {
+  // This test checks the boundary conditions for IDSeq
+  std::vector<int> idCounts = { 0, 1, 50, 100, 101, 150, 200, 201 };
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+
+  for (auto idCnt : idCounts) {
+    string dbName = "ExecuteSelect_Aggregation_" + to_string(idCnt);
+    Database db(dbPath, dbName, GetDefaultDBOptions());
+    std::vector<IndexInfo> indexes;
+    db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+    std::vector<Buffer> documents;
+    std::string text = "hello";
+    std::string name = "zarian";
+    std::int64_t expectedSum = 0;
+    for (size_t i = 0; i < idCnt; i++) {
+      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+      expectedSum += i;
+    }
+
+    db.MultiInsert(collectionName, documents);
+
+    auto rs = db.ExecuteSelect("SELECT sum(id) as sum_id, sum(rating) as sum_rating, sum([user.id]) as sum_user_id FROM tweet;");
+    auto rowCnt = 0;
+    while (rs.Next()) {
+      ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_id")));
+      ASSERT_DOUBLE_EQ((double)expectedSum, rs.GetDouble(rs.GetColumnIndex("sum_rating")));
+      ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_user_id")));
+      rowCnt++;
+    }
+    ASSERT_EQ(1, rowCnt);
+  }
+}
+
 TEST(Database, ExecuteSelect_Aggregation_Indexed) {
   // This test checks the boundary conditions for IDSeq
   std::vector<int> idCounts = { 0, 1, 50, 100, 101, 150, 200, 201 };
@@ -867,7 +904,7 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
   string schema = ReadTextFile(filePath);
 
   for (auto idCnt : idCounts) {
-    string dbName = "ExecuteSelect_Aggregation_Sum_" + to_string(idCnt);
+    string dbName = "ExecuteSelect_Aggregation_Indexed_" + to_string(idCnt);
     Database db(dbPath, dbName, GetDefaultDBOptions());    
     std::vector<IndexInfo> indexes { IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
       IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
@@ -886,10 +923,12 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
 
     db.MultiInsert(collectionName, documents);
 
-    auto rs = db.ExecuteSelect("SELECT sum(id) as sum_id FROM tweet;");
+    auto rs = db.ExecuteSelect("SELECT sum(id) as sum_id, sum(rating) as sum_rating, sum([user.id]) as sum_user_id FROM tweet;");
     auto rowCnt = 0;
     while (rs.Next()) {
       ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_id")));
+      ASSERT_DOUBLE_EQ((double)expectedSum, rs.GetDouble(rs.GetColumnIndex("sum_rating")));
+      ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_user_id")));
       rowCnt++;
     }
     ASSERT_EQ(1, rowCnt);

@@ -142,22 +142,6 @@ bool IndexManager::TryGetIntegerValue(std::uint64_t documentID,
   return false;
 }
 
-bool IndexManager::TryGetIntegerVector(
-    const gsl::span<std::uint64_t>& documentIDs,
-    const std::string & columnName,
-    std::vector<std::int64_t>& values) {
-  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
-  if (columnIndexerIter != m_columnIndexerMap->end()) {
-    for (auto& indexer : columnIndexerIter->second) {
-      if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
-        return indexer->TryGetIntegerVector(documentIDs, values);
-      }
-    }
-  }
-
-  return false;
-}
-
 bool IndexManager::TryGetDoubleValue(std::uint64_t documentID,
                                      const std::string& columnName,
                                      double& val) {
@@ -181,6 +165,38 @@ bool IndexManager::TryGetStringValue(
     for (auto& indexer : columnIndexerIter->second) {
       if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
         return indexer->TryGetStringValue(documentID, val);
+      }
+    }
+  }
+
+  return false;
+}
+
+bool IndexManager::TryGetIntegerVector(
+    const gsl::span<std::uint64_t>& documentIDs,
+    const std::string & columnName,
+    std::vector<std::int64_t>& values) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
+        return indexer->TryGetIntegerVector(documentIDs, values);
+      }
+    }
+  }
+
+  return false;
+}
+
+bool IndexManager::TryGetDoubleVector(
+    const gsl::span<std::uint64_t>& documentIDs,
+    const std::string & columnName,
+    std::vector<double>& values) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
+        return indexer->TryGetDoubleVector(documentIDs, values);
       }
     }
   }

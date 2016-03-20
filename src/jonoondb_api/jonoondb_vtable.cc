@@ -21,12 +21,11 @@
 #include "document.h"
 #include "id_seq.h"
 
-
 using namespace jonoondb_api;
 
 SQLITE_EXTENSION_INIT1;
 
-
+const int VECTOR_SIZE = 100;
 
 struct jonoondb_vtab {
   sqlite3_vtab vtab;
@@ -290,11 +289,11 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
       }
       
       cursor->idSeq = std::make_unique<IDSequence>(
-        cursor->collectionInfo->collection->Filter(constraints), 100);
+        cursor->collectionInfo->collection->Filter(constraints), VECTOR_SIZE);
     } else {
       // We need to do a full scan      
       cursor->idSeq = std::make_unique<IDSequence>(
-        cursor->collectionInfo->collection->Filter(std::vector<Constraint>()), 100);
+        cursor->collectionInfo->collection->Filter(std::vector<Constraint>()), VECTOR_SIZE);
     }
   } catch (JonoonDBException& ex) {
     AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);
@@ -476,7 +475,11 @@ static int jonoondb_column_vec(sqlite3_vtab_cursor* cur,
       sqlite3_result_int64_vec(ctx, (void*)values.data(), values.size(), SQLITE_TRANSIENT);
     } else {
       // Get the floating value
-      
+      std::vector<double> values;
+      values.resize(jdbCursor->idSeq->Current().size());
+      jdbCursor->collectionInfo->collection->GetDocumentFieldsAsDoubleVector(
+        jdbCursor->idSeq->Current(), columnInfo.columnName, columnInfo.columnNameTokens, values);
+      sqlite3_result_double_vec(ctx, (void*)values.data(), values.size(), SQLITE_TRANSIENT);      
     }
   } catch (JonoonDBException& ex) {
     AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);

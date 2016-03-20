@@ -4697,6 +4697,7 @@ SQLITE_API void SQLITE_STDCALL sqlite3_result_zeroblob(sqlite3_context*, int n);
 SQLITE_API int SQLITE_STDCALL sqlite3_result_zeroblob64(sqlite3_context*, sqlite3_uint64 n);
 
 SQLITE_API void SQLITE_STDCALL sqlite3_result_int64_vec(sqlite3_context*, const void*, int, void(*)(void*));
+SQLITE_API void SQLITE_STDCALL sqlite3_result_double_vec(sqlite3_context*, const void*, int, void(*)(void*));
 
 
 /*
