@@ -47,7 +47,7 @@ class DocumentCollection final {
                                          std::vector<std::string>& tokens, BufferImpl& buffer,
                                          std::unique_ptr<Document>& document) const;
   void GetDocumentFieldsAsIntegerVector(
-      const std::vector<std::uint64_t>& docIDs, const std::string& columnName,
+      const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
       std::vector<std::string>& tokens, std::vector<std::int64_t>& values) const;
   double GetDocumentFieldAsDouble(std::uint64_t docID, const std::string& columnName,
                                   std::vector<std::string>& tokens, BufferImpl& buffer,

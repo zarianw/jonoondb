@@ -143,7 +143,7 @@ bool IndexManager::TryGetIntegerValue(std::uint64_t documentID,
 }
 
 bool IndexManager::TryGetIntegerVector(
-    const std::vector<std::uint64_t>& documentIDs,
+    const gsl::span<std::uint64_t>& documentIDs,
     const std::string & columnName,
     std::vector<std::int64_t>& values) {
   auto columnIndexerIter = m_columnIndexerMap->find(columnName);

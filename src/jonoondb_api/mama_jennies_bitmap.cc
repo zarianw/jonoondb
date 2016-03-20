@@ -14,7 +14,7 @@ std::size_t MamaJenniesBitmapConstIterator::operator*() const {
 }
 
 MamaJenniesBitmapConstIterator& MamaJenniesBitmapConstIterator::operator++() {
-  m_iter++;
+  ++m_iter;
   return *this;
 }
 

@@ -148,7 +148,7 @@ public:
   }
 
   bool TryGetIntegerVector(
-      const std::vector<std::uint64_t>& documentIDs,
+      const gsl::span<std::uint64_t>& documentIDs,
       std::vector<std::int64_t>& values) {
     assert(documentIDs.size() == values.size());
     for (size_t i = 0; i < documentIDs.size(); i++) {

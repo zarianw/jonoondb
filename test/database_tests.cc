@@ -843,19 +843,57 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
     std::string text = "hello";
     std::string name = "zarian";
     for (size_t i = 0; i < idCnt; i++) {      
-      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));      
     }
 
     db.MultiInsert(collectionName, documents);
 
     auto rs = db.ExecuteSelect("SELECT id FROM tweet;");
-    auto rowCnt = 0;
+    auto rowCnt = 0;    
     while (rs.Next()) {
       ASSERT_EQ(rowCnt, rs.GetInteger(rs.GetColumnIndex("id")));
       rowCnt++;
     }
     ASSERT_EQ(idCnt, rowCnt);
   }  
+}
+
+TEST(Database, ExecuteSelect_Aggregation_Indexed) {
+  // This test checks the boundary conditions for IDSeq
+  std::vector<int> idCounts = { 0, 1, 50, 100, 101, 150, 200, 201 };
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+
+  for (auto idCnt : idCounts) {
+    string dbName = "ExecuteSelect_Aggregation_Sum_" + to_string(idCnt);
+    Database db(dbPath, dbName, GetDefaultDBOptions());    
+    std::vector<IndexInfo> indexes { IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
+      IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
+      IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true),
+      IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true) };
+    db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+    std::vector<Buffer> documents;
+    std::string text = "hello";
+    std::string name = "zarian";
+    std::int64_t expectedSum = 0;
+    for (size_t i = 0; i < idCnt; i++) {
+      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+      expectedSum += i;
+    }
+
+    db.MultiInsert(collectionName, documents);
+
+    auto rs = db.ExecuteSelect("SELECT sum(id) as sum_id FROM tweet;");
+    auto rowCnt = 0;
+    while (rs.Next()) {
+      ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_id")));
+      rowCnt++;
+    }
+    ASSERT_EQ(1, rowCnt);
+  }
 }
 
 /*TEST(Database, Insert_100K) {

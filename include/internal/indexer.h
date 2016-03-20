@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <gsl/span.h>
 
 namespace jonoondb_api {
 // Forward declarations
@@ -29,7 +30,7 @@ class Indexer {
   }
 
   virtual bool TryGetIntegerVector(
-      const std::vector<std::uint64_t>& documentIDs,
+      const gsl::span<std::uint64_t>& documentIDs,
       std::vector<std::int64_t>& values) {
     return false;
   }

@@ -188,7 +188,7 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
 }
 
 void DocumentCollection::GetDocumentFieldsAsIntegerVector(
-    const std::vector<std::uint64_t>& docIDs, const std::string& columnName,
+    const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
     std::vector<std::string>& tokens,
     std::vector<std::int64_t>& values) const {
   if (tokens.size() == 0) {

@@ -320,7 +320,7 @@ static int jonoondb_next(sqlite3_vtab_cursor* cur) {
 
 static int jonoondb_next_vec(sqlite3_vtab_cursor* cur) {
   auto jdbCursor = (jonoondb_cursor*)cur;
-  jdbCursor->idSeq->Next();
+  jdbCursor->idSeq->Next();  
 
   return SQLITE_OK;
 }
@@ -467,18 +467,12 @@ static int jonoondb_column_vec(sqlite3_vtab_cursor* cur,
                columnInfo.columnType == FieldType::BASE_TYPE_UINT16 ||
                columnInfo.columnType == FieldType::BASE_TYPE_UINT8) {
       // Get the integer vector
-      
-      const int VEC_SIZE = 100;
-      std::vector<std::uint64_t> docIDs;
-      // Todo: Change the apis down below to use span instead of vector
-      for (int i = 0; i < jdbCursor->idSeq->Current().size(); i++) {
-        docIDs.push_back(jdbCursor->idSeq->Current()[i]);
-      }
-
+      // Todo: Try to get values vector from object pool (optimization)
+      // Then we can use SQLITE_STATIC instead of SQLITE_TRANSIENT
       std::vector<std::int64_t> values;
-      values.resize(docIDs.size());
+      values.resize(jdbCursor->idSeq->Current().size());
       jdbCursor->collectionInfo->collection->GetDocumentFieldsAsIntegerVector(
-          docIDs, columnInfo.columnName, columnInfo.columnNameTokens, values);
+        jdbCursor->idSeq->Current(), columnInfo.columnName, columnInfo.columnNameTokens, values);
       sqlite3_result_int64_vec(ctx, (void*)values.data(), values.size(), SQLITE_TRANSIENT);
     } else {
       // Get the floating value
