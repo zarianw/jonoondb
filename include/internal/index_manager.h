@@ -35,6 +35,14 @@ class IndexManager {
   bool TryGetIntegerValue(std::uint64_t documentID, const std::string& columnName, std::int64_t& val);
   bool TryGetDoubleValue(std::uint64_t documentID, const std::string& columnName, double& val);
   bool TryGetStringValue(std::uint64_t documentID, const std::string& columnName, std::string& val);
+
+  bool TryGetIntegerVector(const gsl::span<std::uint64_t>& documentIDs,
+                           const std::string& columnName,
+                           std::vector<std::int64_t>& values);
+  bool TryGetDoubleVector(const gsl::span<std::uint64_t>& documentIDs,
+                          const std::string& columnName,
+                          std::vector<double>& values);
+
 private:
   std::unique_ptr<ColumnIndexderMap> m_columnIndexerMap;
   std::mutex m_mutex;

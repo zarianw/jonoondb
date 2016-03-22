@@ -43,12 +43,12 @@ include_directories(${THIRDPARTY_PATH}/gsl/include)
 # sqlite
 add_library(
  sqlite
- ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100/sqlite3ext.h
- ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100/sqlite3.c ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100/sqlite3.h)
+ ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100-vec/sqlite3ext.h
+ ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100-vec/sqlite3.c ${THIRDPARTY_PATH}/sqlite-amalgamation-3110100-vec/sqlite3.h)
 if(CMAKE_COMPILER_IS_GNUCXX)
   target_link_libraries(sqlite pthread dl)
 endif()
-include_directories(${THIRDPARTY_PATH}/sqlite-amalgamation-3110100)
+include_directories(${THIRDPARTY_PATH}/sqlite-amalgamation-3110100-vec)
 
 # flatbuffers
 add_library(
@@ -126,7 +126,8 @@ add_library(
  ${SRC_PATH}/jonoondb_api/guard_funcs.cc ${INCLUDE_INTERNAL_PATH}/guard_funcs.h
  ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_INTERNAL_PATH}/resultset_impl.h
  ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_INTERNAL_PATH}/index_stat.h
- ${SRC_PATH}/jonoondb_api/blob_manager.cc ${INCLUDE_INTERNAL_PATH}/blob_manager.h) 
+ ${SRC_PATH}/jonoondb_api/blob_manager.cc ${INCLUDE_INTERNAL_PATH}/blob_manager.h
+ ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_INTERNAL_PATH}/id_seq.h) 
  
 target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 

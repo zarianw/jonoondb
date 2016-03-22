@@ -254,3 +254,78 @@ std::string DocumentCollection::GetDocumentFieldAsString(
     return document->GetStringValue(tokens.front());
   }
 }
+
+void DocumentCollection::GetDocumentFieldsAsIntegerVector(
+    const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
+    std::vector<std::string>& tokens,
+    std::vector<std::int64_t>& values) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
+  }
+
+  if (m_indexManager->TryGetIntegerVector(docIDs, columnName, values)) {
+    // We have the values
+    return;
+  }
+
+  BufferImpl buffer;
+  assert(docIDs.size() == values.size());
+  for (int i = 0; i < docIDs.size(); i++) {
+    if (docIDs[i] >= m_documentIDMap.size()) {
+      ostringstream ss;
+      ss << "Document with ID '" << docIDs[i]
+        << "' does exist in collection " << m_name << ".";
+      throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+    }
+
+    m_blobManager->Get(m_documentIDMap.at(docIDs[i]), buffer);
+
+    auto document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+    if (tokens.size() > 1) {
+      auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
+                                                             tokens);
+      values[i] = subDoc->GetIntegerValueAsInt64(tokens.back());
+    } else {
+      values[i] = document->GetIntegerValueAsInt64(tokens.front());
+    }
+  }
+}
+
+void DocumentCollection::GetDocumentFieldsAsDoubleVector(
+    const gsl::span<std::uint64_t>& docIDs,
+    const std::string & columnName,
+    std::vector<std::string>& tokens,
+    std::vector<double>& values) const {
+  if (tokens.size() == 0) {
+    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
+                                   "", __LINE__);
+  }
+
+  if (m_indexManager->TryGetDoubleVector(docIDs, columnName, values)) {
+    // We have the values
+    return;
+  }
+
+  BufferImpl buffer;
+  assert(docIDs.size() == values.size());
+  for (int i = 0; i < docIDs.size(); i++) {
+    if (docIDs[i] >= m_documentIDMap.size()) {
+      ostringstream ss;
+      ss << "Document with ID '" << docIDs[i]
+        << "' does exist in collection " << m_name << ".";
+      throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+    }
+
+    m_blobManager->Get(m_documentIDMap.at(docIDs[i]), buffer);
+
+    auto document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+    if (tokens.size() > 1) {
+      auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
+                                                             tokens);
+      values[i] = subDoc->GetScalarValueAsDouble(tokens.back());
+    } else {
+      values[i] = document->GetScalarValueAsDouble(tokens.front());
+    }
+  }
+}

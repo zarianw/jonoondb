@@ -171,3 +171,35 @@ bool IndexManager::TryGetStringValue(
 
   return false;
 }
+
+bool IndexManager::TryGetIntegerVector(
+    const gsl::span<std::uint64_t>& documentIDs,
+    const std::string & columnName,
+    std::vector<std::int64_t>& values) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
+        return indexer->TryGetIntegerVector(documentIDs, values);
+      }
+    }
+  }
+
+  return false;
+}
+
+bool IndexManager::TryGetDoubleVector(
+    const gsl::span<std::uint64_t>& documentIDs,
+    const std::string & columnName,
+    std::vector<double>& values) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType() == IndexType::VECTOR) {
+        return indexer->TryGetDoubleVector(documentIDs, values);
+      }
+    }
+  }
+
+  return false;
+}
