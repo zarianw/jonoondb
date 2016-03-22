@@ -4,7 +4,7 @@ project (JonoonDB)
 
 set (SRC_PATH ${PROJECT_SOURCE_DIR}/src/)
 set (INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include/)
-set (INCLUDE_INTERNAL_PATH ${PROJECT_SOURCE_DIR}/include/internal)
+set (JONOONDB_API_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include/jonoondb_api)
 set (TEST_PATH ${PROJECT_SOURCE_DIR}/test/)
 set (THIRDPARTY_PATH ${PROJECT_SOURCE_DIR}/thirdparty)
 
@@ -35,7 +35,7 @@ endif()
 
 
 # add the include directories
-include_directories(${INCLUDE_PATH} ${INCLUDE_INTERNAL_PATH} ${THIRDPARTY_PATH})
+include_directories(${INCLUDE_PATH} ${JONOONDB_API_INCLUDE_PATH} ${THIRDPARTY_PATH})
 
 #gsl
 include_directories(${THIRDPARTY_PATH}/gsl/include)
@@ -73,61 +73,61 @@ message("Using Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
 # jonoondb_api
 add_library(
  jonoondb_api 
- ${INCLUDE_PATH}/standard_deleters.h 
- ${INCLUDE_INTERNAL_PATH}/string_utils.h
- ${INCLUDE_INTERNAL_PATH}/serializer_utils.h
- ${INCLUDE_INTERNAL_PATH}/exception_utils.h
- ${INCLUDE_INTERNAL_PATH}/sqlite_utils.h
- ${INCLUDE_INTERNAL_PATH}/document.h
- ${INCLUDE_INTERNAL_PATH}/document_schema.h
- ${INCLUDE_PATH}/enums.h
- ${INCLUDE_INTERNAL_PATH}/blob_metadata.h 
- ${INCLUDE_INTERNAL_PATH}/concurrent_lru_cache.h
- ${INCLUDE_INTERNAL_PATH}/memory_mapped_file.h
- ${INCLUDE_INTERNAL_PATH}/file_info.h
- ${INCLUDE_INTERNAL_PATH}/indexer.h
- ${INCLUDE_INTERNAL_PATH}/constants.h
- ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_integer.h
- ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_string.h
- ${INCLUDE_INTERNAL_PATH}/ewah_compressed_bitmap_indexer_double.h
- ${INCLUDE_INTERNAL_PATH}/field.h
- ${INCLUDE_PATH}/jonoondb_exceptions.h 
- ${INCLUDE_PATH}/database.h
- ${INCLUDE_INTERNAL_PATH}/concurrent_map.h
- ${INCLUDE_INTERNAL_PATH}/index_info_fb_generated.h
- ${INCLUDE_INTERNAL_PATH}/constraint.h
- ${INCLUDE_INTERNAL_PATH}/file.h
- ${INCLUDE_INTERNAL_PATH}/object_pool.h
- ${INCLUDE_INTERNAL_PATH}/path_utils.h
- ${INCLUDE_INTERNAL_PATH}/vector_integer_indexer.h
- ${INCLUDE_INTERNAL_PATH}/vector_double_indexer.h
- ${INCLUDE_INTERNAL_PATH}/vector_string_indexer.h
+ ${JONOONDB_API_INCLUDE_PATH}/standard_deleters.h 
+ ${JONOONDB_API_INCLUDE_PATH}/string_utils.h
+ ${JONOONDB_API_INCLUDE_PATH}/serializer_utils.h
+ ${JONOONDB_API_INCLUDE_PATH}/exception_utils.h
+ ${JONOONDB_API_INCLUDE_PATH}/sqlite_utils.h
+ ${JONOONDB_API_INCLUDE_PATH}/document.h
+ ${JONOONDB_API_INCLUDE_PATH}/document_schema.h
+ ${JONOONDB_API_INCLUDE_PATH}/enums.h
+ ${JONOONDB_API_INCLUDE_PATH}/blob_metadata.h 
+ ${JONOONDB_API_INCLUDE_PATH}/concurrent_lru_cache.h
+ ${JONOONDB_API_INCLUDE_PATH}/memory_mapped_file.h
+ ${JONOONDB_API_INCLUDE_PATH}/file_info.h
+ ${JONOONDB_API_INCLUDE_PATH}/indexer.h
+ ${JONOONDB_API_INCLUDE_PATH}/constants.h
+ ${JONOONDB_API_INCLUDE_PATH}/ewah_compressed_bitmap_indexer_integer.h
+ ${JONOONDB_API_INCLUDE_PATH}/ewah_compressed_bitmap_indexer_string.h
+ ${JONOONDB_API_INCLUDE_PATH}/ewah_compressed_bitmap_indexer_double.h
+ ${JONOONDB_API_INCLUDE_PATH}/field.h
+ ${JONOONDB_API_INCLUDE_PATH}/jonoondb_exceptions.h 
+ ${JONOONDB_API_INCLUDE_PATH}/database.h
+ ${JONOONDB_API_INCLUDE_PATH}/concurrent_map.h
+ ${JONOONDB_API_INCLUDE_PATH}/index_info_fb_generated.h
+ ${JONOONDB_API_INCLUDE_PATH}/constraint.h
+ ${JONOONDB_API_INCLUDE_PATH}/file.h
+ ${JONOONDB_API_INCLUDE_PATH}/object_pool.h
+ ${JONOONDB_API_INCLUDE_PATH}/path_utils.h
+ ${JONOONDB_API_INCLUDE_PATH}/vector_integer_indexer.h
+ ${JONOONDB_API_INCLUDE_PATH}/vector_double_indexer.h
+ ${JONOONDB_API_INCLUDE_PATH}/vector_string_indexer.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
- ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/cdatabase.h
- ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_INTERNAL_PATH}/database_impl.h
- ${SRC_PATH}/jonoondb_api/status_impl.cc ${INCLUDE_INTERNAL_PATH}/status_impl.h
- ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_INTERNAL_PATH}/options_impl.h
- ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${INCLUDE_INTERNAL_PATH}/database_metadata_manager.h
- ${SRC_PATH}/jonoondb_api/document_collection.cc ${INCLUDE_INTERNAL_PATH}/document_collection.h
- ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_INTERNAL_PATH}/index_info_impl.h 
- ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${INCLUDE_INTERNAL_PATH}/buffer_impl.h
- ${SRC_PATH}/jonoondb_api/index_manager.cc ${INCLUDE_INTERNAL_PATH}/index_manager.h
- ${SRC_PATH}/jonoondb_api/document_factory.cc ${INCLUDE_INTERNAL_PATH}/document_factory.h
- ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${INCLUDE_INTERNAL_PATH}/indexer_factory.h
- ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${INCLUDE_INTERNAL_PATH}/document_schema_factory.h
- ${SRC_PATH}/jonoondb_api/filename_manager.cc ${INCLUDE_INTERNAL_PATH}/filename_manager.h  
- ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${INCLUDE_INTERNAL_PATH}/mama_jennies_bitmap.h
- ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document_schema.h
- ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_document.h
- ${SRC_PATH}/jonoondb_api/document_id_generator.cc ${INCLUDE_INTERNAL_PATH}/document_id_generator.h 
- ${SRC_PATH}/jonoondb_api/query_processor.cc ${INCLUDE_INTERNAL_PATH}/query_processor.h
- ${SRC_PATH}/jonoondb_api/flatbuffers_field.cc ${INCLUDE_INTERNAL_PATH}/flatbuffers_field.h
- ${SRC_PATH}/jonoondb_api/document_collection_dictionary.cc ${INCLUDE_INTERNAL_PATH}/document_collection_dictionary.h
- ${SRC_PATH}/jonoondb_api/guard_funcs.cc ${INCLUDE_INTERNAL_PATH}/guard_funcs.h
- ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_INTERNAL_PATH}/resultset_impl.h
- ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_INTERNAL_PATH}/index_stat.h
- ${SRC_PATH}/jonoondb_api/blob_manager.cc ${INCLUDE_INTERNAL_PATH}/blob_manager.h
- ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_INTERNAL_PATH}/id_seq.h) 
+ ${SRC_PATH}/jonoondb_api/cdatabase.cc ${JONOONDB_API_INCLUDE_PATH}/cdatabase.h
+ ${SRC_PATH}/jonoondb_api/database_impl.cc ${JONOONDB_API_INCLUDE_PATH}/database_impl.h
+ ${SRC_PATH}/jonoondb_api/status_impl.cc ${JONOONDB_API_INCLUDE_PATH}/status_impl.h
+ ${SRC_PATH}/jonoondb_api/options_impl.cc ${JONOONDB_API_INCLUDE_PATH}/options_impl.h
+ ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${JONOONDB_API_INCLUDE_PATH}/database_metadata_manager.h
+ ${SRC_PATH}/jonoondb_api/document_collection.cc ${JONOONDB_API_INCLUDE_PATH}/document_collection.h
+ ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${JONOONDB_API_INCLUDE_PATH}/index_info_impl.h 
+ ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${JONOONDB_API_INCLUDE_PATH}/buffer_impl.h
+ ${SRC_PATH}/jonoondb_api/index_manager.cc ${JONOONDB_API_INCLUDE_PATH}/index_manager.h
+ ${SRC_PATH}/jonoondb_api/document_factory.cc ${JONOONDB_API_INCLUDE_PATH}/document_factory.h
+ ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${JONOONDB_API_INCLUDE_PATH}/indexer_factory.h
+ ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${JONOONDB_API_INCLUDE_PATH}/document_schema_factory.h
+ ${SRC_PATH}/jonoondb_api/filename_manager.cc ${JONOONDB_API_INCLUDE_PATH}/filename_manager.h  
+ ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${JONOONDB_API_INCLUDE_PATH}/mama_jennies_bitmap.h
+ ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_document_schema.h
+ ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_document.h
+ ${SRC_PATH}/jonoondb_api/document_id_generator.cc ${JONOONDB_API_INCLUDE_PATH}/document_id_generator.h 
+ ${SRC_PATH}/jonoondb_api/query_processor.cc ${JONOONDB_API_INCLUDE_PATH}/query_processor.h
+ ${SRC_PATH}/jonoondb_api/flatbuffers_field.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_field.h
+ ${SRC_PATH}/jonoondb_api/document_collection_dictionary.cc ${JONOONDB_API_INCLUDE_PATH}/document_collection_dictionary.h
+ ${SRC_PATH}/jonoondb_api/guard_funcs.cc ${JONOONDB_API_INCLUDE_PATH}/guard_funcs.h
+ ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${JONOONDB_API_INCLUDE_PATH}/resultset_impl.h
+ ${SRC_PATH}/jonoondb_api/index_stat.cc ${JONOONDB_API_INCLUDE_PATH}/index_stat.h
+ ${SRC_PATH}/jonoondb_api/blob_manager.cc ${JONOONDB_API_INCLUDE_PATH}/blob_manager.h
+ ${SRC_PATH}/jonoondb_api/id_seq.cc ${JONOONDB_API_INCLUDE_PATH}/id_seq.h) 
  
 target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 
