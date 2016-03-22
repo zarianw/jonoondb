@@ -561,8 +561,8 @@ void ExecuteAndValidateResultset(Database& db, const std::string& fieldName,
   ASSERT_EQ(expectedRowCount, rowCnt);
 }
 
-TEST(Database, ExecuteSelect_LessThan) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_LessThan", GetDefaultDBOptions());
+TEST(Database, ExecuteSelect_LT_LTE) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_LT_LTE", GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "all_field_type.fbs";
   string schema = ReadTextFile(filePath);
   std::vector<IndexInfo> indexes{};
@@ -602,10 +602,32 @@ TEST(Database, ExecuteSelect_LessThan) {
   ExecuteAndValidateResultset(db, "[nestedField.field12]", "<", "'99'", 10);
   ExecuteAndValidateResultset(db, "[nestedField.field12]", "<", "'5'", 5);
 
+  // Now test the same thing with <= operator
+  for (size_t i = 1; i < 12; i++) {
+    std::string fieldName = "field" + std::to_string(i);
+    ExecuteAndValidateResultset(db, fieldName, "<=", "0", 1);
+    ExecuteAndValidateResultset(db, fieldName, "<=", "9", 10);
+    ExecuteAndValidateResultset(db, fieldName, "<=", "5", 6);
+  }
+
+  ExecuteAndValidateResultset(db, "field12", "<=", "'0'", 1);
+  ExecuteAndValidateResultset(db, "field12", "<=", "'9'", 10);
+  ExecuteAndValidateResultset(db, "field12", "<=", "'5'", 6);
+
+  for (size_t i = 1; i < 12; i++) {
+    std::string fieldName = "[nestedField.field" + std::to_string(i) + "]";
+    ExecuteAndValidateResultset(db, fieldName, "<=", "0", 1);
+    ExecuteAndValidateResultset(db, fieldName, "<=", "9", 10);
+    ExecuteAndValidateResultset(db, fieldName, "<=", "5", 6);
+  }
+
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", "<=", "'0'", 1);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", "<=", "'99'", 10);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", "<=", "'5'", 6);
 }
 
-TEST(Database, ExecuteSelect_GreaterThan) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_GreaterThan", GetDefaultDBOptions());
+TEST(Database, ExecuteSelect_GT_GTE) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_GT_GTE", GetDefaultDBOptions());
   string filePath = g_SchemaFolderPath + "all_field_type.fbs";
   string schema = ReadTextFile(filePath);
   std::vector<IndexInfo> indexes{};
@@ -644,6 +666,29 @@ TEST(Database, ExecuteSelect_GreaterThan) {
   ExecuteAndValidateResultset(db, "[nestedField.field12]", ">", "''", 10);
   ExecuteAndValidateResultset(db, "[nestedField.field12]", ">", "'99'", 0);
   ExecuteAndValidateResultset(db, "[nestedField.field12]", ">", "'5'", 4);
+
+  // Now execute these tests with >= operator
+  for (size_t i = 1; i < 12; i++) {
+    std::string fieldName = "field" + std::to_string(i);
+    ExecuteAndValidateResultset(db, fieldName, ">=", "0", 10);
+    ExecuteAndValidateResultset(db, fieldName, ">=", "10", 0);
+    ExecuteAndValidateResultset(db, fieldName, ">=", "5", 5);
+  }
+
+  ExecuteAndValidateResultset(db, "field12", ">=", "''", 10);
+  ExecuteAndValidateResultset(db, "field12", ">=", "'99'", 0);
+  ExecuteAndValidateResultset(db, "field12", ">=", "'5'", 5);
+
+  for (size_t i = 1; i < 12; i++) {
+    std::string fieldName = "[nestedField.field" + std::to_string(i) + "]";
+    ExecuteAndValidateResultset(db, fieldName, ">=", "0", 10);
+    ExecuteAndValidateResultset(db, fieldName, ">=", "10", 0);
+    ExecuteAndValidateResultset(db, fieldName, ">=", "5", 5);
+  }
+
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", ">=", "''", 10);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", ">=", "'99'", 0);
+  ExecuteAndValidateResultset(db, "[nestedField.field12]", ">=", "'5'", 5);
 }
 
 TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
@@ -827,7 +872,7 @@ TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
 
 TEST(Database, ExecuteSelect_ScanForIDSeq) {
   // This test checks the boundary conditions for IDSeq
-  std::vector<int> idCounts = {0, 1, 50, 100, 101, 150, 200, 201};
+  std::vector<int> idCounts = {0, 1, 50, 100, 101, 200, 201};
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   string filePath = g_SchemaFolderPath + "tweet.fbs";
@@ -858,46 +903,9 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
   }  
 }
 
-TEST(Database, ExecuteSelect_Aggregation) {
-  // This test checks the boundary conditions for IDSeq
-  std::vector<int> idCounts = { 0, 1, 50, 100, 101, 150, 200, 201 };
-  string collectionName = "tweet";
-  string dbPath = g_TestRootDirectory;
-  string filePath = g_SchemaFolderPath + "tweet.fbs";
-  string schema = ReadTextFile(filePath);
-
-  for (auto idCnt : idCounts) {
-    string dbName = "ExecuteSelect_Aggregation_" + to_string(idCnt);
-    Database db(dbPath, dbName, GetDefaultDBOptions());
-    std::vector<IndexInfo> indexes;
-    db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
-
-    std::vector<Buffer> documents;
-    std::string text = "hello";
-    std::string name = "zarian";
-    std::int64_t expectedSum = 0;
-    for (size_t i = 0; i < idCnt; i++) {
-      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
-      expectedSum += i;
-    }
-
-    db.MultiInsert(collectionName, documents);
-
-    auto rs = db.ExecuteSelect("SELECT sum(id) as sum_id, sum(rating) as sum_rating, sum([user.id]) as sum_user_id FROM tweet;");
-    auto rowCnt = 0;
-    while (rs.Next()) {
-      ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_id")));
-      ASSERT_DOUBLE_EQ((double)expectedSum, rs.GetDouble(rs.GetColumnIndex("sum_rating")));
-      ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_user_id")));
-      rowCnt++;
-    }
-    ASSERT_EQ(1, rowCnt);
-  }
-}
-
 TEST(Database, ExecuteSelect_Aggregation_Indexed) {
   // This test checks the boundary conditions for IDSeq
-  std::vector<int> idCounts = { 0, 1, 50, 100, 101, 150, 200, 201 };
+  std::vector<int> idCounts = { 0, 1, 50, 100, 101, 200, 201 };
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   string filePath = g_SchemaFolderPath + "tweet.fbs";
@@ -923,12 +931,69 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
 
     db.MultiInsert(collectionName, documents);
 
-    auto rs = db.ExecuteSelect("SELECT sum(id) as sum_id, sum(rating) as sum_rating, sum([user.id]) as sum_user_id FROM tweet;");
+    auto rs = db.ExecuteSelect(
+      "SELECT SUM(id) as sum_id, SUM(rating) as sum_rating, "
+      "SUM([user.id]) as sum_user_id, "
+      "AVG(id) as avg_id, AVG(rating) as avg_rating, "
+      "AVG([user.id]) as avg_user_id "
+      "FROM tweet;");
     auto rowCnt = 0;
     while (rs.Next()) {
       ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_id")));
       ASSERT_DOUBLE_EQ((double)expectedSum, rs.GetDouble(rs.GetColumnIndex("sum_rating")));
       ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_user_id")));
+      if (idCnt > 0) {
+        ASSERT_EQ(expectedSum / idCnt, rs.GetInteger(rs.GetColumnIndex("avg_id")));
+        ASSERT_DOUBLE_EQ((double)expectedSum / (double)idCnt, rs.GetDouble(rs.GetColumnIndex("avg_rating")));
+        ASSERT_EQ(expectedSum / idCnt, rs.GetInteger(rs.GetColumnIndex("avg_user_id")));
+      }
+      rowCnt++;
+    }
+    ASSERT_EQ(1, rowCnt);
+  }
+}
+
+TEST(Database, ExecuteSelect_Aggregation) {
+  // This test checks the boundary conditions for IDSeq
+  std::vector<int> idCounts = { 0, 1, 50, 100, 101, 200, 201 };
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string schema = ReadTextFile(filePath);
+
+  for (auto idCnt : idCounts) {
+    string dbName = "ExecuteSelect_Aggregation_" + to_string(idCnt);
+    Database db(dbPath, dbName, GetDefaultDBOptions());
+    std::vector<IndexInfo> indexes;
+    db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+    std::vector<Buffer> documents;
+    std::string text = "hello";
+    std::string name = "zarian";
+    std::int64_t expectedSum = 0;
+    for (size_t i = 0; i < idCnt; i++) {
+      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+      expectedSum += i;
+    }
+
+    db.MultiInsert(collectionName, documents);
+
+    auto rs = db.ExecuteSelect(
+      "SELECT SUM(id) as sum_id, SUM(rating) as sum_rating, "
+      "SUM([user.id]) as sum_user_id, "
+      "AVG(id) as avg_id, AVG(rating) as avg_rating, "
+      "AVG([user.id]) as avg_user_id "
+      "FROM tweet;");
+    auto rowCnt = 0;
+    while (rs.Next()) {
+      ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_id")));
+      ASSERT_DOUBLE_EQ((double)expectedSum, rs.GetDouble(rs.GetColumnIndex("sum_rating")));
+      ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_user_id")));
+      if (idCnt > 0) {
+        ASSERT_EQ(expectedSum / idCnt, rs.GetInteger(rs.GetColumnIndex("avg_id")));
+        ASSERT_DOUBLE_EQ((double)expectedSum / (double)idCnt, rs.GetDouble(rs.GetColumnIndex("avg_rating")));
+        ASSERT_EQ(expectedSum / idCnt, rs.GetInteger(rs.GetColumnIndex("avg_user_id")));
+      }
       rowCnt++;
     }
     ASSERT_EQ(1, rowCnt);
