@@ -3,7 +3,7 @@
 #include <memory>
 #include <cstdint>
 #include <vector>
-#include "GSL/gsl.h"
+#include "gsl/gsl.h"
 #include "mama_jennies_bitmap.h"
 
 namespace jonoondb_api {
