@@ -132,16 +132,27 @@ add_library(
  
 target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 
-# gtest
+# Find a way to link against only the required boost libs
+# ${Boost_LIBRARIES} points to all the libs in find_package
+add_executable(
+ jonoondb_cli
+ ${SRC_PATH}/jonoondb_cli/main.cc)
+target_link_libraries(jonoondb_cli jonoondb_api ${Boost_LIBRARIES})
 
+# dbgen_converter
+add_executable(
+ dbgen_converter
+ ${SRC_PATH}/dbgen_converter/main.cc)
+target_link_libraries(dbgen_converter ${Boost_LIBRARIES})
+
+# gtest
 # configure a header file to pass some of the CMake settings
 # to the source code
 set (TEST_FOLDER_PATH ${PROJECT_BINARY_DIR}/unittests)
 set (RESOURCES_FOLDER_PATH ${PROJECT_SOURCE_DIR}/resources)
 configure_file (
   "${INCLUDE_PATH}/test/test_config.h.in"
-  "${INCLUDE_PATH}/test/test_config_generated.h"
-  )
+  "${INCLUDE_PATH}/test/test_config_generated.h")
 
 SET(GTEST_PATH "/" CACHE PATH "Path where gtest is installed.")
 message("Using GTEST_PATH = ${GTEST_PATH}")
@@ -169,18 +180,16 @@ add_executable(
  ${JONOONDB_API_TEST_SRC_PATH}/options_tests.cc
  ${JONOONDB_API_TEST_SRC_PATH}/index_info_tests.cc)
 target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
-#add_test(jonoondb_test jonoondb_test)
 
+include(CTest)
+add_test(all_jonoondb_api_tests jonoondb_api_test)
 
-# Find a way to link against only the required boost libs
-# ${Boost_LIBRARIES} points to all the libs in find_package
-add_executable(
- jonoondb_cli
- ${SRC_PATH}/jonoondb_cli/main.cc)
-target_link_libraries(jonoondb_cli jonoondb_api ${Boost_LIBRARIES})
-
-# dbgen_converter
-add_executable(
- dbgen_converter
- ${SRC_PATH}/dbgen_converter/main.cc)
-target_link_libraries(dbgen_converter ${Boost_LIBRARIES})
+#installation
+SET(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR})
+install(TARGETS jonoondb_api DESTINATION install_packages)
+install(TARGETS jonoondb_cli DESTINATION install_packages)
+install(FILES ${JONOONDB_API_INCLUDE_PATH}/database.h
+ ${JONOONDB_API_INCLUDE_PATH}/enums.h
+ ${JONOONDB_API_INCLUDE_PATH}/jonoondb_exceptions.h
+ ${JONOONDB_API_INCLUDE_PATH}/cdatabase.h
+ DESTINATION install_packages)
