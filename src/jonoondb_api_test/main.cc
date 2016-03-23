@@ -12,8 +12,9 @@
 #include "test_utils.h"
 #include "buffer_impl.h"
 #include "enums.h"
-#include "schemas/flatbuffers/tweet_generated.h"
+#include "tweet_generated.h"
 #include "database.h"
+#include "test/test_config_generated.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -23,7 +24,11 @@ using namespace flatbuffers;
 
 namespace jonoondb_test {
 string g_TestRootDirectory;
-string g_SchemaFolderPath;
+string g_ResourcesFolderPath;
+
+std::string GetSchemaFilePath(const std::string& fileName) {
+  return g_ResourcesFolderPath + "/jonoondb_api_test/" + fileName;
+}
 
 string ReadTextFile(const std::string& path) {
   std::ifstream ifs(path);
@@ -103,13 +108,11 @@ bool SetUpDirectory(const char* directoryPath) {
   return true;
 }
 
-int main(int argc, char **argv) {
-  auto tempPath = current_path();
-  tempPath += "/unittests/";
+int main(int argc, char **argv) {  
+  path tempPath = TEST_FOLDER_PATH;  
   g_TestRootDirectory = tempPath.generic_string();
-  tempPath = current_path();
-  tempPath += "/test/schemas/flatbuffers/";
-  g_SchemaFolderPath = tempPath.generic_string();
+  tempPath = RESOURCES_FOLDER_PATH;
+  g_ResourcesFolderPath = tempPath.generic_string();
   if (SetUpDirectory(g_TestRootDirectory.c_str())) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

@@ -15,7 +15,7 @@ TEST(BlobManager, Constructor) {
   std::string dbPath = g_TestRootDirectory;
   std::string collectionName = "Collection";
   boost::filesystem::path pathObj(g_TestRootDirectory);
-  pathObj += dbName + "_" + collectionName + ".0";
+  pathObj += "/" + dbName + "_" + collectionName + ".0";
   auto fileSize = 1024 * 1024;
   auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
   BlobManager bm(move(fnm), false, fileSize, true);

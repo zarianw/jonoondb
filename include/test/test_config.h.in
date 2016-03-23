@@ -1,0 +1,3 @@
+// the configured options and settings
+#define TEST_FOLDER_PATH "@TEST_FOLDER_PATH@"
+#define RESOURCES_FOLDER_PATH "@RESOURCES_FOLDER_PATH@"

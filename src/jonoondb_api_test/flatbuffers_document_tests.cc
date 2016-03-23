@@ -5,7 +5,7 @@
 #include "flatbuffers_document_schema.h"
 #include "enums.h"
 #include "test_utils.h"
-#include "schemas/flatbuffers/all_field_type_generated.h"
+#include "all_field_type_generated.h"
 #include "flatbuffers/flatbuffers.h"
 
 using namespace std;
@@ -56,7 +56,7 @@ void CompareObjects(const FlatbuffersDocument &fbDoc, const AllFieldType& allFie
 
 TEST(FlatbuffersDocument, GetterTest) {
   // 1: Schema and generated file already exist
-  auto filePath = g_SchemaFolderPath + "all_field_type.fbs";
+  auto filePath = GetSchemaFilePath("all_field_type.fbs");
   auto schemaText = ReadTextFile(filePath.c_str());
   // 2: Implement the function GetAllFieldTypeObject
   auto documentData = GetAllFieldTypeObject();

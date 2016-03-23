@@ -4,9 +4,14 @@ project (JonoonDB)
 
 set (SRC_PATH ${PROJECT_SOURCE_DIR}/src/)
 set (INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include/)
-set (JONOONDB_API_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include/jonoondb_api)
-set (TEST_PATH ${PROJECT_SOURCE_DIR}/test/)
+set (JONOONDB_API_SRC_PATH ${SRC_PATH}/jonoondb_api)
+set (JONOONDB_API_INCLUDE_PATH ${INCLUDE_PATH}/jonoondb_api)
+set (JONOONDB_API_TEST_SRC_PATH ${SRC_PATH}/jonoondb_api_test)
+set (JONOONDB_API_TEST_INCLUDE_PATH ${INCLUDE_PATH}/jonoondb_api_test)
 set (THIRDPARTY_PATH ${PROJECT_SOURCE_DIR}/thirdparty)
+
+# add the include directories
+include_directories(${INCLUDE_PATH} ${JONOONDB_API_INCLUDE_PATH} ${JONOONDB_API_TEST_INCLUDE_PATH} ${THIRDPARTY_PATH})
 
 # The version number.
 # set (JonoonDB_VERSION_MAJOR 1)
@@ -22,8 +27,8 @@ set (THIRDPARTY_PATH ${PROJECT_SOURCE_DIR}/thirdparty)
 # add the install targets
 # install (TARGETS jonoondb_api DESTINATION bin)
 
-set (EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
-set (LIBRARY_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
+#set (EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
+#set (LIBRARY_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 
 if(APPLE)
   set(CMAKE_CXX_FLAGS
@@ -32,10 +37,6 @@ elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++14 -m64")
 endif()
-
-
-# add the include directories
-include_directories(${INCLUDE_PATH} ${JONOONDB_API_INCLUDE_PATH} ${THIRDPARTY_PATH})
 
 #gsl
 include_directories(${THIRDPARTY_PATH}/gsl/include)
@@ -102,36 +103,46 @@ add_library(
  ${JONOONDB_API_INCLUDE_PATH}/vector_integer_indexer.h
  ${JONOONDB_API_INCLUDE_PATH}/vector_double_indexer.h
  ${JONOONDB_API_INCLUDE_PATH}/vector_string_indexer.h
- ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
- ${SRC_PATH}/jonoondb_api/cdatabase.cc ${JONOONDB_API_INCLUDE_PATH}/cdatabase.h
- ${SRC_PATH}/jonoondb_api/database_impl.cc ${JONOONDB_API_INCLUDE_PATH}/database_impl.h
- ${SRC_PATH}/jonoondb_api/status_impl.cc ${JONOONDB_API_INCLUDE_PATH}/status_impl.h
- ${SRC_PATH}/jonoondb_api/options_impl.cc ${JONOONDB_API_INCLUDE_PATH}/options_impl.h
- ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${JONOONDB_API_INCLUDE_PATH}/database_metadata_manager.h
- ${SRC_PATH}/jonoondb_api/document_collection.cc ${JONOONDB_API_INCLUDE_PATH}/document_collection.h
- ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${JONOONDB_API_INCLUDE_PATH}/index_info_impl.h 
- ${SRC_PATH}/jonoondb_api/buffer_impl.cc ${JONOONDB_API_INCLUDE_PATH}/buffer_impl.h
- ${SRC_PATH}/jonoondb_api/index_manager.cc ${JONOONDB_API_INCLUDE_PATH}/index_manager.h
- ${SRC_PATH}/jonoondb_api/document_factory.cc ${JONOONDB_API_INCLUDE_PATH}/document_factory.h
- ${SRC_PATH}/jonoondb_api/indexer_factory.cc ${JONOONDB_API_INCLUDE_PATH}/indexer_factory.h
- ${SRC_PATH}/jonoondb_api/document_schema_factory.cc ${JONOONDB_API_INCLUDE_PATH}/document_schema_factory.h
- ${SRC_PATH}/jonoondb_api/filename_manager.cc ${JONOONDB_API_INCLUDE_PATH}/filename_manager.h  
- ${SRC_PATH}/jonoondb_api/mama_jennies_bitmap.cc ${JONOONDB_API_INCLUDE_PATH}/mama_jennies_bitmap.h
- ${SRC_PATH}/jonoondb_api/flatbuffers_document_schema.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_document_schema.h
- ${SRC_PATH}/jonoondb_api/flatbuffers_document.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_document.h
- ${SRC_PATH}/jonoondb_api/document_id_generator.cc ${JONOONDB_API_INCLUDE_PATH}/document_id_generator.h 
- ${SRC_PATH}/jonoondb_api/query_processor.cc ${JONOONDB_API_INCLUDE_PATH}/query_processor.h
- ${SRC_PATH}/jonoondb_api/flatbuffers_field.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_field.h
- ${SRC_PATH}/jonoondb_api/document_collection_dictionary.cc ${JONOONDB_API_INCLUDE_PATH}/document_collection_dictionary.h
- ${SRC_PATH}/jonoondb_api/guard_funcs.cc ${JONOONDB_API_INCLUDE_PATH}/guard_funcs.h
- ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${JONOONDB_API_INCLUDE_PATH}/resultset_impl.h
- ${SRC_PATH}/jonoondb_api/index_stat.cc ${JONOONDB_API_INCLUDE_PATH}/index_stat.h
- ${SRC_PATH}/jonoondb_api/blob_manager.cc ${JONOONDB_API_INCLUDE_PATH}/blob_manager.h
- ${SRC_PATH}/jonoondb_api/id_seq.cc ${JONOONDB_API_INCLUDE_PATH}/id_seq.h) 
+ ${JONOONDB_API_SRC_PATH}/jonoondb_vtable.cc
+ ${JONOONDB_API_SRC_PATH}/cdatabase.cc ${JONOONDB_API_INCLUDE_PATH}/cdatabase.h
+ ${JONOONDB_API_SRC_PATH}/database_impl.cc ${JONOONDB_API_INCLUDE_PATH}/database_impl.h
+ ${JONOONDB_API_SRC_PATH}/status_impl.cc ${JONOONDB_API_INCLUDE_PATH}/status_impl.h
+ ${JONOONDB_API_SRC_PATH}/options_impl.cc ${JONOONDB_API_INCLUDE_PATH}/options_impl.h
+ ${JONOONDB_API_SRC_PATH}/database_metadata_manager.cc ${JONOONDB_API_INCLUDE_PATH}/database_metadata_manager.h
+ ${JONOONDB_API_SRC_PATH}/document_collection.cc ${JONOONDB_API_INCLUDE_PATH}/document_collection.h
+ ${JONOONDB_API_SRC_PATH}/index_info_impl.cc ${JONOONDB_API_INCLUDE_PATH}/index_info_impl.h 
+ ${JONOONDB_API_SRC_PATH}/buffer_impl.cc ${JONOONDB_API_INCLUDE_PATH}/buffer_impl.h
+ ${JONOONDB_API_SRC_PATH}/index_manager.cc ${JONOONDB_API_INCLUDE_PATH}/index_manager.h
+ ${JONOONDB_API_SRC_PATH}/document_factory.cc ${JONOONDB_API_INCLUDE_PATH}/document_factory.h
+ ${JONOONDB_API_SRC_PATH}/indexer_factory.cc ${JONOONDB_API_INCLUDE_PATH}/indexer_factory.h
+ ${JONOONDB_API_SRC_PATH}/document_schema_factory.cc ${JONOONDB_API_INCLUDE_PATH}/document_schema_factory.h
+ ${JONOONDB_API_SRC_PATH}/filename_manager.cc ${JONOONDB_API_INCLUDE_PATH}/filename_manager.h  
+ ${JONOONDB_API_SRC_PATH}/mama_jennies_bitmap.cc ${JONOONDB_API_INCLUDE_PATH}/mama_jennies_bitmap.h
+ ${JONOONDB_API_SRC_PATH}/flatbuffers_document_schema.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_document_schema.h
+ ${JONOONDB_API_SRC_PATH}/flatbuffers_document.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_document.h
+ ${JONOONDB_API_SRC_PATH}/document_id_generator.cc ${JONOONDB_API_INCLUDE_PATH}/document_id_generator.h 
+ ${JONOONDB_API_SRC_PATH}/query_processor.cc ${JONOONDB_API_INCLUDE_PATH}/query_processor.h
+ ${JONOONDB_API_SRC_PATH}/flatbuffers_field.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_field.h
+ ${JONOONDB_API_SRC_PATH}/document_collection_dictionary.cc ${JONOONDB_API_INCLUDE_PATH}/document_collection_dictionary.h
+ ${JONOONDB_API_SRC_PATH}/guard_funcs.cc ${JONOONDB_API_INCLUDE_PATH}/guard_funcs.h
+ ${JONOONDB_API_SRC_PATH}/resultset_impl.cc ${JONOONDB_API_INCLUDE_PATH}/resultset_impl.h
+ ${JONOONDB_API_SRC_PATH}/index_stat.cc ${JONOONDB_API_INCLUDE_PATH}/index_stat.h
+ ${JONOONDB_API_SRC_PATH}/blob_manager.cc ${JONOONDB_API_INCLUDE_PATH}/blob_manager.h
+ ${JONOONDB_API_SRC_PATH}/id_seq.cc ${JONOONDB_API_INCLUDE_PATH}/id_seq.h) 
  
 target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
 
 # gtest
+
+# configure a header file to pass some of the CMake settings
+# to the source code
+set (TEST_FOLDER_PATH ${PROJECT_BINARY_DIR}/unittests)
+set (RESOURCES_FOLDER_PATH ${PROJECT_SOURCE_DIR}/resources)
+configure_file (
+  "${INCLUDE_PATH}/test/test_config.h.in"
+  "${INCLUDE_PATH}/test/test_config_generated.h"
+  )
+
 SET(GTEST_PATH "/" CACHE PATH "Path where gtest is installed.")
 message("Using GTEST_PATH = ${GTEST_PATH}")
 add_subdirectory(${GTEST_PATH} ${GTEST_PATH}/bin)
@@ -140,24 +151,24 @@ include_directories(${gtest_SOURCE_DIR}/include)
 
 # jonoondb_test
 add_executable(
- jonoondb_test
- ${TEST_PATH}/test_utils.h
- ${TEST_PATH}/main.cc
- ${TEST_PATH}/status_impl_tests.cc
- ${TEST_PATH}/database_metadata_manager_tests.cc
- ${TEST_PATH}/buffer_tests.cc
- ${TEST_PATH}/concurrent_lru_cache_tests.cc
- ${TEST_PATH}/memory_mapped_file_tests.cc
- ${TEST_PATH}/database_tests.cc
- ${TEST_PATH}/document_tests.cc
- ${TEST_PATH}/jonoondb_exception_tests.cc
- ${TEST_PATH}/filename_manager_tests.cc
- ${TEST_PATH}/flatbuffers_document_tests.cc
- ${TEST_PATH}/blob_manager_tests.cc
- ${TEST_PATH}/object_pool_tests.cc
- ${TEST_PATH}/options_tests.cc
- ${TEST_PATH}/index_info_tests.cc)
-target_link_libraries(jonoondb_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
+ jonoondb_api_test
+ ${JONOONDB_API_TEST_INCLUDE_PATH}/test_utils.h
+ ${JONOONDB_API_TEST_SRC_PATH}/main.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/status_impl_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/database_metadata_manager_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/buffer_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/concurrent_lru_cache_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/memory_mapped_file_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/database_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/document_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/jonoondb_exception_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/filename_manager_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/flatbuffers_document_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/blob_manager_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/object_pool_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/options_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/index_info_tests.cc)
+target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 #add_test(jonoondb_test jonoondb_test)
 
 

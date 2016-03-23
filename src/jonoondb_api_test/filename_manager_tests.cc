@@ -26,7 +26,7 @@ TEST(FileNameManager, GetCurrentDataFileInfo) {
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
   ASSERT_EQ(fileInfo.fileKey, 0);
   ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentDataFileInfo_Collection.0");
-  std::string completePath = dbPath + "FileNameManager_GetCurrentDataFileInfo_Collection.0";
+  std::string completePath = dbPath + "/FileNameManager_GetCurrentDataFileInfo_Collection.0";
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.c_str());
 
   //Again get the same thing and make sure we get the same file
@@ -109,9 +109,15 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined) {
   }
 }
 
-TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_NoEndSlash) {
-  string dbName = "FileNameManager_GetCurrentAndNextFileInfoCombined_NoEndSlash";
-  string dbPath = g_TestRootDirectory.substr(0, g_TestRootDirectory.size() - 1);
+TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_Slash) {
+  string dbName = "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash";
+  std::string dbPath;
+  if (g_TestRootDirectory.at(g_TestRootDirectory.size() - 1) == '/') {
+    dbPath = g_TestRootDirectory.substr(0, g_TestRootDirectory.size() - 1);
+  } else {
+    dbPath = g_TestRootDirectory;
+    dbPath.append("/");
+  }
   string collectionName = "Collection";
   FileNameManager fileNameManager(dbPath, dbName, collectionName, true);
 
@@ -119,9 +125,12 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_NoEndSlash) {
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined_NoEndSlash_Collection.0");
+  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.0");
   boost::filesystem::path completePath(dbPath);
-  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined_NoEndSlash_Collection.0";
+  if (dbPath.at(dbPath.size() - 1) != '/') {
+    completePath /= "/";
+  }
+  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.0";
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.generic_string().c_str());
 
   //Again get the same thing and make sure we get the same file
@@ -131,7 +140,7 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_NoEndSlash) {
   ASSERT_STREQ(fileInfo.fileName.c_str(), fileInfo2.fileName.c_str());
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
 
-  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined_NoEndSlash_Collection.%d";
+  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.%d";
   string fileNameWithPathPattern = (completePath.parent_path() / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
