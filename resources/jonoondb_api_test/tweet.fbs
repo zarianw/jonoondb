@@ -1,0 +1,17 @@
+namespace jonoondb_test;
+
+table User
+{
+  name:string;
+  id:ulong;
+}
+
+table Tweet
+{
+  id:ulong;	
+  text:string;
+  user:User;
+  rating:double;
+}
+
+root_type Tweet;

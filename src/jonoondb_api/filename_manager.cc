@@ -6,23 +6,40 @@
 #include "constants.h"
 #include "file_info.h"
 #include "guard_funcs.h"
+#include "path_utils.h"
 
 using namespace jonoondb_api;
 
 FileNameManager::FileNameManager(const std::string& dbPath, const std::string& dbName,
                                  const std::string& collectionName, bool createDBIfMissing)
-  : m_dbPath(dbPath), m_dbName(dbName), m_collectionName(collectionName),
-  m_db(nullptr, GuardFuncs::SQLite3Close), m_getFileNameStatement(nullptr),
-  m_getLastFileKeyStatement(nullptr), m_putStatement(nullptr), m_updateStatement(nullptr) {
+    : m_collectionName(collectionName), m_db(nullptr, GuardFuncs::SQLite3Close), m_getFileNameStatement(nullptr),
+      m_getLastFileKeyStatement(nullptr), m_putStatement(nullptr), m_updateStatement(nullptr) {
+
+  // Validate arguments
+  if (dbPath.size() == 0) {
+    throw InvalidArgumentException("Argument dbPath is empty.",
+                                   __FILE__, __func__, __LINE__);
+  }
+
+  if (dbName.size() == 0) {
+    throw InvalidArgumentException("Argument dbName is empty.",
+                                   __FILE__, __func__, __LINE__);
+  }
+
+  m_dbPath = PathUtils::NormalizePath(dbPath);
+  m_dbName = dbName;
+
+  boost::filesystem::path pathObj(m_dbPath);
+
   // check if the db folder exists
-  if (!boost::filesystem::exists(m_dbPath)) {
+  if (!boost::filesystem::exists(pathObj)) {
     std::ostringstream ss;
-    ss << "Database folder " << m_dbPath.generic_string() << " does not exist.";
+    ss << "Database folder " << pathObj.generic_string() << " does not exist.";
     throw MissingDatabaseFolderException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  boost::filesystem::path pathObj(m_dbPath);
-  pathObj /= (m_dbName + ".dat");   
+  pathObj += m_dbName;
+  pathObj += ".dat";    
 
   if (!boost::filesystem::exists(pathObj) && !createDBIfMissing) {
     std::ostringstream ss;

@@ -1,0 +1,11 @@
+namespace jonoondb_api;
+
+table IndexInfoFB
+{
+  name:string;
+  column:string;
+  is_ascending:bool = true;
+  type:int = 1;	
+}
+
+root_type IndexInfoFB;
