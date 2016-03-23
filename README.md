@@ -33,7 +33,9 @@ You are all set to clone and build JonoonDB. Using cmake you can generate projec
 ```sh
 git clone https://<your_username>@bitbucket.org/zarianw/jonoondb.git
 cd jonoondb/
-cmake -G "Visual Studio 14 Win64" -DGTEST_PATH=E:/code/gtest-1.7.0 -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/software/boost_1_60_0/64bit
+mkdir build
+cd build
+cmake .. -G "Visual Studio 14 Win64" -DGTEST_PATH=E:/code/gtest-1.7.0 -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/software/boost_1_60_0/64bit
 ```
 
 Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. Inorder to generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.

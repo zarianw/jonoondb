@@ -9,7 +9,7 @@
 #include "enums.h"
 #include "options_impl.h"
 #include "buffer_impl.h"
-#include "schemas/flatbuffers/tweet_generated.h"
+#include "tweet_generated.h"
 #include "document_schema_factory.h"
 #include "document_schema.h"
 
@@ -30,7 +30,7 @@ void CompareTweetObject(const Document& doc, const BufferImpl& tweetObject) {
 }
 
 TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
-  string filePath = g_SchemaFolderPath + "tweet.fbs";
+  string filePath = GetSchemaFilePath("tweet.fbs");
   string schema = ReadTextFile(filePath.c_str());
   BufferImpl documentData = GetTweetObject();
   shared_ptr<DocumentSchema> docSchemaPtr(DocumentSchemaFactory::CreateDocumentSchema(

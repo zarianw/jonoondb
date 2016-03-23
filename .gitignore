@@ -13,6 +13,7 @@
 *.dat-wal
 *.dat-shm
 *.[0123456789]
+test_config_generated.h
 
 #cmake
 CMakeCache.txt
