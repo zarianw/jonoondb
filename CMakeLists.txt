@@ -103,6 +103,7 @@ add_library(
  ${JONOONDB_API_INCLUDE_PATH}/vector_integer_indexer.h
  ${JONOONDB_API_INCLUDE_PATH}/vector_double_indexer.h
  ${JONOONDB_API_INCLUDE_PATH}/vector_string_indexer.h
+ ${JONOONDB_API_INCLUDE_PATH}/null_helpers.h
  ${JONOONDB_API_SRC_PATH}/jonoondb_vtable.cc
  ${JONOONDB_API_SRC_PATH}/cdatabase.cc ${JONOONDB_API_INCLUDE_PATH}/cdatabase.h
  ${JONOONDB_API_SRC_PATH}/database_impl.cc ${JONOONDB_API_INCLUDE_PATH}/database_impl.h

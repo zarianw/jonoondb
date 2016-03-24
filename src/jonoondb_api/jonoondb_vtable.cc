@@ -20,6 +20,7 @@
 #include "buffer_impl.h"
 #include "document.h"
 #include "id_seq.h"
+#include "null_helpers.h"
 
 using namespace jonoondb_api;
 
@@ -380,8 +381,13 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
                                                                               jdbCursor->document);
       }
 
-      // SQLITE_TRANSIENT causes SQLite to copy the string on its side
-      sqlite3_result_text(ctx, val.c_str(), val.size(), SQLITE_TRANSIENT);
+      // First check if string is null
+      if (NullHelpers::IsNull(val)) {
+        sqlite3_result_null(ctx);
+      } else {
+        // SQLITE_TRANSIENT causes SQLite to copy the string on its side
+        sqlite3_result_text(ctx, val.c_str(), val.size(), SQLITE_TRANSIENT);
+      }      
     } else if (columnInfo.columnType == FieldType::BASE_TYPE_INT64 ||
                columnInfo.columnType == FieldType::BASE_TYPE_INT32 ||
                columnInfo.columnType == FieldType::BASE_TYPE_INT16 ||
@@ -409,7 +415,11 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
                                                                                jdbCursor->document);
       }
 
-      sqlite3_result_int64(ctx, val);
+      if (NullHelpers::IsNull(val)) {
+        sqlite3_result_null(ctx);
+      } else {
+        sqlite3_result_int64(ctx, val);
+      }
     } else {
       // Get the floating value      
       double val;
@@ -430,7 +440,11 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context *ctx,
                                                                               jdbCursor->document);
       }
 
-      sqlite3_result_double(ctx, val);
+      if (NullHelpers::IsNull(val)) {
+        sqlite3_result_null(ctx);
+      } else {
+        sqlite3_result_double(ctx, val);
+      }      
     }
   } catch (JonoonDBException& ex) {
     AllocateAndCopy(ex.to_string(), &cur->pVtab->zErrMsg);
