@@ -88,13 +88,13 @@ double ResultSetImpl::GetDouble(std::int32_t columnIndex) const {
 }
 
 const std::string& ResultSetImpl::GetString(std::int32_t columnIndex) const {
-  auto val = sqlite3_column_text(m_stmt.get(), columnIndex);
-  // Todo: We need to handle null values properly, maybe that will require a change
-  // in the ResultSet interface as well.
+  auto val = sqlite3_column_text(m_stmt.get(), columnIndex);  
   if (val != nullptr) {
     auto size = sqlite3_column_bytes(m_stmt.get(), columnIndex);
     m_tmpStrStorage = std::string(reinterpret_cast<const char*>(val), size);
   } else {
+    // The value is null, we will return empty string
+    // The user can check for null values by using IsNull func
     m_tmpStrStorage = "";
   }
 
@@ -125,6 +125,8 @@ SqlType ResultSetImpl::GetColumnType(std::int32_t columnIndex) {
       return SqlType::DOUBLE;
     case SQLITE_TEXT:
       return SqlType::TEXT;
+    case SQLITE_NULL:
+      return SqlType::DB_NULL;
     default: {
       std::ostringstream ss;
       ss << "Unknown/Unsupported type " << type 
@@ -136,4 +138,12 @@ SqlType ResultSetImpl::GetColumnType(std::int32_t columnIndex) {
 
 const std::string & ResultSetImpl::GetColumnLabel(std::int32_t columnIndex) {
   return m_columnMapStringStore[columnIndex];
+}
+
+bool ResultSetImpl::IsNull(std::int32_t columnIndex) {
+  if (m_columnSqlType[columnIndex] == SQLITE_NULL) {
+    return true;
+  }
+
+  return false;
 }

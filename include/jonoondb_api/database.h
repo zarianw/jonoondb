@@ -492,6 +492,14 @@ public:
                                                         ThrowOnError{});
     return StringView(str, size);
   }
+
+  bool IsNull(std::int32_t columnIndex) {
+    if (jonoondb_resultset_isnull(m_opaque, columnIndex) == 0) {
+      return false;
+    }
+
+    return true;
+  }
   
 private:
   resultset_ptr m_opaque;

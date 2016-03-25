@@ -117,6 +117,7 @@ int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLa
 int32_t jonoondb_resultset_getcolumncount(resultset_ptr rs);
 int32_t jonoondb_resultset_getcolumntype(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts);
+int32_t jonoondb_resultset_isnull(resultset_ptr rs, int32_t columnIndex);
 
 //
 // Database Functions
