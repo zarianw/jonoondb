@@ -101,7 +101,7 @@ void DatabaseMetadataManager::CreateTables() {
   // Create the necessary tables if they do not exist
   std::string sql = "CREATE TABLE IF NOT EXISTS Collection ("
     "CollectionName TEXT PRIMARY KEY, "
-    "CollectionSchema TEXT, "
+    "CollectionSchema BLOB, "
     "CollectionSchemaType INT)";
   sqliteCode = sqlite3_exec(m_metadataDBConnection.get(), sql.c_str(), NULL, NULL, NULL);
   if (sqliteCode != SQLITE_OK) {
@@ -153,32 +153,30 @@ void DatabaseMetadataManager::PrepareStatements() {
 }
 
 void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType schemaType,
-  const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
+                                            const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
   //statement guard will make sure that the statement is cleared and reset when statementGuard object goes out of scope
   std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> statementGuard(
-      m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
-  
+    m_insertCollectionSchemaStmt, SQLiteUtils::ClearAndResetStatement);
+
 
   // 1. Prepare stmt to add data in Collection table
   int code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 1,  // Index of wildcard
-                                     name.c_str(),  // CollectionName
-                                     -1,  // length of the string is the number of bytes up to the first zero terminator
-                                     SQLITE_STATIC);
+                               name.c_str(),  // CollectionName
+                               -1,  // length of the string is the number of bytes up to the first zero terminator
+                               SQLITE_STATIC);
 
   if (code != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 
-  code = sqlite3_bind_text(m_insertCollectionSchemaStmt, 2,  // Index of wildcard
-                                 schema.c_str(),  // CollectionSchema
-                                 -1,  // length of the string is the number of bytes up to the first zero terminator
-                                 SQLITE_STATIC);
+  code = sqlite3_bind_blob(m_insertCollectionSchemaStmt, 2,  // Index of wildcard
+                           schema.data(), schema.size(), SQLITE_STATIC);
   if (code != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 
   code = sqlite3_bind_int(m_insertCollectionSchemaStmt, 3,  // Index of wildcard
-                                static_cast<int>(schemaType));
+                          static_cast<int>(schemaType));
   if (code != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
@@ -210,7 +208,7 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
       CreateIndex(name.c_str(), *indexes[i]);
     }
   } catch (...) {
-    sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);    
+    sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
     throw;
   }
 
@@ -223,7 +221,7 @@ void DatabaseMetadataManager::AddCollection(const std::string& name, SchemaType 
     // fail with an error, but no harm is caused by this.
     sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
-  }  
+  }
 }
 
 const std::string& DatabaseMetadataManager::GetFullDBPath() const {
@@ -238,7 +236,7 @@ const std::string& DatabaseMetadataManager::GetDBName() const {
   return m_dbName;
 }
 
-void jonoondb_api::DatabaseMetadataManager::GetExistingCollections(std::vector<CollectionMetadata>& collections) {
+void DatabaseMetadataManager::GetExistingCollections(std::vector<CollectionMetadata>& collections) {
   {
     static std::string sqlText = "SELECT c.CollectionName, c.CollectionSchema, c.CollectionSchemaType, "
       "ci.IndexName, ci.IndexType, ci.BinData "
@@ -272,7 +270,7 @@ void jonoondb_api::DatabaseMetadataManager::GetExistingCollections(std::vector<C
           // we have a new collection here
           CollectionMetadata metadata;
           metadata.name = collectionName;
-          metadata.schema = std::string(reinterpret_cast<const char*>(sqlite3_column_text(sqlStmt, 1)),
+          metadata.schema = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(sqlStmt, 1)),
                                         sqlite3_column_bytes(sqlStmt, 1));
           metadata.schemaType = static_cast<SchemaType>(sqlite3_column_int(sqlStmt, 2));
           collections.push_back(metadata);

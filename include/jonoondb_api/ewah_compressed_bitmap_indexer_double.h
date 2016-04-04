@@ -141,24 +141,7 @@ private:
   }
 
   void InsertInternal(std::uint64_t documentID, const Document& document) {
-    double val;
-    switch (m_indexStat.GetFieldType()) {
-      case FieldType::BASE_TYPE_FLOAT32: {
-        val = document.GetScalarValueAsFloat(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_DOUBLE: {
-        val = document.GetScalarValueAsDouble(m_fieldNameTokens.back());
-        break;
-      }      
-      default: {
-        // This can never happen
-        std::ostringstream ss;
-        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-          << " is not valid for EWAHCompressedBitmapIndexerDouble.";
-        throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
-      }
-    }
+    double val = document.GetFloatingValueAsDouble(m_fieldNameTokens.back());    
 
     auto compressedBitmap = m_compressedBitmaps.find(val);
     if (compressedBitmap == m_compressedBitmaps.end()) {

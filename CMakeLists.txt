@@ -54,12 +54,11 @@ include_directories(${THIRDPARTY_PATH}/sqlite-amalgamation-3110100-vec)
 # flatbuffers
 add_library(
  flatbuffers
- ${THIRDPARTY_PATH}/flatbuffers/include/flatbuffers/flatbuffers.h
- ${THIRDPARTY_PATH}/flatbuffers/include/flatbuffers/hash.h
- ${THIRDPARTY_PATH}/flatbuffers/include/flatbuffers/idl.h
- ${THIRDPARTY_PATH}/flatbuffers/include/flatbuffers/util.h
- ${THIRDPARTY_PATH}/flatbuffers/src/idl_parser.cpp)
-include_directories(${THIRDPARTY_PATH}/flatbuffers/include)
+ ${THIRDPARTY_PATH}/flatbuffers-1.3.0/include/flatbuffers/reflection.h ${THIRDPARTY_PATH}/flatbuffers-1.3.0/src/reflection.cpp)
+include_directories(${THIRDPARTY_PATH}/flatbuffers-1.3.0/include)
+
+#add_subdirectory(${THIRDPARTY_PATH}/flatbuffers-1.3.0)
+
 
 # boost
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
@@ -118,7 +117,7 @@ add_library(
  ${JONOONDB_API_SRC_PATH}/indexer_factory.cc ${JONOONDB_API_INCLUDE_PATH}/indexer_factory.h
  ${JONOONDB_API_SRC_PATH}/document_schema_factory.cc ${JONOONDB_API_INCLUDE_PATH}/document_schema_factory.h
  ${JONOONDB_API_SRC_PATH}/filename_manager.cc ${JONOONDB_API_INCLUDE_PATH}/filename_manager.h  
- ${JONOONDB_API_SRC_PATH}/mama_jennies_bitmap.cc ${JONOONDB_API_INCLUDE_PATH}/mama_jennies_bitmap.h
+ ${JONOONDB_API_SRC_PATH}/mama_jennies_bitmap.cc ${JONOONDB_API_INCLUDE_PATH}/mama_jennies_bitmap.h 
  ${JONOONDB_API_SRC_PATH}/flatbuffers_document_schema.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_document_schema.h
  ${JONOONDB_API_SRC_PATH}/flatbuffers_document.cc ${JONOONDB_API_INCLUDE_PATH}/flatbuffers_document.h
  ${JONOONDB_API_SRC_PATH}/document_id_generator.cc ${JONOONDB_API_INCLUDE_PATH}/document_id_generator.h 

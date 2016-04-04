@@ -57,11 +57,7 @@ public:
     return (fieldType == FieldType::BASE_TYPE_INT8
       || fieldType == FieldType::BASE_TYPE_INT16
       || fieldType == FieldType::BASE_TYPE_INT32
-      || fieldType == FieldType::BASE_TYPE_INT64
-      || fieldType == FieldType::BASE_TYPE_UINT8
-      || fieldType == FieldType::BASE_TYPE_UINT16
-      || fieldType == FieldType::BASE_TYPE_UINT32
-      || fieldType == FieldType::BASE_TYPE_UINT64);
+      || fieldType == FieldType::BASE_TYPE_INT64);
   }
 
   void ValidateForInsert(const Document& document) override {
@@ -167,48 +163,7 @@ private:
   }
 
   void InsertInternal(std::uint64_t documentID, const Document& document) {
-    int64_t val;
-    switch (m_indexStat.GetFieldType()) {
-      case FieldType::BASE_TYPE_UINT8: {
-        val = document.GetScalarValueAsUInt8(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_UINT16: {
-        val = document.GetScalarValueAsUInt16(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_UINT32: {
-        val = document.GetScalarValueAsUInt32(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_UINT64: {
-        val = document.GetScalarValueAsUInt64(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_INT8: {
-        val = document.GetScalarValueAsInt8(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_INT16: {
-        val = document.GetScalarValueAsInt16(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_INT32: {
-        val = document.GetScalarValueAsInt32(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_INT64: {
-        val = document.GetScalarValueAsInt64(m_fieldNameTokens.back());
-        break;
-      }
-      default: {
-        // This can never happen
-        std::ostringstream ss;
-        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-          << " is not valid for EWAHCompressedBitmapIndexerInteger.";
-        throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
-      }
-    }
+    int64_t val = document.GetIntegerValueAsInt64(m_fieldNameTokens.back());    
 
     auto compressedBitmap = m_compressedBitmaps.find(val);
     if (compressedBitmap == m_compressedBitmaps.end()) {

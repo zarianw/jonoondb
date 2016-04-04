@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+#include <fstream>
 #include "jonoondb_exceptions.h"
 
 #if defined(_WIN32)
@@ -16,6 +17,37 @@
 namespace jonoondb_api {
 class File {
  public:
+   static std::string Read(const std::string& path, bool isBinary = true) {
+     std::ifstream ifs(path, isBinary ? std::ios::binary : std::ios::in);
+     if (!ifs.is_open()) {
+       std::string reason = GetErrorTextFromErrorCode(GetLastError());
+       std::ostringstream ss;
+       ss << "Failed to open file at path " << path << ". Reason: " << reason;
+       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
+     }
+
+     std::string fileContents;
+     if (isBinary) {
+       ifs.seekg(0, std::ios::end);
+       fileContents.resize(static_cast<size_t>(ifs.tellg()));
+       ifs.seekg(0, std::ios::beg);
+       ifs.read(const_cast<char*>(fileContents.data()), fileContents.size());
+     } else {
+       std::ostringstream oss;
+       oss << ifs.rdbuf();
+       fileContents = oss.str();
+     }
+
+     if (ifs.bad()) {
+       std::string reason = GetErrorTextFromErrorCode(GetLastError());
+       std::ostringstream ss;
+       ss << "Failed to read the file at path " << path << ". Reason: " << reason;
+       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
+     }
+
+     return fileContents;
+   }
+
   static void FastAllocate(std::string& fileName, std::size_t fileSize) {
 #if defined(_WIN32)
     //1. Create a new file. This will fail if the file already exist, which is what we want.

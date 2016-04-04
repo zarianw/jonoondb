@@ -87,8 +87,8 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
   } catch (const CollectionNotFoundException& ex) {
     sts = new status(jonoondb_status_codes::status_collectionnotfoundcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
-  } catch (const SchemaParseException& ex) {
-    sts = new status(jonoondb_status_codes::status_schemaparseerrorcode, ex.what(), ex.GetSourceFileName(),
+  } catch (const InvalidSchemaException& ex) {
+    sts = new status(jonoondb_status_codes::status_invalidschemaerrorcode, ex.what(), ex.GetSourceFileName(),
       ex.GetFunctionName(), ex.GetLineNumber());
   } catch (const IndexOutOfBoundException& ex) {
     sts = new status(jonoondb_status_codes::status_indexoutofbounderrorcode, ex.what(), ex.GetSourceFileName(),
@@ -483,14 +483,15 @@ void jonoondb_database_destruct(database_ptr db) {
 }
 
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
-                                        indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts) {
+                                        uint64_t schemaSize, indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts) {
   TranslateExceptions([&]{
     // Todo: We should use array_view here from GSL. That can speedup this and will also be more clean.
     std::vector<IndexInfoImpl*> vec;
     for (uint64_t i = 0; i < indexesLength; i++) {
       vec.push_back(&indexes[i]->impl);
     }
-    db->impl.CreateCollection(name, ToSchemaType(schemaType), schema, vec);
+    std::string schemaBuffer(schema, schemaSize);
+    db->impl.CreateCollection(name, ToSchemaType(schemaType), schemaBuffer, vec);
   }, *sts);
 }
 

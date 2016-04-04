@@ -134,15 +134,15 @@ private:
   }
 };
 
-class SchemaParseException : public JonoonDBException {
+class InvalidSchemaException : public JonoonDBException {
 public:
-  SchemaParseException(const std::string& msg, const std::string& srcFileName,
+  InvalidSchemaException(const std::string& msg, const std::string& srcFileName,
     const std::string& funcName, std::size_t lineNum) :
     JonoonDBException(msg, srcFileName, funcName, lineNum) {
   }
 private:
   virtual std::string GetType() override {
-    return "SchemaParseException";
+    return "InvalidSchemaException";
   }
 };
 

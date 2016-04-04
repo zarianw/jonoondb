@@ -5,21 +5,23 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace std;
 
-const std::string& FlatbuffersField::GetName() const {
-  return m_fieldDef->name;
+// Todo change the return type to gsl::span
+const std::string FlatbuffersField::GetName() const {
+  return m_fieldDef->name()->str();
 }
 
 FieldType FlatbuffersField::GetType() const {
   return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
-      m_fieldDef->value.type.base_type);
+    m_fieldDef->type()->base_type());
 }
 
 size_t FlatbuffersField::GetSubFieldCount() const {
-  if (m_fieldDef->value.type.base_type == BASE_TYPE_STRUCT) {
-    return m_fieldDef->value.type.struct_def->fields.vec.size();
-  } else {
-    return 0;
+  if (m_fieldDef->type()->base_type() == reflection::BaseType::Obj) {
+    return m_schema->objects()->Get(
+      m_fieldDef->type()->index())->fields()->size();
   }
+
+  return 0;
 }
 
 void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
@@ -36,8 +38,10 @@ void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
     throw IndexOutOfBoundException("Index was outside the bounds of the array.",
       __FILE__, __func__, __LINE__);
   }
-
-  fbField->SetFieldDef(m_fieldDef->value.type.struct_def->fields.vec[index]);
+  
+  auto obj = m_schema->objects()->Get(m_fieldDef->type()->index());
+  fbField->SetMembers(
+    const_cast<reflection::Field*>(obj->fields()->Get(index)), m_schema);
 }
 
 Field* FlatbuffersField::AllocateField() const {
@@ -46,9 +50,12 @@ Field* FlatbuffersField::AllocateField() const {
 
 void FlatbuffersField::Dispose() {
   m_fieldDef = nullptr;
+  m_schema = nullptr;
   delete this;
 }
 
-void FlatbuffersField::SetFieldDef(flatbuffers::FieldDef* val) {
+void FlatbuffersField::SetMembers(reflection::Field* val,
+                                  reflection::Schema* valSch) {
   m_fieldDef = val;
+  m_schema = valSch;
 }

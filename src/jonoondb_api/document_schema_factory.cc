@@ -9,7 +9,7 @@ DocumentSchema* DocumentSchemaFactory::CreateDocumentSchema(
     const std::string& schemaText, SchemaType schemaType) {
   switch (schemaType) {
     case SchemaType::FLAT_BUFFERS: {
-      return new FlatbuffersDocumentSchema(schemaText, schemaType);      
+      return new FlatbuffersDocumentSchema(schemaText);      
     }
     default:
       std::ostringstream ss;

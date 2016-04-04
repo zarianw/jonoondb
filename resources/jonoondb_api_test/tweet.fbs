@@ -3,12 +3,12 @@ namespace jonoondb_test;
 table User
 {
   name:string;
-  id:ulong;
+  id:long;
 }
 
 table Tweet
 {
-  id:ulong;	
+  id:long;	
   text:string;
   user:User;
   rating:double;

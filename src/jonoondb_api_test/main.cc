@@ -30,20 +30,6 @@ std::string GetSchemaFilePath(const std::string& fileName) {
   return g_ResourcesFolderPath + "/jonoondb_api_test/" + fileName;
 }
 
-string ReadTextFile(const std::string& path) {
-  std::ifstream ifs(path);
-  if (!ifs.is_open()) {
-    ostringstream ss;
-    ss << "Failed to open file at path " << path << ".";
-    throw std::runtime_error(ss.str().c_str());
-  }
-
-  std::string schema((std::istreambuf_iterator<char>(ifs)),
-                     (std::istreambuf_iterator<char>()));
-
-  return schema;
-}
-
 Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
                        std::string& nameStr, std::string& textStr,
                        double rating) {

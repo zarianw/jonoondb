@@ -8,30 +8,26 @@
 namespace jonoondb_api {
 //Forward declaration
 enum class FieldType
-: std::int8_t;
+  : std::int8_t;
 enum class SchemaType
-: std::int32_t;
+  : std::int32_t;
 
 class FlatbuffersDocumentSchema final : public DocumentSchema {
- public:
+public:
+  FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
+  FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
   static FieldType MapFlatbuffersToJonoonDBType(
-      flatbuffers::BaseType flatbuffersType);
+    reflection::BaseType flatbuffersType);
   ~FlatbuffersDocumentSchema() override;
-  FlatbuffersDocumentSchema(const std::string& schemaText, SchemaType schemaType);
+  FlatbuffersDocumentSchema(std::string binarySchema);
   const std::string& GetSchemaText() const override;
   SchemaType GetSchemaType() const override;
   FieldType GetFieldType(const std::string& fieldName) const override;
   std::size_t GetRootFieldCount() const override;
   void GetRootField(size_t index, Field*& field) const override;
-  Field* AllocateField() const override;
-  const flatbuffers::StructDef* GetRootStruct() const;
-  const flatbuffers::SymbolTable<flatbuffers::StructDef>* GetChildStructs() const;
- private:  
-  FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
-  FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
-
-  std::string m_schemaText;
-  std::unique_ptr<flatbuffers::Parser> m_parser;
-  SchemaType m_schemaType;
+  Field* AllocateField() const override;  
+private:  
+  std::string m_binarySchema;  
+  reflection::Schema* m_schema;
 };
 }  // jonoondb_api
