@@ -450,12 +450,14 @@ const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs, int32_t columnIn
   return strPtr;
 }
 
-int32_t jonoondb_resultset_isnull(resultset_ptr rs, int32_t columnIndex) {
-  if (!rs->impl.IsNull(columnIndex)) {
-    return 0;
-  }
+int32_t jonoondb_resultset_isnull(resultset_ptr rs, int32_t columnIndex,
+                                  status_ptr* sts) {
+  bool val;
+  TranslateExceptions([&] {
+    val = rs->impl.IsNull(columnIndex);
+  }, *sts);
 
-  return 1;
+  return val ? 1 : 0;  
 }
 
 //

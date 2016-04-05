@@ -4,6 +4,9 @@
 #include <limits>
 
 namespace jonoondb_api {
+
+const std::string JONOONDB_NULL_STR("\0\0\0\0", 4);
+
 class NullHelpers {
 public:
   // This function checks if the str is null according to jonoondb rules

@@ -95,7 +95,7 @@ const std::string& ResultSetImpl::GetString(std::int32_t columnIndex) const {
   } else {
     // The value is null, we will return empty string
     // The user can check for null values by using IsNull func
-    m_tmpStrStorage = "";
+    m_tmpStrStorage.clear();
   }
 
   return m_tmpStrStorage;
@@ -117,7 +117,7 @@ std::int32_t ResultSetImpl::GetColumnCount() {
 }
 
 SqlType ResultSetImpl::GetColumnType(std::int32_t columnIndex) {
-  auto type = m_columnSqlType[columnIndex];
+  auto type = sqlite3_column_type(m_stmt.get(), columnIndex);
   switch (type) {
     case SQLITE_INTEGER:
       return SqlType::INTEGER;
@@ -141,7 +141,7 @@ const std::string & ResultSetImpl::GetColumnLabel(std::int32_t columnIndex) {
 }
 
 bool ResultSetImpl::IsNull(std::int32_t columnIndex) {
-  if (m_columnSqlType[columnIndex] == SQLITE_NULL) {
+  if (GetColumnType(columnIndex) == SqlType::DB_NULL) {
     return true;
   }
 

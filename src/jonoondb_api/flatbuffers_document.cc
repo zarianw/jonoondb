@@ -5,6 +5,7 @@
 #include "flatbuffers_document.h"
 #include "flatbuffers_document_schema.h"
 #include "buffer_impl.h"
+#include "null_helpers.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -30,8 +31,12 @@ std::string FlatbuffersDocument::GetStringValue(const std::string& fieldName) co
       << " and it cannot be safely converted into string.";
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
-  
-  return flatbuffers::GetAnyFieldS(*m_table, *fieldDef, nullptr);
+
+  if (m_table->CheckField(fieldDef->offset())) {
+    return flatbuffers::GetAnyFieldS(*m_table, *fieldDef, nullptr);
+  } else {
+    return JONOONDB_NULL_STR;
+  }  
 }
 
 const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName, std::size_t& size) const {
@@ -64,7 +69,7 @@ std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fiel
     ss << "Field " << fieldName << " has FieldType " << fieldDef->type()->base_type()
       << " and it cannot be safely converted into a 64 bit integer.";
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
-  }
+  }  
   
   return flatbuffers::GetAnyFieldI(*m_table, *fieldDef);  
 }

@@ -125,7 +125,7 @@ TEST(Database, Insert_NoIndex) {
   db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);  
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, name, text, 2.0);
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
   db.Insert(collectionName, documentData);
 }
 
@@ -149,7 +149,7 @@ TEST(Database, Insert_SingleIndex) {
                                   schema, indexes);
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, name, text, 2.0);  
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);  
   
   db.Insert(collectionName, documentData);
 }
@@ -266,7 +266,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
 
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, name, text, 2.0);
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
   db.Insert(collectionName, documentData);
 
   int rows = 0;
@@ -310,7 +310,7 @@ TEST(Database, ExecuteSelect_Testing) {
 
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, name, text, 2.0);
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
   db.Insert(collectionName, documentData);
   
   int rows = 0;
@@ -387,7 +387,7 @@ TEST(Database, MultiInsert) {
     
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
   }
 
   db.MultiInsert(collectionName, documents);
@@ -427,7 +427,7 @@ TEST(Database, Ctor_ReOpen) {
     for (size_t i = 0; i < 10; i++) {
       std::string name = "zarian_" + std::to_string(i);
       std::string text = "hello_" + std::to_string(i);
-      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
     }
 
     db.MultiInsert(collectionName1, documents);
@@ -482,7 +482,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
   }
   db.MultiInsert("tweet", documents);
 
@@ -514,7 +514,7 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
   }
   db.MultiInsert("tweet", documents);
 
@@ -737,7 +737,7 @@ TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, (double)i/100.0));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i/100.0));
   }
   db.MultiInsert("tweet", documents);
 
@@ -764,7 +764,7 @@ TEST(Database, ExecuteSelect_DoubleExpression) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, (double)i / 100.0));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
   }
   db.MultiInsert("tweet", documents);
 
@@ -792,7 +792,7 @@ TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, (double)i / 100.0));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
   }
   db.MultiInsert("tweet", documents);
 
@@ -840,7 +840,7 @@ TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, static_cast<double>(i)));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, static_cast<double>(i)));
   }
   db.MultiInsert("tweet", documents);
 
@@ -880,7 +880,7 @@ TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, name, text, static_cast<double>(i)));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, static_cast<double>(i)));
   }
   db.MultiInsert("tweet", documents);
 
@@ -923,7 +923,7 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
     std::string text = "hello";
     std::string name = "zarian";
     for (size_t i = 0; i < idCnt; i++) {      
-      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));      
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));      
     }
 
     db.MultiInsert(collectionName, documents);
@@ -960,7 +960,7 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
     std::string name = "zarian";
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
-      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
       expectedSum += i;
     }
 
@@ -1007,7 +1007,7 @@ TEST(Database, ExecuteSelect_Aggregation) {
     std::string name = "zarian";
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
-      documents.push_back(GetTweetObject2(i, i, name, text, (double)i));
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
       expectedSum += i;
     }
 
@@ -1033,6 +1033,47 @@ TEST(Database, ExecuteSelect_Aggregation) {
     }
     ASSERT_EQ(1, rowCnt);
   }
+}
+
+TEST(Database, ExecuteSelect_NullStrFields) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_NullStrFields", GetDefaultDBOptions());
+  string filePath = GetSchemaFilePath("tweet.bfbs");
+  string schema = File::Read(filePath);
+  std::vector<IndexInfo> indexes;
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    if (i % 2 == 0) {
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
+    } else {
+      documents.push_back(GetTweetObject2(i, i, nullptr, nullptr, (double)i / 100.0));
+    }
+  }
+  db.MultiInsert("tweet", documents);
+
+  auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                             "FROM tweet;");
+  int rowCnt = 0;
+  while (rs.Next()) {
+    if (rowCnt % 2 == 0) {
+      ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+      ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+      std::string expectedName = "zarian_" + std::to_string(rowCnt);
+      std::string expectedText = "hello_" + std::to_string(rowCnt);
+      ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ(expectedText.c_str(), rs.GetString(rs.GetColumnIndex("text")).str());
+    } else {
+      ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
+      ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
+      ASSERT_STREQ("", rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ("", rs.GetString(rs.GetColumnIndex("text")).str());
+    }
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 10);
 }
 
 /*TEST(Database, Insert_100K) {

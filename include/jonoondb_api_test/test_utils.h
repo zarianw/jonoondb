@@ -10,7 +10,7 @@ extern std::string g_ResourcesFolderPath;
 extern void RemoveAndCreateFile(const char* path, size_t fileSize);
 extern jonoondb_api::BufferImpl GetTweetObject();
 extern jonoondb_api::Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
-                                            std::string& nameStr, std::string& textStr,
+                                            const std::string* nameStr, const std::string* textStr,
                                             double rating);
 extern std::string GetSchemaFilePath(const std::string& fileName);
 }  // namespace jonoondb_test

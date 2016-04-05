@@ -494,7 +494,7 @@ public:
   }
 
   bool IsNull(std::int32_t columnIndex) {
-    if (jonoondb_resultset_isnull(m_opaque, columnIndex) == 0) {
+    if (jonoondb_resultset_isnull(m_opaque, columnIndex, ThrowOnError{}) == 0) {
       return false;
     }
 
