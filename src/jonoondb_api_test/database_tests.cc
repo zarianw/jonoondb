@@ -1074,6 +1074,206 @@ TEST(Database, ExecuteSelect_NullStrFields) {
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] > 'a';");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] IS NOT NULL;");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] < 'a';");
+  rowCnt = 0;
+  while (rs.Next()) {
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 0);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] IS NULL;");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
+}
+
+TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_NullStrFields_Indexed", GetDefaultDBOptions());
+  string filePath = GetSchemaFilePath("tweet.bfbs");
+  string schema = File::Read(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "text", true),    
+    IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true) };
+
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    if (i % 2 == 0) {
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
+    } else {
+      documents.push_back(GetTweetObject2(i, i, nullptr, nullptr, (double)i / 100.0));
+    }
+  }
+  db.MultiInsert("tweet", documents);
+
+  auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                             "FROM tweet;");
+  int rowCnt = 0;
+  while (rs.Next()) {
+    if (rowCnt % 2 == 0) {
+      ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+      ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+      std::string expectedName = "zarian_" + std::to_string(rowCnt);
+      std::string expectedText = "hello_" + std::to_string(rowCnt);
+      ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ(expectedText.c_str(), rs.GetString(rs.GetColumnIndex("text")).str());
+    } else {
+      ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
+      ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
+      ASSERT_STREQ("", rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ("", rs.GetString(rs.GetColumnIndex("text")).str());
+    }
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 10);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                             "FROM tweet where [user.name] > 'a';");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] IS NOT NULL;");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] < 'a';");
+  rowCnt = 0;
+  while (rs.Next()) {
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 0);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] IS NULL;");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
+}
+
+TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
+  Database db(g_TestRootDirectory, "ExecuteSelect_NullStrFields_EWAHIndexed", GetDefaultDBOptions());
+  string filePath = GetSchemaFilePath("tweet.bfbs");
+  string schema = File::Read(filePath);
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "text", true),
+    IndexInfo("IndexName4", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+
+  db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    if (i % 2 == 0) {
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
+    } else {
+      documents.push_back(GetTweetObject2(i, i, nullptr, nullptr, (double)i / 100.0));
+    }
+  }
+  db.MultiInsert("tweet", documents);
+
+  auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                             "FROM tweet;");
+  int rowCnt = 0;
+  while (rs.Next()) {
+    if (rowCnt % 2 == 0) {
+      ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+      ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+      std::string expectedName = "zarian_" + std::to_string(rowCnt);
+      std::string expectedText = "hello_" + std::to_string(rowCnt);
+      ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ(expectedText.c_str(), rs.GetString(rs.GetColumnIndex("text")).str());
+    } else {
+      ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
+      ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
+      ASSERT_STREQ("", rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ("", rs.GetString(rs.GetColumnIndex("text")).str());
+    }
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 10);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] > 'a';");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] IS NOT NULL;");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] < 'a';");
+  rowCnt = 0;
+  while (rs.Next()) {
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 0);
+
+  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
+                        "FROM tweet where [user.name] IS NULL;");
+  rowCnt = 0;
+  while (rs.Next()) {
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 5);
 }
 
 /*TEST(Database, Insert_100K) {

@@ -13,6 +13,7 @@
 #include "index_stat.h"
 #include "constraint.h"
 #include "enums.h"
+#include "null_helpers.h"
 
 namespace jonoondb_api {
 class VectorStringIndexer final : public Indexer {
@@ -176,12 +177,13 @@ private:
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     auto val = GetOperandVal(constraint);
-
+    
     for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] == val) {
+      if (m_dataVector[i] == val && !NullHelpers::IsNull(m_dataVector[i])) {
         bitmap->Add(i);
       }
     }
+    
    
     return bitmap;
   }
@@ -191,7 +193,7 @@ private:
     auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] < val) {
+      if (m_dataVector[i] < val && !NullHelpers::IsNull(m_dataVector[i])) {
         bitmap->Add(i);
       }
     }
@@ -204,7 +206,7 @@ private:
     auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] <= val) {
+      if (m_dataVector[i] <= val && !NullHelpers::IsNull(m_dataVector[i])) {
         bitmap->Add(i);
       }
     }
@@ -217,7 +219,7 @@ private:
     auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] > val) {
+      if (m_dataVector[i] > val && !NullHelpers::IsNull(m_dataVector[i])) {
         bitmap->Add(i);
       }
     }
@@ -230,7 +232,7 @@ private:
     auto val = GetOperandVal(constraint);
 
     for (size_t i = 0; i < m_dataVector.size(); i++) {
-      if (m_dataVector[i] >= val) {
+      if (m_dataVector[i] >= val && !NullHelpers::IsNull(m_dataVector[i])) {
         bitmap->Add(i);
       }
     }
