@@ -103,28 +103,32 @@ public:
     if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
         && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
-        if (m_dataVector[i] > lowerVal && m_dataVector[i] < upperVal) {
+        if (m_dataVector[i] > lowerVal && m_dataVector[i] < upperVal
+            && !NullHelpers::IsNull(m_dataVector[i])) {
           bitmap->Add(i);
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
                && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
-        if (m_dataVector[i] > lowerVal && m_dataVector[i] <= upperVal) {
+        if (m_dataVector[i] > lowerVal && m_dataVector[i] <= upperVal
+            && !NullHelpers::IsNull(m_dataVector[i])) {
           bitmap->Add(i);
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
                && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
-        if (m_dataVector[i] >= lowerVal && m_dataVector[i] < upperVal) {
+        if (m_dataVector[i] >= lowerVal && m_dataVector[i] < upperVal
+            && !NullHelpers::IsNull(m_dataVector[i])) {
           bitmap->Add(i);
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
                && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
-        if (m_dataVector[i] >= lowerVal && m_dataVector[i] <= upperVal) {
+        if (m_dataVector[i] >= lowerVal && m_dataVector[i] <= upperVal
+            && !NullHelpers::IsNull(m_dataVector[i])) {
           bitmap->Add(i);
         }
       }

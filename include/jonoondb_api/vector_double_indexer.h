@@ -147,7 +147,7 @@ public:
     const gsl::span<std::uint64_t>& documentIDs,
     std::vector<double>& values) {
     assert(documentIDs.size() == values.size());
-    for (size_t i = 0; i < documentIDs.size(); i++) {
+    for (auto i = 0; i < documentIDs.size(); i++) {
       if (documentIDs[i] >= m_dataVector.size()) {
         return false;
       }

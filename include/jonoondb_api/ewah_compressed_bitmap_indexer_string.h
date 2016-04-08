@@ -17,6 +17,7 @@
 #include "index_stat.h"
 #include "constraint.h"
 #include "enums.h"
+#include "jonoondb_api/null_helpers.h"
 
 namespace jonoondb_api {
 
@@ -118,7 +119,19 @@ public:
         startIter = m_compressedBitmaps.upper_bound(lowerConstraint.strVal);
       }
 
+      bool nullChkRequired = true;
       while (startIter != m_compressedBitmaps.end()) {
+        if (nullChkRequired) {
+          if (NullHelpers::IsNull(startIter->first)) {
+            continue;
+          }
+
+          if (!NullHelpers::ContainsJustNullChars(startIter->first) &&
+              !NullHelpers::IsNull(startIter->first)) {
+            nullChkRequired = false;
+          }
+        }
+
         if (startIter->first < upperConstraint.strVal) {
           bitmaps.push_back(startIter->second);
         } else if (upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL
@@ -170,7 +183,8 @@ private:
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     if (constraint.operandType == OperandType::STRING) {
       auto iter = m_compressedBitmaps.find(constraint.strVal);
-      if (iter != m_compressedBitmaps.end()) {
+      if (iter != m_compressedBitmaps.end() && 
+          !NullHelpers::IsNull(iter->first)) {
         bitmaps.push_back(iter->second);
       }
     }
@@ -179,10 +193,22 @@ private:
   }
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint, bool orEqual) {    
-    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;    
+    std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
+    bool nullChkRequired = true;
     if (constraint.operandType == OperandType::STRING) {
       for (auto& item : m_compressedBitmaps) {
-        if (item.first.compare(constraint.strVal) < 0) {        
+        if (nullChkRequired) {
+          if (NullHelpers::IsNull(item.first)) {
+            continue;
+          }
+          
+          if (!NullHelpers::ContainsJustNullChars(item.first) &&
+              !NullHelpers::IsNull(item.first)) {
+            nullChkRequired = false;
+          }
+        }
+
+        if (item.first.compare(constraint.strVal) < 0) {
           bitmaps.push_back(item.second);
         } else {
           if (orEqual && item.first.compare(constraint.strVal) == 0) {
@@ -196,17 +222,29 @@ private:
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }  
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint, bool isEqual) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint, bool orEqual) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     if (constraint.operandType == OperandType::STRING) {
       std::map<std::string, std::shared_ptr<MamaJenniesBitmap>>::const_iterator iter;
-      if (isEqual) {
+      if (orEqual) {
         iter = m_compressedBitmaps.lower_bound(constraint.strVal);
       } else {
         iter = m_compressedBitmaps.upper_bound(constraint.strVal);
       }
       
+      bool nullChkRequired = true;
       while (iter != m_compressedBitmaps.end()) {
+        if (nullChkRequired) {
+          if (NullHelpers::IsNull(iter->first)) {
+            continue;
+          }          
+
+          if (!NullHelpers::ContainsJustNullChars(iter->first) &&
+              !NullHelpers::IsNull(iter->first)) {
+            nullChkRequired = false;
+          }
+        }
+
         bitmaps.push_back(iter->second);
         iter++;
       }
