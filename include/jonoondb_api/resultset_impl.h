@@ -26,6 +26,7 @@ public:
   std::int32_t GetColumnCount();
   SqlType GetColumnType(std::int32_t columnIndex);
   const std::string& GetColumnLabel(std::int32_t columnIndex);
+  bool IsNull(std::int32_t columnIndex);
 private:
   ObjectPoolGuard<sqlite3> m_db;  
   std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> m_stmt;

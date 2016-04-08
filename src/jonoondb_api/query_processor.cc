@@ -65,10 +65,6 @@ const char* GetSQLiteTypeString(FieldType fieldType) {
   static std::string real = "REAL";
   static std::string text = "TEXT";
   switch (fieldType) {
-    case jonoondb_api::FieldType::BASE_TYPE_UINT8:
-    case jonoondb_api::FieldType::BASE_TYPE_UINT16:
-    case jonoondb_api::FieldType::BASE_TYPE_UINT32:
-    case jonoondb_api::FieldType::BASE_TYPE_UINT64:
     case jonoondb_api::FieldType::BASE_TYPE_INT8:
     case jonoondb_api::FieldType::BASE_TYPE_INT16:
     case jonoondb_api::FieldType::BASE_TYPE_INT32:

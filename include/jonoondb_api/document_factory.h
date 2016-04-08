@@ -12,7 +12,7 @@ class DocumentSchema;
 class DocumentFactory {
  public:
   static std::unique_ptr<Document> CreateDocument(
-      const std::shared_ptr<DocumentSchema>& documentSchema,
+      const DocumentSchema& documentSchema,
       const BufferImpl& buffer);
  private:
   DocumentFactory() = delete;

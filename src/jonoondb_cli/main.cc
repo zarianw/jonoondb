@@ -13,26 +13,13 @@
 #include "database.h"
 #include "jonoondb_utils/stopwatch.h"
 #include <boost/algorithm/string/trim.hpp>
+#include <jonoondb_api/file.h>
 
 namespace po = boost::program_options;
 using namespace std;
 using namespace jonoondb_api;
 using namespace jonoondb_utils;
 using namespace boost::filesystem;
-
-string ReadTextFile(const std::string& path) {
-  std::ifstream ifs(path);
-  if (!ifs.is_open()) {
-    ostringstream ss;
-    ss << "Failed to open file at path " << path << ".";
-    throw std::runtime_error(ss.str().c_str());
-  }
-
-  std::string schema((std::istreambuf_iterator<char>(ifs)),
-                     (std::istreambuf_iterator<char>()));
-
-  return schema;
-}
 
 inline void DeleteNoOp(char *) {
 }
@@ -162,7 +149,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             }
           }
 
-          auto schema = ReadTextFile(tokens[2]);          
+          auto schema = File::Read(tokens[2]);          
           db.CreateCollection(tokens[1], SchemaType::FLAT_BUFFERS, schema, indexes);
         } else if (tokens[0] == ".i") {
           // import command

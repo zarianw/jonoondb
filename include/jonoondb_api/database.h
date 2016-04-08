@@ -114,8 +114,8 @@ public:
             jonoondb_status_function(m_status.opaque),
             jonoondb_status_line(m_status.opaque));
           break;
-        case status_schemaparseerrorcode:
-          throw SchemaParseException(jonoondb_status_message(m_status.opaque),
+        case status_invalidschemaerrorcode:
+          throw InvalidSchemaException(jonoondb_status_message(m_status.opaque),
             jonoondb_status_file(m_status.opaque),
             jonoondb_status_function(m_status.opaque),
             jonoondb_status_line(m_status.opaque));
@@ -492,6 +492,14 @@ public:
                                                         ThrowOnError{});
     return StringView(str, size);
   }
+
+  bool IsNull(std::int32_t columnIndex) {
+    if (jonoondb_resultset_isnull(m_opaque, columnIndex, ThrowOnError{}) == 0) {
+      return false;
+    }
+
+    return true;
+  }
   
 private:
   resultset_ptr m_opaque;
@@ -518,6 +526,7 @@ public:
     jonoondb_database_createcollection(m_opaque, name.c_str(),
                                        static_cast<int32_t>(schemaType),
                                        schema.c_str(),
+                                       schema.size(),
                                        vec.data(),
                                        vec.size(),
                                        ThrowOnError{});

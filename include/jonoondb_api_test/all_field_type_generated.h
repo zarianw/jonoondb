@@ -11,34 +11,45 @@ namespace jonoondb_test {
 struct NestedAllFieldType;
 struct AllFieldType;
 
-struct NestedAllFieldType : private flatbuffers::Table {
-  int8_t field1() const { return GetField<int8_t>(4, 0); }
-  uint8_t field2() const { return GetField<uint8_t>(6, 0); }
-  uint8_t field3() const { return GetField<uint8_t>(8, 0); }
-  int16_t field4() const { return GetField<int16_t>(10, 0); }
-  uint16_t field5() const { return GetField<uint16_t>(12, 0); }
-  int32_t field6() const { return GetField<int32_t>(14, 0); }
-  uint32_t field7() const { return GetField<uint32_t>(16, 0); }
-  float field8() const { return GetField<float>(18, 0); }
-  int64_t field9() const { return GetField<int64_t>(20, 0); }
-  uint64_t field10() const { return GetField<uint64_t>(22, 0); }
-  double field11() const { return GetField<double>(24, 0); }
-  const flatbuffers::String *field12() const { return GetPointer<const flatbuffers::String *>(26); }
+struct NestedAllFieldType FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_FIELD1 = 4,
+    VT_FIELD2 = 6,
+    VT_FIELD3 = 8,
+    VT_FIELD4 = 10,
+    VT_FIELD5 = 12,
+    VT_FIELD6 = 14,
+    VT_FIELD7 = 16,
+    VT_FIELD8 = 18,
+    VT_FIELD9 = 20,
+    VT_FIELD10 = 22,
+    VT_FIELD11 = 24
+  };
+  int8_t field1() const { return GetField<int8_t>(VT_FIELD1, 0); }
+  uint8_t field2() const { return GetField<uint8_t>(VT_FIELD2, 0); }
+  bool field3() const { return GetField<uint8_t>(VT_FIELD3, 0) != 0; }
+  int16_t field4() const { return GetField<int16_t>(VT_FIELD4, 0); }
+  uint16_t field5() const { return GetField<uint16_t>(VT_FIELD5, 0); }
+  int32_t field6() const { return GetField<int32_t>(VT_FIELD6, 0); }
+  uint32_t field7() const { return GetField<uint32_t>(VT_FIELD7, 0); }
+  float field8() const { return GetField<float>(VT_FIELD8, 0); }
+  int64_t field9() const { return GetField<int64_t>(VT_FIELD9, 0); }
+  double field10() const { return GetField<double>(VT_FIELD10, 0); }
+  const flatbuffers::String *field11() const { return GetPointer<const flatbuffers::String *>(VT_FIELD11); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int8_t>(verifier, 4 /* field1 */) &&
-           VerifyField<uint8_t>(verifier, 6 /* field2 */) &&
-           VerifyField<uint8_t>(verifier, 8 /* field3 */) &&
-           VerifyField<int16_t>(verifier, 10 /* field4 */) &&
-           VerifyField<uint16_t>(verifier, 12 /* field5 */) &&
-           VerifyField<int32_t>(verifier, 14 /* field6 */) &&
-           VerifyField<uint32_t>(verifier, 16 /* field7 */) &&
-           VerifyField<float>(verifier, 18 /* field8 */) &&
-           VerifyField<int64_t>(verifier, 20 /* field9 */) &&
-           VerifyField<uint64_t>(verifier, 22 /* field10 */) &&
-           VerifyField<double>(verifier, 24 /* field11 */) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 26 /* field12 */) &&
-           verifier.Verify(field12()) &&
+           VerifyField<int8_t>(verifier, VT_FIELD1) &&
+           VerifyField<uint8_t>(verifier, VT_FIELD2) &&
+           VerifyField<uint8_t>(verifier, VT_FIELD3) &&
+           VerifyField<int16_t>(verifier, VT_FIELD4) &&
+           VerifyField<uint16_t>(verifier, VT_FIELD5) &&
+           VerifyField<int32_t>(verifier, VT_FIELD6) &&
+           VerifyField<uint32_t>(verifier, VT_FIELD7) &&
+           VerifyField<float>(verifier, VT_FIELD8) &&
+           VerifyField<int64_t>(verifier, VT_FIELD9) &&
+           VerifyField<double>(verifier, VT_FIELD10) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_FIELD11) &&
+           verifier.Verify(field11()) &&
            verifier.EndTable();
   }
 };
@@ -46,22 +57,21 @@ struct NestedAllFieldType : private flatbuffers::Table {
 struct NestedAllFieldTypeBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_field1(int8_t field1) { fbb_.AddElement<int8_t>(4, field1, 0); }
-  void add_field2(uint8_t field2) { fbb_.AddElement<uint8_t>(6, field2, 0); }
-  void add_field3(uint8_t field3) { fbb_.AddElement<uint8_t>(8, field3, 0); }
-  void add_field4(int16_t field4) { fbb_.AddElement<int16_t>(10, field4, 0); }
-  void add_field5(uint16_t field5) { fbb_.AddElement<uint16_t>(12, field5, 0); }
-  void add_field6(int32_t field6) { fbb_.AddElement<int32_t>(14, field6, 0); }
-  void add_field7(uint32_t field7) { fbb_.AddElement<uint32_t>(16, field7, 0); }
-  void add_field8(float field8) { fbb_.AddElement<float>(18, field8, 0); }
-  void add_field9(int64_t field9) { fbb_.AddElement<int64_t>(20, field9, 0); }
-  void add_field10(uint64_t field10) { fbb_.AddElement<uint64_t>(22, field10, 0); }
-  void add_field11(double field11) { fbb_.AddElement<double>(24, field11, 0); }
-  void add_field12(flatbuffers::Offset<flatbuffers::String> field12) { fbb_.AddOffset(26, field12); }
+  void add_field1(int8_t field1) { fbb_.AddElement<int8_t>(NestedAllFieldType::VT_FIELD1, field1, 0); }
+  void add_field2(uint8_t field2) { fbb_.AddElement<uint8_t>(NestedAllFieldType::VT_FIELD2, field2, 0); }
+  void add_field3(bool field3) { fbb_.AddElement<uint8_t>(NestedAllFieldType::VT_FIELD3, static_cast<uint8_t>(field3), 0); }
+  void add_field4(int16_t field4) { fbb_.AddElement<int16_t>(NestedAllFieldType::VT_FIELD4, field4, 0); }
+  void add_field5(uint16_t field5) { fbb_.AddElement<uint16_t>(NestedAllFieldType::VT_FIELD5, field5, 0); }
+  void add_field6(int32_t field6) { fbb_.AddElement<int32_t>(NestedAllFieldType::VT_FIELD6, field6, 0); }
+  void add_field7(uint32_t field7) { fbb_.AddElement<uint32_t>(NestedAllFieldType::VT_FIELD7, field7, 0); }
+  void add_field8(float field8) { fbb_.AddElement<float>(NestedAllFieldType::VT_FIELD8, field8, 0); }
+  void add_field9(int64_t field9) { fbb_.AddElement<int64_t>(NestedAllFieldType::VT_FIELD9, field9, 0); }
+  void add_field10(double field10) { fbb_.AddElement<double>(NestedAllFieldType::VT_FIELD10, field10, 0); }
+  void add_field11(flatbuffers::Offset<flatbuffers::String> field11) { fbb_.AddOffset(NestedAllFieldType::VT_FIELD11, field11); }
   NestedAllFieldTypeBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   NestedAllFieldTypeBuilder &operator=(const NestedAllFieldTypeBuilder &);
   flatbuffers::Offset<NestedAllFieldType> Finish() {
-    auto o = flatbuffers::Offset<NestedAllFieldType>(fbb_.EndTable(start_, 12));
+    auto o = flatbuffers::Offset<NestedAllFieldType>(fbb_.EndTable(start_, 11));
     return o;
   }
 };
@@ -69,21 +79,19 @@ struct NestedAllFieldTypeBuilder {
 inline flatbuffers::Offset<NestedAllFieldType> CreateNestedAllFieldType(flatbuffers::FlatBufferBuilder &_fbb,
    int8_t field1 = 0,
    uint8_t field2 = 0,
-   uint8_t field3 = 0,
+   bool field3 = false,
    int16_t field4 = 0,
    uint16_t field5 = 0,
    int32_t field6 = 0,
    uint32_t field7 = 0,
    float field8 = 0,
    int64_t field9 = 0,
-   uint64_t field10 = 0,
-   double field11 = 0,
-   flatbuffers::Offset<flatbuffers::String> field12 = 0) {
+   double field10 = 0,
+   flatbuffers::Offset<flatbuffers::String> field11 = 0) {
   NestedAllFieldTypeBuilder builder_(_fbb);
-  builder_.add_field11(field11);
   builder_.add_field10(field10);
   builder_.add_field9(field9);
-  builder_.add_field12(field12);
+  builder_.add_field11(field11);
   builder_.add_field8(field8);
   builder_.add_field7(field7);
   builder_.add_field6(field6);
@@ -95,36 +103,48 @@ inline flatbuffers::Offset<NestedAllFieldType> CreateNestedAllFieldType(flatbuff
   return builder_.Finish();
 }
 
-struct AllFieldType : private flatbuffers::Table {
-  int8_t field1() const { return GetField<int8_t>(4, 0); }
-  uint8_t field2() const { return GetField<uint8_t>(6, 0); }
-  uint8_t field3() const { return GetField<uint8_t>(8, 0); }
-  int16_t field4() const { return GetField<int16_t>(10, 0); }
-  uint16_t field5() const { return GetField<uint16_t>(12, 0); }
-  int32_t field6() const { return GetField<int32_t>(14, 0); }
-  uint32_t field7() const { return GetField<uint32_t>(16, 0); }
-  float field8() const { return GetField<float>(18, 0); }
-  int64_t field9() const { return GetField<int64_t>(20, 0); }
-  uint64_t field10() const { return GetField<uint64_t>(22, 0); }
-  double field11() const { return GetField<double>(24, 0); }
-  const flatbuffers::String *field12() const { return GetPointer<const flatbuffers::String *>(26); }
-  const NestedAllFieldType *nestedField() const { return GetPointer<const NestedAllFieldType *>(28); }
+struct AllFieldType FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_FIELD1 = 4,
+    VT_FIELD2 = 6,
+    VT_FIELD3 = 8,
+    VT_FIELD4 = 10,
+    VT_FIELD5 = 12,
+    VT_FIELD6 = 14,
+    VT_FIELD7 = 16,
+    VT_FIELD8 = 18,
+    VT_FIELD9 = 20,
+    VT_FIELD10 = 22,
+    VT_FIELD11 = 24,
+    VT_NESTEDFIELD = 26
+  };
+  int8_t field1() const { return GetField<int8_t>(VT_FIELD1, 0); }
+  uint8_t field2() const { return GetField<uint8_t>(VT_FIELD2, 0); }
+  bool field3() const { return GetField<uint8_t>(VT_FIELD3, 0) != 0; }
+  int16_t field4() const { return GetField<int16_t>(VT_FIELD4, 0); }
+  uint16_t field5() const { return GetField<uint16_t>(VT_FIELD5, 0); }
+  int32_t field6() const { return GetField<int32_t>(VT_FIELD6, 0); }
+  uint32_t field7() const { return GetField<uint32_t>(VT_FIELD7, 0); }
+  float field8() const { return GetField<float>(VT_FIELD8, 0); }
+  int64_t field9() const { return GetField<int64_t>(VT_FIELD9, 0); }
+  double field10() const { return GetField<double>(VT_FIELD10, 0); }
+  const flatbuffers::String *field11() const { return GetPointer<const flatbuffers::String *>(VT_FIELD11); }
+  const NestedAllFieldType *nestedField() const { return GetPointer<const NestedAllFieldType *>(VT_NESTEDFIELD); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int8_t>(verifier, 4 /* field1 */) &&
-           VerifyField<uint8_t>(verifier, 6 /* field2 */) &&
-           VerifyField<uint8_t>(verifier, 8 /* field3 */) &&
-           VerifyField<int16_t>(verifier, 10 /* field4 */) &&
-           VerifyField<uint16_t>(verifier, 12 /* field5 */) &&
-           VerifyField<int32_t>(verifier, 14 /* field6 */) &&
-           VerifyField<uint32_t>(verifier, 16 /* field7 */) &&
-           VerifyField<float>(verifier, 18 /* field8 */) &&
-           VerifyField<int64_t>(verifier, 20 /* field9 */) &&
-           VerifyField<uint64_t>(verifier, 22 /* field10 */) &&
-           VerifyField<double>(verifier, 24 /* field11 */) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 26 /* field12 */) &&
-           verifier.Verify(field12()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, 28 /* nestedField */) &&
+           VerifyField<int8_t>(verifier, VT_FIELD1) &&
+           VerifyField<uint8_t>(verifier, VT_FIELD2) &&
+           VerifyField<uint8_t>(verifier, VT_FIELD3) &&
+           VerifyField<int16_t>(verifier, VT_FIELD4) &&
+           VerifyField<uint16_t>(verifier, VT_FIELD5) &&
+           VerifyField<int32_t>(verifier, VT_FIELD6) &&
+           VerifyField<uint32_t>(verifier, VT_FIELD7) &&
+           VerifyField<float>(verifier, VT_FIELD8) &&
+           VerifyField<int64_t>(verifier, VT_FIELD9) &&
+           VerifyField<double>(verifier, VT_FIELD10) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_FIELD11) &&
+           verifier.Verify(field11()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NESTEDFIELD) &&
            verifier.VerifyTable(nestedField()) &&
            verifier.EndTable();
   }
@@ -133,23 +153,22 @@ struct AllFieldType : private flatbuffers::Table {
 struct AllFieldTypeBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_field1(int8_t field1) { fbb_.AddElement<int8_t>(4, field1, 0); }
-  void add_field2(uint8_t field2) { fbb_.AddElement<uint8_t>(6, field2, 0); }
-  void add_field3(uint8_t field3) { fbb_.AddElement<uint8_t>(8, field3, 0); }
-  void add_field4(int16_t field4) { fbb_.AddElement<int16_t>(10, field4, 0); }
-  void add_field5(uint16_t field5) { fbb_.AddElement<uint16_t>(12, field5, 0); }
-  void add_field6(int32_t field6) { fbb_.AddElement<int32_t>(14, field6, 0); }
-  void add_field7(uint32_t field7) { fbb_.AddElement<uint32_t>(16, field7, 0); }
-  void add_field8(float field8) { fbb_.AddElement<float>(18, field8, 0); }
-  void add_field9(int64_t field9) { fbb_.AddElement<int64_t>(20, field9, 0); }
-  void add_field10(uint64_t field10) { fbb_.AddElement<uint64_t>(22, field10, 0); }
-  void add_field11(double field11) { fbb_.AddElement<double>(24, field11, 0); }
-  void add_field12(flatbuffers::Offset<flatbuffers::String> field12) { fbb_.AddOffset(26, field12); }
-  void add_nestedField(flatbuffers::Offset<NestedAllFieldType> nestedField) { fbb_.AddOffset(28, nestedField); }
+  void add_field1(int8_t field1) { fbb_.AddElement<int8_t>(AllFieldType::VT_FIELD1, field1, 0); }
+  void add_field2(uint8_t field2) { fbb_.AddElement<uint8_t>(AllFieldType::VT_FIELD2, field2, 0); }
+  void add_field3(bool field3) { fbb_.AddElement<uint8_t>(AllFieldType::VT_FIELD3, static_cast<uint8_t>(field3), 0); }
+  void add_field4(int16_t field4) { fbb_.AddElement<int16_t>(AllFieldType::VT_FIELD4, field4, 0); }
+  void add_field5(uint16_t field5) { fbb_.AddElement<uint16_t>(AllFieldType::VT_FIELD5, field5, 0); }
+  void add_field6(int32_t field6) { fbb_.AddElement<int32_t>(AllFieldType::VT_FIELD6, field6, 0); }
+  void add_field7(uint32_t field7) { fbb_.AddElement<uint32_t>(AllFieldType::VT_FIELD7, field7, 0); }
+  void add_field8(float field8) { fbb_.AddElement<float>(AllFieldType::VT_FIELD8, field8, 0); }
+  void add_field9(int64_t field9) { fbb_.AddElement<int64_t>(AllFieldType::VT_FIELD9, field9, 0); }
+  void add_field10(double field10) { fbb_.AddElement<double>(AllFieldType::VT_FIELD10, field10, 0); }
+  void add_field11(flatbuffers::Offset<flatbuffers::String> field11) { fbb_.AddOffset(AllFieldType::VT_FIELD11, field11); }
+  void add_nestedField(flatbuffers::Offset<NestedAllFieldType> nestedField) { fbb_.AddOffset(AllFieldType::VT_NESTEDFIELD, nestedField); }
   AllFieldTypeBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   AllFieldTypeBuilder &operator=(const AllFieldTypeBuilder &);
   flatbuffers::Offset<AllFieldType> Finish() {
-    auto o = flatbuffers::Offset<AllFieldType>(fbb_.EndTable(start_, 13));
+    auto o = flatbuffers::Offset<AllFieldType>(fbb_.EndTable(start_, 12));
     return o;
   }
 };
@@ -157,23 +176,21 @@ struct AllFieldTypeBuilder {
 inline flatbuffers::Offset<AllFieldType> CreateAllFieldType(flatbuffers::FlatBufferBuilder &_fbb,
    int8_t field1 = 0,
    uint8_t field2 = 0,
-   uint8_t field3 = 0,
+   bool field3 = false,
    int16_t field4 = 0,
    uint16_t field5 = 0,
    int32_t field6 = 0,
    uint32_t field7 = 0,
    float field8 = 0,
    int64_t field9 = 0,
-   uint64_t field10 = 0,
-   double field11 = 0,
-   flatbuffers::Offset<flatbuffers::String> field12 = 0,
+   double field10 = 0,
+   flatbuffers::Offset<flatbuffers::String> field11 = 0,
    flatbuffers::Offset<NestedAllFieldType> nestedField = 0) {
   AllFieldTypeBuilder builder_(_fbb);
-  builder_.add_field11(field11);
   builder_.add_field10(field10);
   builder_.add_field9(field9);
   builder_.add_nestedField(nestedField);
-  builder_.add_field12(field12);
+  builder_.add_field11(field11);
   builder_.add_field8(field8);
   builder_.add_field7(field7);
   builder_.add_field6(field6);
@@ -185,11 +202,13 @@ inline flatbuffers::Offset<AllFieldType> CreateAllFieldType(flatbuffers::FlatBuf
   return builder_.Finish();
 }
 
-inline const AllFieldType *GetAllFieldType(const void *buf) { return flatbuffers::GetRoot<AllFieldType>(buf); }
+inline const jonoondb_test::AllFieldType *GetAllFieldType(const void *buf) { return flatbuffers::GetRoot<jonoondb_test::AllFieldType>(buf); }
 
-inline bool VerifyAllFieldTypeBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<AllFieldType>(); }
+inline bool VerifyAllFieldTypeBuffer(flatbuffers::Verifier &verifier) { return verifier.VerifyBuffer<jonoondb_test::AllFieldType>(); }
 
-inline void FinishAllFieldTypeBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<AllFieldType> root) { fbb.Finish(root); }
+inline const char *AllFieldTypeExtension() { return "bfbs"; }
+
+inline void FinishAllFieldTypeBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<jonoondb_test::AllFieldType> root) { fbb.Finish(root); }
 
 }  // namespace jonoondb_test
 
