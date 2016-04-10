@@ -162,22 +162,43 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
 
           auto fileMapping = boost::interprocess::file_mapping(tokens[2].c_str(), boost::interprocess::read_only);
           auto mappedRegion = boost::interprocess::mapped_region(fileMapping, boost::interprocess::read_only);
-          std::uint32_t size = 0;
-          auto fileSize = mappedRegion.get_size();
-          std::size_t bytesRead = 0;
-          char* basePosition = reinterpret_cast<char*>(mappedRegion.get_address());
+          auto fileSize = mappedRegion.get_size();          
           char* currentPostion = reinterpret_cast<char*>(mappedRegion.get_address());
-          std::vector<Buffer> documents;
-          // We can use pointer subtraction safely because the size of the object
-          // they point to is 1 byte (char).
-          while ((currentPostion - basePosition) < fileSize) {
+          std::vector<Buffer> documents;          
+          std::size_t bytesRead = 0;
+          std::int64_t bytesReadForCurrRegion = 0;
+          std::uint32_t size = 0;
+          std::size_t pageSize = boost::interprocess::mapped_region::get_page_size();
+          while (bytesRead < fileSize) {
             memcpy(&size, currentPostion, sizeof(std::uint32_t));
             currentPostion += sizeof(std::uint32_t);
             documents.push_back(Buffer(currentPostion, size, size, DeleteNoOp));
-            currentPostion += size;
+            currentPostion += size;            
+            bytesReadForCurrRegion += sizeof(std::uint32_t) + size;
+            bytesRead += sizeof(std::uint32_t) + size;
+            if (bytesReadForCurrRegion > (1024 * 1024 * 1024)) {
+              // Insert accumulated docs
+              db.MultiInsert(tokens[1], documents);
+              documents.clear();
+
+              // Remap to not use too much memory
+              auto quotient = bytesRead / pageSize;
+              auto remainder = bytesRead % pageSize;
+              auto offset = pageSize * quotient;
+              
+              mappedRegion = boost::interprocess::mapped_region(
+                fileMapping, boost::interprocess::read_only,
+                offset);
+              currentPostion = reinterpret_cast<char*>(mappedRegion.get_address());
+              currentPostion += remainder;
+              bytesReadForCurrRegion = 0;
+            }
           }
 
-          db.MultiInsert(tokens[1], documents);              
+          if (documents.size() > 0) {
+            db.MultiInsert(tokens[1], documents);
+          }
+
           if (isTimerOn) {
             sw.Stop();
             PrintTime(sw);

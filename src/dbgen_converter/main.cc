@@ -19,12 +19,13 @@ using namespace flatbuffers;
 int main(int argc, char **argv) {
   cout << "DBGen Tool." << endl;
 
-  if (argc != 2) {
-    cout << "Usage: dbgen_converter DIRECTORY_PATH" << endl;
+  if (argc != 3) {
+    cout << "Usage: dbgen_converter IN_DIRECTORY_PATH OUT_DIRECTORY_PATH" << endl;
     return 1;
   }
 
   string directoryPath = argv[1];
+  string outputDirectoryPath = argv[2];
 
   // - Read csv (*.tbl) files line by line
   // - For each line (record) generate a corresponding flatbuffer object using the generated headers.
@@ -33,6 +34,7 @@ int main(int argc, char **argv) {
   // Loop END
   {
     string filePath(directoryPath + "region.tbl");
+    cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -41,7 +43,7 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    string destFilePath = directoryPath + "region.fb";
+    string destFilePath = outputDirectoryPath + "region.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
@@ -68,6 +70,7 @@ int main(int argc, char **argv) {
   {
     // Nation
     string filePath(directoryPath + "nation.tbl");
+    cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -76,7 +79,7 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    string destFilePath = directoryPath + "nation.fb";
+    string destFilePath = outputDirectoryPath + "nation.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
@@ -101,6 +104,7 @@ int main(int argc, char **argv) {
 
   {
     string filePath(directoryPath + "lineitem.tbl");
+    cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -109,7 +113,7 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    string destFilePath = directoryPath + "lineitem.fb";
+    string destFilePath = outputDirectoryPath + "lineitem.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
@@ -151,6 +155,7 @@ int main(int argc, char **argv) {
 
   {
     string filePath(directoryPath + "partsupp.tbl");
+    cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -159,7 +164,7 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    string destFilePath = directoryPath + "partsupp.fb";
+    string destFilePath = outputDirectoryPath + "partsupp.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
@@ -181,6 +186,7 @@ int main(int argc, char **argv) {
 
   {
     string filePath(directoryPath + "part.tbl");
+    cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -189,7 +195,7 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    string destFilePath = directoryPath + "part.fb";
+    string destFilePath = outputDirectoryPath + "part.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
@@ -218,6 +224,7 @@ int main(int argc, char **argv) {
 
   {
     string filePath(directoryPath + "orders.tbl");
+    cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -226,7 +233,7 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    string destFilePath = directoryPath + "orders.fb";
+    string destFilePath = outputDirectoryPath + "orders.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
@@ -258,6 +265,7 @@ int main(int argc, char **argv) {
 
   {
     string filePath(directoryPath + "customer.tbl");
+    cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -266,7 +274,7 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    string destFilePath = directoryPath + "customer.fb";
+    string destFilePath = outputDirectoryPath + "customer.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
@@ -297,6 +305,7 @@ int main(int argc, char **argv) {
 
   {
     string filePath(directoryPath + "supplier.tbl");
+    cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
     if (!file.is_open()) return 1;
@@ -305,7 +314,7 @@ int main(int argc, char **argv) {
     string line;
     char_separator<char> sep("|");
 
-    string destFilePath = directoryPath + "supplier.fb";
+    string destFilePath = outputDirectoryPath + "supplier.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
     if (!outputFile.is_open()) return 1;
