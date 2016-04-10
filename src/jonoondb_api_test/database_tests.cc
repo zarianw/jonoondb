@@ -8,7 +8,6 @@
 #include "enums.h"
 #include "buffer_impl.h"
 #include "tweet_generated.h"
-#include "all_field_type_generated.h"
 #include "file.h"
 
 using namespace std;
@@ -35,12 +34,6 @@ TEST(Database, Ctor_MissingDatabaseFolder) {
   string dbPath = g_TestRootDirectory;
   Options options;  
   ASSERT_THROW(Database db(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
-}
-
-Options GetDefaultDBOptions() {
-  Options opt;
-  opt.SetMaxDataFileSize(1024 * 1024);
-  return opt;
 }
 
 TEST(Database, Ctor_New) {
@@ -154,41 +147,6 @@ TEST(Database, Insert_SingleIndex) {
   db.Insert(collectionName, documentData);
 }
 
-Buffer GetAllFieldTypeObjectBuffer() {
-  Buffer buffer;
-  FlatBufferBuilder fbb;
-  // create nested object
-  auto text1 = fbb.CreateString("Say hello to my little friend!");  
-  auto nestedObj = CreateNestedAllFieldType(fbb, 1, 2, 3, 4, 5, 6, 7, 8.0f, 9,
-                                            10.0, text1);
-  // create parent object
-  auto text2 = fbb.CreateString("Say hello to my little friend!");
-  auto parentObj = CreateAllFieldType(fbb, 1, 2, 3, 4, 5, 6, 7, 8.0f, 9,
-                                      10.0, text2, nestedObj);
-  fbb.Finish(parentObj);
-  buffer.Resize(fbb.GetSize());
-
-  buffer.Copy((char*)fbb.GetBufferPointer(), fbb.GetSize());
-  return buffer;
-}
-
-Buffer GetAllFieldTypeObjectBuffer(char field1, unsigned char field2, bool field3, int16_t field4,
-                                   uint16_t field5,int32_t field6, uint32_t field7,float field8,int64_t field9,
-                                   double field10, const std::string& field11) {
-  FlatBufferBuilder fbb;
-  // create nested object
-  auto str = fbb.CreateString(field11);
-  auto nestedObj = CreateNestedAllFieldType(fbb, field1, field2, field3, field4, field5, field6,field7,
-                                            field8, field9,field10, str);
-  // create parent object
-  auto str2 = fbb.CreateString(field11);
-  auto parentObj = CreateAllFieldType(fbb, field1, field2, field3, field4, field5, field6, field7, field8,
-                                      field9,field10, str2, nestedObj);
-  fbb.Finish(parentObj);
-
-  return Buffer((char*)fbb.GetBufferPointer(), fbb.GetSize(), fbb.GetSize());
-}
-
 TEST(Database, Insert_AllIndexTypes) {
   string dbName = "Database_Insert_AllIndexTypes";
   string collectionName = "CollectionName";
@@ -219,7 +177,8 @@ TEST(Database, Insert_AllIndexTypes) {
 
   db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
-  Buffer documentData = GetAllFieldTypeObjectBuffer();
+  Buffer documentData = GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5, 6, 7, 8.0f,
+                                                    9, 10.0, "");
   db.Insert(collectionName, documentData);
 }
 
