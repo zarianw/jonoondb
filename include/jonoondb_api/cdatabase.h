@@ -22,7 +22,7 @@ typedef enum jonoondb_status_codes {
   status_collectionalreadyexistcode = 7,
   status_indexalreadyexistcode = 8,
   status_collectionnotfoundcode = 9,
-  status_schemaparseerrorcode = 10,
+  status_invalidschemaerrorcode = 10,
   status_indexoutofbounderrorcode = 11,
   status_sqlerrorcode = 12,
   status_fileioerrorcode = 13
@@ -117,6 +117,7 @@ int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs, const char* columnLa
 int32_t jonoondb_resultset_getcolumncount(resultset_ptr rs);
 int32_t jonoondb_resultset_getcolumntype(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs, int32_t columnIndex, uint64_t** retValSize, status_ptr* sts);
+int32_t jonoondb_resultset_isnull(resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 
 //
 // Database Functions
@@ -125,7 +126,7 @@ typedef struct database* database_ptr;
 database_ptr jonoondb_database_construct(const char* dbPath, const char* dbName, const options_ptr opt, status_ptr* sts);
 void jonoondb_database_destruct(database_ptr db);
 void jonoondb_database_createcollection(database_ptr db, const char* name, int32_t schemaType, const char* schema,
-                                        indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts);
+                                        uint64_t schemaSize, indexinfo_ptr* indexes, uint64_t indexesLength, status_ptr* sts);
 void jonoondb_database_insert(database_ptr db, const char* collectionName, const jonoondb_buffer_ptr documentData, status_ptr* sts);
 void jonoondb_database_multi_insert(database_ptr db, const char* collectionName, uint64_t collectionNameLength,
                                     const jonoondb_buffer_ptr* documentArr, uint64_t documentArrLength,

@@ -10,11 +10,10 @@ table NestedAllFieldType
   field6:int;
   field7:uint;
   field8:float;
-  field9:long;
-  field10:ulong;
-  field11:double;
-  field12:string;
-  // field13:[int]; uncomment and update test when we support vectors
+  field9:long;  
+  field10:double;
+  field11:string;
+  // field12:[int]; uncomment and update test when we support vectors
 }
 
 table AllFieldType
@@ -27,12 +26,11 @@ table AllFieldType
   field6:int;
   field7:uint;
   field8:float;
-  field9:long;
-  field10:ulong;
-  field11:double;
-  field12:string;
+  field9:long;  
+  field10:double;
+  field11:string;
   nestedField:NestedAllFieldType;
-  // field13:[int]; uncomment and update test when we support vectors
+  // field12:[int]; uncomment and update test when we support vectors
 }
 
 root_type AllFieldType;

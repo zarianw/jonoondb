@@ -30,30 +30,22 @@ std::string GetSchemaFilePath(const std::string& fileName) {
   return g_ResourcesFolderPath + "/jonoondb_api_test/" + fileName;
 }
 
-string ReadTextFile(const std::string& path) {
-  std::ifstream ifs(path);
-  if (!ifs.is_open()) {
-    ostringstream ss;
-    ss << "Failed to open file at path " << path << ".";
-    throw std::runtime_error(ss.str().c_str());
-  }
-
-  std::string schema((std::istreambuf_iterator<char>(ifs)),
-                     (std::istreambuf_iterator<char>()));
-
-  return schema;
-}
-
 Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
-                       std::string& nameStr, std::string& textStr,
+                       const std::string* nameStr, const std::string* textStr,
                        double rating) {
   // create user object
   FlatBufferBuilder fbb;
-  auto name = fbb.CreateString(nameStr);
+  Offset<String> name = 0;
+  if (nameStr) {
+    name = fbb.CreateString(*nameStr);
+  }
   auto user = CreateUser(fbb, name, userId);
 
   // create tweet
-  auto text = fbb.CreateString(textStr);
+  Offset<String> text = 0;
+  if (textStr) {
+    text = fbb.CreateString(*textStr);
+  }
   auto tweet = CreateTweet(fbb, tweetId, text, user, rating);
 
   fbb.Finish(tweet);

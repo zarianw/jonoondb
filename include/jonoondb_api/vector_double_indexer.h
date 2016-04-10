@@ -147,7 +147,7 @@ public:
     const gsl::span<std::uint64_t>& documentIDs,
     std::vector<double>& values) {
     assert(documentIDs.size() == values.size());
-    for (size_t i = 0; i < documentIDs.size(); i++) {
+    for (auto i = 0; i < documentIDs.size(); i++) {
       if (documentIDs[i] >= m_dataVector.size()) {
         return false;
       }
@@ -159,25 +159,7 @@ public:
 
 private:
   void InsertInternal(std::uint64_t documentID, const Document& document) {
-    double val;
-    switch (m_indexStat.GetFieldType()) {
-      case FieldType::BASE_TYPE_FLOAT32: {
-        val = document.GetScalarValueAsFloat(m_fieldNameTokens.back());
-        break;
-      }
-      case FieldType::BASE_TYPE_DOUBLE: {
-        val = document.GetScalarValueAsDouble(m_fieldNameTokens.back());
-        break;
-      }
-      default: {
-        // This can never happen
-        std::ostringstream ss;
-        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-          << " is not valid for VectorDoubleIndexer.";
-        throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
-      }
-    }
-
+    double val = document.GetFloatingValueAsDouble(m_fieldNameTokens.back());
     assert(m_dataVector.size() == documentID);
     m_dataVector.push_back(val);
   }

@@ -72,7 +72,7 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
     while ((actualBatchSize = iter.GetNextBatch(blobs, blobMetadataVec)) > 0) {
       std::vector<std::unique_ptr<Document>> docs;
       for (size_t i = 0; i < actualBatchSize; i++) {
-        docs.push_back(DocumentFactory::CreateDocument(m_documentSchema, blobs[i]));
+        docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema, blobs[i]));
       }
 
       auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
@@ -92,7 +92,7 @@ void DocumentCollection::Insert(const BufferImpl& documentData) {
 void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {  
   std::vector<std::unique_ptr<Document>> docs;
   for (auto documentData : documents) {
-    docs.push_back(DocumentFactory::CreateDocument(m_documentSchema, *documentData));    
+    docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema, *documentData));    
   }
 
   m_indexManager->ValidateForIndexing(docs);  
@@ -178,7 +178,7 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
 
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
     
-  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+  document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
   if (tokens.size() > 1) {
     auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
     return subDoc->GetIntegerValueAsInt64(tokens.back());
@@ -212,7 +212,7 @@ double DocumentCollection::GetDocumentFieldAsDouble(
 
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
 
-  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+  document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
   if (tokens.size() > 1) {
     auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
     return subDoc->GetFloatingValueAsDouble(tokens.back());
@@ -246,7 +246,7 @@ std::string DocumentCollection::GetDocumentFieldAsString(
 
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
 
-  document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+  document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
   if (tokens.size() > 1) {
     auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
     return subDoc->GetStringValue(tokens.back());
@@ -281,7 +281,7 @@ void DocumentCollection::GetDocumentFieldsAsIntegerVector(
 
     m_blobManager->Get(m_documentIDMap.at(docIDs[i]), buffer);
 
-    auto document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+    auto document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
     if (tokens.size() > 1) {
       auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
                                                              tokens);
@@ -319,13 +319,13 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
 
     m_blobManager->Get(m_documentIDMap.at(docIDs[i]), buffer);
 
-    auto document = DocumentFactory::CreateDocument(m_documentSchema, buffer);
+    auto document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
     if (tokens.size() > 1) {
       auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
                                                              tokens);
-      values[i] = subDoc->GetScalarValueAsDouble(tokens.back());
+      values[i] = subDoc->GetFloatingValueAsDouble(tokens.back());
     } else {
-      values[i] = document->GetScalarValueAsDouble(tokens.front());
+      values[i] = document->GetFloatingValueAsDouble(tokens.front());
     }
   }
 }
