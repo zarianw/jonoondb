@@ -9,6 +9,7 @@ set (JONOONDB_API_INCLUDE_PATH ${INCLUDE_PATH}/jonoondb_api)
 set (JONOONDB_API_TEST_SRC_PATH ${SRC_PATH}/jonoondb_api_test)
 set (JONOONDB_API_TEST_INCLUDE_PATH ${INCLUDE_PATH}/jonoondb_api_test)
 set (THIRDPARTY_PATH ${PROJECT_SOURCE_DIR}/thirdparty)
+set (TEST_PATH ${PROJECT_SOURCE_DIR}/tests)
 
 # add the include directories
 include_directories(${INCLUDE_PATH} ${JONOONDB_API_INCLUDE_PATH} ${JONOONDB_API_TEST_INCLUDE_PATH} ${THIRDPARTY_PATH})
@@ -179,7 +180,8 @@ add_executable(
  ${JONOONDB_API_TEST_SRC_PATH}/object_pool_tests.cc
  ${JONOONDB_API_TEST_SRC_PATH}/options_tests.cc
  ${JONOONDB_API_TEST_SRC_PATH}/index_info_tests.cc
- ${JONOONDB_API_TEST_SRC_PATH}/database_sql_tests.cc)
+ ${JONOONDB_API_TEST_SRC_PATH}/database_sql_tests.cc
+ ${TEST_PATH}/jonoondb_utils/varint_tests.cc)
 target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 
 include(CTest)
