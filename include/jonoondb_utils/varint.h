@@ -1,14 +1,13 @@
 #pragma once
 
 #include <cstdint>
-#include <jonoondb_exceptions.h>
 
 namespace jonoondb_utils {
 #define kMaxVarintBytes 10
 class Varint {
 public:
   template<typename int_t>
-  static int64_t EncodeVarint(int_t value,
+  inline static int64_t EncodeVarint(int_t value,
                    std::uint8_t* target) {
     auto base = target;
     while (value >= 0x80) {
@@ -17,29 +16,43 @@ public:
       ++target;
     }
     *target = static_cast<std::uint8_t>(value);
+    target++;
     return target - base;
   }
 
   template<typename int_t>
-  static int_t DecodeVarint(std::uint8_t* input) {
-    int_t result = 0;
+  inline static bool DecodeVarint(std::uint8_t* input, int_t* result) {
     int count = 0;
     std::uint32_t b;
+    *result = 0;
 
-    do {
+    // Fast path for smaller numbers (upto 2 bytes)
+    b = *input;
+    *result |= static_cast<int_t>(b & 0x7F) << (7 * count);
+    ++input;
+    ++count;
+    if (!(b & 0x80))
+      return true;
+
+    b = *input;
+    *result |= static_cast<int_t>(b & 0x7F) << (7 * count);
+    ++input;
+    ++count;
+    if (!(b & 0x80))
+      return true;   
+
+   do {
       if (count == kMaxVarintBytes) {
-        std::string msg = "input size is more than max varint bytes i.e. ";
-        msg.append(std::to_string(kMaxVarintBytes)).append(".");
-        throw jonoondb_api::JonoonDBException(msg, __FILE__, __func__, __LINE__);
+        return false;        
       }
 
       b = *input;
-      result |= static_cast<int_t>(b & 0x7F) << (7 * count);
+      *result |= static_cast<int_t>(b & 0x7F) << (7 * count);
       ++input;
       ++count;
-    } while (b & 0x80);
+   } while (b & 0x80);
 
-    return result;
+    return true;
   }
 
   inline std::uint32_t ZigZagEncode32(std::int32_t n) {
