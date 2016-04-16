@@ -7,8 +7,8 @@ namespace jonoondb_utils {
 class Varint {
 public:
   template<typename int_t>
-  inline static int64_t EncodeVarint(int_t value,
-                   std::uint8_t* target) {
+  inline static std::int64_t EncodeVarint(int_t value,
+                                 std::uint8_t* target) {
     auto base = target;
     while (value >= 0x80) {
       *target = static_cast<std::uint8_t>(value | 0x80);
@@ -21,9 +21,9 @@ public:
   }
 
   template<typename int_t>
-  inline static bool DecodeVarint(std::uint8_t* input, int_t* result) {
+  inline static std::int64_t DecodeVarint(std::uint8_t* input, int_t* result) {
     int count = 0;
-    std::uint32_t b;
+    std::uint8_t b;
     *result = 0;
 
     // Fast path for smaller numbers (upto 2 bytes)
@@ -32,27 +32,27 @@ public:
     ++input;
     ++count;
     if (!(b & 0x80))
-      return true;
+      return count;
 
     b = *input;
     *result |= static_cast<int_t>(b & 0x7F) << (7 * count);
     ++input;
     ++count;
     if (!(b & 0x80))
-      return true;   
+      return count;
 
-   do {
+    do {
       if (count == kMaxVarintBytes) {
-        return false;        
+        return -1;
       }
 
       b = *input;
       *result |= static_cast<int_t>(b & 0x7F) << (7 * count);
       ++input;
       ++count;
-   } while (b & 0x80);
+    } while (b & 0x80);
 
-    return true;
+    return count;
   }
 
   inline std::uint32_t ZigZagEncode32(std::int32_t n) {
@@ -71,6 +71,12 @@ public:
 
   inline std::int64_t ZigZagDecode64(std::uint64_t n) {
     return (n >> 1) ^ -static_cast<std::int64_t>(n & 1);
-  }  
+  }
+
+  inline static bool OnLittleEndianMachine() {
+    int a = 1;
+    std::int8_t val = *((std::int8_t*) &a);
+    return val != 0;
+  }
 };
 } // namespace jonoondb_utils

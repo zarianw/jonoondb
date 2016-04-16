@@ -16,6 +16,13 @@ struct BlobMetadata;
 class BufferImpl;
 class FileNameManager;
 
+struct BlobHeader {
+  uint8_t version;
+  bool compressed;
+  uint16_t crc;
+  uint64_t blobSize;
+};
+
 // This class is responsible for reading/writing blobs into the data files
 class BlobManager final {
 public:
@@ -34,6 +41,7 @@ private:
   inline void Flush(size_t offset, size_t numBytes);
   void SwitchToNewDataFile();
   void PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata, size_t& byteWritten);
+  void ReadBlobHeader(char*& offset, BlobHeader& blobHeader);
 
   FileInfo m_currentBlobFileInfo;
   std::shared_ptr<MemoryMappedFile> m_currentBlobFile;
@@ -54,5 +62,6 @@ private:
   MemoryMappedFile m_memMapFile;
   std::int64_t m_currentPosition;
   FileInfo m_fileInfo;
+  static bool LittleEndianMachine;
 };
 } // namespace jonoondb_api
