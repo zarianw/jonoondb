@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <boost/filesystem.hpp>
 #include <boost/endian/conversion.hpp>
+#include "lz4.h"
 #include "blob_manager.h"
 #include "exception_utils.h"
 #include "buffer_impl.h"
