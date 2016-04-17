@@ -41,8 +41,7 @@ private:
   inline void Flush(size_t offset, size_t numBytes);
   void SwitchToNewDataFile();
   void PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata, size_t& byteWritten);
-  void ReadBlobHeader(char*& offset, BlobHeader& blobHeader);
-
+  
   FileInfo m_currentBlobFileInfo;
   std::shared_ptr<MemoryMappedFile> m_currentBlobFile;
   std::unique_ptr<FileNameManager> m_fileNameManager;

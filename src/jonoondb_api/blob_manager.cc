@@ -20,6 +20,29 @@ using namespace jonoondb_utils;
 
 bool LittleEndianMachine = Varint::OnLittleEndianMachine();
 
+inline void ReadBlobHeader(char*& offsetAddress, BlobHeader& blobHeader) {
+  // Header: VerAndFlags (1 Byte) + CRC (2 Bytes) + SizeOfBlob (varint) + BlobData (SizeOfBlob)
+  uint8_t verAndFlags = 0;
+  memcpy(&verAndFlags, offsetAddress, 1);
+  offsetAddress++;
+  // Drop last 4 bits
+  blobHeader.version = verAndFlags & 0xF0; // 0xF0 is equal to 1111 0000
+  blobHeader.version = blobHeader.version >> 4;
+
+  blobHeader.compressed = (verAndFlags & 1) == 1;
+
+  memcpy(&blobHeader.crc, offsetAddress, sizeof(blobHeader.crc));
+  offsetAddress += sizeof(blobHeader.crc);
+  // swap crc before using it if on big endian machine
+
+  uint64_t blobSize;
+  auto varIntSize = Varint::DecodeVarint((std::uint8_t*)*&offsetAddress, &blobSize);
+  if (varIntSize == -1) {
+    // throw
+  }
+  offsetAddress += varIntSize;
+}
+
 BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager, bool compressionEnabled, size_t maxDataFileSize, bool synchronous)
   : m_fileNameManager(move(fileNameManager)), m_compressionEnabled(compressionEnabled),
   m_maxDataFileSize(maxDataFileSize), m_currentBlobFile(nullptr), m_synchronous(synchronous), m_readerFiles(DEFAULT_MEM_MAP_LRU_CACHE_SIZE) {
@@ -194,25 +217,16 @@ std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
     char* offsetAddress = m_memMapFile.GetOffsetAddressAsCharPtr(m_currentPosition);
 
     // Now read the header. 
-    // Header: CompressionEnabledFlag (1 Byte) + CRC (4 Bytes) + SizeOfBlob (8 bytes) + BlobData (SizeOfBlob)
-    bool compressionFlag;
-    int32_t crc;
-    uint64_t blobSize;
+    // Header: VerAndFlags (1 Byte) + CRC (2 Bytes) + SizeOfBlob (varint) + BlobData (SizeOfBlob)
+    BlobHeader header;
+    ReadBlobHeader(offsetAddress, header);
+    
 
-    memcpy(&compressionFlag, offsetAddress, 1);
-    ++offsetAddress;
-
-    memcpy(&crc, offsetAddress, 4);
-    offsetAddress += 4;
-
-    memcpy(&blobSize, offsetAddress, 8);
-    offsetAddress += 8;
-
-    blobs[i] = std::move(BufferImpl(offsetAddress, blobSize, blobSize, StandardDeleteNoOp));
+    blobs[i] = std::move(BufferImpl(offsetAddress, header.blobSize, header.blobSize, StandardDeleteNoOp));
     blobMetadataVec[i].fileKey = m_fileInfo.fileKey;
     blobMetadataVec[i].offset = m_currentPosition;
 
-    m_currentPosition += (1 + 4 + 8) + blobSize;
+    m_currentPosition += header.blobSize;
     ++batchSize;
   }
 
@@ -256,7 +270,7 @@ void BlobManager::PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata
   size_t offset = m_currentBlobFile->GetCurrentWriteOffset();
 
   // 4. Write the header
-  // Header: CompressionEnabledFlag (1 Byte) + CRC (4 Bytes) + SizeOfBlob (8 bytes) + BlobData (SizeOfBlob)
+  // Header: VerAndFlags (1 Byte) + CRC (2 Bytes) + SizeOfBlob (varint) + BlobData (SizeOfBlob)
   std::uint8_t verAndFlags = 0;
   verAndFlags |= 1 << 4; // version
   verAndFlags |= m_compressionEnabled ? 1 : 0; // compression flag
@@ -275,29 +289,6 @@ void BlobManager::PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata
   blobMetadata.fileKey = m_currentBlobFileInfo.fileKey;
 }
 
-inline void BlobManager::ReadBlobHeader(char*& offsetAddress, BlobHeader& blobHeader) {
-  // Header: VerAndFlags (1 Byte) + CRC (2 Bytes) + SizeOfBlob (varint) + BlobData (SizeOfBlob)
-  uint8_t verAndFlags = 0;
-  memcpy(&verAndFlags, offsetAddress, 1);
-  // Drop last 4 bits
-  blobHeader.version = verAndFlags & 0xF0; // 0xF0 is equal to 1111 0000
-  blobHeader.version = blobHeader.version >> 4;
 
-  blobHeader.compressed = (verAndFlags & 1) == 1;
-  offsetAddress++;
-  
-  memcpy(&blobHeader.crc, offsetAddress, sizeof(blobHeader.crc));
-  offsetAddress += sizeof(blobHeader.crc);
-  // swap crc before using it if on big endian machine
-
-  uint8_t varIntBuffer[kMaxVarintBytes];
-  uint64_t blobSize;
-  memcpy(&varIntBuffer, offsetAddress, sizeof(varIntBuffer));
-  auto varIntSize = Varint::DecodeVarint(varIntBuffer, &blobSize);
-  if (varIntSize == -1) {
-    // throw
-  }
-  offsetAddress += varIntSize;
-}
 
 

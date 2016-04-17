@@ -5,8 +5,6 @@
 
 using namespace jonoondb_utils;
 
-bool RunFastVarintTests = false;
-
 TEST(Varint, FastEncodeDecode) {
   char buffer[10];
   uint32_t num;
@@ -62,7 +60,7 @@ TEST(Varint, FastEncodeDecode) {
   }
 }
 
-TEST(Varint, CompleteEncodeDecode) {
+TEST(Varint, DISABLED_CompleteEncodeDecode) {
   char buffer[10];
   uint32_t num;
   uint64_t num64;
