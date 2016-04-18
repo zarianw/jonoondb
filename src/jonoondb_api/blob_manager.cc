@@ -18,7 +18,6 @@ using namespace jonoondb_api;
 using namespace jonoondb_utils;
 
 #define DEFAULT_MEM_MAP_LRU_CACHE_SIZE 2
-
 bool LittleEndianMachine = Varint::OnLittleEndianMachine();
 
 namespace jonoondb_api {
@@ -226,13 +225,18 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
   BlobHeader header;
   BlobHeader::ReadBlobHeader(offsetAddress, header);
 
-  // Read Blob contents
-  if (blob.GetLength() < header.blobSize) {
-    //Passed in buffer is not big enough. Lets resize it
-    blob.Resize(header.blobSize);
+  // Read Blob contents  
+  if (header.compressed) {
+    
+  } else {
+    if (blob.GetLength() < header.blobSize) {
+      //Passed in buffer is not big enough. Lets resize it
+      blob.Resize(header.blobSize);
+    }
+    blob.Copy(offsetAddress, header.blobSize);
   }
 
-  blob.Copy(offsetAddress, header.blobSize);
+  
 }
 
 void BlobManager::UnmapLRUDataFiles() {
@@ -297,24 +301,40 @@ void BlobManager::SwitchToNewDataFile() {
 void BlobManager::PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata, size_t& bytesWritten) {
   BlobHeader header;
   header.version = kBlobHeaderVersion;
-  // Compress if required and capture the storage size of blob
-  header.blobSize = blob.GetLength(); 
-
-  // Calculate CRC on uncompressed data
-  header.crc = 0;
-  
   header.compressed = m_compressionEnabled;
-
   // Record the current offset.
   size_t offset = m_currentBlobFile->GetCurrentWriteOffset();
-
-  // Write the header  
-  auto headerBytes = BlobHeader::WriteBlobHeader(m_currentBlobFile, header);
-  
-  // Write the blob contents
-  m_currentBlobFile->WriteAtCurrentPosition(blob.GetData(), blob.GetLength());
-
-  bytesWritten = headerBytes + blob.GetLength();
+  // Compress if required and capture the storage size of blob
+  if (m_compressionEnabled) {    
+    auto maxCompSize = LZ4_compressBound(blob.GetLength());
+    if (maxCompSize > m_compBuffer.GetCapacity()) {
+      m_compBuffer.Resize(maxCompSize);
+    }
+    auto compSize = LZ4_compress_default(
+      blob.GetData(), m_compBuffer.GetDataForWrite(),
+      blob.GetLength(), m_compBuffer.GetCapacity());
+    if (compSize == 0) {
+      // throw
+    }
+    m_compBuffer.SetLength(compSize);
+    header.blobSize = compSize;
+    // Todo: Calculate CRC
+    header.crc = 0;
+    // Write the header  
+    auto headerBytes = BlobHeader::WriteBlobHeader(m_currentBlobFile, header);
+    // Write the blob contents
+    m_currentBlobFile->WriteAtCurrentPosition(m_compBuffer.GetData(), m_compBuffer.GetLength());
+    bytesWritten = headerBytes + m_compBuffer.GetLength();
+  } else {
+    header.blobSize = blob.GetLength();
+    // Todo: Calculate CRC
+    header.crc = 0;
+    // Write the header  
+    auto headerBytes = BlobHeader::WriteBlobHeader(m_currentBlobFile, header);
+    // Write the blob contents
+    m_currentBlobFile->WriteAtCurrentPosition(blob.GetData(), blob.GetLength());
+    bytesWritten = headerBytes + blob.GetLength();
+  } 
 
   // 6. Fill and return blobMetaData
   blobMetadata.offset = offset;
