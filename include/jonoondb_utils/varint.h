@@ -7,7 +7,7 @@ namespace jonoondb_utils {
 class Varint {
 public:
   template<typename int_t>
-  inline static std::int64_t EncodeVarint(int_t value,
+  inline static int EncodeVarint(int_t value,
                                  std::uint8_t* target) {
     auto base = target;
     while (value >= 0x80) {
@@ -17,11 +17,11 @@ public:
     }
     *target = static_cast<std::uint8_t>(value);
     target++;
-    return target - base;
+    return static_cast<int>(target - base);
   }
 
   template<typename int_t>
-  inline static std::int64_t DecodeVarint(std::uint8_t* input, int_t* result) {
+  inline static int DecodeVarint(std::uint8_t* input, int_t* result) {
     int count = 0;
     std::uint8_t b;
     *result = 0;
