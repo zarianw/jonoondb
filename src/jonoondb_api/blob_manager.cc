@@ -281,7 +281,7 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
     int val = LZ4_decompress_fast(offsetAddress, blob.GetDataForWrite(), header.blobSize);
     if (val < 0) {
       std::ostringstream ss;
-      ss << "Decompression failed while reading blob in file "
+      ss << "Decompression failed while reading blob from file "
         << memMapFile->GetFileName() << " at offset " << blobMetaData.offset
         << ". Error code returned by compression lib " << val << ".";
     }
@@ -313,16 +313,33 @@ std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
     if (position >= m_fileInfo.dataLength) {
       // We are at the end of file
       break;
-    }
-    
+    }    
     // Now read the header. 
     BlobHeader header;
     BlobHeader::ReadBlobHeader(m_currentOffsetAddress, header);
-
-    blobs[i] = std::move(BufferImpl(m_currentOffsetAddress, header.blobSize, header.blobSize, StandardDeleteNoOp));
+    
+    if (header.compressed) {
+      if (blobs[i].GetCapacity() < header.blobSize) {
+        //Passed in buffer is not big enough. Lets resize it
+        blobs[i].Resize(header.blobSize);
+      }
+      // Decompress the data
+      int val = LZ4_decompress_fast(m_currentOffsetAddress, blobs[i].GetDataForWrite(), header.blobSize);
+      if (val < 0) {
+        std::ostringstream ss;
+        ss << "Decompression failed while reading blob from file "
+          << m_fileInfo.fileNameWithPath << " at offset " << position
+          << ". Error code returned by compression lib " << val << ".";
+      }
+      blobs[i].SetLength(header.blobSize);
+      m_currentOffsetAddress += header.compSize;
+    } else {
+      blobs[i] = std::move(BufferImpl(m_currentOffsetAddress, header.blobSize, header.blobSize, StandardDeleteNoOp));
+      m_currentOffsetAddress += header.blobSize;
+    }
+    
     blobMetadataVec[i].fileKey = m_fileInfo.fileKey;
-    blobMetadataVec[i].offset = position;
-    m_currentOffsetAddress += header.blobSize;
+    blobMetadataVec[i].offset = position;    
     ++batchSize;
   }
 

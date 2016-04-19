@@ -311,11 +311,13 @@ TEST(Database, ExecuteSelect_Testing) {
   rs.Close();
 }
 
-TEST(Database, MultiInsert) {
-  string dbName = "Database_MultiInsert";
+void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
+                            IndexType indexType) {
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  auto opt = GetDefaultDBOptions();
+  opt.SetCompressionEnabled(enableCompression);
+  Database db(dbPath, dbName, opt);
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -323,19 +325,19 @@ TEST(Database, MultiInsert) {
 
   IndexInfo index;
   index.SetIndexName("IndexName1");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(indexType);
   index.SetIsAscending(true);
   index.SetColumnName("user.name");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName2");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(indexType);
   index.SetIsAscending(true);
   index.SetColumnName("text");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName3");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(indexType);
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
@@ -343,7 +345,7 @@ TEST(Database, MultiInsert) {
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
-    
+
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
@@ -362,22 +364,39 @@ TEST(Database, MultiInsert) {
   ASSERT_EQ(rowCnt, 10);
 }
 
-TEST(Database, Ctor_ReOpen) {
-  string dbName = "Database_Ctor_ReOpen";
+TEST(Database, MultiInsert) {
+  string dbName = "Database_MultiInsert";
+  ExecuteMultiInsertTest(dbName, false, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, MultiInsert_Compressed) {
+  string dbName = "Database_MultiInsert_Compressed";
+  ExecuteMultiInsertTest(dbName, true, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, MultiInsert_Vector) {
+  string dbName = "Database_MultiInsert_Vector";
+  ExecuteMultiInsertTest(dbName, false, IndexType::VECTOR);
+}
+
+void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
+                            IndexType indexType) {
   string collectionName1 = "tweet1";
   string collectionName2 = "tweet2";
   string dbPath = g_TestRootDirectory;
-  
+
   {
     //scope for database
-    Database db(dbPath, dbName, GetDefaultDBOptions());
+    auto opt = GetDefaultDBOptions();
+    opt.SetCompressionEnabled(enableCompression);
+    Database db(dbPath, dbName, opt);
     string filePath = GetSchemaFilePath("tweet.bfbs");
     string schema = File::Read(filePath);
     std::vector<IndexInfo> indexes;
-    indexes.push_back(IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true));
-    indexes.push_back(IndexInfo("IndexName2", IndexType::EWAH_COMPRESSED_BITMAP, "text", true));
-    indexes.push_back(IndexInfo("IndexName3", IndexType::EWAH_COMPRESSED_BITMAP, "user.id", true));
-    indexes.push_back(IndexInfo("IndexName4", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true));
+    indexes.push_back(IndexInfo("IndexName1", indexType, "id", true));
+    indexes.push_back(IndexInfo("IndexName2", indexType, "text", true));
+    indexes.push_back(IndexInfo("IndexName3", indexType, "user.id", true));
+    indexes.push_back(IndexInfo("IndexName4", indexType, "user.name", true));
 
     db.CreateCollection(collectionName1, SchemaType::FLAT_BUFFERS, schema, indexes);
     db.CreateCollection(collectionName2, SchemaType::FLAT_BUFFERS, schema, indexes);
@@ -428,6 +447,21 @@ TEST(Database, Ctor_ReOpen) {
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
+}
+
+TEST(Database, Ctor_ReOpen) {
+  string dbName = "Database_Ctor_ReOpen";
+  ExecuteCtor_ReopenTest(dbName, false, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, Ctor_ReOpen_Compressed) {
+  string dbName = "Ctor_ReOpen_Compressed";
+  ExecuteCtor_ReopenTest(dbName, true, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, Ctor_ReOpen_Vector) {
+  string dbName = "Ctor_ReOpen_Vector";
+  ExecuteCtor_ReopenTest(dbName, false, IndexType::VECTOR);
 }
 
 TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
