@@ -320,8 +320,11 @@ std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
     
     if (header.compressed) {
       if (blobs[i].GetCapacity() < header.blobSize) {
-        //Passed in buffer is not big enough. Lets resize it
-        blobs[i].Resize(header.blobSize);
+        // Passed in buffer is not big enough.
+        // Lets resize it to 2x, these buffers
+        // are reused again and it will reduce the amount of
+        // total memory allocations.
+        blobs[i].Resize((header.blobSize) * 2);
       }
       // Decompress the data
       int val = LZ4_decompress_fast(m_currentOffsetAddress, blobs[i].GetDataForWrite(), header.blobSize);

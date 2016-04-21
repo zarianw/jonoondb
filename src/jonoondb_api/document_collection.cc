@@ -72,6 +72,8 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
     while ((actualBatchSize = iter.GetNextBatch(blobs, blobMetadataVec)) > 0) {
       std::vector<std::unique_ptr<Document>> docs;
       for (size_t i = 0; i < actualBatchSize; i++) {
+        // Todo optimize the creation of doc creation
+        // we should reuse documents
         docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema, blobs[i]));
       }
 

@@ -147,11 +147,11 @@ TEST(Database, Insert_SingleIndex) {
   db.Insert(collectionName, documentData);
 }
 
-TEST(Database, Insert_AllIndexTypes) {
-  string dbName = "Database_Insert_AllIndexTypes";
+void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
+                                       IndexType indexType) {
   string collectionName = "CollectionName";
-  string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());  
+  string dbPath = g_TestRootDirectory;  
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("all_field_type.bfbs");
   string schema = File::Read(filePath);
@@ -159,10 +159,10 @@ TEST(Database, Insert_AllIndexTypes) {
   const int indexLength = 22;
   std::vector<IndexInfo> indexes;
   IndexInfo index;
-  for (auto i = 0; i < indexLength; i++) {    
+  for (auto i = 0; i < indexLength; i++) {
     auto indexName = "IndexName_" + std::to_string(i);
     index.SetIndexName(indexName);
-    index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+    index.SetType(indexType);
     index.SetIsAscending(true);
     string fieldName;
     if (i < 11) {
@@ -173,13 +173,23 @@ TEST(Database, Insert_AllIndexTypes) {
     index.SetColumnName(fieldName.c_str());
 
     indexes.push_back(index);
-  } 
+  }
 
   db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
   Buffer documentData = GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5, 6, 7, 8.0f,
                                                     9, 10.0, "");
   db.Insert(collectionName, documentData);
+}
+
+TEST(Database, Insert_AllIndexTypes_EWAHCB) {
+  string dbName = "Database_Insert_AllIndexTypes_EWAHCB";
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, Insert_AllIndexTypes_Vector) {
+  string dbName = "Database_Insert_AllIndexTypes_Vector";
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::VECTOR);
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {

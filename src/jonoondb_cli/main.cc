@@ -53,6 +53,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     cout << "Loading DB ..." << endl;
 
     Options opt;
+    opt.SetCompressionEnabled(true);
     Stopwatch loadSW(true);
     Database db(dbPath, dbName, opt);
     loadSW.Stop();
@@ -252,10 +253,10 @@ int main(int argc, char **argv) {
 
   desc.add_options()
     ("help", "produce help message")
-    ("db_name", po::value<string>(), "Name of the database. ")
+    ("db_name", po::value<string>(), "Name of the database. ")    
     ("db_path", po::value<string>(), "Path where database file exists. "
      "A new database is created if the file does not previously exist. "
-     "Default is current directory.");
+     "Default is current directory.");    
 
   po::positional_options_description p;
   p.add("db_name", 1);
