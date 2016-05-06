@@ -1279,6 +1279,49 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   ASSERT_EQ(rowCnt, 5);
 }
 
+TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
+  string dbName = "ExecuteSelect_ResultsetConsumption";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, GetDefaultDBOptions());
+
+  string filePath = GetSchemaFilePath("tweet.bfbs");
+  string schema = File::Read(filePath);
+  std::vector<IndexInfo> indexes;  
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::string name = "Zarian";
+  std::string text = "Say hello to my little friend!";
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
+  db.Insert(collectionName, documentData);
+
+  int rows = 0;
+  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating FROM tweet;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 2.0);
+    ++rows;
+  }
+  ASSERT_EQ(rows, 1);
+
+  rows = 0;
+  while (rs.Next()) {    
+    ++rows;
+  }
+  ASSERT_EQ(rows, 0);
+
+  ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 0);
+  ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "");
+  ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 0);
+  ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "");
+  ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 0.0); 
+
+  rs.Close();
+}
+
 /*TEST(Database, Insert_100K) {
   string dbName = "Database_Insert_100K";
   string collectionName = "tweet";

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -10,10 +11,12 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/endian/conversion.hpp>
 #include "database.h"
 #include "jonoondb_utils/stopwatch.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <jonoondb_api/file.h>
+#include <jonoondb_utils/varint.h>
 
 namespace po = boost::program_options;
 using namespace std;
@@ -25,17 +28,47 @@ inline void DeleteNoOp(char *) {
 }
 
 void PrintResultSet(ResultSet& rs) {
-  // Print header
   std::int32_t colCount = rs.GetColumnCount();
+  vector<size_t> columnWidths(colCount, 0);  
+
+  // try to guess column width by reading few rows
+  int count = 0;
+  vector<vector<string>> readVals;
+  while (count < 5 && rs.Next()) {
+    readVals.push_back(vector<string>());
+    for (std::int32_t i = 0; i < colCount; i++) {
+      auto val = rs.GetString(i);
+      if (columnWidths[i] < val.size()) {
+        columnWidths[i] = val.size();
+      }
+      readVals.back().push_back(string(val.str(), val.size()));
+    }
+    count++;
+  }
+
+  // Print header
+  const char fill = ' ';
   for (std::int32_t i = 0; i < colCount; i++) {
-    cout << rs.GetColumnLabel(i).str() << "|";
+    if (columnWidths[i] < rs.GetColumnLabel(i).size()) {
+      columnWidths[i] = rs.GetColumnLabel(i).size();
+    }
+
+    cout << left << std::setw(columnWidths[i]) << std::setfill(fill) << rs.GetColumnLabel(i).str() << "|";    
   }
   cout << "\n";
-  
-  // Print values
-  while (rs.Next()) {
+
+  // Print values that were read while guessing
+  for (auto& vals : readVals) {
     for (std::int32_t i = 0; i < colCount; i++) {
-      cout << rs.GetString(i).str() << "|";
+      cout << left << std::setw(columnWidths[i]) << std::setfill(fill) << vals[i] << "|";
+    } 
+    cout << "\n";
+  }
+  
+  // Print rest of the values
+  while (rs.Next()) {
+    for (std::int32_t i = 0; i < colCount; i++) {      
+        cout << left << std::setw(columnWidths[i]) << std::setfill(fill) << rs.GetString(i).str() << "|";      
     }
     cout << "\n";
   }
@@ -60,7 +93,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     cout << "Loading completed in " << loadSW.ElapsedMilliSeconds() << " millisecs." << endl;
     std::string cmd;    
     boost::char_separator<char> sep(" ");  
-    bool isTimerOn = true;
+    bool isTimerOn = true;    
     
     while (true) {
       cout << "JonoonDB> ";
@@ -157,9 +190,16 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           // make sure we have enough params
           Stopwatch sw(true);
           if (tokens.size() < 3) {
-            cout << "Not enough parameters. USAGE: .i COLLECTION_NAME DATA_FILE" << endl;
+            cout << "Not enough parameters. USAGE: .i COLLECTION_NAME DATA_FILE [be]" << endl;
             continue;
-          }         
+          }
+
+          bool bigEndSize = false;
+          if (tokens.size() == 4) {
+            if (tokens[3] == "be") {
+              bigEndSize = true;
+            }
+          }
 
           auto fileMapping = boost::interprocess::file_mapping(tokens[2].c_str(), boost::interprocess::read_only);
           auto mappedRegion = boost::interprocess::mapped_region(fileMapping, boost::interprocess::read_only);
@@ -170,8 +210,18 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           std::int64_t bytesReadForCurrRegion = 0;
           std::uint32_t size = 0;
           std::size_t pageSize = boost::interprocess::mapped_region::get_page_size();
+          bool swapEndianess = false;
+          if ((Varint::OnLittleEndianMachine() && bigEndSize) ||
+            (!Varint::OnLittleEndianMachine() && !bigEndSize)) {
+            swapEndianess = true;
+          }
+
           while (bytesRead < fileSize) {
             memcpy(&size, currentPostion, sizeof(std::uint32_t));
+            if (swapEndianess) {
+              boost::endian::endian_reverse_inplace(size);
+            }
+
             currentPostion += sizeof(std::uint32_t);
             documents.push_back(Buffer(currentPostion, size, size, DeleteNoOp));
             currentPostion += size;            

@@ -34,5 +34,6 @@ private:
   std::vector<std::string> m_columnMapStringStore;
   std::vector<int> m_columnSqlType;
   mutable std::string m_tmpStrStorage;
+  bool m_resultSetConsumed = false;
 };
 } // jonoondb_api
