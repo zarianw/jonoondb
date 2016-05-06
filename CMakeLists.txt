@@ -9,6 +9,7 @@ set (JONOONDB_API_INCLUDE_PATH ${INCLUDE_PATH}/jonoondb_api)
 set (JONOONDB_API_TEST_SRC_PATH ${SRC_PATH}/jonoondb_api_test)
 set (JONOONDB_API_TEST_INCLUDE_PATH ${INCLUDE_PATH}/jonoondb_api_test)
 set (THIRDPARTY_PATH ${PROJECT_SOURCE_DIR}/thirdparty)
+set (TEST_PATH ${PROJECT_SOURCE_DIR}/tests)
 
 # add the include directories
 include_directories(${INCLUDE_PATH} ${JONOONDB_API_INCLUDE_PATH} ${JONOONDB_API_TEST_INCLUDE_PATH} ${THIRDPARTY_PATH})
@@ -70,6 +71,11 @@ include_directories(${Boost_INCLUDE_DIR})
 message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
 message("Using Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
 
+# LZ4
+SET(BUILD_TOOLS OFF CACHE BOOL "Build LZ4 command line tools")
+add_subdirectory(${THIRDPARTY_PATH}/lz4-r131/cmake_unofficial)
+include_directories(${THIRDPARTY_PATH}/lz4-r131/lib)
+
 # jonoondb_api
 add_library(
  jonoondb_api 
@@ -130,7 +136,7 @@ add_library(
  ${JONOONDB_API_SRC_PATH}/blob_manager.cc ${JONOONDB_API_INCLUDE_PATH}/blob_manager.h
  ${JONOONDB_API_SRC_PATH}/id_seq.cc ${JONOONDB_API_INCLUDE_PATH}/id_seq.h) 
  
-target_link_libraries(jonoondb_api sqlite flatbuffers ${Boost_LIBRARIES})
+target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
 
 # Find a way to link against only the required boost libs
 # ${Boost_LIBRARIES} points to all the libs in find_package
@@ -178,7 +184,9 @@ add_executable(
  ${JONOONDB_API_TEST_SRC_PATH}/blob_manager_tests.cc
  ${JONOONDB_API_TEST_SRC_PATH}/object_pool_tests.cc
  ${JONOONDB_API_TEST_SRC_PATH}/options_tests.cc
- ${JONOONDB_API_TEST_SRC_PATH}/index_info_tests.cc)
+ ${JONOONDB_API_TEST_SRC_PATH}/index_info_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/database_sql_tests.cc
+ ${TEST_PATH}/jonoondb_utils/varint_tests.cc)
 target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 
 include(CTest)

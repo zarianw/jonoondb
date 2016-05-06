@@ -20,8 +20,10 @@ class BufferImpl {
   void Resize(size_t newBufferCapacityInBytes);
   
   const char* GetData() const;  
+  char* GetDataForWrite();
   const size_t GetCapacity() const;
   const size_t GetLength() const;
+  void SetLength(size_t val);
   
   void Copy(const char* buffer, size_t bytesToCopy);
 private:

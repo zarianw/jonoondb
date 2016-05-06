@@ -21,6 +21,7 @@ public:
     : m_currentWritePosition(nullptr),
     m_currentWriteOffset(0),
     m_asynchronous(asynchronous) {
+    m_fileName = fileName;
     m_pageSize = boost::interprocess::mapped_region::get_page_size();
     auto internalMode = GetInternalMode(mode);
     m_fileMapping = boost::interprocess::file_mapping(fileName.c_str(), internalMode);
@@ -39,6 +40,9 @@ public:
   MemoryMappedFile& operator=(const MemoryMappedFile&) = delete;
   MemoryMappedFile& operator=(MemoryMappedFile&&) = delete;
 
+  const std::string& GetFileName() {
+    return m_fileName;
+  }
 
   void* GetBaseAddress() {
     return m_mappedRegion.get_address();
@@ -120,5 +124,6 @@ public:
   std::size_t m_currentWriteOffset;
   bool m_asynchronous;
   std::size_t m_pageSize;
+  std::string m_fileName;
 };
 }  // namespace jonoondb_api

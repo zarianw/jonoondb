@@ -39,8 +39,10 @@ Indexer* IndexerFactory::CreateIndexer(
       } else if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
                  fieldType == FieldType::BASE_TYPE_FLOAT32) {
         return new VectorDoubleIndexer(indexInfo, fieldType);
+      } else if(fieldType == FieldType::BASE_TYPE_INT64) {
+        return new VectorIntegerIndexer<std::int64_t>(indexInfo, fieldType);
       } else {
-        return new VectorIntegerIndexer(indexInfo, fieldType);
+        return new VectorIntegerIndexer<std::int32_t>(indexInfo, fieldType);
       }
     }
 

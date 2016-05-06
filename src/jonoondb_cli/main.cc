@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -10,10 +11,12 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/endian/conversion.hpp>
 #include "database.h"
 #include "jonoondb_utils/stopwatch.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <jonoondb_api/file.h>
+#include <jonoondb_utils/varint.h>
 
 namespace po = boost::program_options;
 using namespace std;
@@ -25,17 +28,47 @@ inline void DeleteNoOp(char *) {
 }
 
 void PrintResultSet(ResultSet& rs) {
-  // Print header
   std::int32_t colCount = rs.GetColumnCount();
+  vector<size_t> columnWidths(colCount, 0);  
+
+  // try to guess column width by reading few rows
+  int count = 0;
+  vector<vector<string>> readVals;
+  while (count < 50 && rs.Next()) {
+    readVals.push_back(vector<string>());
+    for (std::int32_t i = 0; i < colCount; i++) {
+      auto val = rs.GetString(i);
+      if (columnWidths[i] <= val.size()) {
+        columnWidths[i] = val.size() + 1;
+      }
+      readVals.back().push_back(string(val.str(), val.size()));
+    }
+    count++;
+  }
+
+  // Print header
+  const char fill = ' ';
   for (std::int32_t i = 0; i < colCount; i++) {
-    cout << rs.GetColumnLabel(i).str() << "|";
+    if (columnWidths[i] < rs.GetColumnLabel(i).size()) {
+      columnWidths[i] = rs.GetColumnLabel(i).size();
+    }
+
+    cout << left << std::setw(columnWidths[i]) << std::setfill(fill) << rs.GetColumnLabel(i).str() << "|";    
   }
   cout << "\n";
-  
-  // Print values
-  while (rs.Next()) {
+
+  // Print values that were read while guessing
+  for (auto& vals : readVals) {
     for (std::int32_t i = 0; i < colCount; i++) {
-      cout << rs.GetString(i).str() << "|";
+      cout << left << std::setw(columnWidths[i]) << std::setfill(fill) << vals[i] << "|";
+    } 
+    cout << "\n";
+  }
+  
+  // Print rest of the values
+  while (rs.Next()) {
+    for (std::int32_t i = 0; i < colCount; i++) {      
+        cout << left << std::setw(columnWidths[i]) << std::setfill(fill) << rs.GetString(i).str() << "|";      
     }
     cout << "\n";
   }
@@ -53,13 +86,14 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     cout << "Loading DB ..." << endl;
 
     Options opt;
+    opt.SetCompressionEnabled(true);
     Stopwatch loadSW(true);
     Database db(dbPath, dbName, opt);
     loadSW.Stop();
     cout << "Loading completed in " << loadSW.ElapsedMilliSeconds() << " millisecs." << endl;
     std::string cmd;    
     boost::char_separator<char> sep(" ");  
-    bool isTimerOn = true;
+    bool isTimerOn = true;    
     
     while (true) {
       cout << "JonoonDB> ";
@@ -156,28 +190,66 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           // make sure we have enough params
           Stopwatch sw(true);
           if (tokens.size() < 3) {
-            cout << "Not enough parameters. USAGE: .i COLLECTION_NAME DATA_FILE" << endl;
+            cout << "Not enough parameters. USAGE: .i COLLECTION_NAME DATA_FILE [be]" << endl;
             continue;
-          }         
+          }
+
+          bool bigEndSize = false;
+          if (tokens.size() == 4) {
+            if (tokens[3] == "be") {
+              bigEndSize = true;
+            }
+          }
 
           auto fileMapping = boost::interprocess::file_mapping(tokens[2].c_str(), boost::interprocess::read_only);
           auto mappedRegion = boost::interprocess::mapped_region(fileMapping, boost::interprocess::read_only);
-          std::uint32_t size = 0;
-          auto fileSize = mappedRegion.get_size();
-          std::size_t bytesRead = 0;
-          char* basePosition = reinterpret_cast<char*>(mappedRegion.get_address());
+          auto fileSize = mappedRegion.get_size();          
           char* currentPostion = reinterpret_cast<char*>(mappedRegion.get_address());
-          std::vector<Buffer> documents;
-          // We can use pointer subtraction safely because the size of the object
-          // they point to is 1 byte (char).
-          while ((currentPostion - basePosition) < fileSize) {
-            memcpy(&size, currentPostion, sizeof(std::uint32_t));
-            currentPostion += sizeof(std::uint32_t);
-            documents.push_back(Buffer(currentPostion, size, size, DeleteNoOp));
-            currentPostion += size;
+          std::vector<Buffer> documents;          
+          std::size_t bytesRead = 0;
+          std::int64_t bytesReadForCurrRegion = 0;
+          std::uint32_t size = 0;
+          std::size_t pageSize = boost::interprocess::mapped_region::get_page_size();
+          bool swapEndianess = false;
+          if ((Varint::OnLittleEndianMachine() && bigEndSize) ||
+            (!Varint::OnLittleEndianMachine() && !bigEndSize)) {
+            swapEndianess = true;
           }
 
-          db.MultiInsert(tokens[1], documents);              
+          while (bytesRead < fileSize) {
+            memcpy(&size, currentPostion, sizeof(std::uint32_t));
+            if (swapEndianess) {
+              boost::endian::endian_reverse_inplace(size);
+            }
+
+            currentPostion += sizeof(std::uint32_t);
+            documents.push_back(Buffer(currentPostion, size, size, DeleteNoOp));
+            currentPostion += size;            
+            bytesReadForCurrRegion += sizeof(std::uint32_t) + size;
+            bytesRead += sizeof(std::uint32_t) + size;
+            if (bytesReadForCurrRegion > (1024 * 1024 * 1024)) {
+              // Insert accumulated docs
+              db.MultiInsert(tokens[1], documents);
+              documents.clear();
+
+              // Remap to not use too much memory
+              auto quotient = bytesRead / pageSize;
+              auto remainder = bytesRead % pageSize;
+              auto offset = pageSize * quotient;
+              
+              mappedRegion = boost::interprocess::mapped_region(
+                fileMapping, boost::interprocess::read_only,
+                offset);
+              currentPostion = reinterpret_cast<char*>(mappedRegion.get_address());
+              currentPostion += remainder;
+              bytesReadForCurrRegion = 0;
+            }
+          }
+
+          if (documents.size() > 0) {
+            db.MultiInsert(tokens[1], documents);
+          }
+
           if (isTimerOn) {
             sw.Stop();
             PrintTime(sw);
@@ -231,10 +303,10 @@ int main(int argc, char **argv) {
 
   desc.add_options()
     ("help", "produce help message")
-    ("db_name", po::value<string>(), "Name of the database. ")
+    ("db_name", po::value<string>(), "Name of the database. ")    
     ("db_path", po::value<string>(), "Path where database file exists. "
      "A new database is created if the file does not previously exist. "
-     "Default is current directory.");
+     "Default is current directory.");    
 
   po::positional_options_description p;
   p.add("db_name", 1);

@@ -13,4 +13,9 @@ extern jonoondb_api::Buffer GetTweetObject2(std::size_t tweetId, std::size_t use
                                             const std::string* nameStr, const std::string* textStr,
                                             double rating);
 extern std::string GetSchemaFilePath(const std::string& fileName);
+extern jonoondb_api::Buffer GetAllFieldTypeObjectBuffer(
+  char field1, unsigned char field2, bool field3, std::int16_t field4,
+  std::uint16_t field5, std::int32_t field6, std::uint32_t field7, float field8,
+  std::int64_t field9, double field10, const std::string& field11);
+extern jonoondb_api::Options GetDefaultDBOptions();
 }  // namespace jonoondb_test

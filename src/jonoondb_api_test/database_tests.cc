@@ -8,7 +8,6 @@
 #include "enums.h"
 #include "buffer_impl.h"
 #include "tweet_generated.h"
-#include "all_field_type_generated.h"
 #include "file.h"
 
 using namespace std;
@@ -35,12 +34,6 @@ TEST(Database, Ctor_MissingDatabaseFolder) {
   string dbPath = g_TestRootDirectory;
   Options options;  
   ASSERT_THROW(Database db(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
-}
-
-Options GetDefaultDBOptions() {
-  Options opt;
-  opt.SetMaxDataFileSize(1024 * 1024);
-  return opt;
 }
 
 TEST(Database, Ctor_New) {
@@ -154,46 +147,11 @@ TEST(Database, Insert_SingleIndex) {
   db.Insert(collectionName, documentData);
 }
 
-Buffer GetAllFieldTypeObjectBuffer() {
-  Buffer buffer;
-  FlatBufferBuilder fbb;
-  // create nested object
-  auto text1 = fbb.CreateString("Say hello to my little friend!");  
-  auto nestedObj = CreateNestedAllFieldType(fbb, 1, 2, 3, 4, 5, 6, 7, 8.0f, 9,
-                                            10.0, text1);
-  // create parent object
-  auto text2 = fbb.CreateString("Say hello to my little friend!");
-  auto parentObj = CreateAllFieldType(fbb, 1, 2, 3, 4, 5, 6, 7, 8.0f, 9,
-                                      10.0, text2, nestedObj);
-  fbb.Finish(parentObj);
-  buffer.Resize(fbb.GetSize());
-
-  buffer.Copy((char*)fbb.GetBufferPointer(), fbb.GetSize());
-  return buffer;
-}
-
-Buffer GetAllFieldTypeObjectBuffer(char field1, unsigned char field2, bool field3, int16_t field4,
-                                   uint16_t field5,int32_t field6, uint32_t field7,float field8,int64_t field9,
-                                   double field10, const std::string& field11) {
-  FlatBufferBuilder fbb;
-  // create nested object
-  auto str = fbb.CreateString(field11);
-  auto nestedObj = CreateNestedAllFieldType(fbb, field1, field2, field3, field4, field5, field6,field7,
-                                            field8, field9,field10, str);
-  // create parent object
-  auto str2 = fbb.CreateString(field11);
-  auto parentObj = CreateAllFieldType(fbb, field1, field2, field3, field4, field5, field6, field7, field8,
-                                      field9,field10, str2, nestedObj);
-  fbb.Finish(parentObj);
-
-  return Buffer((char*)fbb.GetBufferPointer(), fbb.GetSize(), fbb.GetSize());
-}
-
-TEST(Database, Insert_AllIndexTypes) {
-  string dbName = "Database_Insert_AllIndexTypes";
+void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
+                                       IndexType indexType) {
   string collectionName = "CollectionName";
-  string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());  
+  string dbPath = g_TestRootDirectory;  
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("all_field_type.bfbs");
   string schema = File::Read(filePath);
@@ -201,10 +159,10 @@ TEST(Database, Insert_AllIndexTypes) {
   const int indexLength = 22;
   std::vector<IndexInfo> indexes;
   IndexInfo index;
-  for (auto i = 0; i < indexLength; i++) {    
+  for (auto i = 0; i < indexLength; i++) {
     auto indexName = "IndexName_" + std::to_string(i);
     index.SetIndexName(indexName);
-    index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+    index.SetType(indexType);
     index.SetIsAscending(true);
     string fieldName;
     if (i < 11) {
@@ -215,12 +173,23 @@ TEST(Database, Insert_AllIndexTypes) {
     index.SetColumnName(fieldName.c_str());
 
     indexes.push_back(index);
-  } 
+  }
 
   db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
 
-  Buffer documentData = GetAllFieldTypeObjectBuffer();
+  Buffer documentData = GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5, 6, 7, 8.0f,
+                                                    9, 10.0, "");
   db.Insert(collectionName, documentData);
+}
+
+TEST(Database, Insert_AllIndexTypes_EWAHCB) {
+  string dbName = "Database_Insert_AllIndexTypes_EWAHCB";
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, Insert_AllIndexTypes_Vector) {
+  string dbName = "Database_Insert_AllIndexTypes_Vector";
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::VECTOR);
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {
@@ -352,11 +321,13 @@ TEST(Database, ExecuteSelect_Testing) {
   rs.Close();
 }
 
-TEST(Database, MultiInsert) {
-  string dbName = "Database_MultiInsert";
+void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
+                            IndexType indexType) {
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  auto opt = GetDefaultDBOptions();
+  opt.SetCompressionEnabled(enableCompression);
+  Database db(dbPath, dbName, opt);
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -364,19 +335,19 @@ TEST(Database, MultiInsert) {
 
   IndexInfo index;
   index.SetIndexName("IndexName1");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(indexType);
   index.SetIsAscending(true);
   index.SetColumnName("user.name");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName2");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(indexType);
   index.SetIsAscending(true);
   index.SetColumnName("text");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName3");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(indexType);
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
@@ -384,7 +355,7 @@ TEST(Database, MultiInsert) {
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
-    
+
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
@@ -403,22 +374,39 @@ TEST(Database, MultiInsert) {
   ASSERT_EQ(rowCnt, 10);
 }
 
-TEST(Database, Ctor_ReOpen) {
-  string dbName = "Database_Ctor_ReOpen";
+TEST(Database, MultiInsert) {
+  string dbName = "Database_MultiInsert";
+  ExecuteMultiInsertTest(dbName, false, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, MultiInsert_Compressed) {
+  string dbName = "Database_MultiInsert_Compressed";
+  ExecuteMultiInsertTest(dbName, true, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, MultiInsert_Vector) {
+  string dbName = "Database_MultiInsert_Vector";
+  ExecuteMultiInsertTest(dbName, false, IndexType::VECTOR);
+}
+
+void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
+                            IndexType indexType) {
   string collectionName1 = "tweet1";
   string collectionName2 = "tweet2";
   string dbPath = g_TestRootDirectory;
-  
+
   {
     //scope for database
-    Database db(dbPath, dbName, GetDefaultDBOptions());
+    auto opt = GetDefaultDBOptions();
+    opt.SetCompressionEnabled(enableCompression);
+    Database db(dbPath, dbName, opt);
     string filePath = GetSchemaFilePath("tweet.bfbs");
     string schema = File::Read(filePath);
     std::vector<IndexInfo> indexes;
-    indexes.push_back(IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true));
-    indexes.push_back(IndexInfo("IndexName2", IndexType::EWAH_COMPRESSED_BITMAP, "text", true));
-    indexes.push_back(IndexInfo("IndexName3", IndexType::EWAH_COMPRESSED_BITMAP, "user.id", true));
-    indexes.push_back(IndexInfo("IndexName4", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true));
+    indexes.push_back(IndexInfo("IndexName1", indexType, "id", true));
+    indexes.push_back(IndexInfo("IndexName2", indexType, "text", true));
+    indexes.push_back(IndexInfo("IndexName3", indexType, "user.id", true));
+    indexes.push_back(IndexInfo("IndexName4", indexType, "user.name", true));
 
     db.CreateCollection(collectionName1, SchemaType::FLAT_BUFFERS, schema, indexes);
     db.CreateCollection(collectionName2, SchemaType::FLAT_BUFFERS, schema, indexes);
@@ -469,6 +457,21 @@ TEST(Database, Ctor_ReOpen) {
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
+}
+
+TEST(Database, Ctor_ReOpen) {
+  string dbName = "Database_Ctor_ReOpen";
+  ExecuteCtor_ReopenTest(dbName, false, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, Ctor_ReOpen_Compressed) {
+  string dbName = "Ctor_ReOpen_Compressed";
+  ExecuteCtor_ReopenTest(dbName, true, IndexType::EWAH_COMPRESSED_BITMAP);
+}
+
+TEST(Database, Ctor_ReOpen_Vector) {
+  string dbName = "Ctor_ReOpen_Vector";
+  ExecuteCtor_ReopenTest(dbName, false, IndexType::VECTOR);
 }
 
 TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
@@ -1274,6 +1277,49 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 5);
+}
+
+TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
+  string dbName = "ExecuteSelect_ResultsetConsumption";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, GetDefaultDBOptions());
+
+  string filePath = GetSchemaFilePath("tweet.bfbs");
+  string schema = File::Read(filePath);
+  std::vector<IndexInfo> indexes;  
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+
+  std::string name = "Zarian";
+  std::string text = "Say hello to my little friend!";
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
+  db.Insert(collectionName, documentData);
+
+  int rows = 0;
+  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating FROM tweet;");
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 2.0);
+    ++rows;
+  }
+  ASSERT_EQ(rows, 1);
+
+  rows = 0;
+  while (rs.Next()) {    
+    ++rows;
+  }
+  ASSERT_EQ(rows, 0);
+
+  ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 0);
+  ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "");
+  ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 0);
+  ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "");
+  ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 0.0); 
+
+  rs.Close();
 }
 
 /*TEST(Database, Insert_100K) {

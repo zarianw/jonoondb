@@ -9,11 +9,11 @@
 #include "file_info.h"
 #include "memory_mapped_file.h"
 #include "concurrent_lru_cache.h"
+#include "buffer_impl.h"
 
 namespace jonoondb_api {
 // Forward Declarations
 struct BlobMetadata;
-class BufferImpl;
 class FileNameManager;
 
 // This class is responsible for reading/writing blobs into the data files
@@ -34,7 +34,7 @@ private:
   inline void Flush(size_t offset, size_t numBytes);
   void SwitchToNewDataFile();
   void PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata, size_t& byteWritten);
-
+  
   FileInfo m_currentBlobFileInfo;
   std::shared_ptr<MemoryMappedFile> m_currentBlobFile;
   std::unique_ptr<FileNameManager> m_fileNameManager;
@@ -42,7 +42,8 @@ private:
   size_t m_maxDataFileSize;
   ConcurrentLRUCache<int32_t, MemoryMappedFile> m_readerFiles;
   std::mutex m_writeMutex;
-  bool m_synchronous;  
+  bool m_synchronous;
+  BufferImpl m_compBuffer;
 };
 
 class BlobIterator {
@@ -51,8 +52,8 @@ public:
   std::size_t GetNextBatch(std::vector<BufferImpl>& blobs,
                            std::vector<BlobMetadata>& metadataVec);
 private:
-  MemoryMappedFile m_memMapFile;
-  std::int64_t m_currentPosition;
   FileInfo m_fileInfo;
+  MemoryMappedFile m_memMapFile;  
+  char* m_currentOffsetAddress;  
 };
 } // namespace jonoondb_api
