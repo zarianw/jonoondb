@@ -34,12 +34,12 @@ void PrintResultSet(ResultSet& rs) {
   // try to guess column width by reading few rows
   int count = 0;
   vector<vector<string>> readVals;
-  while (count < 5 && rs.Next()) {
+  while (count < 50 && rs.Next()) {
     readVals.push_back(vector<string>());
     for (std::int32_t i = 0; i < colCount; i++) {
       auto val = rs.GetString(i);
-      if (columnWidths[i] < val.size()) {
-        columnWidths[i] = val.size();
+      if (columnWidths[i] <= val.size()) {
+        columnWidths[i] = val.size() + 1;
       }
       readVals.back().push_back(string(val.str(), val.size()));
     }

@@ -51,7 +51,10 @@ enum class IndexConstraintOperator
   LESS_THAN_EQUAL,
   GREATER_THAN,
   GREATER_THAN_EQUAL,
-  MATCH
+  MATCH,
+  LIKE,
+  GLOB,
+  REGEX  
 };
 
 enum class SqlType : std::int32_t {

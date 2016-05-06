@@ -65,11 +65,19 @@ static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
       return IndexConstraintOperator::GREATER_THAN_EQUAL;
     case SQLITE_INDEX_CONSTRAINT_MATCH:
       return IndexConstraintOperator::MATCH;
+    case SQLITE_INDEX_CONSTRAINT_LIKE:
+      return IndexConstraintOperator::LIKE;
+    case SQLITE_INDEX_CONSTRAINT_GLOB:
+      return IndexConstraintOperator::GLOB;
+    case SQLITE_INDEX_CONSTRAINT_REGEXP:
+      return IndexConstraintOperator::REGEX;
     default:
-      break;
-  }
-
-  assert(false && "Invalid SQL operator encountered.");
+    {
+      std::ostringstream ss;
+      ss << "Invalid SQL operator " << op << " encountered.";
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+    }
+  }  
 }
 
 
@@ -213,7 +221,7 @@ static int jonoondb_bestindex(sqlite3_vtab* vtab, sqlite3_index_info *info) {
     return SQLITE_ERROR;
   } catch (std::exception& ex) {
     std::ostringstream errMessage;
-    errMessage << "Exception caugth in jonoondb_column function. Error: " << ex.what();
+    errMessage << "Exception caugth in jonoondb_bestindex function. Error: " << ex.what();
     auto str = errMessage.str();
     AllocateAndCopy(str, &vtab->zErrMsg);
     return SQLITE_ERROR;
