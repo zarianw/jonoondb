@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <thread>
 #include "sqlite3.h"
-#include "exception_utils.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 #include "constants.h"
 
 namespace jonoondb_api {

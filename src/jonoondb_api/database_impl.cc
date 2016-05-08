@@ -27,9 +27,16 @@ void DatabaseImpl::MemoryWatcherFunc() {
   int lastPos = -1;
   while (true) {
     try {
+      std::unique_lock<std::mutex> lock(m_memWatcherMutex);
+      if (m_shutdownMemWatcher) {
+        break;
+      }
+
       // Check whether we need to cleanup memory every 5 secs
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
-      if (m_shutdownMemoryWatcher) {
+      m_memWatcherCV.wait_for(lock, std::chrono::seconds(5));
+
+      // conditional variable can also be signaled on shutdown
+      if (m_shutdownMemWatcher) {
         break;
       }
 
@@ -61,7 +68,7 @@ void DatabaseImpl::MemoryWatcherFunc() {
         }
         lastPos = currPos;
       }
-    } catch (std::exception& ex) {
+    } catch (std::exception&) {
       // Todo: Log exception
       assert(false);
     }
@@ -97,15 +104,20 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
   }  
 
-  m_memoryWatcherThread = std::thread(&DatabaseImpl::MemoryWatcherFunc, this);
+  m_memWatcherThread = std::thread(&DatabaseImpl::MemoryWatcherFunc, this);
 }
 
 DatabaseImpl::~DatabaseImpl() {
+  {
+    std::unique_lock<std::mutex> lock(m_memWatcherMutex);
+    m_shutdownMemWatcher = true;    
+  }
+  m_memWatcherCV.notify_one();
   // Todo (zarian): Close all sub components and log any issues
   // Only clear the collections for this database and not all.
   DocumentCollectionDictionary::Instance()->Clear();
-  m_shutdownMemoryWatcher = true;
-  m_memoryWatcherThread.join();
+  
+  m_memWatcherThread.join();
 }
 
 void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,

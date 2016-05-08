@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <boost/utility/string_ref.hpp>
 #include <thread>
+#include <condition_variable>
 #include "gsl/span.h"
 #include "database_metadata_manager.h"
 #include "document_collection.h"
@@ -48,8 +49,10 @@ class DatabaseImpl final {
   std::map<boost::string_ref, std::shared_ptr<DocumentCollection>> m_collectionContainer;
   std::unique_ptr<QueryProcessor> m_queryProcessor;
   OptionsImpl m_options;
-  std::thread m_memoryWatcherThread;
-  bool m_shutdownMemoryWatcher = false;
+  std::thread m_memWatcherThread;
+  bool m_shutdownMemWatcher = false;
+  std::mutex m_memWatcherMutex;
+  std::condition_variable m_memWatcherCV;
 };
 
 }  // jonoondb_api

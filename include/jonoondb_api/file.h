@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include "jonoondb_exceptions.h"
+#include "exception_utils.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -20,7 +21,7 @@ class File {
   static std::string Read(const std::string& path, bool isBinary = true) {
     std::ifstream ifs(path, isBinary ? std::ios::binary : std::ios::in);
     if (!ifs.is_open()) {
-      std::string reason = GetErrorTextFromErrorCode(GetError());
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
       ss << "Failed to open file at path " << path << ". Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
@@ -39,7 +40,7 @@ class File {
     }
 
     if (ifs.bad()) {
-      std::string reason = GetErrorTextFromErrorCode(GetError());
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
       ss << "Failed to read the file at path " << path << ". Reason: "
          << reason;
@@ -62,7 +63,7 @@ class File {
         NULL);
 
     if (fileHandle == INVALID_HANDLE_VALUE) {
-      std::string reason = GetErrorTextFromErrorCode(GetLastError());
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
@@ -73,7 +74,7 @@ class File {
     li.QuadPart = fileSize;
 
     if (SetFilePointer(fileHandle, li.LowPart, &li.HighPart, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-      std::string reason = GetErrorTextFromErrorCode(GetLastError());
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
@@ -81,7 +82,7 @@ class File {
 
     //3. Set the physical file size
     if (!SetEndOfFile(fileHandle)) {
-      std::string reason = GetErrorTextFromErrorCode(GetLastError());
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
@@ -89,7 +90,7 @@ class File {
 
     //4. Close FileHandle
     if (!CloseHandle(fileHandle)) {
-      std::string reason = GetErrorTextFromErrorCode(GetLastError());
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
@@ -102,7 +103,7 @@ class File {
     if ((fd = open(fileName.c_str(), O_RDWR | O_CREAT | O_EXCL,
     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
       int errCode = errno;
-      std::string reason = GetErrorTextFromErrorCode(errCode);
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
          << reason;
@@ -111,7 +112,7 @@ class File {
 
     if (ftruncate64(fd, fileSize) != 0) {
       int errCode = errno;
-      std::string reason = GetErrorTextFromErrorCode(errCode);
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
          << reason;
@@ -121,7 +122,7 @@ class File {
 
     if (close(fd) != 0) {
       int errCode = errno;
-      std::string reason = GetErrorTextFromErrorCode(errCode);
+      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
          << reason;
@@ -129,45 +130,6 @@ class File {
     }
 #endif
   }
- private:
-#if defined(_WIN32)
-  static std::string GetErrorTextFromErrorCode(DWORD errorCode) {
-    std::string errorMsg;
-    char* msg = nullptr;
-    // Ask Windows to prepare a standard message for a GetLastError() code:
-    DWORD size = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&msg, 0, NULL);
-    // Return the message
-    if (size == 0) {
-      return "Unknown error.";
-    } else {
-      errorMsg = msg;
-    }
-
-    if (msg != nullptr) {
-      LocalFree(msg);
-    }
-
-    return errorMsg;  //Move ctor will be called here
-  }
-#else
-  // Linux code
-  static std::string GetErrorTextFromErrorCode(int errorCode) {
-    char reason[512];
-    return strerror_r(errorCode, reason, 512);
-  }
-#endif
-
-#if defined(_WIN32)
-  static int GetError() {
-    return GetLastError();
-  }
-#else
-  // Linux code
-  static int GetError() {
-    return errno;
-  }
-#endif
 };
 }  // namespace jonoondb_api
 

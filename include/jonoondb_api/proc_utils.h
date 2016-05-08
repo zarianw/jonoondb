@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "jonoondb_api/jonoondb_exceptions.h"
+#include "jonoondb_api/exception_utils.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -12,7 +13,7 @@
 
 namespace jonoondb_api {
 struct ProcessMemStat {
-  int MemoryUsedInBytes;
+  std::size_t MemoryUsedInBytes;
 };
 
 class ProcessUtils {
@@ -21,11 +22,11 @@ public:
   static void GetProcessMemoryStats(ProcessMemStat& stat) {
     stat.MemoryUsedInBytes = 0;
     HANDLE hProcess = GetCurrentProcess();
-    std::unique_ptr<void, BOOL(*)(HANDLE)> ptr(hProcess, CloseHandle);
+    // GetCurrentProcess returns pseudo handle so no need to close it
     PROCESS_MEMORY_COUNTERS pmc;
     if (!GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
-      throw jonoondb_api::JonoonDBException("GetProcessMemoryStats failed.",
-                                            __FILE__, __func__, __LINE__);
+      auto msg = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
+      throw jonoondb_api::JonoonDBException(msg, __FILE__, __func__, __LINE__);
     }
     stat.MemoryUsedInBytes = pmc.WorkingSetSize;
   }
