@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <sstream>
 #include <memory>
+#include <chrono>
 #include "database_impl.h"
 #include "database_metadata_manager.h"
 #include "options_impl.h"
@@ -15,8 +16,57 @@
 #include "blob_manager.h"
 #include "document_collection_dictionary.h"
 #include "index_info_impl.h"
+#include "proc_utils.h"
 
 using namespace jonoondb_api;
+
+int MemoryThreshold = 1024 * 1024;
+
+void DatabaseImpl::MemoryWatcherFunc() {
+  ProcessMemStat stat;
+  int lastPos = -1;
+  while (true) {
+    try {
+      // Check whether we need to cleanup memory every 5 secs
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      if (m_shutdownMemoryWatcher) {
+        break;
+      }
+
+      if (m_collectionContainer.size() == 0) {
+        continue;
+      }     
+
+      ProcessUtils::GetProcessMemoryStats(stat);
+      if (stat.MemoryUsedInBytes > MemoryThreshold) {
+        // lastPos and currPos ensures that we don't keep hitting the
+        // same collections. We will visit the collections in a round
+        // robin fashion
+        if (lastPos >= m_collectionContainer.size() - 1) {
+          lastPos = -1;
+        }
+
+        int currPos = 0;
+        for (auto& entry : m_collectionContainer) {
+          if (currPos <= lastPos) {
+            currPos++;
+            continue;
+          }
+          entry.second->UnmapLRUDataFiles();
+          ProcessUtils::GetProcessMemoryStats(stat);
+          if (stat.MemoryUsedInBytes < MemoryThreshold) {
+            break;
+          }
+          currPos++;
+        }
+        lastPos = currPos;
+      }
+    } catch (std::exception& ex) {
+      // Todo: Log exception
+      assert(false);
+    }
+  }
+}
 
 DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
   const OptionsImpl& options) : m_options(options) {
@@ -46,12 +96,16 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
     m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
   }  
+
+  m_memoryWatcherThread = std::thread(&DatabaseImpl::MemoryWatcherFunc, this);
 }
 
 DatabaseImpl::~DatabaseImpl() {
   // Todo (zarian): Close all sub components and log any issues
   // Only clear the collections for this database and not all.
   DocumentCollectionDictionary::Instance()->Clear();
+  m_shutdownMemoryWatcher = true;
+  m_memoryWatcherThread.join();
 }
 
 void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,

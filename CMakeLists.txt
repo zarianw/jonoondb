@@ -109,6 +109,7 @@ add_library(
  ${JONOONDB_API_INCLUDE_PATH}/vector_double_indexer.h
  ${JONOONDB_API_INCLUDE_PATH}/vector_string_indexer.h
  ${JONOONDB_API_INCLUDE_PATH}/null_helpers.h
+ ${JONOONDB_API_INCLUDE_PATH}/proc_utils.h
  ${JONOONDB_API_SRC_PATH}/jonoondb_vtable.cc
  ${JONOONDB_API_SRC_PATH}/cdatabase.cc ${JONOONDB_API_INCLUDE_PATH}/cdatabase.h
  ${JONOONDB_API_SRC_PATH}/database_impl.cc ${JONOONDB_API_INCLUDE_PATH}/database_impl.h
@@ -186,6 +187,7 @@ add_executable(
  ${JONOONDB_API_TEST_SRC_PATH}/options_tests.cc
  ${JONOONDB_API_TEST_SRC_PATH}/index_info_tests.cc
  ${JONOONDB_API_TEST_SRC_PATH}/database_sql_tests.cc
+ ${JONOONDB_API_TEST_SRC_PATH}/proc_utils_tests.cc
  ${TEST_PATH}/jonoondb_utils/varint_tests.cc)
 target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 
