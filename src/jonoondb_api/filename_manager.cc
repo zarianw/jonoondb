@@ -3,7 +3,6 @@
 #include <boost/filesystem.hpp>
 #include "filename_manager.h"
 #include "sqlite_utils.h"
-#include "constants.h"
 #include "file_info.h"
 #include "guard_funcs.h"
 #include "path_utils.h"

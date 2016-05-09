@@ -5,9 +5,11 @@
 #include <thread>
 #include "sqlite3.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
-#include "constants.h"
 
 namespace jonoondb_api {
+const std::chrono::milliseconds SQLiteBusyHandlerRetryIntervalInMillisecs(200);
+const int SQLiteBusyHandlerRetryCount = 20;
+
 class SQLiteUtils {
 public:
   static void ClearAndResetStatement(sqlite3_stmt* statement) {

@@ -20,8 +20,6 @@
 
 using namespace jonoondb_api;
 
-int MemoryThreshold = 1024 * 1024;
-
 void DatabaseImpl::MemoryWatcherFunc() {
   ProcessMemStat stat;
   int lastPos = -1;
@@ -45,7 +43,7 @@ void DatabaseImpl::MemoryWatcherFunc() {
       }     
 
       ProcessUtils::GetProcessMemoryStats(stat);
-      if (stat.MemoryUsedInBytes > MemoryThreshold) {
+      if (stat.MemoryUsedInBytes > m_options.GetMemoryCleanupThreshold()) {
         // lastPos and currPos ensures that we don't keep hitting the
         // same collections. We will visit the collections in a round
         // robin fashion
@@ -61,7 +59,7 @@ void DatabaseImpl::MemoryWatcherFunc() {
           }
           entry.second->UnmapLRUDataFiles();
           ProcessUtils::GetProcessMemoryStats(stat);
-          if (stat.MemoryUsedInBytes < MemoryThreshold) {
+          if (stat.MemoryUsedInBytes < m_options.GetMemoryCleanupThreshold()) {
             break;
           }
           currPos++;

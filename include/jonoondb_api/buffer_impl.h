@@ -1,7 +1,5 @@
 #pragma once
 
-#include "constants.h"
-
 namespace jonoondb_api {
 class BufferImpl {
  public:
