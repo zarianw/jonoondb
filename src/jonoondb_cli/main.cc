@@ -87,6 +87,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
 
     Options opt;
     opt.SetCompressionEnabled(true);
+    //opt.SetMaxDataFileSize(1024 * 1024 * 128);
+    //opt.SetMemoryCleanupThreshold(1024 * 1024 * 512);
     Stopwatch loadSW(true);
     Database db(dbPath, dbName, opt);
     loadSW.Stop();

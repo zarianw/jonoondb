@@ -73,7 +73,7 @@ template<class T1, class T2> class ConcurrentLRUCache {
     {
       boost::shared_lock<boost::shared_mutex> lock(m_mutex);
 
-      auto itemsToEvictCount = m_map.size() - m_maxCacheSize;
+      int itemsToEvictCount = m_map.size() - m_maxCacheSize;
 
       if (itemsToEvictCount > 0) {
         for (auto iter = m_map.begin(); iter != m_map.end(); iter++) {
