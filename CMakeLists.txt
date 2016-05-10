@@ -91,7 +91,6 @@ add_library(
  ${JONOONDB_API_INCLUDE_PATH}/memory_mapped_file.h
  ${JONOONDB_API_INCLUDE_PATH}/file_info.h
  ${JONOONDB_API_INCLUDE_PATH}/indexer.h
- ${JONOONDB_API_INCLUDE_PATH}/constants.h
  ${JONOONDB_API_INCLUDE_PATH}/ewah_compressed_bitmap_indexer_integer.h
  ${JONOONDB_API_INCLUDE_PATH}/ewah_compressed_bitmap_indexer_string.h
  ${JONOONDB_API_INCLUDE_PATH}/ewah_compressed_bitmap_indexer_double.h

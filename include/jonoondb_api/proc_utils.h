@@ -32,8 +32,8 @@ public:
   }
 #else
   // Linux code goes here
-  static void GetProcessMemoryStats(ProcMemStat& stat) {
-
+  static void GetProcessMemoryStats(ProcessMemStat& stat) {
+    stat.MemoryUsedInBytes = 0;
   }
 #endif 
 };
