@@ -4,10 +4,10 @@ using namespace jonoondb_api;
 
 OptionsImpl::OptionsImpl() {
   m_createDBIfMissing = true;
-  m_maxDataFileSize = 1024 * 1024 * 512; // 512 MB
+  m_maxDataFileSize = 1024L * 1024L * 512L; // 512 MB
   m_compressionEnabled = false;
   m_synchronous = true;
-  m_memCleanupThresholdInBytes = 1024 * 1024 * 1024 * 4; // 4 GB
+  m_memCleanupThresholdInBytes = 1024L * 1024L * 1024L * 4L; // 4 GB
 }
 
 OptionsImpl::OptionsImpl(bool createDBIfMissing, size_t maxDataFileSize,

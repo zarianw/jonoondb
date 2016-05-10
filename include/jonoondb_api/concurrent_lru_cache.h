@@ -13,7 +13,8 @@ template<class T1, class T2> class ConcurrentLRUCache {
   template<class U1> class LRUCacheEntry {
    public:
     std::shared_ptr<U1> Value;
-    int64_t LastUsed;bool Evictable;
+    int64_t LastUsed;
+    bool Evictable;
 
     LRUCacheEntry(const std::shared_ptr<U1>& value, int64_t lastUsed,
     bool evictable)
@@ -21,6 +22,16 @@ template<class T1, class T2> class ConcurrentLRUCache {
           LastUsed(lastUsed),
           Evictable(evictable) {
     }
+  };
+
+  template<typename V1, typename V2>
+  struct EvictionEntry {
+  public:
+    EvictionEntry(int64_t lastUsed, V1 key, std::shared_ptr<V2>& val) :
+      LastUsed(lastUsed), Key(std::move(key)), Value(val) {}
+    int64_t LastUsed;
+    V1 Key;
+    std::shared_ptr<V2> Value;
   };
 
  public:
@@ -68,39 +79,42 @@ template<class T1, class T2> class ConcurrentLRUCache {
   }
 
   void PerformEviction() {
-    std::list<std::pair<int64_t, T1>> keysToEvict;
+    std::list<EvictionEntry<T1, T2>> keysToEvict;
 
     {
-      boost::shared_lock<boost::shared_mutex> lock(m_mutex);
+      boost::shared_lock<boost::shared_mutex> lock(m_mutex);      
 
-      int itemsToEvictCount = m_map.size() - m_maxCacheSize;
-
-      if (itemsToEvictCount > 0) {
+      if (m_map.size() > m_maxCacheSize) {
+        auto itemsToEvictCount = m_map.size() - m_maxCacheSize;
         for (auto iter = m_map.begin(); iter != m_map.end(); iter++) {
-          //Add the key in a sorted manner
+          //Add the key in a sorted manner. We are doing insertion sort.
           auto insertionIter = keysToEvict.begin();
 
           bool itemInserted = false;
           for (auto keysToEvictIter = keysToEvict.begin();
               keysToEvictIter != keysToEvict.end(); keysToEvictIter++) {
             if (iter->second->Evictable
-                && iter->second->LastUsed < keysToEvictIter->first) {
+                && iter->second->LastUsed < keysToEvictIter->LastUsed) {
               keysToEvict.insert(
                   keysToEvictIter,
-                  std::pair<int64_t, T1>(iter->second->LastUsed, iter->first));
+                  EvictionEntry<T1, T2>(iter->second->LastUsed, iter->first, iter->second->Value));
+                  
               itemInserted = true;
               break;
             }
 
             insertionIter = keysToEvictIter;
-          }
+          }          
 
+          // Add in the end if required
           if (!itemInserted && iter->second->Evictable
               && keysToEvict.size() < itemsToEvictCount) {
             keysToEvict.push_back(
-                std::pair<int64_t, T1>(iter->second->LastUsed, iter->first));
+              EvictionEntry<T1, T2>(iter->second->LastUsed, iter->first, iter->second->Value));
           }
 
+          // Drop item from end if required. This helps in maintaining
+          // top LRU entries
           if (keysToEvict.size() > itemsToEvictCount) {
             keysToEvict.pop_back();
           }
@@ -112,7 +126,11 @@ template<class T1, class T2> class ConcurrentLRUCache {
       boost::unique_lock<boost::shared_mutex> lock(m_mutex);
 
       for (auto& item : keysToEvict) {
-        m_map.erase(item.second);
+        // keyToEvict has a shared_ptr to value, the dtor for value
+        // will be called on the destruction of keysToEvict.
+        // This is useful because we can destruct them outside of the
+        // scope of the unique lock.
+        m_map.erase(item.Key);
       }
     }
   }
