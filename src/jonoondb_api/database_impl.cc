@@ -115,7 +115,9 @@ DatabaseImpl::~DatabaseImpl() {
   // Only clear the collections for this database and not all.
   DocumentCollectionDictionary::Instance()->Clear();
   
-  m_memWatcherThread.join();
+  if (m_memWatcherThread.joinable()) {
+    m_memWatcherThread.join();
+  }
 }
 
 void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,
