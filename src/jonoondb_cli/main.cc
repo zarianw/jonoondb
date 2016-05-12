@@ -92,7 +92,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     Stopwatch loadSW(true);
     Database db(dbPath, dbName, opt);
     loadSW.Stop();
-    cout << "Loading completed in " << loadSW.ElapsedMilliSeconds() << " millisecs." << endl;
+    cout << "Loading completed in " << loadSW.ElapsedMilliSeconds() << " millisecs." << "\n";
+    cout << "Enter \".help\" for usage hints." << endl;
     std::string cmd;    
     boost::char_separator<char> sep(" ");  
     bool isTimerOn = true;    
@@ -122,7 +123,20 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
         if (tokens.size() == 0)
           continue;
 
-        if (tokens[0] == ".cc") {
+        if (tokens[0] == ".help") {
+          cout << ".cc COLLECTION_NAME SCHEMA_FILE [INDEX_FILE]      Create collection with name COLLECTION_NAME\n";
+          cout << "                                                  and schema defined in file SCHEMA_FILE. If\n";
+          cout << "                                                  INDEX_FILE is specified then indexes inside\n";
+          cout << "                                                  this file are created as well.\n";
+
+          cout << ".i COLLECTION_NAME DATA_FILE [be]                 Import data into COLLECTION_NAME from DATA_FILE.\n";
+          cout << "                                                  If \"be\" is specified then object sizes in the\n";
+          cout << "                                                  DATA_FILE are treated as big endian otherwise\n";
+          cout << "                                                  they are treated as little endian.\n";
+
+          cout << ".timer on|off                                     Turn timer on or off.\n";
+          cout << ".exit                                             Exit this program.\n";
+        } else if (tokens[0] == ".cc") {
           // create collection command
           // make sure we have enough params
           if (tokens.size() < 3) {
@@ -273,7 +287,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             cout << "ERROR: Not a boolean value: \"" << tokens[1]
               << "\". Assuming \"no\"." << endl;
           }
-        } else if (tokens[0] == "exit") {
+        } else if (tokens[0] == ".exit") {
           return 0;
         } else {
           cout << "Unknow command " << tokens[0] << "." << endl;
