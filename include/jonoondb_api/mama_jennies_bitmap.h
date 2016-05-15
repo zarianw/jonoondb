@@ -1,13 +1,14 @@
 #pragma once
 
 #include <memory>
+#include <cstdint>
 #include "ewah_boolarray/ewah.h"
 
 namespace jonoondb_api {
 
 class MamaJenniesBitmapConstIterator {
 public:
-  MamaJenniesBitmapConstIterator(EWAHBoolArray<size_t>::const_iterator& iter);
+  MamaJenniesBitmapConstIterator(EWAHBoolArray<std::uint64_t>::const_iterator& iter);
   std::size_t operator*() const;
   MamaJenniesBitmapConstIterator& operator++();
   bool operator==(const MamaJenniesBitmapConstIterator& other);
@@ -17,7 +18,7 @@ public:
   bool operator>(const MamaJenniesBitmapConstIterator& other);
   bool operator>=(const MamaJenniesBitmapConstIterator& other);   
 private:    
-  EWAHBoolArray<size_t>::const_iterator m_iter;
+  EWAHBoolArray<std::uint64_t>::const_iterator m_iter;
 };
 
 class MamaJenniesBitmap {
@@ -27,7 +28,7 @@ class MamaJenniesBitmap {
   MamaJenniesBitmap(const MamaJenniesBitmap& other);
   MamaJenniesBitmap& operator=(const MamaJenniesBitmap& other);
   MamaJenniesBitmap& operator=(MamaJenniesBitmap&& other);
-  void Add(std::size_t x);  
+  void Add(std::uint64_t x);
   void LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
   void LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
 
@@ -43,8 +44,8 @@ class MamaJenniesBitmap {
 
  private:
   bool IsEmpty();
-  std::size_t GetSizeInBits();
-  MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<size_t>> ewahBoolArray);
-  std::unique_ptr<EWAHBoolArray<size_t>> m_ewahBoolArray;
+  std::uint64_t GetSizeInBits();
+  MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray);
+  std::unique_ptr<EWAHBoolArray<std::uint64_t>> m_ewahBoolArray;
 };
 } // namesapce jonoondb_api

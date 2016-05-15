@@ -312,8 +312,8 @@ jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes,
 }
 
 jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
-                                               size_t bufferLengthInBytes, 
-                                               size_t bufferCapacityInBytes,
+                                               uint64_t bufferLengthInBytes,
+                                               uint64_t bufferCapacityInBytes,
                                                status_ptr* sts) {
   jonoondb_buffer_ptr retVal = nullptr;
   TranslateExceptions([&] {
@@ -325,8 +325,8 @@ jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
 }
 
 jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
-                                               size_t bufferLengthInBytes,
-                                               size_t bufferCapacityInBytes,
+                                               uint64_t bufferLengthInBytes,
+                                               uint64_t bufferCapacityInBytes,
                                                void(*customDeleterFunc)(char*),
                                                status_ptr* sts) {
   jonoondb_buffer_ptr retVal = nullptr;

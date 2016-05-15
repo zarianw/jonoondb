@@ -2,12 +2,14 @@
 
 #if defined(_WIN32)
 #include <Windows.h>
-#else
-// Linux code goes here
+#else defined(__linux__) || defined(__APPLE__)
+// Linux and OS X code
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
+#else
+static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
 #endif
 
 using namespace jonoondb_api;
@@ -27,7 +29,7 @@ std::string ExceptionUtils::GetInvalidStructFieldErrorString(const std::string& 
   return ss.str();
 }
 
-#if defined(_WIN32)
+#ifdef _WIN32
 int ExceptionUtils::GetError() {
   return GetLastError();
 }
@@ -55,8 +57,7 @@ std::string ExceptionUtils::GetErrorTextFromErrorCode(int errorCode) {
 
   return errorMsg;  //Move ctor will be called here
 }
-#else
-// Linux code
+#elif __linux__
 int ExceptionUtils::GetError() {
   return errno;
 }
@@ -65,4 +66,20 @@ std::string ExceptionUtils::GetErrorTextFromErrorCode(int errorCode) {
   char reason[512];
   return strerror_r(errorCode, reason, 512);
 }
-#endif*/
+#elif __APPLE__
+int ExceptionUtils::GetError() {
+  return errno;
+}
+
+std::string ExceptionUtils::GetErrorTextFromErrorCode(int errorCode) {
+  char reason[512];
+  if(strerror_r(errorCode, reason, 512) == 0) {
+    return reason;
+  } else {
+    // strerror_r failed
+    return "";
+  }
+}
+#else
+  static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
+#endif

@@ -160,9 +160,7 @@ configure_file (
   "${INCLUDE_PATH}/test/test_config.h.in"
   "${INCLUDE_PATH}/test/test_config_generated.h")
 
-SET(GTEST_PATH "/" CACHE PATH "Path where gtest is installed.")
-message("Using GTEST_PATH = ${GTEST_PATH}")
-add_subdirectory(${GTEST_PATH} ${GTEST_PATH}/bin)
+add_subdirectory(${THIRDPARTY_PATH}/googletest-release-1.7.0)
 enable_testing(true)
 include_directories(${gtest_SOURCE_DIR}/include)
 

@@ -95,8 +95,7 @@ class File {
       ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
-#else
-    // Linux code
+#elif defined(__linux) || defined(__APPLE__)
     //1. Create a new file. This will fail if the file already exist, which is what we want.
     //   We don't want to delete or overwrite any data
     int fd;
@@ -110,7 +109,7 @@ class File {
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
-    if (ftruncate64(fd, fileSize) != 0) {
+    if (ftruncate_portable(fd, fileSize) != 0) {
       int errCode = errno;
       std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
@@ -128,6 +127,18 @@ class File {
          << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
+#else
+    static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
+#endif
+  }
+ private:
+  static int ftruncate_portable(int fd, std::uint64_t fileSize) {
+#ifdef __linux__
+    return ftruncate64(fd, fileSize);
+#elif __APPLE__
+    return ftruncate(fd, fileSize);
+#else
+    static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
 #endif
   }
 };
