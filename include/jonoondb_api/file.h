@@ -109,7 +109,12 @@ class File {
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
-    if (ftruncate_portable(fd, fileSize) != 0) {
+#ifdef __linux__
+    if (ftruncate64(fd, fileSize) != 0) {    
+#elif __APPLE__
+    if (ftruncate(fd, fileSize) != 0) {
+#endif
+    
       int errCode = errno;
       std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
@@ -130,17 +135,7 @@ class File {
 #else
     static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
 #endif
-  }
- private:
-  static int ftruncate_portable(int fd, std::uint64_t fileSize) {
-#ifdef __linux__
-    return ftruncate64(fd, fileSize);
-#elif __APPLE__
-    return ftruncate(fd, fileSize);
-#else
-    static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
-#endif
-  }
+  } 
 };
 }  // namespace jonoondb_api
 
