@@ -2,7 +2,7 @@
 
 #if defined(_WIN32)
 #include <Windows.h>
-#else defined(__linux__) || defined(__APPLE__)
+#elif defined(__linux__) || defined(__APPLE__)
 // Linux and OS X code
 #include <unistd.h>
 #include <errno.h>
