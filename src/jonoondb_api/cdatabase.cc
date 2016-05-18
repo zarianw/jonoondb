@@ -144,9 +144,10 @@ extern "C" {
 struct options {
   options() : impl() {}
 
-  options(bool createDBIfMissing, int64_t maxDataFileSize,
-    bool compressionEnabled, bool synchronous) :
-    impl(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous) {
+  options(bool createDBIfMissing, uint64_t maxDataFileSize,
+          bool compressionEnabled, bool synchronous,
+          uint64_t memCleanupThresholdInBytes) :
+    impl(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous, memCleanupThresholdInBytes) {
   }
 
   OptionsImpl impl;
@@ -161,8 +162,13 @@ options_ptr jonoondb_options_copy_construct(const options_ptr other) {
 }
 
 options_ptr jonoondb_options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
-  bool compressionEnabled, bool synchronous, status_ptr* sts) {
-  return new options(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous);
+  bool compressionEnabled, bool synchronous, uint64_t memCleanupThresholdInBytes, status_ptr* sts) {
+  options_ptr val = nullptr;
+  TranslateExceptions([&] {
+    val = new options(createDBIfMissing, maxDataFileSize, compressionEnabled, synchronous, memCleanupThresholdInBytes);
+  }, *sts);
+
+  return val;
 }
 
 void jonoondb_options_destruct(options_ptr opt) {
@@ -199,6 +205,14 @@ bool jonoondb_options_getsynchronous(options_ptr opt) {
 
 void jonoondb_options_setsynchronous(options_ptr opt, bool value) {
   return opt->impl.SetSynchronous(value);
+}
+
+uint64_t jonoondb_options_getmemorycleanupthreshold(options_ptr opt) {
+  return opt->impl.GetMemoryCleanupThreshold();
+}
+
+void jonoondb_options_setmemorycleanupthreshold(options_ptr opt, uint64_t valueInBytes) {
+  opt->impl.SetMemoryCleanupThreshold(valueInBytes);
 }
 
 //
@@ -298,8 +312,8 @@ jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes,
 }
 
 jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
-                                               size_t bufferLengthInBytes, 
-                                               size_t bufferCapacityInBytes,
+                                               uint64_t bufferLengthInBytes,
+                                               uint64_t bufferCapacityInBytes,
                                                status_ptr* sts) {
   jonoondb_buffer_ptr retVal = nullptr;
   TranslateExceptions([&] {
@@ -311,8 +325,8 @@ jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
 }
 
 jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
-                                               size_t bufferLengthInBytes,
-                                               size_t bufferCapacityInBytes,
+                                               uint64_t bufferLengthInBytes,
+                                               uint64_t bufferCapacityInBytes,
                                                void(*customDeleterFunc)(char*),
                                                status_ptr* sts) {
   jonoondb_buffer_ptr retVal = nullptr;

@@ -58,6 +58,7 @@ class DocumentCollection final {
   void GetDocumentFieldsAsDoubleVector(
       const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
       std::vector<std::string>& tokens, std::vector<double>& values) const;
+  void UnmapLRUDataFiles();
 
  private:
   void PopulateColumnTypes(

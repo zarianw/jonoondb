@@ -5,7 +5,7 @@
 
 using namespace jonoondb_api;
 
-MamaJenniesBitmapConstIterator::MamaJenniesBitmapConstIterator(EWAHBoolArray<size_t>::const_iterator& iter)
+MamaJenniesBitmapConstIterator::MamaJenniesBitmapConstIterator(EWAHBoolArray<std::uint64_t>::const_iterator& iter)
   : m_iter(iter) {
 }
 
@@ -43,7 +43,7 @@ bool MamaJenniesBitmapConstIterator::operator>=(const MamaJenniesBitmapConstIter
 }
 
 MamaJenniesBitmap::MamaJenniesBitmap()
-    : m_ewahBoolArray(std::make_unique<EWAHBoolArray<size_t>>()) {
+    : m_ewahBoolArray(std::make_unique<EWAHBoolArray<std::uint64_t>>()) {
 }
 
 MamaJenniesBitmap::MamaJenniesBitmap(MamaJenniesBitmap&& other) {
@@ -55,14 +55,14 @@ MamaJenniesBitmap::MamaJenniesBitmap(MamaJenniesBitmap&& other) {
 MamaJenniesBitmap::MamaJenniesBitmap(const MamaJenniesBitmap& other) {
   if (this != &other) {
     // Lets call copy ctor of EWAHBoolArray
-    m_ewahBoolArray = std::make_unique<EWAHBoolArray<size_t>>(*other.m_ewahBoolArray);
+    m_ewahBoolArray = std::make_unique<EWAHBoolArray<std::uint64_t>>(*other.m_ewahBoolArray);
   }
 }
 
 MamaJenniesBitmap& MamaJenniesBitmap::operator=(const MamaJenniesBitmap& other) {
   if (this != &other) {
     // Lets call copy ctor of EWAHBoolArray
-    m_ewahBoolArray = std::make_unique<EWAHBoolArray<size_t>>(*other.m_ewahBoolArray);
+    m_ewahBoolArray = std::make_unique<EWAHBoolArray<std::uint64_t>>(*other.m_ewahBoolArray);
   }
   return *this;
 }
@@ -74,7 +74,7 @@ MamaJenniesBitmap& MamaJenniesBitmap::operator=(MamaJenniesBitmap&& other) {
   return *this;
 }
 
-void MamaJenniesBitmap::Add(std::size_t x) {
+void MamaJenniesBitmap::Add(std::uint64_t x) {
   if (!m_ewahBoolArray->set(x)) {
     throw JonoonDBException("Add to bitmap failed. Most probably the entries were not added in increasing order.",
       __FILE__, __func__, __LINE__);
@@ -94,7 +94,7 @@ bool MamaJenniesBitmap::IsEmpty() {
   return isEmpty;
 }
 
-std::size_t MamaJenniesBitmap::GetSizeInBits() {
+std::uint64_t MamaJenniesBitmap::GetSizeInBits() {
   return m_ewahBoolArray->sizeInBits();
 }
 
@@ -180,6 +180,6 @@ std::unique_ptr<MamaJenniesBitmap::const_iterator> MamaJenniesBitmap::end_pointe
   return std::make_unique<const_iterator>(iter);
 }
 
-MamaJenniesBitmap::MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<std::size_t>> ewahBoolArray)
+MamaJenniesBitmap::MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray)
   : m_ewahBoolArray(std::move(ewahBoolArray)) {
 }
