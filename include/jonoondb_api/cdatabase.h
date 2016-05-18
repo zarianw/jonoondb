@@ -44,7 +44,7 @@ typedef struct options* options_ptr;
 options_ptr jonoondb_options_construct();
 options_ptr jonoondb_options_copy_construct(const options_ptr other);
 options_ptr jonoondb_options_construct2(bool createDBIfMissing, uint64_t maxDataFileSize,
-  bool compressionEnabled, bool isSynchronous, status_ptr* sts);
+  bool compressionEnabled, bool isSynchronous, uint64_t memCleanupThresholdInBytes, status_ptr* sts);
 void jonoondb_options_destruct(options_ptr opt);
 
 bool jonoondb_options_getcreatedbifmissing(options_ptr opt);
@@ -58,6 +58,9 @@ void jonoondb_options_setmaxdatafilesize(options_ptr opt, uint64_t value);
 
 bool jonoondb_options_getsynchronous(options_ptr opt);
 void jonoondb_options_setsynchronous(options_ptr opt, bool value);
+
+uint64_t jonoondb_options_getmemorycleanupthreshold(options_ptr opt);
+void jonoondb_options_setmemorycleanupthreshold(options_ptr opt, uint64_t valueInBytes);
 
 //
 // IndexInfo Functions

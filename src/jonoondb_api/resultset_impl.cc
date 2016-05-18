@@ -63,10 +63,14 @@ ResultSetImpl& ResultSetImpl::operator=(ResultSetImpl&& other) {
 }
 
 bool ResultSetImpl::Next() {
+  if (m_resultSetConsumed) {
+    return false;
+  }
   int code = sqlite3_step(m_stmt.get());
   if (code == SQLITE_ROW) {
     return true;
   } else if (code == SQLITE_DONE) {
+    m_resultSetConsumed = true;
     return false;
   } else {
     const char* errMsg = sqlite3_errmsg(m_db);

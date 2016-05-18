@@ -80,6 +80,16 @@ bool IndexManager::TryGetBestIndex(const std::string& columnName, IndexConstrain
     return false;
   }
 
+  // see if the operators are supported
+  if (op == IndexConstraintOperator::GLOB ||
+      op == IndexConstraintOperator::LIKE ||
+      op == IndexConstraintOperator::MATCH ||
+      op == IndexConstraintOperator::REGEX) {
+    // These operators are not yet supported by indexers
+    // As these will be supported, we will update this check
+    return false;
+  }
+
   assert(columnIndexerIter->second.size() > 0);
   // Todo: When we have different kinds of indexes, 
   // Add the logic to select the best index for the column  

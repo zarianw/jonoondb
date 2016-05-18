@@ -72,6 +72,8 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
     while ((actualBatchSize = iter.GetNextBatch(blobs, blobMetadataVec)) > 0) {
       std::vector<std::unique_ptr<Document>> docs;
       for (size_t i = 0; i < actualBatchSize; i++) {
+        // Todo optimize the creation of doc creation
+        // we should reuse documents
         docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema, blobs[i]));
       }
 
@@ -125,17 +127,6 @@ bool DocumentCollection::TryGetBestIndex(const std::string& columnName,
                                          IndexConstraintOperator op,
                                          IndexStat& indexStat) {
   return m_indexManager->TryGetBestIndex(columnName, op, indexStat);
-}
-
-void DocumentCollection::PopulateColumnTypes(
-  const std::vector<IndexInfoImpl*>& indexes,
-  const DocumentSchema& documentSchema,
-  std::unordered_map<string, FieldType>& columnTypes) {  
-  for (std::size_t i = 0; i < indexes.size(); i++) {
-    columnTypes.insert(
-      pair<string, FieldType>(indexes[i]->GetColumnName(),
-      documentSchema.GetFieldType(indexes[i]->GetColumnName())));
-  }
 }
 
 std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<Constraint>& constraints) {
@@ -327,5 +318,20 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
     } else {
       values[i] = document->GetFloatingValueAsDouble(tokens.front());
     }
+  }
+}
+
+void DocumentCollection::UnmapLRUDataFiles() {
+  m_blobManager->UnmapLRUDataFiles();
+}
+
+void DocumentCollection::PopulateColumnTypes(
+  const std::vector<IndexInfoImpl*>& indexes,
+  const DocumentSchema& documentSchema,
+  std::unordered_map<string, FieldType>& columnTypes) {
+  for (std::size_t i = 0; i < indexes.size(); i++) {
+    columnTypes.insert(
+      pair<string, FieldType>(indexes[i]->GetColumnName(),
+                              documentSchema.GetFieldType(indexes[i]->GetColumnName())));
   }
 }

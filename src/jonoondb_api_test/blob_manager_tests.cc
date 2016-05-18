@@ -60,13 +60,12 @@ TEST(BlobManager, Putx2) {
   ASSERT_GT(metadata.offset, 0);
 }
 
-TEST(BlobManager, Get) {
-  std::string dbName = "BlobManager_Get";
-  std::string dbPath = g_TestRootDirectory;  
+void ExecuteGetTest(const std::string& dbName, bool enableCompression) {
+  std::string dbPath = g_TestRootDirectory;
   std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
   auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
-  BlobManager bm(move(fnm), false, fileSize, true);
+  BlobManager bm(move(fnm), enableCompression, fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
   BlobMetadata metadata;
@@ -80,20 +79,29 @@ TEST(BlobManager, Get) {
   data = "This is the string2!";
   buffer.Resize(data.size());
   buffer.Copy(data.c_str(), data.size());
-  bm.Put(buffer, metadata);  
+  bm.Put(buffer, metadata);
   bm.Get(metadata, outBuffer);
   ASSERT_EQ(buffer.GetLength(), outBuffer.GetLength());
-  ASSERT_EQ(memcmp(buffer.GetData(), outBuffer.GetData(), buffer.GetLength()), 0);  
+  ASSERT_EQ(memcmp(buffer.GetData(), outBuffer.GetData(), buffer.GetLength()), 0);
 }
 
-TEST(BlobManager, Multiput) {
-  std::string dbName = "BlobManager_Multiput";
+TEST(BlobManager, Get) {
+  std::string dbName = "BlobManager_Get";
+  ExecuteGetTest(dbName, false);
+}
+
+TEST(BlobManager, Get_Compressed) {
+  std::string dbName = "BlobManager_Get_Compressed";
+  ExecuteGetTest(dbName, true);
+}
+
+void ExecuteMultiputTest(const std::string& dbName, bool enableCompression) {
   std::string dbPath = g_TestRootDirectory;
   std::string collectionName = "Collection";
   auto fileSize = 1024 * 1024;
   auto fnm = std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
-  BlobManager bm(move(fnm), false, fileSize, true);
-   
+  BlobManager bm(move(fnm), enableCompression, fileSize, true);
+
   const int SIZE = 10;
   std::vector<BlobMetadata> metadataArray(SIZE);
   std::vector<BufferImpl> bufferArray;
@@ -103,7 +111,7 @@ TEST(BlobManager, Multiput) {
   for (size_t i = 0; i < SIZE; i++) {
     data = "This is the string " + std::to_string(i);
     BufferImpl buf(data.c_str(), data.size(), data.size());
-    bufferArray.push_back(buf);    
+    bufferArray.push_back(buf);
   }
 
   for (auto& buf : bufferArray) {
@@ -117,12 +125,21 @@ TEST(BlobManager, Multiput) {
     data = "This is the string " + std::to_string(i);
     bm.Get(metadataArray[i], outBuffer);
     ASSERT_EQ(data.size(), outBuffer.GetLength());
-    ASSERT_EQ(memcmp(data.data(), outBuffer.GetData(), outBuffer.GetLength()), 0);    
+    ASSERT_EQ(memcmp(data.data(), outBuffer.GetData(), outBuffer.GetLength()), 0);
   }
 }
 
-TEST(BlobManager, Multiput_SwitchFile) {
-  std::string dbName = "BlobManager_Multiput_SwitchFile";
+TEST(BlobManager, Multiput) {
+  std::string dbName = "BlobManager_Multiput";
+  ExecuteMultiputTest(dbName, false);
+}
+
+TEST(BlobManager, Multiput_Compressed) {
+  std::string dbName = "BlobManager_Multiput_Compressed";
+  ExecuteMultiputTest(dbName, true);
+}
+
+void ExecuteMultiput_SwitchFileTest(const std::string& dbName, bool enableCompression) {
   std::string dbPath = g_TestRootDirectory;
   std::string collectionName = "Collection";
   // Small file size to make sure we end up with multiple data files
@@ -165,4 +182,14 @@ TEST(BlobManager, Multiput_SwitchFile) {
     ASSERT_EQ(data.size(), outBuffer.GetLength());
     ASSERT_EQ(memcmp(data.data(), outBuffer.GetData(), outBuffer.GetLength()), 0);
   }
+}
+
+TEST(BlobManager, Multiput_SwitchFile) {
+  std::string dbName = "BlobManager_Multiput_SwitchFile";
+  ExecuteMultiput_SwitchFileTest(dbName, false);
+}
+
+TEST(BlobManager, Multiput_SwitchFile_Compressed) {
+  std::string dbName = "BlobManager_Multiput_SwitchFile";
+  ExecuteMultiput_SwitchFileTest(dbName, true);
 }

@@ -3,7 +3,6 @@
 #include <cstring>
 #include <sstream>
 #include "buffer_impl.h"
-#include "constants.h"
 #include "standard_deleters.h"
 #include "jonoondb_exceptions.h"
 
@@ -203,6 +202,14 @@ const char* BufferImpl::GetData() const {
   }
 }
 
+char* BufferImpl::GetDataForWrite() {
+  if (m_bufferImpl == nullptr) {
+    return nullptr;
+  } else {
+    return m_bufferImpl->bufferPtr.get();
+  }
+}
+
 const size_t BufferImpl::GetCapacity() const {
   if (m_bufferImpl == nullptr) {
     return 0;
@@ -217,6 +224,21 @@ const size_t BufferImpl::GetLength() const {
   } else {
     return m_bufferImpl->bufferLength;
   }
+}
+
+void BufferImpl::SetLength(size_t val) {
+  if (GetCapacity() < val) {
+    // Capacity cannot be less than length    
+    std::ostringstream ss;
+    ss << "Argument val specifying buffer length " << val
+      << " cannot be greater than the buffer capacity "
+      << GetCapacity() << ".";
+    throw InvalidArgumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  if (GetLength() == val) return; // no op
+
+  m_bufferImpl->bufferLength = val;
 }
 
 void BufferImpl::Copy(const char* buffer, size_t bytesToCopy) {

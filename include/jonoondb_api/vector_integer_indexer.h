@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <limits>
 #include "indexer.h"
 #include "index_info_impl.h"
 #include "string_utils.h"
@@ -17,6 +18,7 @@
 #include "enums.h"
 
 namespace jonoondb_api {
+template<typename T>
 class VectorIntegerIndexer final : public Indexer {
 public:
   VectorIntegerIndexer(const IndexInfoImpl& indexInfo,
@@ -161,6 +163,12 @@ private:
   void InsertInternal(std::uint64_t documentID, const Document& document) {
     int64_t val = document.GetIntegerValueAsInt64(m_fieldNameTokens.back());
     assert(m_dataVector.size() == documentID);
+    assert(val <= std::numeric_limits<T>::max());
+    assert(val >= std::numeric_limits<T>::min());
+    // We create this class with int32_t as T for int32 and smaller types
+    // So we should never get a overflow situation for int32_t. However it is technically
+    // possible to abuse this situation hence adding the asserts above to catch any misuse
+    // atleast in debug build
     m_dataVector.push_back(val);
   }
 
@@ -238,6 +246,6 @@ private:
 
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
-  std::vector<std::int64_t> m_dataVector;
+  std::vector<T> m_dataVector;
 };
 } // namespace jonoondb_api

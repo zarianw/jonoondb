@@ -161,9 +161,9 @@ public:
   }
 
   Options(bool createDBIfMissing, size_t maxDataFileSize,
-    bool compressionEnabled, bool synchronous) :
+    bool compressionEnabled, bool synchronous, size_t memCleanupThresholdInBytes) :
        m_opaque(jonoondb_options_construct2(createDBIfMissing, maxDataFileSize,
-       compressionEnabled, synchronous, ThrowOnError{})) {
+       compressionEnabled, synchronous, memCleanupThresholdInBytes, ThrowOnError{})) {
   }
 
   Options(const Options& other) :
@@ -225,6 +225,14 @@ public:
 
   bool GetSynchronous() const {
     return jonoondb_options_getsynchronous(m_opaque);
+  }
+
+  void SetMemoryCleanupThreshold(std::size_t valueInBytes) {
+    jonoondb_options_setmemorycleanupthreshold(m_opaque, valueInBytes);
+  }
+
+  std::size_t GetMemoryCleanupThreshold() {
+    return jonoondb_options_getmemorycleanupthreshold(m_opaque);
   }
 
   const options_ptr GetOpaquePtr() const {
