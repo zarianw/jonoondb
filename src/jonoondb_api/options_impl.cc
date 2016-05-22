@@ -7,7 +7,7 @@ OptionsImpl::OptionsImpl() {
   m_maxDataFileSize = 1024L * 1024L * 512L; // 512 MB
   m_compressionEnabled = false;
   m_synchronous = true;
-  m_memCleanupThresholdInBytes = 1024L * 1024L * 1024L * 4L; // 4 GB
+  m_memCleanupThresholdInBytes = 1024LL * 1024LL * 1024LL * 4LL; // 4 GB
 }
 
 OptionsImpl::OptionsImpl(bool createDBIfMissing, size_t maxDataFileSize,

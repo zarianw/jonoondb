@@ -17,9 +17,9 @@ using namespace jonoondb_test;
 BufferImpl GetAllFieldTypeObject() {
   FlatBufferBuilder fbb;
   auto str = fbb.CreateString("joker");
-  auto nestedobject = CreateNestedAllFieldType(fbb, 1, 2, true, 4, 5, 6, 7, 8, 9.0f, 10.0, str);
+  auto nestedobject = CreateNestedAllFieldType(fbb, 1, 2, true, 4, 5, 6, 7, 8.0f, 9, 10.0, str);
   auto str2 = fbb.CreateString("ali");
-  auto allfieldtype = CreateAllFieldType(fbb, 1, 2, false, 4, 5, 6, 7, 8, 9.0f, 10.0, str2, nestedobject);
+  auto allfieldtype = CreateAllFieldType(fbb, 1, 2, false, 4, 5, 6, 7, 8.0f, 9, 10.0, str2, nestedobject);
   fbb.Finish(allfieldtype);
   auto size = fbb.GetSize();
   return BufferImpl(reinterpret_cast<char*>(fbb.GetBufferPointer()), size, size);
