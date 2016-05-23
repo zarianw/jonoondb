@@ -16,12 +16,11 @@ JonoonDB is available and supported only as a 64bit library. JonoonDB is support
 * MacOS X
 
 ## Supported Compilers
-JonoonDB requires a C++ compiler that atleast supports C++14 standard. It has been tested with the following compilers:
+JonoonDB requires a C++ compiler that atleast supports C++14 standard. It should work with the following compilers:
 
-* MSVC VS2015 SP2
-* GCC 5.2.1
-* Clang (Default version on OS X El Capitan). Should work with a version that atleast supports C++14 e.g Clang 3.4 and above.
-
+* MSVC VS2015 SP2 and above
+* GCC 5.2.1 and above
+* Clang 3.4 and above.
 
 ## Build Instructions
 Before building JonoonDB, you have to build/install its 3rd party dependencies.
