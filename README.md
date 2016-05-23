@@ -27,18 +27,18 @@ JonoonDB requires a C++ compiler that atleast supports C++14 standard. It has be
 Before building JonoonDB, you have to build/install its 3rd party dependencies.
 
 ### Build/Install 3rd party dependencies
-1. Download Boost version 1.60.0 from [Boost's website](http://www.boost.org). Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Next execute the following command to build boost in 64bit.
+1. Download and install cmake version 3.5 or higher from [cmake's website](http://www.cmake.org/download/). 
 
-    ```	
+2. Download Boost version 1.60.0 from [Boost's website](http://www.boost.org). Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Next execute the following commands to build boost in 64bit.
+
+```
 (On Windows)
 bootstrap.bat
-b2 install address-model=64 --prefix=64bit	
-(On Linux and Mac OS X)	
+b2 install address-model=64 --prefix=64bit
+(On Linux and Mac OS X)
 ./bootstrap.sh
 ./b2 install address-model=64 --prefix=64bit
-    ```
-  
-2. Download and install cmake version 3.5 or higher from [cmake's website](http://www.cmake.org/download/). 
+```
 
 ### Clone and build JonoonDB
 Assuming your install directories for 3rd Parties are as follows:
