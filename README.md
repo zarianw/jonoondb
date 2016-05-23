@@ -29,21 +29,14 @@ Before building JonoonDB, you have to build/install its 3rd party dependencies.
 ### Build/Install 3rd party dependencies
 1. Download Boost version 1.60.0 from [Boost's website](http://www.boost.org). Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Next execute the following command to build boost in 64bit.
 
-   **On Windows**
-
     ```	
-	bootstrap.bat
+    (On Windows)
+    bootstrap.bat
     b2 install address-model=64 --prefix=64bit	
-	```
-
-    **On Linux and Mac OS X**
-
-    ```	
-	./bootstrap.sh
+    (On Linux and Mac OS X)	
+    ./bootstrap.sh
     ./b2 install address-model=64 --prefix=64bit
     ```
-
-    Boost build will take a while so grab a coffee!
   
 2. Download and install cmake version 3.5 or higher from [cmake's website](http://www.cmake.org/download/). 
 
