@@ -24,7 +24,7 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
   }
 
   int colCount = sqlite3_column_count(m_stmt.get());
-  for (size_t i = 0; i < colCount; i++) {
+  for (int i = 0; i < colCount; i++) {
     const char* colName = sqlite3_column_name(m_stmt.get(), i);
     if (colName == nullptr) {
       throw SQLException("Failed to get column names for the resultset.",
@@ -36,7 +36,7 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
     m_columnSqlType.push_back(sqlite3_column_type(m_stmt.get(), i));
   }
 
-  for (size_t i = 0; i < m_columnMapStringStore.size(); i++) {
+  for (int i = 0; i < m_columnMapStringStore.size(); i++) {
     m_columnMap[m_columnMapStringStore[i]] = i;
   }
 }

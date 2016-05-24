@@ -8,9 +8,6 @@ JonoonDB is a reliable persistent document store written in C++. It is currently
 * Modular design. We can't claim to be the database for the developers if JonoonDB is not hackable. You can provide custom implementations for the core components in the database.
 * SQL support for querying documents.
 
-## Development Workflow
-All active development happens on the feature branches. Changes from feature branches are merged into develop branch after feature completion. At the end of each iteration develop branch is merged into master branch after further review and testing. Our philosophy is that master is the golden copy and should always be deployable.
-
 ## Supported Operating Systems
 JonoonDB is available and supported only as a 64bit library. JonoonDB is supported on the following operating systems:
 
@@ -19,25 +16,28 @@ JonoonDB is available and supported only as a 64bit library. JonoonDB is support
 * MacOS X
 
 ## Supported Compilers
-JonoonDB requires a C++ compiler that atleast supports C++14 standard. It has been tested with the following compilers:
+JonoonDB requires a C++ compiler that atleast supports C++14 standard. It should work with the following compilers:
 
-* MSVC VS2015 SP2
-* GCC 5.2.1
-* Clang (Default version on OS X El Capitan). Should work with a version that atleast supports C++14 e.g Clang 3.4 and above.
-
+* MSVC VS2015 SP2 and above
+* GCC 5.2.1 and above
+* Clang 3.4 and above.
 
 ## Build Instructions
 Before building JonoonDB, you have to build/install its 3rd party dependencies.
 
 ### Build/Install 3rd party dependencies
-1. Download Boost version 1.60.0 from [Boost's website](http://www.boost.org). Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Run either .\bootstrap.bat (on Windows), or ./bootstrap.sh (on Linux operating systems). Next execute the following command to build boost in 64bit.
+1. Download and install cmake version 3.5 or higher from [cmake's website](http://www.cmake.org/download/). 
 
-    ```
-    b2 install address-model=64 --prefix=64bit (On Windows)
-    ./b2 install address-model=64 --prefix=64bit (On Linux and MacOS X)
-    ```
-  
-2. Download and install cmake version 3.5 or higher from [cmake's website](http://www.cmake.org/download/). 
+2. Download Boost version 1.60.0 from [Boost's website](http://www.boost.org). Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Next execute the following commands to build boost in 64bit.
+
+```
+(On Windows)
+bootstrap.bat
+b2 install address-model=64 --prefix=64bit
+(On Linux and Mac OS X)
+./bootstrap.sh
+./b2 install address-model=64 --prefix=64bit
+```
 
 ### Clone and build JonoonDB
 Assuming your install directories for 3rd Parties are as follows:
@@ -69,6 +69,9 @@ make
 ```
 
 If you want to run unittests from terminal then you can type "ctest -V" from inside the build directory.
+
+## Contributing to JonoonDB
+When you contribute code, you affirm that the contribution is your original work and that you license the work to the project under the project's open source license. Whether or not you state this explicitly, by submitting any copyrighted material via pull request, email, or other means you agree to license the material under the project's open source license and warrant that you have the legal authority to do so.
 
 ## C++ style guide 
 We use [google's c++ style guide](https://google.github.io/styleguide/cppguide.html) for the most part. The places where we differ are documented below:
