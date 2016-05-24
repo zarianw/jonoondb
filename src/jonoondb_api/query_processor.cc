@@ -137,9 +137,8 @@ void GenerateCreateTableStatementForCollection(const std::shared_ptr<DocumentCol
     }
   }
 
-  if (count > 0) {
-    long pos = stringStream.tellp();
-    stringStream.seekp(pos - 2);
+  if (count > 0) {   
+    stringStream.seekp(stringStream.tellp() - static_cast<std::streamoff>(2));
   }
 
   stringStream << ");";

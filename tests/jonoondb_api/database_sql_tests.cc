@@ -34,7 +34,7 @@ TEST(Database, ExecuteSelect_Explain_Vec) {
   auto rs = db.ExecuteSelect("explain SELECT SUM(rating) from tweet;");
   auto rowCnt = 0;
   while (rs.Next()) {
-    for (size_t i = 0; i < rs.GetColumnCount(); i++) {
+    for (int i = 0; i < rs.GetColumnCount(); i++) {
       rs.GetString(i);
     }    
     rowCnt++;

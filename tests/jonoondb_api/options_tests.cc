@@ -7,8 +7,8 @@ TEST(Options, Ctor_Deafult) {
   Options opt;
   ASSERT_FALSE(opt.GetCompressionEnabled());
   ASSERT_TRUE(opt.GetCreateDBIfMissing());
-  ASSERT_TRUE(opt.GetSynchronous()); 
-  ASSERT_EQ(opt.GetMemoryCleanupThreshold(), (1024L * 1024L * 1024L * 4L));
+  ASSERT_TRUE(opt.GetSynchronous());   
+  ASSERT_EQ(opt.GetMemoryCleanupThreshold(), 1024LL * 1024LL * 1024LL * 4LL);
 }
 
 TEST(Options, Ctor_Params) {
