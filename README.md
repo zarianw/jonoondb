@@ -1,12 +1,7 @@
 ## JonoonDB
-Database for developers by developers.
+It's a row store...It's a column store...NO! It's JonoonDB.
 
-JonoonDB is a reliable persistent document store written in C++. It is currently under active development. The key features will include:
-
-* State of the art indexing technology.
-* Extreme performance.
-* Modular design. We can't claim to be the database for the developers if JonoonDB is not hackable. You can provide custom implementations for the core components in the database.
-* SQL support for querying documents.
+Please visit [JonoonDB's Project Page](http://zarianw.github.io/jonoondb) for more information.
 
 ## Supported Operating Systems
 JonoonDB is available and supported only as a 64bit library. JonoonDB is supported on the following operating systems:
@@ -69,16 +64,3 @@ make
 ```
 
 If you want to run unittests from terminal then you can type "ctest -V" from inside the build directory.
-
-## Contributing to JonoonDB
-When you contribute code, you affirm that the contribution is your original work and that you license the work to the project under the project's open source license. Whether or not you state this explicitly, by submitting any copyrighted material via pull request, email, or other means you agree to license the material under the project's open source license and warrant that you have the legal authority to do so.
-
-## C++ style guide 
-We use [google's c++ style guide](https://google.github.io/styleguide/cppguide.html) for the most part. The places where we differ are documented below:
-
-1. Instance/Member variables should being with "m_". It works with intellisense better as you are trying to use the member variables.
-2. Variable names such as parameters, local function variables, instance variables should use camelCase instead of snake_case.
-3. Struct variable are named exactly like class variables except that they don't have "m_" prefix.
-4. Prefer using C++ headers for C functions and types e.g. prefer <cstring> over <string.h>, <cstdint> over <stdint.h> etc.
-5. Use #pragma once instead of header guards because all major compilers support it.
-6. We use exceptions for error handling instead of error codes.
