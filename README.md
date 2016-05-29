@@ -1,5 +1,5 @@
 ## JonoonDB
-Database to end all databases.
+It's a row store...It's a column store...NO! It's JonoonDB.
 
 Please visit [JonoonDB's Project Page](http://zarianw.github.io/jonoondb) for more information.
 
