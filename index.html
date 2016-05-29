@@ -19,7 +19,11 @@
     </section>
 
     <section class="main-content">
-      <p><strong>Not another database! Don't we have enough already?</strong></p>
+      <p><strong>Introduction</strong></p>
+
+<p>JonoonDB is a one size fits all database. Its aim is to do what specialized databases (row stores, column stores, nosql stores etc.) do at equal or better performance. It will be the database to end all databases.</p>
+
+<p><strong>Not another database! Don't we have enough already?</strong></p>
 
 <p>Well we have too many, somewhere north of 100 actually. But the real question is why do we have so many databases. If it’s a solved problem, we should have maybe less than 5 right? The truth is a lot of databases just cover a thin vertical slice of the overall data use cases. We need a database that can cover all the data uses cases or at least try. JonoonDB is an attempt to write such a database.</p>
 
@@ -42,7 +46,7 @@
 
 <p><strong>Ok I see, you want a database that can have the best qualities of a row store, column store and a NoSQL document store. But how is it even possible?</strong></p>
 
-<p>Glad you asked. The secret sauce is that JonoonDB internally keeps the same record in many different forms. This allows JonoonDB to behave as a row store, column store or a document store depending upon the query. JonoonDB's query planner is even smart enough to use these different forms in a single query plan to perform really fast queries.</p>
+<p>The secret sauce is that JonoonDB internally keeps the same record in many different forms. This allows JonoonDB to behave as a row store, column store or a document store depending upon the query. JonoonDB's query planner is even smart enough to use these different forms in a single query plan to perform really fast queries.</p>
 
 <p><strong>Wouldn't keeping data in many different forms make the writes extremely slow?</strong></p>
 
