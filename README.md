@@ -44,7 +44,7 @@ You are all set to clone and build JonoonDB. Using cmake you can generate projec
 #### Building from IDE
 Execute the commands given below to clone and generate the solution file for VS 2015:
 ```sh
-git clone https://<your_username>@bitbucket.org/zarianw/jonoondb.git
+git clone https://github.com/zarianw/jonoondb.git
 cd jonoondb/
 mkdir build
 cd build
@@ -55,7 +55,7 @@ Please note that -G "Visual Studio 14 Win64" command line argument shown above g
 
 #### Building from terminal on Linux
 ```sh
-git clone https://<your_username>@bitbucket.org/zarianw/jonoondb.git
+git clone https://github.com/zarianw/jonoondb.git
 cd jonoondb/
 mkdir build
 cd build
