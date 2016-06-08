@@ -16,10 +16,10 @@ void GuardFuncs::SQLite3Close(sqlite3* db) {
     assert(code == SQLITE_OK);
     if (code == SQLITE_BUSY) {
       //Todo: Handle SQLITE_BUSY response here
-    }    
+    }
   }
 }
 
 void GuardFuncs::SQLite3Finalize(sqlite3_stmt* stmt) {
-  sqlite3_finalize(stmt);       
+  sqlite3_finalize(stmt);
 }

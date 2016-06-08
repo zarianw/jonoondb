@@ -5,10 +5,15 @@
 
 using namespace jonoondb_api;
 
-ResultSetImpl::ResultSetImpl(ObjectPoolGuard<sqlite3> db, const std::string& selectStmt) :
-m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
+ResultSetImpl::ResultSetImpl(ObjectPoolGuard<sqlite3> db,
+                             const std::string& selectStmt) :
+    m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
   sqlite3_stmt* stmt = nullptr;
-  int code = sqlite3_prepare_v2(m_db, selectStmt.c_str(), selectStmt.size(), &stmt, nullptr);
+  int code = sqlite3_prepare_v2(m_db,
+                                selectStmt.c_str(),
+                                selectStmt.size(),
+                                &stmt,
+                                nullptr);
   m_stmt.reset(stmt);
   if (code != SQLITE_OK) {
     // We can safely use sqlite3_errmsg because each ResultSetImpl
@@ -28,11 +33,11 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
     const char* colName = sqlite3_column_name(m_stmt.get(), i);
     if (colName == nullptr) {
       throw SQLException("Failed to get column names for the resultset.",
-        __FILE__, __func__, __LINE__);
+                         __FILE__, __func__, __LINE__);
     }
     // Todo: maybe we need to handle UTF8 strings here     
-    m_columnMapStringStore.push_back(colName); 
-    
+    m_columnMapStringStore.push_back(colName);
+
     m_columnSqlType.push_back(sqlite3_column_type(m_stmt.get(), i));
   }
 
@@ -42,9 +47,10 @@ m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
 }
 
 // Todo: Use more efficient move sematics (e.g. pimpl idom)
-ResultSetImpl::ResultSetImpl(ResultSetImpl&& other) : m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
+ResultSetImpl::ResultSetImpl(ResultSetImpl&& other) : m_stmt(nullptr,
+                                                             GuardFuncs::SQLite3Finalize) {
   this->m_db = std::move(other.m_db);
-  this->m_stmt = std::move(other.m_stmt); 
+  this->m_stmt = std::move(other.m_stmt);
   this->m_columnMapStringStore = std::move(other.m_columnMapStringStore);
   this->m_columnMap = std::move(other.m_columnMap);
   this->m_tmpStrStorage = std::move(other.m_tmpStrStorage);
@@ -79,7 +85,7 @@ bool ResultSetImpl::Next() {
       throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
     }
 
-    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);    
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 }
 
@@ -92,7 +98,7 @@ double ResultSetImpl::GetDouble(std::int32_t columnIndex) const {
 }
 
 const std::string& ResultSetImpl::GetString(std::int32_t columnIndex) const {
-  auto val = sqlite3_column_text(m_stmt.get(), columnIndex);  
+  auto val = sqlite3_column_text(m_stmt.get(), columnIndex);
   if (val != nullptr) {
     auto size = sqlite3_column_bytes(m_stmt.get(), columnIndex);
     m_tmpStrStorage = std::string(reinterpret_cast<const char*>(val), size);
@@ -109,11 +115,12 @@ std::int32_t ResultSetImpl::GetColumnIndex(const boost::string_ref& columnLabel)
   auto iter = m_columnMap.find(columnLabel);
   if (iter == m_columnMap.end()) {
     std::ostringstream ss;
-    ss << "Unable to find column index for column label '" << columnLabel << "' in the resultset.";
+    ss << "Unable to find column index for column label '" << columnLabel
+        << "' in the resultset.";
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  return iter->second;  
+  return iter->second;
 }
 
 std::int32_t ResultSetImpl::GetColumnCount() {
@@ -133,14 +140,14 @@ SqlType ResultSetImpl::GetColumnType(std::int32_t columnIndex) {
       return SqlType::DB_NULL;
     default: {
       std::ostringstream ss;
-      ss << "Unknown/Unsupported type " << type 
-        << " encountered for columnIndex " << columnIndex << ".";
+      ss << "Unknown/Unsupported type " << type
+          << " encountered for columnIndex " << columnIndex << ".";
       throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 }
 
-const std::string & ResultSetImpl::GetColumnLabel(std::int32_t columnIndex) {
+const std::string& ResultSetImpl::GetColumnLabel(std::int32_t columnIndex) {
   return m_columnMapStringStore[columnIndex];
 }
 

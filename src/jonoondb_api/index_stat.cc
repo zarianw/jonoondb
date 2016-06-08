@@ -7,7 +7,7 @@ IndexStat::IndexStat() : m_fieldType(FieldType::BASE_TYPE_INT32) {
 }
 
 IndexStat::IndexStat(const IndexInfoImpl& indexInfo, FieldType fieldType) :
-  m_indexInfo(indexInfo), m_fieldType(fieldType) { 
+    m_indexInfo(indexInfo), m_fieldType(fieldType) {
 }
 
 const IndexInfoImpl& IndexStat::GetIndexInfo() const {

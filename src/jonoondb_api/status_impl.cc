@@ -32,20 +32,22 @@ const char kStatusSQLiteErrorCode = 101;
 static const std::string OKStr = "OK";
 
 struct StatusData {
-public:
+ public:
   StatusData(size_t cd, const char* msg, const char* flName,
-    const char* fnName, size_t lNum) : code(cd), message(msg),
-    fileName(flName), funcName(fnName), lineNum(lNum) { }
+             const char* fnName, size_t lNum) : code(cd), message(msg),
+                                                fileName(flName),
+                                                funcName(fnName),
+                                                lineNum(lNum) { }
 
   std::size_t code;
   std::string message;
   std::string fileName;
   std::string funcName;
-  size_t lineNum;  
+  size_t lineNum;
 };
 }
 
-StatusImpl::StatusImpl() : m_statusData (nullptr) {
+StatusImpl::StatusImpl() : m_statusData(nullptr) {
 }
 
 StatusImpl::StatusImpl(const StatusImpl& other) {
@@ -53,8 +55,11 @@ StatusImpl::StatusImpl(const StatusImpl& other) {
     m_statusData = nullptr;
 
     if (other.m_statusData) {
-      m_statusData = new StatusData(other.GetCode(), other.GetMessage(),
-        other.GetSourceFileName(), other.GetFunctionName(), other.GetLineNumber());
+      m_statusData = new StatusData(other.GetCode(),
+                                    other.GetMessage(),
+                                    other.GetSourceFileName(),
+                                    other.GetFunctionName(),
+                                    other.GetLineNumber());
     }
   }
 }
@@ -67,9 +72,12 @@ StatusImpl::StatusImpl(StatusImpl&& other) {
   }
 }
 
-StatusImpl::StatusImpl(std::size_t code, const char* message, const char* srcFileName,
-  const char* funcName, std::size_t lineNum) {
-  m_statusData = new StatusData(code, message, srcFileName, funcName, lineNum);  
+StatusImpl::StatusImpl(std::size_t code,
+                       const char* message,
+                       const char* srcFileName,
+                       const char* funcName,
+                       std::size_t lineNum) {
+  m_statusData = new StatusData(code, message, srcFileName, funcName, lineNum);
 }
 
 StatusImpl::~StatusImpl() {
@@ -91,9 +99,12 @@ StatusImpl& StatusImpl::operator=(const StatusImpl& other) {
     delete m_statusData;
     m_statusData = nullptr;
 
-    if (other.m_statusData) {      
-      m_statusData = new StatusData(other.GetCode(), other.GetMessage(),
-        other.GetSourceFileName(), other.GetFunctionName(), other.GetLineNumber());
+    if (other.m_statusData) {
+      m_statusData = new StatusData(other.GetCode(),
+                                    other.GetMessage(),
+                                    other.GetSourceFileName(),
+                                    other.GetFunctionName(),
+                                    other.GetLineNumber());
     }
   }
 
@@ -113,7 +124,7 @@ std::size_t StatusImpl::GetCode() const {
 }
 
 const char* StatusImpl::GetMessage() const {
-  if (m_statusData == nullptr) {    
+  if (m_statusData == nullptr) {
     return OKStr.c_str();
   }
 
@@ -154,7 +165,7 @@ bool StatusImpl::OK() const {
 
 bool StatusImpl::InvalidArgument() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusInvalidArgumentCode) {
+      m_statusData->code == kStatusInvalidArgumentCode) {
     return true;
   }
 
@@ -163,7 +174,7 @@ bool StatusImpl::InvalidArgument() const {
 
 bool StatusImpl::MissingDatabaseFile() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusMissingDatabaseFileCode) {
+      m_statusData->code == kStatusMissingDatabaseFileCode) {
     return true;
   }
 
@@ -172,7 +183,7 @@ bool StatusImpl::MissingDatabaseFile() const {
 
 bool StatusImpl::MissingDatabaseFolder() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusMissingDatabaseFolderCode) {
+      m_statusData->code == kStatusMissingDatabaseFolderCode) {
     return true;
   }
 
@@ -181,7 +192,7 @@ bool StatusImpl::MissingDatabaseFolder() const {
 
 bool StatusImpl::FailedToOpenMetadataDatabaseFile() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusFailedToOpenMetadataDatabaseFileCode) {
+      m_statusData->code == kStatusFailedToOpenMetadataDatabaseFileCode) {
     return true;
   }
 
@@ -190,7 +201,7 @@ bool StatusImpl::FailedToOpenMetadataDatabaseFile() const {
 
 bool StatusImpl::OutOfMemoryError() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusOutOfMemoryErrorCode) {
+      m_statusData->code == kStatusOutOfMemoryErrorCode) {
     return true;
   }
 
@@ -199,7 +210,7 @@ bool StatusImpl::OutOfMemoryError() const {
 
 bool StatusImpl::DuplicateKeyError() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusDuplicateKeyErrorCode) {
+      m_statusData->code == kStatusDuplicateKeyErrorCode) {
     return true;
   }
 
@@ -208,7 +219,7 @@ bool StatusImpl::DuplicateKeyError() const {
 
 bool StatusImpl::GenericError() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusGenericErrorCode) {
+      m_statusData->code == kStatusGenericErrorCode) {
     return true;
   }
 
@@ -217,7 +228,7 @@ bool StatusImpl::GenericError() const {
 
 bool StatusImpl::KeyNotFound() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusKeyNotFoundCode) {
+      m_statusData->code == kStatusKeyNotFoundCode) {
     return true;
   }
 
@@ -226,7 +237,7 @@ bool StatusImpl::KeyNotFound() const {
 
 bool StatusImpl::FileIOError() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusFileIOErrorCode) {
+      m_statusData->code == kStatusFileIOErrorCode) {
     return true;
   }
 
@@ -235,7 +246,7 @@ bool StatusImpl::FileIOError() const {
 
 bool StatusImpl::APIMisuseError() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusAPIMisuseErrorCode) {
+      m_statusData->code == kStatusAPIMisuseErrorCode) {
     return true;
   }
 
@@ -244,7 +255,7 @@ bool StatusImpl::APIMisuseError() const {
 
 bool StatusImpl::CollectionAlreadyExist() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusCollectionAlreadyExistCode) {
+      m_statusData->code == kStatusCollectionAlreadyExistCode) {
     return true;
   }
 
@@ -253,7 +264,7 @@ bool StatusImpl::CollectionAlreadyExist() const {
 
 bool StatusImpl::IndexAlreadyExist() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusIndexAlreadyExistCode) {
+      m_statusData->code == kStatusIndexAlreadyExistCode) {
     return true;
   }
 
@@ -262,7 +273,7 @@ bool StatusImpl::IndexAlreadyExist() const {
 
 bool StatusImpl::CollectionNotFound() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusCollectionNotFoundCode) {
+      m_statusData->code == kStatusCollectionNotFoundCode) {
     return true;
   }
 
@@ -271,7 +282,7 @@ bool StatusImpl::CollectionNotFound() const {
 
 bool StatusImpl::SchemaParseError() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusSchemaParseErrorCode) {
+      m_statusData->code == kStatusSchemaParseErrorCode) {
     return true;
   }
 
@@ -280,8 +291,8 @@ bool StatusImpl::SchemaParseError() const {
 
 bool StatusImpl::IndexOutOfBound() const {
   if (m_statusData != nullptr &&
-    m_statusData->code == kStatusIndexOutOfBoundErrorCode) {   
-      return true;    
+      m_statusData->code == kStatusIndexOutOfBoundErrorCode) {
+    return true;
   }
 
   return false;

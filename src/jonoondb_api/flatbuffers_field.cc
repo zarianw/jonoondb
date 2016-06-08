@@ -12,13 +12,13 @@ const std::string FlatbuffersField::GetName() const {
 
 FieldType FlatbuffersField::GetType() const {
   return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
-    m_fieldDef->type()->base_type());
+      m_fieldDef->type()->base_type());
 }
 
 size_t FlatbuffersField::GetSubFieldCount() const {
   if (m_fieldDef->type()->base_type() == reflection::BaseType::Obj) {
     return m_schema->objects()->Get(
-      m_fieldDef->type()->index())->fields()->size();
+        m_fieldDef->type()->index())->fields()->size();
   }
 
   return 0;
@@ -36,16 +36,16 @@ void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
 
   if (index > GetSubFieldCount() - 1 || index < 0) {
     throw IndexOutOfBoundException("Index was outside the bounds of the array.",
-      __FILE__, __func__, __LINE__);
+                                   __FILE__, __func__, __LINE__);
   }
-  
+
   auto obj = m_schema->objects()->Get(m_fieldDef->type()->index());
   fbField->SetMembers(
-    const_cast<reflection::Field*>(obj->fields()->Get(index)), m_schema);
+      const_cast<reflection::Field*>(obj->fields()->Get(index)), m_schema);
 }
 
 Field* FlatbuffersField::AllocateField() const {
-  return new FlatbuffersField();  
+  return new FlatbuffersField();
 }
 
 void FlatbuffersField::Dispose() {
