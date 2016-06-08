@@ -6,7 +6,7 @@
 using namespace jonoondb_api;
 
 class ObjectPoolTestObject {
-public:
+ public:
   int Data;
 
   ObjectPoolTestObject* AllocateObjectPoolTestObject() {

@@ -28,15 +28,18 @@ TEST(Database, ExecuteSelect_Explain_Vec) {
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes;  
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
-  
+  std::vector<IndexInfo> indexes;
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
+
   auto rs = db.ExecuteSelect("explain SELECT SUM(rating) from tweet;");
   auto rowCnt = 0;
   while (rs.Next()) {
     for (int i = 0; i < rs.GetColumnCount(); i++) {
       rs.GetString(i);
-    }    
+    }
     rowCnt++;
   }
   ASSERT_GT(rowCnt, 0);
