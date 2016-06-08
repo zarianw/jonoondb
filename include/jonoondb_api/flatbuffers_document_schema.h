@@ -8,16 +8,16 @@
 namespace jonoondb_api {
 //Forward declaration
 enum class FieldType
-  : std::int8_t;
+    : std::int8_t;
 enum class SchemaType
-  : std::int32_t;
+    : std::int32_t;
 
-class FlatbuffersDocumentSchema final : public DocumentSchema {
-public:
+class FlatbuffersDocumentSchema final: public DocumentSchema {
+ public:
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
   static FieldType MapFlatbuffersToJonoonDBType(
-    reflection::BaseType flatbuffersType);
+      reflection::BaseType flatbuffersType);
   ~FlatbuffersDocumentSchema() override;
   FlatbuffersDocumentSchema(std::string binarySchema);
   const std::string& GetSchemaText() const override;
@@ -25,9 +25,9 @@ public:
   FieldType GetFieldType(const std::string& fieldName) const override;
   std::size_t GetRootFieldCount() const override;
   void GetRootField(size_t index, Field*& field) const override;
-  Field* AllocateField() const override;  
-private:  
-  std::string m_binarySchema;  
+  Field* AllocateField() const override;
+ private:
+  std::string m_binarySchema;
   reflection::Schema* m_schema;
 };
 }  // jonoondb_api

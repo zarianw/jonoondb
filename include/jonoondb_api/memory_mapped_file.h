@@ -9,24 +9,25 @@
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
-enum class MemoryMappedFileMode : std::int32_t {
+enum class MemoryMappedFileMode: std::int32_t {
   ReadOnly = 1,
   ReadWrite = 2
 };
 
 class MemoryMappedFile final {
-public:
+ public:
   MemoryMappedFile(const std::string& fileName, MemoryMappedFileMode mode,
-    std::size_t writeOffset, bool asynchronous)
-    : m_currentWritePosition(nullptr),
-    m_currentWriteOffset(0),
-    m_asynchronous(asynchronous) {
+                   std::size_t writeOffset, bool asynchronous)
+      : m_currentWritePosition(nullptr),
+        m_currentWriteOffset(0),
+        m_asynchronous(asynchronous) {
     m_fileName = fileName;
     m_pageSize = boost::interprocess::mapped_region::get_page_size();
     auto internalMode = GetInternalMode(mode);
-    m_fileMapping = boost::interprocess::file_mapping(fileName.c_str(), internalMode);
+    m_fileMapping =
+        boost::interprocess::file_mapping(fileName.c_str(), internalMode);
     m_mappedRegion = boost::interprocess::mapped_region(m_fileMapping,
-      internalMode);
+                                                        internalMode);
 
     if (mode == MemoryMappedFileMode::ReadWrite) {
       m_currentWriteOffset = writeOffset;
@@ -86,21 +87,24 @@ public:
   void WriteAtCurrentPosition(const void* data, const size_t length) {
     memcpy(m_currentWritePosition, data, length);
     m_currentWritePosition += length;
-    m_currentWriteOffset += length;    
+    m_currentWriteOffset += length;
   }
 
   void Flush(size_t offset, size_t numBytes) {
     // On some OS (e.g. Linux) offset needs to be a multiple of a pagesize
     // The next 2 stmts should be optimized into a single div instructions
     auto quotient = offset / m_pageSize;
-    auto remainder = offset % m_pageSize; 
+    auto remainder = offset % m_pageSize;
     offset = m_pageSize * quotient;
     numBytes += remainder;
 
-    if (!m_mappedRegion.flush(offset, numBytes, m_asynchronous)) {      
-      throw FileIOException("Unexpected error occured while flushing memory mapped file.",
-        __FILE__, __func__, __LINE__);
-    }    
+    if (!m_mappedRegion.flush(offset, numBytes, m_asynchronous)) {
+      throw FileIOException(
+          "Unexpected error occured while flushing memory mapped file.",
+          __FILE__,
+          __func__,
+          __LINE__);
+    }
   }
 
  private:
@@ -112,7 +116,8 @@ public:
         return boost::interprocess::read_write;
       default:
         std::ostringstream ss;
-        ss << "Mode value " << static_cast<int32_t>(mode) << "is not supported for memory mapped files.";        
+        ss << "Mode value " << static_cast<int32_t>(mode)
+            << "is not supported for memory mapped files.";
         throw InvalidArgumentException(ss.str(), __FILE__, __func__, __LINE__);
         break;
     }

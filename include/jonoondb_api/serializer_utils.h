@@ -8,29 +8,34 @@
 
 namespace jonoondb_api {
 class SerializerUtils {
-public:
-  static void IndexInfoToBytes(const IndexInfoImpl& indexInfo, BufferImpl& buffer) {
+ public:
+  static void IndexInfoToBytes(const IndexInfoImpl& indexInfo,
+                               BufferImpl& buffer) {
     flatbuffers::FlatBufferBuilder fbb;
     auto name = fbb.CreateString(indexInfo.GetIndexName());
     auto columnName = fbb.CreateString(indexInfo.GetColumnName());
-    auto mloc = CreateIndexInfoFB(fbb, name, columnName, indexInfo.GetIsAscending(),
-                                  static_cast<std::int32_t>(indexInfo.GetType()));
+    auto mloc =
+        CreateIndexInfoFB(fbb, name, columnName, indexInfo.GetIsAscending(),
+                          static_cast<std::int32_t>(indexInfo.GetType()));
     fbb.Finish(mloc);
     auto size = fbb.GetSize();
     if (size > buffer.GetCapacity()) {
       buffer.Resize(size);
     }
 
-    buffer.Copy((char*)fbb.GetBufferPointer(), size);
+    buffer.Copy((char*) fbb.GetBufferPointer(), size);
   }
 
   static IndexInfoImpl BytesToIndexInfo(const BufferImpl& buffer) {
     auto fbObj = flatbuffers::GetRoot<IndexInfoFB>(buffer.GetData());
     auto indexName = std::string(fbObj->name()->c_str(), fbObj->name()->size());
-    auto columnName = std::string(fbObj->column()->c_str(), fbObj->column()->size());
+    auto columnName =
+        std::string(fbObj->column()->c_str(), fbObj->column()->size());
 
-    return IndexInfoImpl(std::move(indexName), static_cast<IndexType>(fbObj->type()),
-                         std::move(columnName), fbObj->is_ascending());
+    return IndexInfoImpl(std::move(indexName),
+                         static_cast<IndexType>(fbObj->type()),
+                         std::move(columnName),
+                         fbObj->is_ascending());
   }
 };
 }  // jonoondb_api

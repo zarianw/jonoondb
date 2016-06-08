@@ -11,7 +11,7 @@
 
 namespace jonoondb_api {
 class ResultSetImpl {
-public:
+ public:
   ResultSetImpl(ObjectPoolGuard<sqlite3> db, const std::string& selectStmt);
   ResultSetImpl(ResultSetImpl&& other);
   ResultSetImpl& operator=(ResultSetImpl&& other);
@@ -27,9 +27,9 @@ public:
   SqlType GetColumnType(std::int32_t columnIndex);
   const std::string& GetColumnLabel(std::int32_t columnIndex);
   bool IsNull(std::int32_t columnIndex);
-private:
-  ObjectPoolGuard<sqlite3> m_db;  
-  std::unique_ptr<sqlite3_stmt, void(*)(sqlite3_stmt*)> m_stmt;
+ private:
+  ObjectPoolGuard<sqlite3> m_db;
+  std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> m_stmt;
   std::map<boost::string_ref, int> m_columnMap;
   std::vector<std::string> m_columnMapStringStore;
   std::vector<int> m_columnSqlType;

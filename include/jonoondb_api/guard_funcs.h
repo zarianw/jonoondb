@@ -7,7 +7,7 @@ namespace jonoondb_api {
 class Field;
 
 class GuardFuncs {
-public:
+ public:
   static void DisposeField(Field* field);
   static void SQLite3Close(sqlite3* db);
   static void SQLite3Finalize(sqlite3_stmt* stmt);

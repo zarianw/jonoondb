@@ -6,21 +6,24 @@ using namespace jonoondb_api;
 std::once_flag DocumentCollectionDictionary::onceFlag;
 DocumentCollectionDictionary* DocumentCollectionDictionary::instance = nullptr;
 
-DocumentCollectionDictionary* DocumentCollectionDictionary::Instance() {  
+DocumentCollectionDictionary* DocumentCollectionDictionary::Instance() {
   std::call_once(onceFlag, Init);
   return instance;
 }
 
-void DocumentCollectionDictionary::Insert(const std::string& key, const std::shared_ptr<DocumentCollectionInfo>& collection) {
+void DocumentCollectionDictionary::Insert(const std::string& key,
+                                          const std::shared_ptr<
+                                              DocumentCollectionInfo>& collection) {
   m_dictionary[key] = collection;
 }
 
-bool DocumentCollectionDictionary::TryGet(const std::string& key, std::shared_ptr<DocumentCollectionInfo>& collection) {
+bool DocumentCollectionDictionary::TryGet(const std::string& key,
+                                          std::shared_ptr<DocumentCollectionInfo>& collection) {
   auto iter = m_dictionary.find(key);
   if (iter != m_dictionary.end()) {
-    collection = iter->second;    
+    collection = iter->second;
     return true;
-  } 
+  }
 
   return false;
 }

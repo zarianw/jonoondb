@@ -5,7 +5,7 @@
 #include "enums.h"
 
 namespace jonoondb_api {
-class FlatbuffersField final : public Field {
+class FlatbuffersField final: public Field {
  public:
   const std::string GetName() const override;
   FieldType GetType() const override;
@@ -16,7 +16,7 @@ class FlatbuffersField final : public Field {
   void SetMembers(reflection::Field* val,
                   reflection::Schema* valSch);
  private:
-   reflection::Field* m_fieldDef = nullptr;  
-   reflection::Schema* m_schema = nullptr;
+  reflection::Field* m_fieldDef = nullptr;
+  reflection::Schema* m_schema = nullptr;
 };
 }  // jonoondb_api

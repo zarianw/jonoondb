@@ -6,8 +6,9 @@
 #include <boost/thread/lock_types.hpp>
 
 namespace jonoondb_api {
-template<class T1, class T2> class ConcurrentMap {
-public:
+template<class T1, class T2>
+class ConcurrentMap {
+ public:
   void Add(const T1& key, const std::shared_ptr<T2>& value) {
     boost::unique_lock<boost::shared_mutex> lock(m_mutex);
 
@@ -26,7 +27,7 @@ public:
     }
   }
 
-private:
+ private:
   std::map<T1, std::shared_ptr<T2>> m_map;
   boost::shared_mutex m_mutex;
 };

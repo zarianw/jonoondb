@@ -11,15 +11,15 @@ const std::chrono::milliseconds SQLiteBusyHandlerRetryIntervalInMillisecs(200);
 const int SQLiteBusyHandlerRetryCount = 20;
 
 class SQLiteUtils {
-public:
+ public:
   static void ClearAndResetStatement(sqlite3_stmt* statement) {
     //Reset all params back to null
     auto code = sqlite3_clear_bindings(statement);
     //Reset the statement so that it can be re-executed
-    sqlite3_reset(statement);    
+    sqlite3_reset(statement);
 
     if (code != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);    
+      throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
 
   static int SQLiteGenericBusyHandler(void* input, int retryCount) {

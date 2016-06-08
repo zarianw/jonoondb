@@ -16,10 +16,10 @@
 #include "enums.h"
 
 namespace jonoondb_api {
-class VectorDoubleIndexer final : public Indexer {
-public:
+class VectorDoubleIndexer final: public Indexer {
+ public:
   VectorDoubleIndexer(const IndexInfoImpl& indexInfo,
-                       const FieldType& fieldType) {
+                      const FieldType& fieldType) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
     if (indexInfo.GetIndexName().size() == 0) {
@@ -28,11 +28,11 @@ public:
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::VECTOR) {
       errorMsg =
-        "Argument indexInfo can only have IndexType VECTOR for VectorDoubleIndexer.";
+          "Argument indexInfo can only have IndexType VECTOR for VectorDoubleIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-        << " is not valid for VectorDoubleIndexer.";
+          << " is not valid for VectorDoubleIndexer.";
       errorMsg = ss.str();
     }
 
@@ -46,12 +46,13 @@ public:
 
   static bool IsValidFieldType(FieldType fieldType) {
     return (fieldType == FieldType::BASE_TYPE_FLOAT32
-            || fieldType == FieldType::BASE_TYPE_DOUBLE);
+        || fieldType == FieldType::BASE_TYPE_DOUBLE);
   }
 
   void ValidateForInsert(const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
+      auto subDoc =
+          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
                                  m_indexStat.GetFieldType());
     } else {
@@ -62,7 +63,8 @@ public:
 
   void Insert(std::uint64_t documentID, const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
+      auto subDoc =
+          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       InsertInternal(documentID, *subDoc.get());
     } else {
       InsertInternal(documentID, document);
@@ -89,14 +91,15 @@ public:
         // TODO: Handle this
       default:
         std::ostringstream ss;
-        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+        ss << "IndexConstraintOperator type "
+            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 
   std::shared_ptr<MamaJenniesBitmap> FilterRange(
-    const Constraint& lowerConstraint,
-    const Constraint& upperConstraint) {
+      const Constraint& lowerConstraint,
+      const Constraint& upperConstraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     double lowerVal = GetOperandVal(lowerConstraint);
     double upperVal = GetOperandVal(upperConstraint);
@@ -109,21 +112,21 @@ public:
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
-               && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+        && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] > lowerVal && m_dataVector[i] <= upperVal) {
           bitmap->Add(i);
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
-               && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
+        && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] >= lowerVal && m_dataVector[i] < upperVal) {
           bitmap->Add(i);
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
-               && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+        && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] >= lowerVal && m_dataVector[i] <= upperVal) {
           bitmap->Add(i);
@@ -144,8 +147,8 @@ public:
   }
 
   virtual bool TryGetDoubleVector(
-    const gsl::span<std::uint64_t>& documentIDs,
-    std::vector<double>& values) {
+      const gsl::span<std::uint64_t>& documentIDs,
+      std::vector<double>& values) {
     assert(documentIDs.size() == values.size());
     for (auto i = 0; i < documentIDs.size(); i++) {
       if (documentIDs[i] >= m_dataVector.size()) {
@@ -157,7 +160,7 @@ public:
     return true;
   }
 
-private:
+ private:
   void InsertInternal(std::uint64_t documentID, const Document& document) {
     double val = document.GetFloatingValueAsDouble(m_fieldNameTokens.back());
     assert(m_dataVector.size() == documentID);

@@ -19,11 +19,11 @@
 
 namespace jonoondb_api {
 
-class EWAHCompressedBitmapIndexerInteger final : public Indexer {
-public:
+class EWAHCompressedBitmapIndexerInteger final: public Indexer {
+ public:
   static void Construct(const IndexInfoImpl& indexInfo,
-    const FieldType& fieldType,
-    EWAHCompressedBitmapIndexerInteger*& obj) {
+                        const FieldType& fieldType,
+                        EWAHCompressedBitmapIndexerInteger*& obj) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
     if (indexInfo.GetIndexName().size() == 0) {
@@ -32,11 +32,11 @@ public:
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::EWAH_COMPRESSED_BITMAP) {
       errorMsg =
-        "Argument indexInfo can only have IndexType EWAH_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
+          "Argument indexInfo can only have IndexType EWAH_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-        << " is not valid for EWAHCompressedBitmapIndexerInteger.";
+          << " is not valid for EWAHCompressedBitmapIndexerInteger.";
       errorMsg = ss.str();
     }
 
@@ -44,8 +44,9 @@ public:
       throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
     }
 
-    std::vector<std::string> tokens = StringUtils::Split(indexInfo.GetColumnName(),
-      ".");
+    std::vector<std::string>
+        tokens = StringUtils::Split(indexInfo.GetColumnName(),
+                                    ".");
     IndexStat indexStat(indexInfo, fieldType);
     obj = new EWAHCompressedBitmapIndexerInteger(indexStat, tokens);
   }
@@ -55,25 +56,27 @@ public:
 
   static bool IsValidFieldType(FieldType fieldType) {
     return (fieldType == FieldType::BASE_TYPE_INT8
-      || fieldType == FieldType::BASE_TYPE_INT16
-      || fieldType == FieldType::BASE_TYPE_INT32
-      || fieldType == FieldType::BASE_TYPE_INT64);
+        || fieldType == FieldType::BASE_TYPE_INT16
+        || fieldType == FieldType::BASE_TYPE_INT32
+        || fieldType == FieldType::BASE_TYPE_INT64);
   }
 
   void ValidateForInsert(const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
+      auto subDoc =
+          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
-        m_indexStat.GetFieldType());
+                                 m_indexStat.GetFieldType());
     } else {
       document.VerifyFieldForRead(m_fieldNameTokens.back(),
-        m_indexStat.GetFieldType());
+                                  m_indexStat.GetFieldType());
     }
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
+      auto subDoc =
+          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       InsertInternal(documentID, *subDoc.get());
     } else {
       InsertInternal(documentID, document);
@@ -89,18 +92,19 @@ public:
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
       case jonoondb_api::IndexConstraintOperator::LESS_THAN:
-        return GetBitmapLT(constraint, false);        
+        return GetBitmapLT(constraint, false);
       case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
-        return GetBitmapLT(constraint, true);        
+        return GetBitmapLT(constraint, true);
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
-        return GetBitmapGT(constraint);        
+        return GetBitmapGT(constraint);
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
         return GetBitmapGTE(constraint);
       case jonoondb_api::IndexConstraintOperator::MATCH:
         // TODO: Handle this
       default:
         std::ostringstream ss;
-        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+        ss << "IndexConstraintOperator type "
+            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
@@ -112,21 +116,25 @@ public:
     std::int64_t lowerVal, upperVal;
     if (lowerConstraint.operandType == OperandType::DOUBLE) {
       if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN) {
-        lowerVal = static_cast<std::int64_t>(std::floor(lowerConstraint.operand.doubleVal));
+        lowerVal =
+            static_cast<std::int64_t>(std::floor(lowerConstraint.operand.doubleVal));
       } else {
-        lowerVal = static_cast<std::int64_t>(std::ceil(lowerConstraint.operand.doubleVal));
+        lowerVal =
+            static_cast<std::int64_t>(std::ceil(lowerConstraint.operand.doubleVal));
       }
     } else {
       lowerVal = lowerConstraint.operand.int64Val;
     }
 
     if (upperConstraint.operandType == OperandType::DOUBLE) {
-      upperVal = static_cast<std::int64_t>(std::ceil(upperConstraint.operand.doubleVal));      
+      upperVal =
+          static_cast<std::int64_t>(std::ceil(upperConstraint.operand.doubleVal));
     } else {
       upperVal = upperConstraint.operand.int64Val;
     }
 
-    std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>>::const_iterator startIter, endIter;
+    std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>>::const_iterator
+        startIter, endIter;
 
     if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN) {
       startIter = m_compressedBitmaps.upper_bound(lowerVal);
@@ -137,13 +145,15 @@ public:
     while (startIter != m_compressedBitmaps.end()) {
       if (startIter->first < upperVal) {
         bitmaps.push_back(startIter->second);
-      } else if (upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+      } else if (upperConstraint.op
+          == IndexConstraintOperator::LESS_THAN_EQUAL) {
         if (upperConstraint.operandType == OperandType::DOUBLE) {
-          if (static_cast<double>(startIter->first) == upperConstraint.operand.doubleVal)
+          if (static_cast<double>(startIter->first)
+              == upperConstraint.operand.doubleVal)
             bitmaps.push_back(startIter->second);
         } else {
           if (startIter->first == upperConstraint.operand.int64Val)
-            bitmaps.push_back(startIter->second);          
+            bitmaps.push_back(startIter->second);
         }
       } else {
         break;
@@ -155,19 +165,19 @@ public:
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-private:
+ private:
   EWAHCompressedBitmapIndexerInteger(const IndexStat& indexStat,
-    std::vector<std::string>& fieldNameTokens)
-    : m_indexStat(indexStat),
-    m_fieldNameTokens(fieldNameTokens) {
+                                     std::vector<std::string>& fieldNameTokens)
+      : m_indexStat(indexStat),
+        m_fieldNameTokens(fieldNameTokens) {
   }
 
   void InsertInternal(std::uint64_t documentID, const Document& document) {
-    int64_t val = document.GetIntegerValueAsInt64(m_fieldNameTokens.back());    
+    int64_t val = document.GetIntegerValueAsInt64(m_fieldNameTokens.back());
 
     auto compressedBitmap = m_compressedBitmaps.find(val);
     if (compressedBitmap == m_compressedBitmaps.end()) {
-      auto bm = shared_ptr < MamaJenniesBitmap >(new MamaJenniesBitmap());
+      auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
       bm->Add(documentID);
       m_compressedBitmaps[val] = bm;
     } else {
@@ -184,7 +194,8 @@ private:
       }
     } else if (constraint.operandType == OperandType::DOUBLE) {
       // Check if double has no fractional part
-      std::int64_t intVal = static_cast<std::int64_t>(constraint.operand.doubleVal);
+      std::int64_t
+          intVal = static_cast<std::int64_t>(constraint.operand.doubleVal);
       if (constraint.operand.doubleVal == intVal) {
         auto iter = m_compressedBitmaps.find(intVal);
         if (iter != m_compressedBitmaps.end()) {
@@ -198,7 +209,8 @@ private:
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint, bool orEqual) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint,
+                                                 bool orEqual) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     int64_t ceiling;
     if (constraint.operandType == OperandType::DOUBLE) {
@@ -221,7 +233,7 @@ private:
         if (item.first < ceiling) {
           bitmaps.push_back(item.second);
         } else {
-          if (orEqual && constraint.operand.doubleVal == (double)item.first) {
+          if (orEqual && constraint.operand.doubleVal == (double) item.first) {
             bitmaps.push_back(item.second);
           }
           break;
@@ -236,17 +248,18 @@ private:
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     int64_t operandVal;
     if (constraint.operandType == OperandType::DOUBLE) {
-      operandVal = static_cast<int64_t>(std::floor(constraint.operand.doubleVal));
+      operandVal =
+          static_cast<int64_t>(std::floor(constraint.operand.doubleVal));
     } else {
       operandVal = constraint.operand.int64Val;
     }
 
-    auto iter = m_compressedBitmaps.upper_bound(operandVal);    
+    auto iter = m_compressedBitmaps.upper_bound(operandVal);
     while (iter != m_compressedBitmaps.end()) {
       bitmaps.push_back(iter->second);
       iter++;
     }
-    
+
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
@@ -254,7 +267,8 @@ private:
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     int64_t operandVal;
     if (constraint.operandType == OperandType::DOUBLE) {
-      operandVal = static_cast<int64_t>(std::ceil(constraint.operand.doubleVal));
+      operandVal =
+          static_cast<int64_t>(std::ceil(constraint.operand.doubleVal));
     } else {
       operandVal = constraint.operand.int64Val;
     }
@@ -270,6 +284,7 @@ private:
 
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
-  std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
+  std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>>
+      m_compressedBitmaps;
 };
 }  // namespace jonoondb_api

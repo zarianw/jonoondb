@@ -6,26 +6,26 @@ class BufferImpl {
   BufferImpl();
   BufferImpl(size_t capacity);
   BufferImpl(const char* buffer, size_t bufferLengthInBytes,
-    size_t bufferCapacityInBytes);
+             size_t bufferCapacityInBytes);
   BufferImpl(char* buffer, size_t bufferLengthInBytes,
-             size_t bufferCapacityInBytes, void(*customDeleterFunc)(char*));
+             size_t bufferCapacityInBytes, void(* customDeleterFunc)(char*));
   BufferImpl(BufferImpl&& other);
   BufferImpl(const BufferImpl& other);
   ~BufferImpl();
   BufferImpl& operator=(const BufferImpl& other);
   BufferImpl& operator=(BufferImpl&& other);
-  bool operator<(const BufferImpl& other) const;  
+  bool operator<(const BufferImpl& other) const;
   void Resize(size_t newBufferCapacityInBytes);
-  
-  const char* GetData() const;  
+
+  const char* GetData() const;
   char* GetDataForWrite();
   const size_t GetCapacity() const;
   const size_t GetLength() const;
   void SetLength(size_t val);
-  
+
   void Copy(const char* buffer, size_t bytesToCopy);
-private:
-  void Reset();  
+ private:
+  void Reset();
   //Forward Declarations
   struct BufferData;
   BufferData* m_bufferImpl;

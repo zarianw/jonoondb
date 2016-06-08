@@ -14,22 +14,28 @@ using namespace std;
 using namespace jonoondb_api;
 
 Indexer* IndexerFactory::CreateIndexer(
-  const IndexInfoImpl& indexInfo,
-  const FieldType& fieldType) {
+    const IndexInfoImpl& indexInfo,
+    const FieldType& fieldType) {
   switch (indexInfo.GetType()) {
     case IndexType::EWAH_COMPRESSED_BITMAP: {
       if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
-        fieldType == FieldType::BASE_TYPE_FLOAT32) {
+          fieldType == FieldType::BASE_TYPE_FLOAT32) {
         EWAHCompressedBitmapIndexerDouble* ewahIndexer;
-        EWAHCompressedBitmapIndexerDouble::Construct(indexInfo, fieldType, ewahIndexer);
+        EWAHCompressedBitmapIndexerDouble::Construct(indexInfo,
+                                                     fieldType,
+                                                     ewahIndexer);
         return static_cast<Indexer*>(ewahIndexer);
       } else if (fieldType == FieldType::BASE_TYPE_STRING) {
         EWAHCompressedBitmapIndexerString* ewahIndexer;
-        EWAHCompressedBitmapIndexerString::Construct(indexInfo, fieldType, ewahIndexer);
+        EWAHCompressedBitmapIndexerString::Construct(indexInfo,
+                                                     fieldType,
+                                                     ewahIndexer);
         return static_cast<Indexer*>(ewahIndexer);
       } else {
         EWAHCompressedBitmapIndexerInteger* ewahIndexer;
-        EWAHCompressedBitmapIndexerInteger::Construct(indexInfo, fieldType, ewahIndexer);
+        EWAHCompressedBitmapIndexerInteger::Construct(indexInfo,
+                                                      fieldType,
+                                                      ewahIndexer);
         return static_cast<Indexer*>(ewahIndexer);
       }
     }
@@ -37,9 +43,9 @@ Indexer* IndexerFactory::CreateIndexer(
       if (fieldType == FieldType::BASE_TYPE_STRING) {
         return new VectorStringIndexer(indexInfo, fieldType);
       } else if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
-                 fieldType == FieldType::BASE_TYPE_FLOAT32) {
+          fieldType == FieldType::BASE_TYPE_FLOAT32) {
         return new VectorDoubleIndexer(indexInfo, fieldType);
-      } else if(fieldType == FieldType::BASE_TYPE_INT64) {
+      } else if (fieldType == FieldType::BASE_TYPE_INT64) {
         return new VectorIntegerIndexer<std::int64_t>(indexInfo, fieldType);
       } else {
         return new VectorIntegerIndexer<std::int32_t>(indexInfo, fieldType);
@@ -48,7 +54,8 @@ Indexer* IndexerFactory::CreateIndexer(
 
     default:
       std::ostringstream ss;
-      ss << "Cannot create Indexer. Index type '" << static_cast<int32_t>(indexInfo.GetType()) << "' is unknown.";
+      ss << "Cannot create Indexer. Index type '"
+          << static_cast<int32_t>(indexInfo.GetType()) << "' is unknown.";
       throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 }

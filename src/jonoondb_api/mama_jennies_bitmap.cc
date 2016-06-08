@@ -6,7 +6,7 @@
 using namespace jonoondb_api;
 
 MamaJenniesBitmapConstIterator::MamaJenniesBitmapConstIterator(EWAHBoolArray<std::uint64_t>::const_iterator& iter)
-  : m_iter(iter) {
+    : m_iter(iter) {
 }
 
 std::size_t MamaJenniesBitmapConstIterator::operator*() const {
@@ -55,14 +55,16 @@ MamaJenniesBitmap::MamaJenniesBitmap(MamaJenniesBitmap&& other) {
 MamaJenniesBitmap::MamaJenniesBitmap(const MamaJenniesBitmap& other) {
   if (this != &other) {
     // Lets call copy ctor of EWAHBoolArray
-    m_ewahBoolArray = std::make_unique<EWAHBoolArray<std::uint64_t>>(*other.m_ewahBoolArray);
+    m_ewahBoolArray =
+        std::make_unique<EWAHBoolArray<std::uint64_t>>(*other.m_ewahBoolArray);
   }
 }
 
 MamaJenniesBitmap& MamaJenniesBitmap::operator=(const MamaJenniesBitmap& other) {
   if (this != &other) {
     // Lets call copy ctor of EWAHBoolArray
-    m_ewahBoolArray = std::make_unique<EWAHBoolArray<std::uint64_t>>(*other.m_ewahBoolArray);
+    m_ewahBoolArray =
+        std::make_unique<EWAHBoolArray<std::uint64_t>>(*other.m_ewahBoolArray);
   }
   return *this;
 }
@@ -76,19 +78,23 @@ MamaJenniesBitmap& MamaJenniesBitmap::operator=(MamaJenniesBitmap&& other) {
 
 void MamaJenniesBitmap::Add(std::uint64_t x) {
   if (!m_ewahBoolArray->set(x)) {
-    throw JonoonDBException("Add to bitmap failed. Most probably the entries were not added in increasing order.",
-      __FILE__, __func__, __LINE__);
+    throw JonoonDBException(
+        "Add to bitmap failed. Most probably the entries were not added in increasing order.",
+        __FILE__,
+        __func__,
+        __LINE__);
   }
 }
 
 bool MamaJenniesBitmap::IsEmpty() {
   // Todo: Need to find a faster way to check for empty bitmap
   bool isEmpty = true;
-  if (m_ewahBoolArray->sizeInBits() > 0) {    
-    for (auto iter = m_ewahBoolArray->begin(); iter != m_ewahBoolArray->end(); iter++) {
+  if (m_ewahBoolArray->sizeInBits() > 0) {
+    for (auto iter = m_ewahBoolArray->begin(); iter != m_ewahBoolArray->end();
+         iter++) {
       isEmpty = false;
       break;
-    }     
+    }
   }
 
   return isEmpty;
@@ -98,15 +104,18 @@ std::uint64_t MamaJenniesBitmap::GetSizeInBits() {
   return m_ewahBoolArray->sizeInBits();
 }
 
-void MamaJenniesBitmap::LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) {
-  m_ewahBoolArray->logicaland(*other.m_ewahBoolArray, *output.m_ewahBoolArray); 
+void MamaJenniesBitmap::LogicalAND(const MamaJenniesBitmap& other,
+                                   MamaJenniesBitmap& output) {
+  m_ewahBoolArray->logicaland(*other.m_ewahBoolArray, *output.m_ewahBoolArray);
 }
 
-void MamaJenniesBitmap::LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) {
+void MamaJenniesBitmap::LogicalOR(const MamaJenniesBitmap& other,
+                                  MamaJenniesBitmap& output) {
   m_ewahBoolArray->logicalor(*other.m_ewahBoolArray, *output.m_ewahBoolArray);
 }
 
-std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalAND(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps) {
+std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalAND(std::vector<std::shared_ptr<
+    MamaJenniesBitmap>>& bitmaps) {
   if (bitmaps.size() == 0) {
     return std::make_unique<MamaJenniesBitmap>();
   } else if (bitmaps.size() == 1) {
@@ -132,11 +141,11 @@ std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalAND(std::vector<std
     }
   }
 
-  return flipper ? b1 : b2;  
+  return flipper ? b1 : b2;
 }
 
 std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalOR(
-  std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps) {
+    std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps) {
   if (bitmaps.size() == 0) {
     return std::make_unique<MamaJenniesBitmap>();
   } else if (bitmaps.size() == 1) {
@@ -154,7 +163,7 @@ std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalOR(
     bitmaps[i]->LogicalOR(*combinedBitmap, *outputBitmap);
     flipper = !flipper; // will turn to false on 1st iteration
     combinedBitmap = flipper ? b1.get() : b2.get();
-    outputBitmap = flipper ? b2.get() : b1.get();    
+    outputBitmap = flipper ? b2.get() : b1.get();
   }
 
   return flipper ? b1 : b2;
@@ -181,5 +190,5 @@ std::unique_ptr<MamaJenniesBitmap::const_iterator> MamaJenniesBitmap::end_pointe
 }
 
 MamaJenniesBitmap::MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray)
-  : m_ewahBoolArray(std::move(ewahBoolArray)) {
+    : m_ewahBoolArray(std::move(ewahBoolArray)) {
 }

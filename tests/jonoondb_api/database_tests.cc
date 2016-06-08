@@ -18,7 +18,8 @@ using namespace jonoondb_test;
 TEST(Database, Ctor_InvalidArguments) {
   Options options;
   ASSERT_THROW(Database db("somePath", "", options), InvalidArgumentException);
-  ASSERT_THROW(Database db("", "someDbName", options), InvalidArgumentException);  
+  ASSERT_THROW(Database db("", "someDbName", options),
+               InvalidArgumentException);
 }
 
 TEST(Database, Ctor_MissingDatabaseFile) {
@@ -26,14 +27,16 @@ TEST(Database, Ctor_MissingDatabaseFile) {
   string dbPath = g_TestRootDirectory;
   Options options;
   options.SetCreateDBIfMissing(false);
-  ASSERT_THROW(Database db(dbPath, dbName, options), MissingDatabaseFileException);  
+  ASSERT_THROW(Database db(dbPath, dbName, options),
+               MissingDatabaseFileException);
 }
 
 TEST(Database, Ctor_MissingDatabaseFolder) {
   string dbName = "Database_Ctor_MissingDatabaseFolder";
   string dbPath = g_TestRootDirectory;
-  Options options;  
-  ASSERT_THROW(Database db(dbPath + "missing_folder", dbName, options), MissingDatabaseFolderException);
+  Options options;
+  ASSERT_THROW(Database db(dbPath + "missing_folder", dbName, options),
+               MissingDatabaseFolderException);
 }
 
 TEST(Database, Ctor_New) {
@@ -48,14 +51,16 @@ TEST(Database, Ctor_Existing) {
   {
     Database db(dbPath, dbName, GetDefaultDBOptions());
   }
-  
+
   {
     Database db(dbPath, dbName, GetDefaultDBOptions());
   }
 }
 
 TEST(Database, Ctor_CreateIfMissing) {
-  Database db(g_TestRootDirectory, "Database_Ctor_CreateIfMissing", GetDefaultDBOptions());  
+  Database db(g_TestRootDirectory,
+              "Database_Ctor_CreateIfMissing",
+              GetDefaultDBOptions());
 }
 
 TEST(Database, CreateCollection_InvalidSchema) {
@@ -63,7 +68,10 @@ TEST(Database, CreateCollection_InvalidSchema) {
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
-  ASSERT_THROW(db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, "Schema IDL", indexes), InvalidSchemaException);
+  ASSERT_THROW(db.CreateCollection("CollectionName",
+                                   SchemaType::FLAT_BUFFERS,
+                                   "Schema IDL",
+                                   indexes), InvalidSchemaException);
 }
 
 TEST(Database, CreateCollection_New) {
@@ -73,7 +81,10 @@ TEST(Database, CreateCollection_New) {
   string schema = File::Read(filePath);
   Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
-  db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
+  db.CreateCollection("CollectionName",
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
 }
 
 TEST(Database, CreateCollection_CollectionAlreadyExist) {
@@ -83,8 +94,14 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string schema = File::Read(filePath);
   Database db(dbPath, dbName, GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
-  db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes);  
-  ASSERT_THROW(db.CreateCollection("CollectionName", SchemaType::FLAT_BUFFERS, schema, indexes), CollectionAlreadyExistException);  
+  db.CreateCollection("CollectionName",
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
+  ASSERT_THROW(db.CreateCollection("CollectionName",
+                                   SchemaType::FLAT_BUFFERS,
+                                   schema,
+                                   indexes), CollectionAlreadyExistException);
 }
 
 TEST(Database, CreateCollection_DuplicateIndex) {
@@ -96,26 +113,41 @@ TEST(Database, CreateCollection_DuplicateIndex) {
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes;
-  indexes.push_back(IndexInfo("index1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true));
-  indexes.push_back(IndexInfo("index1", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true));
-  ASSERT_THROW(db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes), IndexAlreadyExistException);
+  indexes.push_back(IndexInfo("index1",
+                              IndexType::EWAH_COMPRESSED_BITMAP,
+                              "id",
+                              true));
+  indexes.push_back(IndexInfo("index1",
+                              IndexType::EWAH_COMPRESSED_BITMAP,
+                              "user.name",
+                              true));
+  ASSERT_THROW(db.CreateCollection(collectionName,
+                                   SchemaType::FLAT_BUFFERS,
+                                   schema,
+                                   indexes), IndexAlreadyExistException);
 
   // Now try to create the collection without duplicate index
   indexes.pop_back();
-  ASSERT_NO_THROW(db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes));
+  ASSERT_NO_THROW(db.CreateCollection(collectionName,
+                                      SchemaType::FLAT_BUFFERS,
+                                      schema,
+                                      indexes));
 }
 
 TEST(Database, Insert_NoIndex) {
   string dbName = "Database_Insert_NoIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());  
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  
+
   std::vector<IndexInfo> indexes;
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);  
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
@@ -126,7 +158,7 @@ TEST(Database, Insert_SingleIndex) {
   string dbName = "Database_Insert_SingleIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());  
+  Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -139,18 +171,18 @@ TEST(Database, Insert_SingleIndex) {
   indexes.push_back(index);
 
   db.CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS,
-                                  schema, indexes);
+                      schema, indexes);
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);  
-  
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
+
   db.Insert(collectionName, documentData);
 }
 
 void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
                                        IndexType indexType) {
   string collectionName = "CollectionName";
-  string dbPath = g_TestRootDirectory;  
+  string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("all_field_type.bfbs");
@@ -175,10 +207,14 @@ void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
     indexes.push_back(index);
   }
 
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
 
-  Buffer documentData = GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5, 6, 7, 8.0f,
-                                                    9, 10.0, "");
+  Buffer
+      documentData = GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5, 6, 7, 8.0f,
+                                                 9, 10.0, "");
   db.Insert(collectionName, documentData);
 }
 
@@ -200,8 +236,12 @@ TEST(Database, ExecuteSelect_MissingCollection) {
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, std::vector<IndexInfo>());
-  ASSERT_ANY_THROW(ResultSet rs = db.ExecuteSelect("select * from missingTable where text = 'hello'"));
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      std::vector<IndexInfo>());
+  ASSERT_ANY_THROW(ResultSet rs =
+      db.ExecuteSelect("select * from missingTable where text = 'hello'"));
 }
 
 TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
@@ -211,10 +251,13 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   Database db(dbPath, dbName, GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  db.CreateCollection(collectionName.c_str(), SchemaType::FLAT_BUFFERS, schema, std::vector<IndexInfo>());
+  db.CreateCollection(collectionName.c_str(),
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      std::vector<IndexInfo>());
 
   int rows = 0;
-  ResultSet rs = db.ExecuteSelect("select * from tweet where text = 'hello'"); 
+  ResultSet rs = db.ExecuteSelect("select * from tweet where text = 'hello'");
   while (rs.Next()) {
     ++rows;
   }
@@ -230,8 +273,14 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+  std::vector<IndexInfo> indexes{IndexInfo("IndexName1",
+                                           IndexType::EWAH_COMPRESSED_BITMAP,
+                                           "user.name",
+                                           true)};
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
 
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
@@ -239,7 +288,8 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   db.Insert(collectionName, documentData);
 
   int rows = 0;
-  ResultSet rs = db.ExecuteSelect("select * from tweet where [user.name] = 'Zarian'");
+  ResultSet
+      rs = db.ExecuteSelect("select * from tweet where [user.name] = 'Zarian'");
   while (rs.Next()) {
     ++rows;
   }
@@ -275,18 +325,23 @@ TEST(Database, ExecuteSelect_Testing) {
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
 
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
   db.Insert(collectionName, documentData);
-  
+
   int rows = 0;
-  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
+  ResultSet rs = db.ExecuteSelect(
+      "SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(),
+                 "Say hello to my little friend!");
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
     ++rows;
@@ -294,29 +349,33 @@ TEST(Database, ExecuteSelect_Testing) {
   ASSERT_EQ(rows, 1);
 
   rows = 0;
-  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
+  rs = db.ExecuteSelect(
+      "SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'hello'");
   while (rs.Next()) {
     ++rows;
   }
   ASSERT_EQ(rows, 0);
 
   rows = 0;
-  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
+  rs = db.ExecuteSelect(
+      "SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' OR text = 'hello'");
   while (rs.Next()) {
     ++rows;
   }
   ASSERT_EQ(rows, 1);
 
   rows = 0;
-  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");
+  rs = db.ExecuteSelect(
+      "SELECT id, text, [user.id], [user.name] FROM tweet WHERE [user.name] = 'Zarian' AND text = 'Say hello to my little friend!'");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(),
+                 "Say hello to my little friend!");
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
     ++rows;
   }
-  ASSERT_EQ(rows, 1);  
+  ASSERT_EQ(rows, 1);
 
   rs.Close();
 }
@@ -351,14 +410,17 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
 
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
   }
 
   db.MultiInsert(collectionName, documents);
@@ -368,7 +430,8 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
   auto rowCnt = 0;
   while (rs.Next()) {
     std::string name = "zarian_" + std::to_string(rowCnt);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(),
+                 name.c_str());
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
@@ -408,14 +471,20 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
     indexes.push_back(IndexInfo("IndexName3", indexType, "user.id", true));
     indexes.push_back(IndexInfo("IndexName4", indexType, "user.name", true));
 
-    db.CreateCollection(collectionName1, SchemaType::FLAT_BUFFERS, schema, indexes);
-    db.CreateCollection(collectionName2, SchemaType::FLAT_BUFFERS, schema, indexes);
+    db.CreateCollection(collectionName1,
+                        SchemaType::FLAT_BUFFERS,
+                        schema,
+                        indexes);
+    db.CreateCollection(collectionName2,
+                        SchemaType::FLAT_BUFFERS,
+                        schema,
+                        indexes);
 
     std::vector<Buffer> documents;
     for (size_t i = 0; i < 10; i++) {
       std::string name = "zarian_" + std::to_string(i);
       std::string text = "hello_" + std::to_string(i);
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
     }
 
     db.MultiInsert(collectionName1, documents);
@@ -429,7 +498,8 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
   Database db(dbPath, dbName, opt);
 
   // Now see if we can read all the inserted data correctly
-  std::string sqlStmt = "SELECT id, text, [user.id], [user.name] FROM " + collectionName1 + ";";
+  std::string sqlStmt =
+      "SELECT id, text, [user.id], [user.name] FROM " + collectionName1 + ";";
   auto rs = db.ExecuteSelect(sqlStmt);
   auto rowCnt = 0;
   while (rs.Next()) {
@@ -438,13 +508,15 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
     std::string name = "zarian_" + std::to_string(rowCnt);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(),
+                 name.c_str());
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
 
   // Now check collection2
-  sqlStmt = "SELECT id, text, [user.id], [user.name] FROM " + collectionName2 + ";";
+  sqlStmt =
+      "SELECT id, text, [user.id], [user.name] FROM " + collectionName2 + ";";
   rs = db.ExecuteSelect(sqlStmt);
   rowCnt = 0;
   while (rs.Next()) {
@@ -453,7 +525,8 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
     std::string name = "zarian_" + std::to_string(rowCnt);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(),
+                 name.c_str());
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
@@ -475,29 +548,34 @@ TEST(Database, Ctor_ReOpen_Vector) {
 }
 
 TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_LessThanInteger", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_LessThanInteger",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true) };
+  std::vector<IndexInfo> indexes
+      {IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true)};
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
   }
   db.MultiInsert("tweet", documents);
 
   int rowCnt = 0;
-  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name] FROM tweet WHERE id < 5;");
+  ResultSet rs = db.ExecuteSelect(
+      "SELECT id, text, [user.id], [user.name] FROM tweet WHERE id < 5;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
     std::string text = "hello_" + std::to_string(rowCnt);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());    
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), text.c_str());
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), rowCnt);
     std::string name = "zarian_" + std::to_string(rowCnt);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), name.c_str());    
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(),
+                 name.c_str());
     rowCnt++;
   }
 
@@ -505,19 +583,22 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
 }
 
 TEST(Database, ExecuteSelect_VectorIndexer) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_VectorIndexer", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_VectorIndexer",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
-    IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
-    IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true) };
+  std::vector<IndexInfo>
+      indexes{IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
+              IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
+              IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true)};
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
+    documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
   }
   db.MultiInsert("tweet", documents);
 
@@ -531,7 +612,8 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
   ASSERT_EQ(rowCnt, 5);
 
   rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating FROM tweet WHERE rating < 5.0;");
+  rs = db.ExecuteSelect(
+      "SELECT id, text, [user.id], [user.name], rating FROM tweet WHERE rating < 5.0;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
     ASSERT_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), double(rowCnt));
@@ -540,7 +622,8 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
   ASSERT_EQ(rowCnt, 5);
 
   rowCnt = 0;
-  rs = db.ExecuteSelect("SELECT id, rating, [user.id] FROM tweet WHERE [user.id] < 5;");
+  rs = db.ExecuteSelect(
+      "SELECT id, rating, [user.id] FROM tweet WHERE [user.id] < 5;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
     ASSERT_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), double(rowCnt));
@@ -550,13 +633,15 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
   ASSERT_EQ(rowCnt, 5);
 }
 
-void ExecuteAndValidateResultset(Database& db, const std::string& fieldName,
-                                 const std::string& op, const std::string& valueToCompare,
+void ExecuteAndValidateResultset(Database& db,
+                                 const std::string& fieldName,
+                                 const std::string& op,
+                                 const std::string& valueToCompare,
                                  int expectedRowCount) {
   int rowCnt = 0;
   std::string sqlStr = "SELECT * FROM all_field_collection WHERE ";
   sqlStr.append(fieldName).append(" ").append(op)
-    .append(" ").append(valueToCompare).append(";");
+      .append(" ").append(valueToCompare).append(";");
 
   ResultSet rs = db.ExecuteSelect(sqlStr);
   while (rs.Next()) {
@@ -566,23 +651,33 @@ void ExecuteAndValidateResultset(Database& db, const std::string& fieldName,
 }
 
 TEST(Database, ExecuteSelect_LT_LTE) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_LT_LTE", GetDefaultDBOptions());
+  Database
+      db(g_TestRootDirectory, "ExecuteSelect_LT_LTE", GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("all_field_type.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes{};
-  db.CreateCollection("all_field_collection", SchemaType::FLAT_BUFFERS, schema, indexes);
+  db.CreateCollection("all_field_collection",
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string str = std::to_string(i);
-    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i), static_cast<uint8_t>(i),
-                                                    true, static_cast<int16_t>(i),
-                                                    static_cast<uint16_t>(i), static_cast<int32_t>(i),
-                                                    static_cast<uint32_t>(i), (float)i, static_cast<int64_t>(i),
-                                                    (double)i, str));
+    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i),
+                                                    static_cast<uint8_t>(i),
+                                                    true,
+                                                    static_cast<int16_t>(i),
+                                                    static_cast<uint16_t>(i),
+                                                    static_cast<int32_t>(i),
+                                                    static_cast<uint32_t>(i),
+                                                    (float) i,
+                                                    static_cast<int64_t>(i),
+                                                    (double) i,
+                                                    str));
   }
 
-  db.MultiInsert("all_field_collection", documents);    
+  db.MultiInsert("all_field_collection", documents);
 
   const size_t fieldCount = 11;
   for (size_t i = 1; i < fieldCount; i++) {
@@ -598,8 +693,8 @@ TEST(Database, ExecuteSelect_LT_LTE) {
 
   ExecuteAndValidateResultset(db, "field11", "<", "'0'", 0);
   ExecuteAndValidateResultset(db, "field11", "<", "'99'", 10);
-  ExecuteAndValidateResultset(db, "field11", "<", "'5'", 5);    
- 
+  ExecuteAndValidateResultset(db, "field11", "<", "'5'", 5);
+
   for (size_t i = 1; i < fieldCount; i++) {
     if (i == 3) {
       // field 3 is bool and this test does not make sense for bool
@@ -648,20 +743,30 @@ TEST(Database, ExecuteSelect_LT_LTE) {
 }
 
 TEST(Database, ExecuteSelect_GT_GTE) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_GT_GTE", GetDefaultDBOptions());
+  Database
+      db(g_TestRootDirectory, "ExecuteSelect_GT_GTE", GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("all_field_type.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes{};
-  db.CreateCollection("all_field_collection", SchemaType::FLAT_BUFFERS, schema, indexes);
+  db.CreateCollection("all_field_collection",
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string str = std::to_string(i);
-    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i), static_cast<uint8_t>(i),
-                                                    true, static_cast<int16_t>(i),
-                                                    static_cast<uint16_t>(i), static_cast<int32_t>(i),
-                                                    static_cast<uint32_t>(i), (float)i, static_cast<int64_t>(i),
-                                                    (double)i, str));
+    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i),
+                                                    static_cast<uint8_t>(i),
+                                                    true,
+                                                    static_cast<int16_t>(i),
+                                                    static_cast<uint16_t>(i),
+                                                    static_cast<int32_t>(i),
+                                                    static_cast<uint32_t>(i),
+                                                    (float) i,
+                                                    static_cast<int64_t>(i),
+                                                    (double) i,
+                                                    str));
   }
 
   db.MultiInsert("all_field_collection", documents);
@@ -681,7 +786,7 @@ TEST(Database, ExecuteSelect_GT_GTE) {
   ExecuteAndValidateResultset(db, "field11", ">", "''", 10);
   ExecuteAndValidateResultset(db, "field11", ">", "'99'", 0);
   ExecuteAndValidateResultset(db, "field11", ">", "'5'", 4);
-    
+
   for (size_t i = 1; i < fieldCount; i++) {
     if (i == 3) {
       // field 3 is bool and this test does not make sense for bool
@@ -730,34 +835,43 @@ TEST(Database, ExecuteSelect_GT_GTE) {
 }
 
 TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_VECTORIndexed_DoubleExpression", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_VECTORIndexed_DoubleExpression",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "rating", true) };
+  std::vector<IndexInfo>
+      indexes{IndexInfo("IndexName1", IndexType::VECTOR, "rating", true)};
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i/100.0));
+    documents.push_back(GetTweetObject2(i,
+                                        i,
+                                        &name,
+                                        &text,
+                                        (double) i / 100.0));
   }
   db.MultiInsert("tweet", documents);
 
   int rowCnt = 0;
   auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                             "FROM tweet WHERE rating "
-                             "between round(0.06 - 0.01, 2) and round(0.06 + 0.01, 2);");
+                                 "FROM tweet WHERE rating "
+                                 "between round(0.06 - 0.01, 2) and round(0.06 + 0.01, 2);");
   double ratingVal = 0.05;
   while (rs.Next()) {
     ASSERT_DOUBLE_EQ(ratingVal, rs.GetDouble(rs.GetColumnIndex("rating")));
     ratingVal += 0.01;
     rowCnt++;
   }
-  ASSERT_EQ(rowCnt, 3);  
+  ASSERT_EQ(rowCnt, 3);
 }
 TEST(Database, ExecuteSelect_DoubleExpression) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_DoubleExpression", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_DoubleExpression",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes;
@@ -767,14 +881,18 @@ TEST(Database, ExecuteSelect_DoubleExpression) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
+    documents.push_back(GetTweetObject2(i,
+                                        i,
+                                        &name,
+                                        &text,
+                                        (double) i / 100.0));
   }
   db.MultiInsert("tweet", documents);
 
   int rowCnt = 0;
   auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                             "FROM tweet WHERE rating "
-                             "between round(0.06 - 0.01, 2) and round(0.06 + 0.01, 2);");
+                                 "FROM tweet WHERE rating "
+                                 "between round(0.06 - 0.01, 2) and round(0.06 + 0.01, 2);");
   double ratingVal = 0.05;
   while (rs.Next()) {
     ASSERT_DOUBLE_EQ(ratingVal, rs.GetDouble(rs.GetColumnIndex("rating")));
@@ -785,44 +903,63 @@ TEST(Database, ExecuteSelect_DoubleExpression) {
 }
 
 TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_EWAHIndexed_String_GTE", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_EWAHIndexed_String_GTE",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+  std::vector<IndexInfo> indexes{IndexInfo("IndexName1",
+                                           IndexType::EWAH_COMPRESSED_BITMAP,
+                                           "user.name",
+                                           true)};
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
+    documents.push_back(GetTweetObject2(i,
+                                        i,
+                                        &name,
+                                        &text,
+                                        (double) i / 100.0));
   }
   db.MultiInsert("tweet", documents);
 
   auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                             "FROM tweet WHERE [user.name] >= 'zarian_3';");
+                                 "FROM tweet WHERE [user.name] >= 'zarian_3';");
   int counter = 3;
   while (rs.Next()) {
     std::string expectedName = "zarian_" + std::to_string(counter);
-    ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+    ASSERT_STREQ(expectedName.c_str(),
+                 rs.GetString(rs.GetColumnIndex("user.name")).str());
     counter++;
   }
   ASSERT_EQ(counter, 10);
 }
 
-void ValidateTweetResultSet(Database& db, int lowerCount, int upperCount,
-                            const std::string& lowerColName, const std::string& lowerOp, const std::string& lowerColVal,
-                            const std::string& upperColName, const std::string& upperOp, const std::string& upperColVal) {
-  std::string sql = "SELECT id, text, [user.id], [user.name], rating FROM tweet WHERE ";
+void ValidateTweetResultSet(Database& db,
+                            int lowerCount,
+                            int upperCount,
+                            const std::string& lowerColName,
+                            const std::string& lowerOp,
+                            const std::string& lowerColVal,
+                            const std::string& upperColName,
+                            const std::string& upperOp,
+                            const std::string& upperColVal) {
+  std::string
+      sql = "SELECT id, text, [user.id], [user.name], rating FROM tweet WHERE ";
   sql.append(lowerColName).append(" ").append(lowerOp).append(" ").
-    append(lowerColVal).append(" AND ").append(upperColName).append(" ").
-    append(upperOp).append(" ").append(upperColVal).append(";");
+      append(lowerColVal).append(" AND ").append(upperColName).append(" ").
+      append(upperOp).append(" ").append(upperColVal).append(";");
   auto rs = db.ExecuteSelect(sql);
   while (rs.Next()) {
     std::string expectedName = "zarian_" + std::to_string(lowerCount);
-    ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
+    ASSERT_STREQ(expectedName.c_str(),
+                 rs.GetString(rs.GetColumnIndex("user.name")).str());
     ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("id")));
-    ASSERT_DOUBLE_EQ(double(lowerCount), rs.GetDouble(rs.GetColumnIndex("rating")));
+    ASSERT_DOUBLE_EQ(double(lowerCount),
+                     rs.GetDouble(rs.GetColumnIndex("rating")));
     ASSERT_EQ(lowerCount, rs.GetInteger(rs.GetColumnIndex("user.id")));
     lowerCount++;
   }
@@ -830,7 +967,9 @@ void ValidateTweetResultSet(Database& db, int lowerCount, int upperCount,
 }
 
 TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_EWAHIndexed_Range", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_EWAHIndexed_Range",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true),
@@ -843,7 +982,11 @@ TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, static_cast<double>(i)));
+    documents.push_back(GetTweetObject2(i,
+                                        i,
+                                        &name,
+                                        &text,
+                                        static_cast<double>(i)));
   }
   db.MultiInsert("tweet", documents);
 
@@ -865,25 +1008,32 @@ TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
   ValidateTweetResultSet(db, 3, 8, "rating", ">=", "3.0", "rating", "<=", "7.0");
   ValidateTweetResultSet(db, 3, 7, "rating", ">=", "3.0", "rating", "<", "7.0");
   ValidateTweetResultSet(db, 4, 8, "rating", ">", "3.0", "rating", "<=", "7.0");
-  ValidateTweetResultSet(db, 4, 7, "rating", ">", "3.0", "rating", "<", "7.0"); 
+  ValidateTweetResultSet(db, 4, 7, "rating", ">", "3.0", "rating", "<", "7.0");
 }
 
 TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_VECTORIndexed_Range", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_VECTORIndexed_Range",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   // Todo: Enable tests for string Vector indexer once we have implemented that.
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
-    IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
-    IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true),
-    IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true) };
+  std::vector<IndexInfo>
+      indexes{IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
+              IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
+              IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true),
+              IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true)};
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, static_cast<double>(i)));
+    documents.push_back(GetTweetObject2(i,
+                                        i,
+                                        &name,
+                                        &text,
+                                        static_cast<double>(i)));
   }
   db.MultiInsert("tweet", documents);
 
@@ -917,33 +1067,36 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
   string schema = File::Read(filePath);
 
   for (auto idCnt: idCounts) {
-    string dbName = "ExecuteSelect_ScanForIDSeq_" + to_string(idCnt);    
-    Database db(dbPath, dbName, GetDefaultDBOptions());    
-    std::vector<IndexInfo> indexes;    
-    db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+    string dbName = "ExecuteSelect_ScanForIDSeq_" + to_string(idCnt);
+    Database db(dbPath, dbName, GetDefaultDBOptions());
+    std::vector<IndexInfo> indexes;
+    db.CreateCollection(collectionName,
+                        SchemaType::FLAT_BUFFERS,
+                        schema,
+                        indexes);
 
     std::vector<Buffer> documents;
     std::string text = "hello";
     std::string name = "zarian";
-    for (size_t i = 0; i < idCnt; i++) {      
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));      
+    for (size_t i = 0; i < idCnt; i++) {
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
     }
 
     db.MultiInsert(collectionName, documents);
 
     auto rs = db.ExecuteSelect("SELECT id FROM tweet;");
-    auto rowCnt = 0;    
+    auto rowCnt = 0;
     while (rs.Next()) {
       ASSERT_EQ(rowCnt, rs.GetInteger(rs.GetColumnIndex("id")));
       rowCnt++;
     }
     ASSERT_EQ(idCnt, rowCnt);
-  }  
+  }
 }
 
 TEST(Database, ExecuteSelect_Aggregation_Indexed) {
   // This test checks the boundary conditions for IDSeq
-  std::vector<int> idCounts = { 0, 1, 50, 100, 101, 200, 201 };
+  std::vector<int> idCounts = {0, 1, 50, 100, 101, 200, 201};
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   string filePath = GetSchemaFilePath("tweet.bfbs");
@@ -951,39 +1104,47 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
 
   for (auto idCnt : idCounts) {
     string dbName = "ExecuteSelect_Aggregation_Indexed_" + to_string(idCnt);
-    Database db(dbPath, dbName, GetDefaultDBOptions());    
-    std::vector<IndexInfo> indexes { IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
-      IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
-      IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true),
-      IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true) };
-    db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+    Database db(dbPath, dbName, GetDefaultDBOptions());
+    std::vector<IndexInfo>
+        indexes{IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
+                IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
+                IndexInfo("IndexName3", IndexType::VECTOR, "user.id", true),
+                IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true)};
+    db.CreateCollection(collectionName,
+                        SchemaType::FLAT_BUFFERS,
+                        schema,
+                        indexes);
 
     std::vector<Buffer> documents;
     std::string text = "hello";
     std::string name = "zarian";
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
       expectedSum += i;
     }
 
     db.MultiInsert(collectionName, documents);
 
     auto rs = db.ExecuteSelect(
-      "SELECT SUM(id) as sum_id, SUM(rating) as sum_rating, "
-      "SUM([user.id]) as sum_user_id, "
-      "AVG(id) as avg_id, AVG(rating) as avg_rating, "
-      "AVG([user.id]) as avg_user_id "
-      "FROM tweet;");
+        "SELECT SUM(id) as sum_id, SUM(rating) as sum_rating, "
+            "SUM([user.id]) as sum_user_id, "
+            "AVG(id) as avg_id, AVG(rating) as avg_rating, "
+            "AVG([user.id]) as avg_user_id "
+            "FROM tweet;");
     auto rowCnt = 0;
     while (rs.Next()) {
       ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_id")));
-      ASSERT_DOUBLE_EQ((double)expectedSum, rs.GetDouble(rs.GetColumnIndex("sum_rating")));
+      ASSERT_DOUBLE_EQ((double) expectedSum,
+                       rs.GetDouble(rs.GetColumnIndex("sum_rating")));
       ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_user_id")));
       if (idCnt > 0) {
-        ASSERT_EQ(expectedSum / idCnt, rs.GetInteger(rs.GetColumnIndex("avg_id")));
-        ASSERT_DOUBLE_EQ((double)expectedSum / (double)idCnt, rs.GetDouble(rs.GetColumnIndex("avg_rating")));
-        ASSERT_EQ(expectedSum / idCnt, rs.GetInteger(rs.GetColumnIndex("avg_user_id")));
+        ASSERT_EQ(expectedSum / idCnt,
+                  rs.GetInteger(rs.GetColumnIndex("avg_id")));
+        ASSERT_DOUBLE_EQ((double) expectedSum / (double) idCnt,
+                         rs.GetDouble(rs.GetColumnIndex("avg_rating")));
+        ASSERT_EQ(expectedSum / idCnt,
+                  rs.GetInteger(rs.GetColumnIndex("avg_user_id")));
       }
       rowCnt++;
     }
@@ -993,7 +1154,7 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
 
 TEST(Database, ExecuteSelect_Aggregation) {
   // This test checks the boundary conditions for IDSeq
-  std::vector<int> idCounts = { 0, 1, 50, 100, 101, 200, 201 };
+  std::vector<int> idCounts = {0, 1, 50, 100, 101, 200, 201};
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   string filePath = GetSchemaFilePath("tweet.bfbs");
@@ -1003,34 +1164,41 @@ TEST(Database, ExecuteSelect_Aggregation) {
     string dbName = "ExecuteSelect_Aggregation_" + to_string(idCnt);
     Database db(dbPath, dbName, GetDefaultDBOptions());
     std::vector<IndexInfo> indexes;
-    db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+    db.CreateCollection(collectionName,
+                        SchemaType::FLAT_BUFFERS,
+                        schema,
+                        indexes);
 
     std::vector<Buffer> documents;
     std::string text = "hello";
     std::string name = "zarian";
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i));
+      documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
       expectedSum += i;
     }
 
     db.MultiInsert(collectionName, documents);
 
     auto rs = db.ExecuteSelect(
-      "SELECT SUM(id) as sum_id, SUM(rating) as sum_rating, "
-      "SUM([user.id]) as sum_user_id, "
-      "AVG(id) as avg_id, AVG(rating) as avg_rating, "
-      "AVG([user.id]) as avg_user_id "
-      "FROM tweet;");
+        "SELECT SUM(id) as sum_id, SUM(rating) as sum_rating, "
+            "SUM([user.id]) as sum_user_id, "
+            "AVG(id) as avg_id, AVG(rating) as avg_rating, "
+            "AVG([user.id]) as avg_user_id "
+            "FROM tweet;");
     auto rowCnt = 0;
     while (rs.Next()) {
       ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_id")));
-      ASSERT_DOUBLE_EQ((double)expectedSum, rs.GetDouble(rs.GetColumnIndex("sum_rating")));
+      ASSERT_DOUBLE_EQ((double) expectedSum,
+                       rs.GetDouble(rs.GetColumnIndex("sum_rating")));
       ASSERT_EQ(expectedSum, rs.GetInteger(rs.GetColumnIndex("sum_user_id")));
       if (idCnt > 0) {
-        ASSERT_EQ(expectedSum / idCnt, rs.GetInteger(rs.GetColumnIndex("avg_id")));
-        ASSERT_DOUBLE_EQ((double)expectedSum / (double)idCnt, rs.GetDouble(rs.GetColumnIndex("avg_rating")));
-        ASSERT_EQ(expectedSum / idCnt, rs.GetInteger(rs.GetColumnIndex("avg_user_id")));
+        ASSERT_EQ(expectedSum / idCnt,
+                  rs.GetInteger(rs.GetColumnIndex("avg_id")));
+        ASSERT_DOUBLE_EQ((double) expectedSum / (double) idCnt,
+                         rs.GetDouble(rs.GetColumnIndex("avg_rating")));
+        ASSERT_EQ(expectedSum / idCnt,
+                  rs.GetInteger(rs.GetColumnIndex("avg_user_id")));
       }
       rowCnt++;
     }
@@ -1039,7 +1207,9 @@ TEST(Database, ExecuteSelect_Aggregation) {
 }
 
 TEST(Database, ExecuteSelect_NullStrFields) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_NullStrFields", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_NullStrFields",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes;
@@ -1050,15 +1220,23 @@ TEST(Database, ExecuteSelect_NullStrFields) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
+      documents.push_back(GetTweetObject2(i,
+                                          i,
+                                          &name,
+                                          &text,
+                                          (double) i / 100.0));
     } else {
-      documents.push_back(GetTweetObject2(i, i, nullptr, nullptr, (double)i / 100.0));
+      documents.push_back(GetTweetObject2(i,
+                                          i,
+                                          nullptr,
+                                          nullptr,
+                                          (double) i / 100.0));
     }
   }
   db.MultiInsert("tweet", documents);
 
   auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                             "FROM tweet;");
+                                 "FROM tweet;");
   int rowCnt = 0;
   while (rs.Next()) {
     if (rowCnt % 2 == 0) {
@@ -1066,8 +1244,10 @@ TEST(Database, ExecuteSelect_NullStrFields) {
       ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
       std::string expectedName = "zarian_" + std::to_string(rowCnt);
       std::string expectedText = "hello_" + std::to_string(rowCnt);
-      ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
-      ASSERT_STREQ(expectedText.c_str(), rs.GetString(rs.GetColumnIndex("text")).str());
+      ASSERT_STREQ(expectedName.c_str(),
+                   rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ(expectedText.c_str(),
+                   rs.GetString(rs.GetColumnIndex("text")).str());
     } else {
       ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
       ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
@@ -1079,7 +1259,7 @@ TEST(Database, ExecuteSelect_NullStrFields) {
   ASSERT_EQ(rowCnt, 10);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] > 'a';");
+                            "FROM tweet where [user.name] > 'a';");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1089,7 +1269,7 @@ TEST(Database, ExecuteSelect_NullStrFields) {
   ASSERT_EQ(rowCnt, 5);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] IS NOT NULL;");
+                            "FROM tweet where [user.name] IS NOT NULL;");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1099,7 +1279,7 @@ TEST(Database, ExecuteSelect_NullStrFields) {
   ASSERT_EQ(rowCnt, 5);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] < 'a';");
+                            "FROM tweet where [user.name] < 'a';");
   rowCnt = 0;
   while (rs.Next()) {
     rowCnt++;
@@ -1107,7 +1287,7 @@ TEST(Database, ExecuteSelect_NullStrFields) {
   ASSERT_EQ(rowCnt, 0);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] IS NULL;");
+                            "FROM tweet where [user.name] IS NULL;");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1118,11 +1298,14 @@ TEST(Database, ExecuteSelect_NullStrFields) {
 }
 
 TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_NullStrFields_Indexed", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_NullStrFields_Indexed",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::VECTOR, "text", true),    
-    IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true) };
+  std::vector<IndexInfo>
+      indexes{IndexInfo("IndexName1", IndexType::VECTOR, "text", true),
+              IndexInfo("IndexName4", IndexType::VECTOR, "user.name", true)};
 
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
@@ -1131,15 +1314,23 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
+      documents.push_back(GetTweetObject2(i,
+                                          i,
+                                          &name,
+                                          &text,
+                                          (double) i / 100.0));
     } else {
-      documents.push_back(GetTweetObject2(i, i, nullptr, nullptr, (double)i / 100.0));
+      documents.push_back(GetTweetObject2(i,
+                                          i,
+                                          nullptr,
+                                          nullptr,
+                                          (double) i / 100.0));
     }
   }
   db.MultiInsert("tweet", documents);
 
   auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                             "FROM tweet;");
+                                 "FROM tweet;");
   int rowCnt = 0;
   while (rs.Next()) {
     if (rowCnt % 2 == 0) {
@@ -1147,8 +1338,10 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
       ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
       std::string expectedName = "zarian_" + std::to_string(rowCnt);
       std::string expectedText = "hello_" + std::to_string(rowCnt);
-      ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
-      ASSERT_STREQ(expectedText.c_str(), rs.GetString(rs.GetColumnIndex("text")).str());
+      ASSERT_STREQ(expectedName.c_str(),
+                   rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ(expectedText.c_str(),
+                   rs.GetString(rs.GetColumnIndex("text")).str());
     } else {
       ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
       ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
@@ -1160,7 +1353,7 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
   ASSERT_EQ(rowCnt, 10);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                             "FROM tweet where [user.name] > 'a';");
+                            "FROM tweet where [user.name] > 'a';");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1170,7 +1363,7 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
   ASSERT_EQ(rowCnt, 5);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] IS NOT NULL;");
+                            "FROM tweet where [user.name] IS NOT NULL;");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1180,7 +1373,7 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
   ASSERT_EQ(rowCnt, 5);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] < 'a';");
+                            "FROM tweet where [user.name] < 'a';");
   rowCnt = 0;
   while (rs.Next()) {
     rowCnt++;
@@ -1188,7 +1381,7 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
   ASSERT_EQ(rowCnt, 0);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] IS NULL;");
+                            "FROM tweet where [user.name] IS NULL;");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1199,11 +1392,17 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
 }
 
 TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
-  Database db(g_TestRootDirectory, "ExecuteSelect_NullStrFields_EWAHIndexed", GetDefaultDBOptions());
+  Database db(g_TestRootDirectory,
+              "ExecuteSelect_NullStrFields_EWAHIndexed",
+              GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "text", true),
-    IndexInfo("IndexName4", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+  std::vector<IndexInfo> indexes
+      {IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "text", true),
+       IndexInfo("IndexName4",
+                 IndexType::EWAH_COMPRESSED_BITMAP,
+                 "user.name",
+                 true)};
 
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
@@ -1212,15 +1411,23 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double)i / 100.0));
+      documents.push_back(GetTweetObject2(i,
+                                          i,
+                                          &name,
+                                          &text,
+                                          (double) i / 100.0));
     } else {
-      documents.push_back(GetTweetObject2(i, i, nullptr, nullptr, (double)i / 100.0));
+      documents.push_back(GetTweetObject2(i,
+                                          i,
+                                          nullptr,
+                                          nullptr,
+                                          (double) i / 100.0));
     }
   }
   db.MultiInsert("tweet", documents);
 
   auto rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                             "FROM tweet;");
+                                 "FROM tweet;");
   int rowCnt = 0;
   while (rs.Next()) {
     if (rowCnt % 2 == 0) {
@@ -1228,8 +1435,10 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
       ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("text")));
       std::string expectedName = "zarian_" + std::to_string(rowCnt);
       std::string expectedText = "hello_" + std::to_string(rowCnt);
-      ASSERT_STREQ(expectedName.c_str(), rs.GetString(rs.GetColumnIndex("user.name")).str());
-      ASSERT_STREQ(expectedText.c_str(), rs.GetString(rs.GetColumnIndex("text")).str());
+      ASSERT_STREQ(expectedName.c_str(),
+                   rs.GetString(rs.GetColumnIndex("user.name")).str());
+      ASSERT_STREQ(expectedText.c_str(),
+                   rs.GetString(rs.GetColumnIndex("text")).str());
     } else {
       ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
       ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("text")));
@@ -1241,7 +1450,7 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   ASSERT_EQ(rowCnt, 10);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] > 'a';");
+                            "FROM tweet where [user.name] > 'a';");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1251,7 +1460,7 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   ASSERT_EQ(rowCnt, 5);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] IS NOT NULL;");
+                            "FROM tweet where [user.name] IS NOT NULL;");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1261,7 +1470,7 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   ASSERT_EQ(rowCnt, 5);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] < 'a';");
+                            "FROM tweet where [user.name] < 'a';");
   rowCnt = 0;
   while (rs.Next()) {
     rowCnt++;
@@ -1269,7 +1478,7 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   ASSERT_EQ(rowCnt, 0);
 
   rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating "
-                        "FROM tweet where [user.name] IS NULL;");
+                            "FROM tweet where [user.name] IS NULL;");
   rowCnt = 0;
   while (rs.Next()) {
     ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("user.name")));
@@ -1287,8 +1496,11 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes;  
-  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema, indexes);
+  std::vector<IndexInfo> indexes;
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
 
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
@@ -1296,10 +1508,12 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   db.Insert(collectionName, documentData);
 
   int rows = 0;
-  ResultSet rs = db.ExecuteSelect("SELECT id, text, [user.id], [user.name], rating FROM tweet;");
+  ResultSet rs = db.ExecuteSelect(
+      "SELECT id, text, [user.id], [user.name], rating FROM tweet;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
-    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "Say hello to my little friend!");
+    ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(),
+                 "Say hello to my little friend!");
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
     ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 2.0);
@@ -1308,7 +1522,7 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   ASSERT_EQ(rows, 1);
 
   rows = 0;
-  while (rs.Next()) {    
+  while (rs.Next()) {
     ++rows;
   }
   ASSERT_EQ(rows, 0);
@@ -1317,7 +1531,7 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(), "");
   ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 0);
   ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "");
-  ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 0.0); 
+  ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 0.0);
 
   rs.Close();
 }

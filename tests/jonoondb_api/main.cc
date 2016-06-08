@@ -51,8 +51,8 @@ Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
 
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
-  
-  Buffer buffer((char*)fbb.GetBufferPointer(), size, size);
+
+  Buffer buffer((char*) fbb.GetBufferPointer(), size, size);
   return buffer;
 }
 
@@ -68,7 +68,7 @@ BufferImpl GetTweetObject() {
 
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
-  return BufferImpl((char*)fbb.GetBufferPointer(), size, size);
+  return BufferImpl((char*) fbb.GetBufferPointer(), size, size);
 }
 
 Buffer GetAllFieldTypeObjectBuffer(char field1, unsigned char field2, bool field3, int16_t field4,
@@ -85,7 +85,7 @@ Buffer GetAllFieldTypeObjectBuffer(char field1, unsigned char field2, bool field
                                       field9, field10, str2, nestedObj);
   fbb.Finish(parentObj);
 
-  return Buffer((char*)fbb.GetBufferPointer(), fbb.GetSize(), fbb.GetSize());
+  return Buffer((char*) fbb.GetBufferPointer(), fbb.GetSize(), fbb.GetSize());
 }
 
 Options GetDefaultDBOptions() {
@@ -124,8 +124,8 @@ bool SetUpDirectory(const char* directoryPath) {
   return true;
 }
 
-int main(int argc, char **argv) {  
-  path tempPath = TEST_FOLDER_PATH;  
+int main(int argc, char** argv) {
+  path tempPath = TEST_FOLDER_PATH;
   g_TestRootDirectory = tempPath.generic_string();
   tempPath = RESOURCES_FOLDER_PATH;
   g_ResourcesFolderPath = tempPath.generic_string();
