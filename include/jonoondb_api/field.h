@@ -6,7 +6,7 @@
 namespace jonoondb_api {
 // Forward Declarations
 enum class FieldType
-: std::int8_t;
+    : std::int8_t;
 class Field {
  public:
   virtual ~Field() {

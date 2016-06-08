@@ -9,11 +9,11 @@ namespace jonoondb_api {
 class IndexInfoImpl;
 class Indexer;
 enum class FieldType
-: std::int8_t;
+    : std::int8_t;
 
 class IndexerFactory {
  public:
-   static Indexer* CreateIndexer(
+  static Indexer* CreateIndexer(
       const IndexInfoImpl& indexInfo,
       const FieldType& fieldType);
  private:

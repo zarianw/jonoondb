@@ -5,22 +5,22 @@
 
 namespace jonoondb_api {
 enum class SchemaType
-  : std::int32_t {
-    FLAT_BUFFERS = 1    
+    : std::int32_t {
+  FLAT_BUFFERS = 1
 };
 extern SchemaType ToSchemaType(std::int32_t type);
 
 
 enum class IndexType
-  : std::int32_t {
-    EWAH_COMPRESSED_BITMAP = 1,
-    VECTOR = 2,
+    : std::int32_t {
+  EWAH_COMPRESSED_BITMAP = 1,
+  VECTOR = 2,
 };
 extern IndexType ToIndexType(std::int32_t type);
 
 
 enum class FieldType
-  : std::int8_t {    
+    : std::int8_t {
   BASE_TYPE_INT8,
   BASE_TYPE_INT16,
   BASE_TYPE_INT32,
@@ -34,18 +34,22 @@ enum class FieldType
 };
 
 // TODO: Come up with better management of enum to string functionality
-static const char* FieldTypeStrings[] = { "BASE_TYPE_UINT8", "BASE_TYPE_UINT16",
-    "BASE_TYPE_UINT32", "BASE_TYPE_UINT64", "BASE_TYPE_INT8", "BASE_TYPE_INT16",
-    "BASE_TYPE_INT32", "BASE_TYPE_INT64", "BASE_TYPE_FLOAT32",
-    "BASE_TYPE_DOUBLE", "BASE_TYPE_STRING", "BASE_TYPE_VECTOR",
-    "BASE_TYPE_COMPLEX",  "BASE_TYPE_UNION"};
+static const char* FieldTypeStrings[] = {"BASE_TYPE_UINT8", "BASE_TYPE_UINT16",
+                                         "BASE_TYPE_UINT32", "BASE_TYPE_UINT64",
+                                         "BASE_TYPE_INT8", "BASE_TYPE_INT16",
+                                         "BASE_TYPE_INT32", "BASE_TYPE_INT64",
+                                         "BASE_TYPE_FLOAT32",
+                                         "BASE_TYPE_DOUBLE", "BASE_TYPE_STRING",
+                                         "BASE_TYPE_VECTOR",
+                                         "BASE_TYPE_COMPLEX",
+                                         "BASE_TYPE_UNION"};
 
 static const char* GetFieldString(FieldType fieldType) {
   return FieldTypeStrings[static_cast<int32_t>(fieldType)];
 }
 
 enum class IndexConstraintOperator
-  : std::int8_t {
+    : std::int8_t {
   EQUAL,
   LESS_THAN,
   LESS_THAN_EQUAL,
@@ -54,7 +58,7 @@ enum class IndexConstraintOperator
   MATCH,
   LIKE,
   GLOB,
-  REGEX  
+  REGEX
 };
 
 enum class SqlType : std::int32_t {

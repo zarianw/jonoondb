@@ -28,10 +28,10 @@ class OptionsImpl {
   std::size_t GetMemoryCleanupThreshold();
 
  private:
-   bool m_createDBIfMissing;
-   std::size_t m_maxDataFileSize;
-   bool m_compressionEnabled;
-   bool m_synchronous;
-   std::size_t m_memCleanupThresholdInBytes;
+  bool m_createDBIfMissing;
+  std::size_t m_maxDataFileSize;
+  bool m_compressionEnabled;
+  bool m_synchronous;
+  std::size_t m_memCleanupThresholdInBytes;
 };
 }  // namespace jonoondb_api

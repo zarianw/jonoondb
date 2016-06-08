@@ -3,7 +3,7 @@
 #include <cstddef>
 
 namespace jonoondb_api {
-  // Forward declarations
+// Forward declarations
 struct StatusData;
 
 class StatusImpl {
@@ -12,7 +12,7 @@ class StatusImpl {
   StatusImpl(const StatusImpl& other);
   StatusImpl(StatusImpl&& other);
   StatusImpl(std::size_t code, const char* message, const char* srcFileName,
-    const char* funcName, std::size_t lineNum);
+             const char* funcName, std::size_t lineNum);
   ~StatusImpl();
   StatusImpl& operator=(StatusImpl&& other);
   StatusImpl& operator=(const StatusImpl& other);

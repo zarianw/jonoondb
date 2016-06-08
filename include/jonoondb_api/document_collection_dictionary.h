@@ -14,7 +14,8 @@ class DocumentCollection;
 struct ColumnInfo {
   ColumnInfo(const std::string& colName, FieldType colType,
              const std::vector<std::string>& colNameTokens) :
-    columnName(colName), columnType(colType), columnNameTokens(colNameTokens) {
+      columnName(colName), columnType(colType),
+      columnNameTokens(colNameTokens) {
   }
   std::string columnName;
   FieldType columnType;
@@ -28,23 +29,25 @@ struct DocumentCollectionInfo {
 };
 
 class DocumentCollectionDictionary {
-public:
+ public:
   DocumentCollectionDictionary(const DocumentCollectionDictionary&) = delete;
   DocumentCollectionDictionary(DocumentCollectionDictionary&&) = delete;
-  
+
   static DocumentCollectionDictionary* Instance();
-  void Insert(const std::string& key, const std::shared_ptr<DocumentCollectionInfo>& collection);
-  bool TryGet(const std::string& key, std::shared_ptr<DocumentCollectionInfo>& collection);
+  void Insert(const std::string& key,
+              const std::shared_ptr<DocumentCollectionInfo>& collection);
+  bool TryGet(const std::string& key,
+              std::shared_ptr<DocumentCollectionInfo>& collection);
   void Remove(const std::string& key);
   void Clear();
 
-private:
+ private:
   DocumentCollectionDictionary();
   static void Init();
   static std::once_flag onceFlag;
   static DocumentCollectionDictionary* instance;
-  std::unordered_map<std::string, std::shared_ptr<DocumentCollectionInfo>> m_dictionary;
+  std::unordered_map<std::string, std::shared_ptr<DocumentCollectionInfo>>
+      m_dictionary;
 };
-
 
 }  // jonoondb_api

@@ -19,8 +19,8 @@
 
 namespace jonoondb_api {
 template<typename T>
-class VectorIntegerIndexer final : public Indexer {
-public:
+class VectorIntegerIndexer final: public Indexer {
+ public:
   VectorIntegerIndexer(const IndexInfoImpl& indexInfo,
                        const FieldType& fieldType) {
     // TODO: Add index name in the error message as well
@@ -31,11 +31,11 @@ public:
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::VECTOR) {
       errorMsg =
-        "Argument indexInfo can only have IndexType VECTOR for VectorIntegerIndexer.";
+          "Argument indexInfo can only have IndexType VECTOR for VectorIntegerIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-        << " is not valid for VectorIntegerIndexer.";
+          << " is not valid for VectorIntegerIndexer.";
       errorMsg = ss.str();
     }
 
@@ -49,14 +49,15 @@ public:
 
   static bool IsValidFieldType(FieldType fieldType) {
     return (fieldType == FieldType::BASE_TYPE_INT8
-            || fieldType == FieldType::BASE_TYPE_INT16
-            || fieldType == FieldType::BASE_TYPE_INT32
-            || fieldType == FieldType::BASE_TYPE_INT64);
+        || fieldType == FieldType::BASE_TYPE_INT16
+        || fieldType == FieldType::BASE_TYPE_INT32
+        || fieldType == FieldType::BASE_TYPE_INT64);
   }
 
   void ValidateForInsert(const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
+      auto subDoc =
+          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
                                  m_indexStat.GetFieldType());
     } else {
@@ -67,7 +68,8 @@ public:
 
   void Insert(std::uint64_t documentID, const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
+      auto subDoc =
+          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       InsertInternal(documentID, *subDoc.get());
     } else {
       InsertInternal(documentID, document);
@@ -82,7 +84,7 @@ public:
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
-      case jonoondb_api::IndexConstraintOperator::LESS_THAN:   
+      case jonoondb_api::IndexConstraintOperator::LESS_THAN:
         return GetBitmapLT(constraint, false);
       case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
         return GetBitmapLT(constraint, true);
@@ -94,19 +96,21 @@ public:
         // TODO: Handle this
       default:
         std::ostringstream ss;
-        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+        ss << "IndexConstraintOperator type "
+            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 
   std::shared_ptr<MamaJenniesBitmap> FilterRange(
-    const Constraint& lowerConstraint,
-    const Constraint& upperConstraint) {
+      const Constraint& lowerConstraint,
+      const Constraint& upperConstraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     std::int64_t lowerVal, upperVal;
 
     if (lowerConstraint.operandType == OperandType::DOUBLE) {
-      lowerVal = static_cast<int64_t>(std::floor(lowerConstraint.operand.doubleVal));
+      lowerVal =
+          static_cast<int64_t>(std::floor(lowerConstraint.operand.doubleVal));
     } else {
       if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL) {
         // Subtracting 1 here allows us to use > operator in the loop below
@@ -117,7 +121,8 @@ public:
     }
 
     if (upperConstraint.operandType == OperandType::DOUBLE) {
-      upperVal = static_cast<int64_t>(std::ceil(upperConstraint.operand.doubleVal));
+      upperVal =
+          static_cast<int64_t>(std::ceil(upperConstraint.operand.doubleVal));
     } else {
       if (upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
         // Adding 1 here allows us to use < operator in the loop below
@@ -131,12 +136,13 @@ public:
       if (m_dataVector[i] > lowerVal && m_dataVector[i] < upperVal) {
         bitmap->Add(i);
       }
-    }    
+    }
 
     return bitmap;
   }
 
-  bool TryGetIntegerValue(std::uint64_t documentID, std::int64_t& val) override {
+  bool TryGetIntegerValue(std::uint64_t documentID,
+                          std::int64_t& val) override {
     if (documentID < m_dataVector.size()) {
       val = m_dataVector[documentID];
       return true;
@@ -155,11 +161,11 @@ public:
       }
       values[i] = m_dataVector[documentIDs[i]];
     }
-    
+
     return true;
   }
 
-private:
+ private:
   void InsertInternal(std::uint64_t documentID, const Document& document) {
     int64_t val = document.GetIntegerValueAsInt64(m_fieldNameTokens.back());
     assert(m_dataVector.size() == documentID);
@@ -183,7 +189,8 @@ private:
     } else if (constraint.operandType == OperandType::DOUBLE) {
       // Check if double has no fractional part. If it has fractional part
       // then it can't be equal to any integer
-      std::int64_t intVal = static_cast<std::int64_t>(constraint.operand.doubleVal);
+      std::int64_t
+          intVal = static_cast<std::int64_t>(constraint.operand.doubleVal);
       if (constraint.operand.doubleVal == intVal) {
         for (size_t i = 0; i < m_dataVector.size(); i++) {
           if (m_dataVector[i] == intVal) {
@@ -198,7 +205,8 @@ private:
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint, bool orEqual) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint,
+                                                 bool orEqual) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     int64_t valToCmp;
     if (constraint.operandType == OperandType::DOUBLE) {
@@ -221,7 +229,8 @@ private:
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint, bool orEqual) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint,
+                                                 bool orEqual) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     int64_t valToCmp;
     if (constraint.operandType == OperandType::DOUBLE) {
@@ -242,7 +251,7 @@ private:
     }
 
     return bitmap;
-  }  
+  }
 
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;

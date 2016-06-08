@@ -8,25 +8,40 @@
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
-template<typename ObjectType> class ObjectPool final {
-public:  
-  ObjectPool(int poolInitialiSize, int poolCapacity, std::function<ObjectType*()> objectAllocatorFunc, std::function<void(ObjectType*)> objectDeallocatorFunc,
-    std::function<void(ObjectType*)> objectResetFunc = std::function<void(ObjectType*)>()) :
-    m_poolInitialiSize(poolInitialiSize), m_poolCapacity(poolCapacity), m_objectAllocatorFunc(objectAllocatorFunc),
-    m_objectDeallocatorFunc(objectDeallocatorFunc), m_currentObjectIndex(-1) {
+template<typename ObjectType>
+class ObjectPool final {
+ public:
+  ObjectPool(int poolInitialiSize,
+             int poolCapacity,
+             std::function<ObjectType*()> objectAllocatorFunc,
+             std::function<void(ObjectType*)> objectDeallocatorFunc,
+             std::function<void(ObjectType*)> objectResetFunc = std::function<
+                 void(ObjectType*)>()) :
+      m_poolInitialiSize(poolInitialiSize), m_poolCapacity(poolCapacity),
+      m_objectAllocatorFunc(objectAllocatorFunc),
+      m_objectDeallocatorFunc(objectDeallocatorFunc), m_currentObjectIndex(-1) {
     if (m_poolCapacity == 0 || m_poolCapacity < m_poolInitialiSize) {
-      throw InvalidArgumentException("Argument poolCapacity cannot be 0 or less than initialPoolSize.",
-        __FILE__, __func__, __LINE__);
+      throw InvalidArgumentException(
+          "Argument poolCapacity cannot be 0 or less than initialPoolSize.",
+          __FILE__,
+          __func__,
+          __LINE__);
     }
 
     if (!m_objectAllocatorFunc) {
-      throw InvalidArgumentException("Argument objectAllocatorFunc cannot be empty.",
-        __FILE__, __func__, __LINE__);
+      throw InvalidArgumentException(
+          "Argument objectAllocatorFunc cannot be empty.",
+          __FILE__,
+          __func__,
+          __LINE__);
     }
 
     if (!m_objectDeallocatorFunc) {
-      throw InvalidArgumentException("Argument objectDeallocatorFunc cannot be empty.",
-        __FILE__, __func__, __LINE__);
+      throw InvalidArgumentException(
+          "Argument objectDeallocatorFunc cannot be empty.",
+          __FILE__,
+          __func__,
+          __LINE__);
     }
 
     if (objectResetFunc) {
@@ -39,8 +54,11 @@ public:
       for (int i = 0; i < m_poolInitialiSize; i++) {
         m_objects[i] = InvokeObjectAllocatorFunc();
         if (m_objects[i] == nullptr) {
-          throw JonoonDBException("Object allocation failed. ObjectAllocatorFunc returned nullptr.",
-            __FILE__, __func__, __LINE__);
+          throw JonoonDBException(
+              "Object allocation failed. ObjectAllocatorFunc returned nullptr.",
+              __FILE__,
+              __func__,
+              __LINE__);
         }
       }
       m_currentObjectIndex = m_poolInitialiSize - 1;
@@ -96,20 +114,20 @@ public:
     }
   }
 
-private:
+ private:
   inline ObjectType* InvokeObjectAllocatorFunc() {
     return m_objectAllocatorFunc();
   }
 
   inline void InvokeObjectDeallocatorFunc(ObjectType* obj) {
-    m_objectDeallocatorFunc(obj);    
+    m_objectDeallocatorFunc(obj);
   }
 
   inline void InvokeObjectResetFunc(ObjectType* obj) {
     if (m_objectResetFunc) {
       m_objectResetFunc(obj);
     }
-  }  
+  }
 
   std::vector<ObjectType*> m_objects;
   int m_poolInitialiSize;
@@ -118,15 +136,17 @@ private:
   std::function<void(ObjectType*)> m_objectDeallocatorFunc;
   std::function<void(ObjectType*)> m_objectResetFunc;
   int m_currentObjectIndex;
-  std::mutex m_mutex;  
+  std::mutex m_mutex;
 };
 
-template <typename ObjectType> class ObjectPoolGuard {
-public:
+template<typename ObjectType>
+class ObjectPoolGuard {
+ public:
   ObjectPoolGuard() : m_pool(nullptr), m_obj(nullptr) {
   }
 
-  ObjectPoolGuard(ObjectPool<ObjectType>* pool, ObjectType* obj) : m_pool(pool), m_obj(obj) {
+  ObjectPoolGuard(ObjectPool<ObjectType>* pool, ObjectType* obj)
+      : m_pool(pool), m_obj(obj) {
   }
 
   ObjectPoolGuard(ObjectPoolGuard&& other) {
@@ -165,10 +185,10 @@ public:
   }
 
   //implicit conversion from ObjectPoolGuard to Object
-  operator ObjectType* () {
+  operator ObjectType*() {
     return m_obj;
   }
-private:
+ private:
   ObjectPool<ObjectType>* m_pool;
   ObjectType* m_obj;
 };

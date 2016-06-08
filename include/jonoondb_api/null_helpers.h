@@ -8,7 +8,7 @@ namespace jonoondb_api {
 const std::string JONOONDB_NULL_STR("\0\0\0\0", 4);
 
 class NullHelpers {
-public:
+ public:
   // This function checks if the str is null according to jonoondb rules
   // jonoondb considers a string of size 4 will all null characters as null
   static bool IsNull(const std::string& str) {

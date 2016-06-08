@@ -5,7 +5,7 @@
 
 namespace jonoondb_api {
 class PathUtils {
-public:
+ public:
   static std::string NormalizePath(const std::string& path) {
     boost::filesystem::path pathObj(path);
     std::string normalizedPath = pathObj.generic_string();
