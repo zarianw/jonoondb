@@ -198,6 +198,9 @@ int main(int argc, char** argv) {
       auto partSupp =
           CreatePARTSUPP(fbb, partKey, suppKey, availQty, supplyCost, comment);
       fbb.Finish(partSupp);
+      int32_t size = static_cast<int32_t>(fbb.GetSize()); // get size of the flat buffer
+      outputFile.write(reinterpret_cast<char*>(&size), sizeof(int32_t));
+      outputFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), size);
     }
   }
 
