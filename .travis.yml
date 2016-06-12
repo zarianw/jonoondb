@@ -24,10 +24,10 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 - wget https://cmake.org/files/v3.5/cmake-3.5.2.tar.gz
 - tar xvzf cmake-3.5.2.tar.gz > cmake.out
-- $(cd cmake-3.5.2 && ./bootstrap && make && make install)
+- $(cd cmake-3.5.2 && ./bootstrap >> cmake.out && make >> cmake.out && make install >> cmake.out)
 - wget https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz
 - tar xvzf boost_1_60_0.tar.gz > boost.out
-- $(cd boost_1_60_0 && ./bootstrap.sh --with-libraries=filesystem,system,thread,date_time,chrono,program_options && ./b2 install address-model=64 --prefix=64bit)
+- $(cd boost_1_60_0 && ./bootstrap.sh --with-libraries=filesystem,system,thread,date_time,chrono,program_options >> boost.out && ./b2 install address-model=64 --prefix=64bit >> boost.out)
 
 
 script:
