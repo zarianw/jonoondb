@@ -31,4 +31,4 @@ before_install:
 
 
 script:
-- $(mkdir build && cd build && cmake .. -G "Unix Makefiles" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=../boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make && ctest -V)
+- cmake . -G "Unix Makefiles" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make && ctest -V
