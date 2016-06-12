@@ -13,9 +13,9 @@ OptionsImpl::OptionsImpl() {
 OptionsImpl::OptionsImpl(bool createDBIfMissing, size_t maxDataFileSize,
                          bool compressionEnabled, bool synchronous,
                          std::size_t memClenupThresholdInBytes) :
-  m_createDBIfMissing(createDBIfMissing), m_maxDataFileSize(maxDataFileSize),
-  m_compressionEnabled(compressionEnabled), m_synchronous(synchronous),
-  m_memCleanupThresholdInBytes(memClenupThresholdInBytes) {
+    m_createDBIfMissing(createDBIfMissing), m_maxDataFileSize(maxDataFileSize),
+    m_compressionEnabled(compressionEnabled), m_synchronous(synchronous),
+    m_memCleanupThresholdInBytes(memClenupThresholdInBytes) {
 }
 
 void OptionsImpl::SetCreateDBIfMissing(bool value) {

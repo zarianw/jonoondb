@@ -18,27 +18,33 @@ class BufferImpl;
 class IndexInfoImpl;
 class ResultSetImpl;
 enum class SchemaType
-: std::int32_t;
+    : std::int32_t;
 
 class DatabaseImpl final {
  public:
   DatabaseImpl(const std::string& dbPath, const std::string& dbName,
-     const OptionsImpl& options);
+               const OptionsImpl& options);
   ~DatabaseImpl();
   DatabaseImpl(const DatabaseImpl&) = delete;
   DatabaseImpl(DatabaseImpl&&) = delete;
   DatabaseImpl& operator=(const DatabaseImpl&) = delete;
-  
-  void CreateCollection(const std::string& name, SchemaType schemaType,
-                        const std::string& schema, const std::vector<IndexInfoImpl*>& indexes);
+
+  void CreateCollection(const std::string& name,
+                        SchemaType schemaType,
+                        const std::string& schema,
+                        const std::vector<IndexInfoImpl*>& indexes);
   void Insert(const char* collectionName, const BufferImpl& documentData);
-  void MultiInsert(const boost::string_ref& collectionName, gsl::span<const BufferImpl*>& documents);
+  void MultiInsert(const boost::string_ref& collectionName,
+                   gsl::span<const BufferImpl*>& documents);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
  private:
-   std::shared_ptr<DocumentCollection> CreateCollectionInternal(
-     const std::string& name, SchemaType schemaType, const std::string& schema,
-     const std::vector<IndexInfoImpl*>& indexes, const std::vector<FileInfo>& dataFilesToLoad);
+  std::shared_ptr<DocumentCollection> CreateCollectionInternal(
+      const std::string& name,
+      SchemaType schemaType,
+      const std::string& schema,
+      const std::vector<IndexInfoImpl*>& indexes,
+      const std::vector<FileInfo>& dataFilesToLoad);
   std::unique_ptr<DatabaseMetadataManager> m_dbMetadataMgrImpl;
   void MemoryWatcherFunc();
   // m_collectionNameStore stores the collection name as string, m_collectionContainer just uses
@@ -46,7 +52,8 @@ class DatabaseImpl final {
   // This insures that they get destroyed in reverse order i.e. m_collectionContainer first and then
   // m_collectionNameStore.
   std::vector<std::unique_ptr<std::string>> m_collectionNameStore;
-  std::map<boost::string_ref, std::shared_ptr<DocumentCollection>> m_collectionContainer;
+  std::map<boost::string_ref, std::shared_ptr<DocumentCollection>>
+      m_collectionContainer;
   std::unique_ptr<QueryProcessor> m_queryProcessor;
   OptionsImpl m_options;
   std::thread m_memWatcherThread;

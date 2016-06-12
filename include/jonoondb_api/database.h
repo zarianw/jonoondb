@@ -11,9 +11,9 @@ namespace jonoondb_api {
 // StringView
 //
 class StringView {
-public:
+ public:
   StringView(const char* str, std::size_t size) :
-    m_str(str), m_size(size) {
+      m_str(str), m_size(size) {
   }
 
   const char* str() {
@@ -23,7 +23,7 @@ public:
   std::size_t size() {
     return m_size;
   }
-private:
+ private:
   const char* m_str;
   std::size_t m_size;
 };
@@ -31,7 +31,7 @@ private:
 // Status
 //
 class Status {
-public:
+ public:
   Status() : opaque(nullptr) {
   }
 
@@ -56,98 +56,99 @@ public:
 // ThrowOnError
 //
 class ThrowOnError {
-public:
+ public:
   ~ThrowOnError() noexcept(false) {
     if (m_status.opaque) {
       switch (jonoondb_status_code(m_status.opaque)) {
         case status_genericerrorcode:
           throw JonoonDBException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                  jonoondb_status_file(m_status.opaque),
+                                  jonoondb_status_function(m_status.opaque),
+                                  jonoondb_status_line(m_status.opaque));
           break;
         case status_invalidargumentcode:
           throw InvalidArgumentException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                         jonoondb_status_file(m_status.opaque),
+                                         jonoondb_status_function(m_status.opaque),
+                                         jonoondb_status_line(m_status.opaque));
           break;
         case status_missingdatabasefilecode:
           throw MissingDatabaseFileException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                             jonoondb_status_file(m_status.opaque),
+                                             jonoondb_status_function(m_status.opaque),
+                                             jonoondb_status_line(m_status.opaque));
           break;
         case status_missingdatabasefoldercode:
           throw MissingDatabaseFolderException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                               jonoondb_status_file(m_status.opaque),
+                                               jonoondb_status_function(m_status.opaque),
+                                               jonoondb_status_line(m_status.opaque));
           break;
         case status_outofmemoryerrorcode:
           throw OutOfMemoryException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                     jonoondb_status_file(m_status.opaque),
+                                     jonoondb_status_function(m_status.opaque),
+                                     jonoondb_status_line(m_status.opaque));
           break;
         case status_duplicatekeyerrorcode:
           throw DuplicateKeyException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
-          break;                
+                                      jonoondb_status_file(m_status.opaque),
+                                      jonoondb_status_function(m_status.opaque),
+                                      jonoondb_status_line(m_status.opaque));
+          break;
         case status_collectionalreadyexistcode:
           throw CollectionAlreadyExistException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                                jonoondb_status_file(m_status.opaque),
+                                                jonoondb_status_function(
+                                                    m_status.opaque),
+                                                jonoondb_status_line(m_status.opaque));
           break;
         case status_indexalreadyexistcode:
           throw IndexAlreadyExistException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                           jonoondb_status_file(m_status.opaque),
+                                           jonoondb_status_function(m_status.opaque),
+                                           jonoondb_status_line(m_status.opaque));
           break;
         case status_collectionnotfoundcode:
           throw CollectionNotFoundException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                            jonoondb_status_file(m_status.opaque),
+                                            jonoondb_status_function(m_status.opaque),
+                                            jonoondb_status_line(m_status.opaque));
           break;
         case status_invalidschemaerrorcode:
           throw InvalidSchemaException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                       jonoondb_status_file(m_status.opaque),
+                                       jonoondb_status_function(m_status.opaque),
+                                       jonoondb_status_line(m_status.opaque));
           break;
         case status_indexoutofbounderrorcode:
           throw IndexOutOfBoundException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                         jonoondb_status_file(m_status.opaque),
+                                         jonoondb_status_function(m_status.opaque),
+                                         jonoondb_status_line(m_status.opaque));
           break;
         case status_sqlerrorcode:
           throw SQLException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                             jonoondb_status_file(m_status.opaque),
+                             jonoondb_status_function(m_status.opaque),
+                             jonoondb_status_line(m_status.opaque));
           break;
         case status_fileioerrorcode:
           throw FileIOException(jonoondb_status_message(m_status.opaque),
-            jonoondb_status_file(m_status.opaque),
-            jonoondb_status_function(m_status.opaque),
-            jonoondb_status_line(m_status.opaque));
+                                jonoondb_status_file(m_status.opaque),
+                                jonoondb_status_function(m_status.opaque),
+                                jonoondb_status_line(m_status.opaque));
           break;
-        default:          
+        default:
           throw std::runtime_error(jonoondb_status_message(m_status.opaque));
           break;
-      }      
+      }
     }
   }
 
   operator status_ptr*() { return &m_status.opaque; }
 
-private:
+ private:
   Status m_status;
 };
 
@@ -155,29 +156,36 @@ private:
 // Options
 //
 class Options {
-public:
+ public:
   //Default constructor that sets all the options to their default value
   Options() : m_opaque(jonoondb_options_construct()) {
   }
 
-  Options(bool createDBIfMissing, size_t maxDataFileSize,
-    bool compressionEnabled, bool synchronous, size_t memCleanupThresholdInBytes) :
-       m_opaque(jonoondb_options_construct2(createDBIfMissing, maxDataFileSize,
-       compressionEnabled, synchronous, memCleanupThresholdInBytes, ThrowOnError{})) {
+  Options(bool createDBIfMissing,
+          size_t maxDataFileSize,
+          bool compressionEnabled,
+          bool synchronous,
+          size_t memCleanupThresholdInBytes) :
+      m_opaque(jonoondb_options_construct2(createDBIfMissing,
+                                           maxDataFileSize,
+                                           compressionEnabled,
+                                           synchronous,
+                                           memCleanupThresholdInBytes,
+                                           ThrowOnError{})) {
   }
 
   Options(const Options& other) :
-    m_opaque(jonoondb_options_copy_construct(other.m_opaque)) {
+      m_opaque(jonoondb_options_copy_construct(other.m_opaque)) {
   }
 
   friend void swap(Options& first, Options& second) {
     using std::swap;
     swap(first.m_opaque, second.m_opaque);
-  }  
+  }
 
   Options(Options&& other) : m_opaque(nullptr) {
     swap(*this, other);
-  }    
+  }
 
   Options& operator=(const Options& other) {
     Options copy(other);
@@ -239,7 +247,7 @@ public:
     return m_opaque;
   }
 
-private:  
+ private:
   options_ptr m_opaque;
 };
 
@@ -247,14 +255,20 @@ private:
 // IndexInfo
 //
 class IndexInfo {
-public:
+ public:
   IndexInfo() {
     m_opaque = jonoondb_indexinfo_construct();
   }
 
-  IndexInfo(const std::string& indexName, IndexType type, const std::string& columnName, bool isAscending) {
-    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(), static_cast<int32_t>(type),
-                                             columnName.c_str(), isAscending, ThrowOnError{});
+  IndexInfo(const std::string& indexName,
+            IndexType type,
+            const std::string& columnName,
+            bool isAscending) {
+    m_opaque = jonoondb_indexinfo_construct2(indexName.c_str(),
+                                             static_cast<int32_t>(type),
+                                             columnName.c_str(),
+                                             isAscending,
+                                             ThrowOnError{});
   }
 
   IndexInfo(IndexInfo&& other) {
@@ -263,7 +277,7 @@ public:
       other.m_opaque = nullptr;
     }
   }
-    
+
   IndexInfo(const IndexInfo& other) {
     if (this != &other) {
       m_opaque = jonoondb_indexinfo_construct();
@@ -300,7 +314,7 @@ public:
 
     return *this;
   }
-  
+
   const char* GetIndexName() const {
     return jonoondb_indexinfo_getindexname(m_opaque);
   }
@@ -337,7 +351,7 @@ public:
     return m_opaque;
   }
 
-private:
+ private:
   indexinfo_ptr m_opaque;
 };
 
@@ -345,34 +359,39 @@ private:
 // Buffer
 //
 class Buffer {
-public:
+ public:
   Buffer() : m_opaque(jonoondb_buffer_construct()) {
   }
 
-  Buffer(size_t bufferCapacityInBytes) : 
-    m_opaque(jonoondb_buffer_construct2(bufferCapacityInBytes, ThrowOnError{})) {
+  Buffer(size_t bufferCapacityInBytes) :
+      m_opaque(jonoondb_buffer_construct2(bufferCapacityInBytes,
+                                          ThrowOnError{})) {
   }
 
-  Buffer(const char* buffer, std::size_t bufferLengthInBytes, std::size_t bufferCapacityInBytes) : 
-    m_opaque(jonoondb_buffer_construct3(buffer, bufferLengthInBytes,
-                                        bufferCapacityInBytes, ThrowOnError{})) {
+  Buffer(const char* buffer,
+         std::size_t bufferLengthInBytes,
+         std::size_t bufferCapacityInBytes) :
+      m_opaque(jonoondb_buffer_construct3(buffer,
+                                          bufferLengthInBytes,
+                                          bufferCapacityInBytes,
+                                          ThrowOnError{})) {
   }
 
   Buffer(char* buffer, std::size_t bufferLengthInBytes,
-    std::size_t bufferCapacityInBytes, void(*customDeleterFunc)(char*)) :
-    m_opaque(jonoondb_buffer_construct4(buffer, bufferLengthInBytes,
-                                        bufferCapacityInBytes,
-                                        customDeleterFunc, ThrowOnError{})) {
+         std::size_t bufferCapacityInBytes, void(* customDeleterFunc)(char*)) :
+      m_opaque(jonoondb_buffer_construct4(buffer, bufferLengthInBytes,
+                                          bufferCapacityInBytes,
+                                          customDeleterFunc, ThrowOnError{})) {
   }
 
   Buffer(const Buffer& other) :
-    m_opaque(jonoondb_buffer_copy_construct(other.m_opaque, ThrowOnError{})) {
+      m_opaque(jonoondb_buffer_copy_construct(other.m_opaque, ThrowOnError{})) {
   }
 
   Buffer(Buffer&& other) {
     m_opaque = other.m_opaque;
     other.m_opaque = jonoondb_buffer_construct();
-  }  
+  }
 
   Buffer& operator=(const Buffer& other) {
     jonoondb_buffer_copy_assignment(m_opaque, other.m_opaque, ThrowOnError{});
@@ -387,7 +406,7 @@ public:
   ~Buffer() {
     jonoondb_buffer_destruct(m_opaque);
   }
-  
+
   bool operator<(const Buffer& other) const {
     return (jonoondb_buffer_op_lessthan(m_opaque, other.m_opaque) != 0);
   }
@@ -410,24 +429,24 @@ public:
 
   const size_t GetCapacity() const {
     return jonoondb_buffer_getcapacity(m_opaque);
-  }  
-  
+  }
+
   jonoondb_buffer_ptr GetOpaqueType() const {
     return m_opaque;
   }
 
-private:
+ private:
   jonoondb_buffer_ptr m_opaque;
 };
 
 class ResultSet {
-public:
+ public:
   ResultSet(resultset_ptr opaque) : m_opaque(opaque) {
   }
 
   ResultSet(const ResultSet& other) = delete;
   ResultSet(ResultSet&& other) {
-    if (this != &other) {      
+    if (this != &other) {
       this->m_opaque = other.m_opaque;
       other.m_opaque = nullptr;
     }
@@ -460,7 +479,7 @@ public:
   }
 
   bool Next() {
-    return jonoondb_resultset_next(m_opaque) != 0;    
+    return jonoondb_resultset_next(m_opaque) != 0;
   }
 
   std::int64_t GetInteger(std::int32_t columnIndex) const {
@@ -474,13 +493,18 @@ public:
   StringView GetString(std::int32_t columnIndex) const {
     std::uint64_t size;
     std::uint64_t* sizePtr = &size;
-    const char* str = jonoondb_resultset_getstring(m_opaque, columnIndex, &sizePtr, ThrowOnError{});
+    const char* str = jonoondb_resultset_getstring(m_opaque,
+                                                   columnIndex,
+                                                   &sizePtr,
+                                                   ThrowOnError{});
     return StringView(str, size);
   }
 
   std::int32_t GetColumnIndex(std::string columnLabel) {
-    return jonoondb_resultset_getcolumnindex(m_opaque, columnLabel.c_str(),
-      columnLabel.size(), ThrowOnError{});
+    return jonoondb_resultset_getcolumnindex(m_opaque,
+                                             columnLabel.c_str(),
+                                             columnLabel.size(),
+                                             ThrowOnError{});
   }
 
   std::int32_t GetColumnCount() {
@@ -489,7 +513,7 @@ public:
 
   SqlType GetColumnType(std::int32_t columnIndex) {
     return static_cast<SqlType>(jonoondb_resultset_getcolumntype(
-      m_opaque, columnIndex, ThrowOnError{}));
+        m_opaque, columnIndex, ThrowOnError{}));
   }
 
   StringView GetColumnLabel(std::int32_t columnIndex) {
@@ -508,24 +532,29 @@ public:
 
     return true;
   }
-  
-private:
+
+ private:
   resultset_ptr m_opaque;
 };
 
 class Database {
-public:
+ public:
   Database(const std::string& dbPath, const std::string& dbName,
-    const Options& opt) : m_opaque(jonoondb_database_construct(dbPath.c_str(),
-    dbName.c_str(), opt.GetOpaquePtr(), ThrowOnError{})) {
+           const Options& opt)
+      : m_opaque(jonoondb_database_construct(dbPath.c_str(),
+                                             dbName.c_str(),
+                                             opt.GetOpaquePtr(),
+                                             ThrowOnError{})) {
   }
 
   ~Database() {
     jonoondb_database_destruct(m_opaque);
   }
 
-  void CreateCollection(const std::string& name, SchemaType schemaType,
-                        const std::string& schema, const std::vector<IndexInfo>& indexes) {
+  void CreateCollection(const std::string& name,
+                        SchemaType schemaType,
+                        const std::string& schema,
+                        const std::vector<IndexInfo>& indexes) {
     std::vector<indexinfo_ptr> vec;
     for (auto& item : indexes) {
       vec.push_back(item.GetOpaqueType());
@@ -541,23 +570,33 @@ public:
   }
 
   void Insert(const std::string& collectionName, const Buffer& documentData) {
-    jonoondb_database_insert(m_opaque, collectionName.c_str(), documentData.GetOpaqueType(), ThrowOnError{});
+    jonoondb_database_insert(m_opaque,
+                             collectionName.c_str(),
+                             documentData.GetOpaqueType(),
+                             ThrowOnError{});
   }
 
   void MultiInsert(const std::string& collectionName,
                    const std::vector<Buffer>& documents) {
     static_assert(sizeof(Buffer) == sizeof(jonoondb_buffer_ptr),
                   "Critical Error. Size assumptions not correct for Buffer & jonoondb_buffer_ptr.");
-    jonoondb_database_multi_insert(m_opaque, collectionName.data(), collectionName.size(),
-                                   reinterpret_cast<const jonoondb_buffer_ptr*>(documents.data()), documents.size(), ThrowOnError{});
+    jonoondb_database_multi_insert(m_opaque,
+                                   collectionName.data(),
+                                   collectionName.size(),
+                                   reinterpret_cast<const jonoondb_buffer_ptr*>(documents.data()),
+                                   documents.size(),
+                                   ThrowOnError{});
   }
 
   ResultSet ExecuteSelect(const std::string& selectStatement) {
-    auto rs = jonoondb_database_executeselect(m_opaque, selectStatement.c_str(), selectStatement.size(), ThrowOnError{});
+    auto rs = jonoondb_database_executeselect(m_opaque,
+                                              selectStatement.c_str(),
+                                              selectStatement.size(),
+                                              ThrowOnError{});
     return ResultSet(rs);
-  }  
+  }
 
-private:  
+ private:
   database_ptr m_opaque;
 };
 

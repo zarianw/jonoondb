@@ -17,7 +17,7 @@ using namespace jonoondb_api;
 std::string ExceptionUtils::GetMissingFieldErrorString(const std::string& fieldName) {
   std::ostringstream ss;
   ss << "Field definition for " << fieldName
-    << " not found in the parsed schema.";
+      << " not found in the parsed schema.";
   return ss.str();
 }
 
@@ -25,7 +25,7 @@ std::string ExceptionUtils::GetInvalidStructFieldErrorString(const std::string& 
                                                              const std::string& fullName) {
   std::ostringstream ss;
   ss << "Field " << fieldName
-    << " is not of type struct. Full name provided was " << fullName;
+      << " is not of type struct. Full name provided was " << fullName;
   return ss.str();
 }
 

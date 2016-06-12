@@ -5,7 +5,7 @@
 namespace jonoondb_utils {
 #define kMaxVarintBytes 10
 class Varint {
-public:
+ public:
   template<typename int_t>
   inline static int EncodeVarint(int_t value,
                                  std::uint8_t* target) {

@@ -25,18 +25,20 @@ void CompareTweetObject(const Document& doc, const BufferImpl& tweetObject) {
   ASSERT_STREQ(doc.GetStringValue("text").c_str(), tweet->text()->c_str());
 
   auto subDoc = doc.AllocateSubDocument();
-  doc.GetDocumentValue("user", *subDoc.get());  
-  ASSERT_EQ(subDoc->GetIntegerValueAsInt64("id"), tweet->user()->id());  
-  ASSERT_STREQ(subDoc->GetStringValue("name").c_str(), tweet->user()->name()->c_str());
+  doc.GetDocumentValue("user", *subDoc.get());
+  ASSERT_EQ(subDoc->GetIntegerValueAsInt64("id"), tweet->user()->id());
+  ASSERT_STREQ(subDoc->GetStringValue("name").c_str(),
+               tweet->user()->name()->c_str());
 }
 
 TEST(Document, Flatbuffers_GetValues_ValidBuffer) {
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   BufferImpl documentData = GetTweetObject();
-  shared_ptr<DocumentSchema> docSchemaPtr(DocumentSchemaFactory::CreateDocumentSchema(
-    schema, SchemaType::FLAT_BUFFERS));
-  
+  shared_ptr<DocumentSchema>
+      docSchemaPtr(DocumentSchemaFactory::CreateDocumentSchema(
+      schema, SchemaType::FLAT_BUFFERS));
+
   auto doc = DocumentFactory::CreateDocument(*docSchemaPtr, documentData);
-  CompareTweetObject(*doc.get(), documentData);  
+  CompareTweetObject(*doc.get(), documentData);
 }

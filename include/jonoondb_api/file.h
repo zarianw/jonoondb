@@ -21,7 +21,8 @@ class File {
   static std::string Read(const std::string& path, bool isBinary = true) {
     std::ifstream ifs(path, isBinary ? std::ios::binary : std::ios::in);
     if (!ifs.is_open()) {
-      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
+      std::string reason =
+          ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
       ss << "Failed to open file at path " << path << ". Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
@@ -40,10 +41,11 @@ class File {
     }
 
     if (ifs.bad()) {
-      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
+      std::string reason =
+          ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
       ss << "Failed to read the file at path " << path << ". Reason: "
-         << reason;
+          << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
@@ -100,26 +102,26 @@ class File {
     //   We don't want to delete or overwrite any data
     int fd;
     if ((fd = open(fileName.c_str(), O_RDWR | O_CREAT | O_EXCL,
-    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
+                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
       int errCode = errno;
       std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
-         << reason;
+          << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
 #ifdef __linux__
-    if (ftruncate64(fd, fileSize) != 0) {    
+    if (ftruncate64(fd, fileSize) != 0) {
 #elif __APPLE__
-    if (ftruncate(fd, fileSize) != 0) {
+      if (ftruncate(fd, fileSize) != 0) {
 #endif
-    
+
       int errCode = errno;
       std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
-         << reason;
+          << reason;
       close(fd);
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
@@ -129,13 +131,13 @@ class File {
       std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
       ss << "Fast allocate for file " << fileName << " failed. Reason: "
-         << reason;
+          << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 #else
     static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
 #endif
-  } 
+  }
 };
 }  // namespace jonoondb_api
 

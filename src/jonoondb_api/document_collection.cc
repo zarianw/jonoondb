@@ -26,17 +26,28 @@
 using namespace jonoondb_api;
 
 DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePath,
-  const std::string& name, SchemaType schemaType,
-  const std::string& schema, const std::vector<IndexInfoImpl*>& indexes,
-  std::unique_ptr<BlobManager> blobManager, const std::vector<FileInfo>& dataFilesToLoad) :
-  m_blobManager(move(blobManager)), m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
+                                       const std::string& name,
+                                       SchemaType schemaType,
+                                       const std::string& schema,
+                                       const std::vector<IndexInfoImpl*>& indexes,
+                                       std::unique_ptr<BlobManager> blobManager,
+                                       const std::vector<FileInfo>& dataFilesToLoad)
+    :
+    m_blobManager(move(blobManager)),
+    m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
   // Validate function arguments
   if (databaseMetadataFilePath.size() == 0) {
-    throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.", __FILE__, __func__, __LINE__);
+    throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.",
+                                   __FILE__,
+                                   __func__,
+                                   __LINE__);
   }
 
   if (name.size() == 0) {
-    throw InvalidArgumentException("Argument name is empty.", __FILE__, __func__, __LINE__);
+    throw InvalidArgumentException("Argument name is empty.",
+                                   __FILE__,
+                                   __func__,
+                                   __LINE__);
   }
   m_name = name;
 
@@ -45,21 +56,26 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
     std::ostringstream ss;
     ss << "Database file " << databaseMetadataFilePath << " does not exist.";
     throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
-  } 
+  }
 
   sqlite3* dbConnection = nullptr;
-  int sqliteCode = sqlite3_open(databaseMetadataFilePath.c_str(), &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
+  int sqliteCode = sqlite3_open(databaseMetadataFilePath.c_str(),
+                                &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
   m_dbConnection.reset(dbConnection);
 
   if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
+    throw SQLException(sqlite3_errstr(sqliteCode),
+                       __FILE__,
+                       __func__,
+                       __LINE__);
   }
 
-  m_documentSchema.reset(DocumentSchemaFactory::CreateDocumentSchema(schema, schemaType));
-  
+  m_documentSchema.reset(DocumentSchemaFactory::CreateDocumentSchema(schema,
+                                                                     schemaType));
+
   unordered_map<string, FieldType> columnTypes;
   PopulateColumnTypes(indexes, *m_documentSchema.get(), columnTypes);
-  m_indexManager.reset(new IndexManager(indexes, columnTypes));    
+  m_indexManager.reset(new IndexManager(indexes, columnTypes));
 
   // Load the data files
   for (auto& file : dataFilesToLoad) {
@@ -74,10 +90,12 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
       for (size_t i = 0; i < actualBatchSize; i++) {
         // Todo optimize the creation of doc creation
         // we should reuse documents
-        docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema, blobs[i]));
+        docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema,
+                                                       blobs[i]));
       }
 
-      auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
+      auto
+          startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
       assert(startID == m_documentIDMap.size());
       m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(),
                              blobMetadataVec.begin() + actualBatchSize);
@@ -86,24 +104,25 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
 }
 
 void DocumentCollection::Insert(const BufferImpl& documentData) {
-  std::vector<const BufferImpl*> vec = { &documentData };
+  std::vector<const BufferImpl*> vec = {&documentData};
   gsl::span<const BufferImpl*> span = vec;
   MultiInsert(span);
 }
 
-void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {  
+void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {
   std::vector<std::unique_ptr<Document>> docs;
   for (auto documentData : documents) {
-    docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema, *documentData));    
+    docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema,
+                                                   *documentData));
   }
 
-  m_indexManager->ValidateForIndexing(docs);  
+  m_indexManager->ValidateForIndexing(docs);
 
   std::vector<BlobMetadata> blobMetadataVec(documents.size());
   // Indexing should not fail after we have called ValidateForIndexing
   try {
     auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
-    assert(startID == m_documentIDMap.size());    
+    assert(startID == m_documentIDMap.size());
     m_blobManager->MultiPut(documents, blobMetadataVec);
   } catch (...) {
     // This is a serious error. Exception at this point will leave DB in a invalid state.
@@ -112,7 +131,9 @@ void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>&
     throw;
   }
 
-  m_documentIDMap.insert(m_documentIDMap.end(), blobMetadataVec.begin(), blobMetadataVec.end());  
+  m_documentIDMap.insert(m_documentIDMap.end(),
+                         blobMetadataVec.begin(),
+                         blobMetadataVec.end());
 }
 
 const std::string& DocumentCollection::GetName() {
@@ -129,7 +150,8 @@ bool DocumentCollection::TryGetBestIndex(const std::string& columnName,
   return m_indexManager->TryGetBestIndex(columnName, op, indexStat);
 }
 
-std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<Constraint>& constraints) {
+std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
+    Constraint>& constraints) {
   if (constraints.size() > 0) {
     return m_indexManager->Filter(constraints);
   } else {
@@ -145,9 +167,9 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
 }
 
 std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
-  std::uint64_t docID, const std::string& columnName,
-  std::vector<std::string>& tokens, BufferImpl& buffer,
-  std::unique_ptr<Document>& document) const {
+    std::uint64_t docID, const std::string& columnName,
+    std::vector<std::string>& tokens, BufferImpl& buffer,
+    std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
                                    "", __LINE__);
@@ -155,20 +177,21 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
 
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does exist in collection " << m_name << ".";
+    ss << "Document with ID '" << docID << "' does exist in collection "
+        << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   // First lets see if we can get this value from any index
   std::int64_t val;
   if (m_indexManager->TryGetIntegerValue(docID, columnName, val)) {
-    if(document)
+    if (document)
       document.reset();
     return val;
   }
 
   m_blobManager->Get(m_documentIDMap.at(docID), buffer);
-    
+
   document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
   if (tokens.size() > 1) {
     auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
@@ -179,9 +202,9 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
 }
 
 double DocumentCollection::GetDocumentFieldAsDouble(
-  std::uint64_t docID, const std::string& columnName,
-  std::vector<std::string>& tokens, BufferImpl& buffer,
-  std::unique_ptr<Document>& document) const {
+    std::uint64_t docID, const std::string& columnName,
+    std::vector<std::string>& tokens, BufferImpl& buffer,
+    std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
                                    "", __LINE__);
@@ -189,7 +212,8 @@ double DocumentCollection::GetDocumentFieldAsDouble(
 
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does not exist in collection " << m_name << ".";
+    ss << "Document with ID '" << docID << "' does not exist in collection "
+        << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
@@ -214,9 +238,9 @@ double DocumentCollection::GetDocumentFieldAsDouble(
 
 // Todo: Need to avoid the string creation/copy cost
 std::string DocumentCollection::GetDocumentFieldAsString(
-  std::uint64_t docID, const std::string& columnName, 
-  std::vector<std::string>& tokens, BufferImpl& buffer,
-  std::unique_ptr<Document>& document) const {
+    std::uint64_t docID, const std::string& columnName,
+    std::vector<std::string>& tokens, BufferImpl& buffer,
+    std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
                                    "", __LINE__);
@@ -224,7 +248,8 @@ std::string DocumentCollection::GetDocumentFieldAsString(
 
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does not exist in collection " << m_name << ".";
+    ss << "Document with ID '" << docID << "' does not exist in collection "
+        << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
@@ -266,7 +291,7 @@ void DocumentCollection::GetDocumentFieldsAsIntegerVector(
     if (docIDs[i] >= m_documentIDMap.size()) {
       ostringstream ss;
       ss << "Document with ID '" << docIDs[i]
-        << "' does exist in collection " << m_name << ".";
+          << "' does exist in collection " << m_name << ".";
       throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
@@ -285,7 +310,7 @@ void DocumentCollection::GetDocumentFieldsAsIntegerVector(
 
 void DocumentCollection::GetDocumentFieldsAsDoubleVector(
     const gsl::span<std::uint64_t>& docIDs,
-    const std::string & columnName,
+    const std::string& columnName,
     std::vector<std::string>& tokens,
     std::vector<double>& values) const {
   if (tokens.size() == 0) {
@@ -304,7 +329,7 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
     if (docIDs[i] >= m_documentIDMap.size()) {
       ostringstream ss;
       ss << "Document with ID '" << docIDs[i]
-        << "' does exist in collection " << m_name << ".";
+          << "' does exist in collection " << m_name << ".";
       throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
@@ -326,12 +351,12 @@ void DocumentCollection::UnmapLRUDataFiles() {
 }
 
 void DocumentCollection::PopulateColumnTypes(
-  const std::vector<IndexInfoImpl*>& indexes,
-  const DocumentSchema& documentSchema,
-  std::unordered_map<string, FieldType>& columnTypes) {
+    const std::vector<IndexInfoImpl*>& indexes,
+    const DocumentSchema& documentSchema,
+    std::unordered_map<string, FieldType>& columnTypes) {
   for (std::size_t i = 0; i < indexes.size(); i++) {
     columnTypes.insert(
-      pair<string, FieldType>(indexes[i]->GetColumnName(),
-                              documentSchema.GetFieldType(indexes[i]->GetColumnName())));
+        pair<string, FieldType>(indexes[i]->GetColumnName(),
+                                documentSchema.GetFieldType(indexes[i]->GetColumnName())));
   }
 }

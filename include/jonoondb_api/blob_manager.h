@@ -18,23 +18,25 @@ class FileNameManager;
 
 // This class is responsible for reading/writing blobs into the data files
 class BlobManager final {
-public:
+ public:
   BlobManager(std::unique_ptr<FileNameManager> fileNameManager,
               bool compressionEnabled, size_t maxDataFileSize,
-              bool synchronous);  
+              bool synchronous);
   BlobManager(const BlobManager&) = delete;
   BlobManager(BlobManager&&) = delete;
   BlobManager& operator=(const BlobManager&) = delete;
   BlobManager& operator=(BlobManager&&) = delete;
   void Put(const BufferImpl& blob, BlobMetadata& blobMetadata);
-  void MultiPut(gsl::span<const BufferImpl*> blobs, std::vector<BlobMetadata>& blobMetadataVec);
+  void MultiPut(gsl::span<const BufferImpl*> blobs,
+                std::vector<BlobMetadata>& blobMetadataVec);
   void Get(const BlobMetadata& blobMetadata, BufferImpl& blob);
   void UnmapLRUDataFiles();
-private:
+ private:
   inline void Flush(size_t offset, size_t numBytes);
   void SwitchToNewDataFile();
-  void PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata, size_t& byteWritten);
-  
+  void PutInternal
+      (const BufferImpl& blob, BlobMetadata& blobMetadata, size_t& byteWritten);
+
   FileInfo m_currentBlobFileInfo;
   std::shared_ptr<MemoryMappedFile> m_currentBlobFile;
   std::unique_ptr<FileNameManager> m_fileNameManager;
@@ -47,13 +49,13 @@ private:
 };
 
 class BlobIterator {
-public:
+ public:
   BlobIterator(FileInfo fileInfo);
   std::size_t GetNextBatch(std::vector<BufferImpl>& blobs,
                            std::vector<BlobMetadata>& metadataVec);
-private:
+ private:
   FileInfo m_fileInfo;
-  MemoryMappedFile m_memMapFile;  
-  char* m_currentOffsetAddress;  
+  MemoryMappedFile m_memMapFile;
+  char* m_currentOffsetAddress;
 };
 } // namespace jonoondb_api

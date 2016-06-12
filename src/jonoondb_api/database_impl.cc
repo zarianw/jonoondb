@@ -40,7 +40,7 @@ void DatabaseImpl::MemoryWatcherFunc() {
 
       if (m_collectionContainer.size() == 0) {
         continue;
-      }     
+      }
 
       ProcessUtils::GetProcessMemoryStats(stat);
       if (stat.MemoryUsedInBytes > m_options.GetMemoryCleanupThreshold()) {
@@ -74,17 +74,17 @@ void DatabaseImpl::MemoryWatcherFunc() {
 }
 
 DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
-  const OptionsImpl& options) : m_options(options) {
+                           const OptionsImpl& options) : m_options(options) {
   // Initialize DatabaseMetadataManager
   m_dbMetadataMgrImpl = std::make_unique<DatabaseMetadataManager>(
-    dbPath, dbName, options.GetCreateDBIfMissing());
+      dbPath, dbName, options.GetCreateDBIfMissing());
 
   // Initialize query processor
   m_queryProcessor = std::make_unique<QueryProcessor>(dbPath, dbName);
 
   std::vector<CollectionMetadata> collectionsInfo;
   m_dbMetadataMgrImpl->GetExistingCollections(collectionsInfo);
-  
+
   for (auto& colInfo : collectionsInfo) {
     std::vector<IndexInfoImpl*> indexes;
     // Todo: make this conversion cleaner
@@ -93,14 +93,16 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
     }
 
     auto documentCollection = CreateCollectionInternal(colInfo.name,
-                                                       colInfo.schemaType, colInfo.schema,
-                                                       indexes, colInfo.dataFiles);    
+                                                       colInfo.schemaType,
+                                                       colInfo.schema,
+                                                       indexes,
+                                                       colInfo.dataFiles);
 
     m_queryProcessor->AddExistingCollection(documentCollection);
 
     m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
-  }  
+  }
 
   m_memWatcherThread = std::thread(&DatabaseImpl::MemoryWatcherFunc, this);
 }
@@ -108,32 +110,38 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
 DatabaseImpl::~DatabaseImpl() {
   {
     std::unique_lock<std::mutex> lock(m_memWatcherMutex);
-    m_shutdownMemWatcher = true;    
+    m_shutdownMemWatcher = true;
   }
   m_memWatcherCV.notify_one();
   // Todo (zarian): Close all sub components and log any issues
   // Only clear the collections for this database and not all.
   DocumentCollectionDictionary::Instance()->Clear();
-  
+
   if (m_memWatcherThread.joinable()) {
     m_memWatcherThread.join();
   }
 }
 
-void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaType,
-  const std::string& schema, const std::vector<IndexInfoImpl*>& indexes) {
+void DatabaseImpl::CreateCollection(const std::string& name,
+                                    SchemaType schemaType,
+                                    const std::string& schema,
+                                    const std::vector<IndexInfoImpl*>& indexes) {
   // check if collection already exists
   if (m_collectionContainer.find(name) != m_collectionContainer.end()) {
     std::ostringstream ss;
     ss << "Collection with name \"" << name << "\" already exists.";
-    throw CollectionAlreadyExistException(ss.str(), __FILE__, __func__, __LINE__);
+    throw CollectionAlreadyExistException(ss.str(),
+                                          __FILE__,
+                                          __func__,
+                                          __LINE__);
   }
 
-  auto documentCollection = CreateCollectionInternal(name, schemaType, schema, indexes,
-                                                     std::vector<FileInfo>());  
-  
-  m_queryProcessor->AddCollection(documentCollection);  
-  
+  auto documentCollection =
+      CreateCollectionInternal(name, schemaType, schema, indexes,
+                               std::vector<FileInfo>());
+
+  m_queryProcessor->AddCollection(documentCollection);
+
   try {
     m_dbMetadataMgrImpl->AddCollection(name, schemaType, schema, indexes);
   } catch (...) {
@@ -152,17 +160,17 @@ void DatabaseImpl::CreateCollection(const std::string& name, SchemaType schemaTy
 }
 
 void DatabaseImpl::Insert(const char* collectionName,
-                            const BufferImpl& documentData) {
+                          const BufferImpl& documentData) {
   // Todo (zarian): Check what is a clean way to avoid the string copy from char * to string
   auto item = m_collectionContainer.find(collectionName);
   if (item == m_collectionContainer.end()) {
     std::ostringstream ss;
-    ss << "Collection \"" << collectionName << "\" not found.";    
+    ss << "Collection \"" << collectionName << "\" not found.";
     throw CollectionNotFoundException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
   // Add data in collection
-  item->second->Insert(documentData); 
+  item->second->Insert(documentData);
 }
 
 void DatabaseImpl::MultiInsert(const boost::string_ref& collectionName,
@@ -183,8 +191,11 @@ ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {
 }
 
 std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
-  const std::string& name, SchemaType schemaType, const std::string& schema,
-  const std::vector<IndexInfoImpl*>& indexes, const std::vector<FileInfo>& dataFilesToLoad) {
+    const std::string& name,
+    SchemaType schemaType,
+    const std::string& schema,
+    const std::vector<IndexInfoImpl*>& indexes,
+    const std::vector<FileInfo>& dataFilesToLoad) {
 
   //First create FileNameManager and BlobManager
   auto fnm = std::make_unique<FileNameManager>(m_dbMetadataMgrImpl->GetDBPath(),
@@ -197,6 +208,10 @@ std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
                                           m_options.GetSynchronous());
 
   return std::make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(),
-                                              name, schemaType, schema,
-                                              indexes, move(bm), dataFilesToLoad);
+                                              name,
+                                              schemaType,
+                                              schema,
+                                              indexes,
+                                              move(bm),
+                                              dataFilesToLoad);
 }

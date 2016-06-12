@@ -16,11 +16,12 @@ using namespace std;
 using namespace boost;
 using namespace flatbuffers;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   cout << "DBGen Tool." << endl;
 
   if (argc != 3) {
-    cout << "Usage: dbgen_converter IN_DIRECTORY_PATH OUT_DIRECTORY_PATH" << endl;
+    cout << "Usage: dbgen_converter IN_DIRECTORY_PATH OUT_DIRECTORY_PATH"
+        << endl;
     return 1;
   }
 
@@ -123,7 +124,7 @@ int main(int argc, char **argv) {
       tokens.assign(tok.begin(), tok.end());
 
       FlatBufferBuilder fbb;
-      
+
       auto orderKey = stoi(tokens[0]);
       auto partKey = stoi(tokens[1]);
       auto suppKey = stoi(tokens[2]);
@@ -132,7 +133,7 @@ int main(int argc, char **argv) {
       auto extendedPrice = stod(tokens[5]);
       auto discount = stod(tokens[6]);
       auto tax = stod(tokens[7]);
-      
+
       auto returnFlag = fbb.CreateString(tokens[8]);
       auto lineStatus = fbb.CreateString(tokens[9]);
       auto shipDate = fbb.CreateString(tokens[10]);
@@ -141,10 +142,25 @@ int main(int argc, char **argv) {
       auto shipInstruct = fbb.CreateString(tokens[13]);
       auto shipMode = fbb.CreateString(tokens[14]);
       auto comment = fbb.CreateString(tokens[15]);
-      
-      auto lineItem = CreateLINEITEM(fbb, orderKey, partKey, suppKey, lineNumber, quantity,
-                                     extendedPrice, discount, tax, returnFlag, lineStatus, shipDate,
-                                     commitDate, receiptDate, shipInstruct, shipMode, comment);
+
+      auto lineItem =
+          CreateLINEITEM(fbb,
+                         orderKey,
+                         partKey,
+                         suppKey,
+                         lineNumber,
+                         quantity,
+                         extendedPrice,
+                         discount,
+                         tax,
+                         returnFlag,
+                         lineStatus,
+                         shipDate,
+                         commitDate,
+                         receiptDate,
+                         shipInstruct,
+                         shipMode,
+                         comment);
 
       fbb.Finish(lineItem);
       int32_t size = static_cast<int32_t>(fbb.GetSize());
@@ -179,8 +195,12 @@ int main(int argc, char **argv) {
       auto suppKey = stoi(tokens[1]);
       auto availQty = stoi(tokens[2]);
       auto supplyCost = stod(tokens[3]);
-      auto partSupp = CreatePARTSUPP(fbb, partKey, suppKey, availQty, supplyCost, comment);
+      auto partSupp =
+          CreatePARTSUPP(fbb, partKey, suppKey, availQty, supplyCost, comment);
       fbb.Finish(partSupp);
+      int32_t size = static_cast<int32_t>(fbb.GetSize()); // get size of the flat buffer
+      outputFile.write(reinterpret_cast<char*>(&size), sizeof(int32_t));
+      outputFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), size);
     }
   }
 
@@ -214,9 +234,19 @@ int main(int argc, char **argv) {
       auto partKey = stoi(tokens[0]);
       auto partSize = stoi(tokens[5]);
       auto retailPrice = stod(tokens[7]);
-      auto part = CreatePART(fbb, partKey, name, mfgr, brand, type, partSize, container, retailPrice, comment);
+      auto part = CreatePART(fbb,
+                             partKey,
+                             name,
+                             mfgr,
+                             brand,
+                             type,
+                             partSize,
+                             container,
+                             retailPrice,
+                             comment);
       fbb.Finish(part);
-      int32_t size = static_cast<int32_t>(fbb.GetSize()); // get size of the flat buffer
+      int32_t size =
+          static_cast<int32_t>(fbb.GetSize()); // get size of the flat buffer
       outputFile.write(reinterpret_cast<char*>(&size), sizeof(int32_t));
       outputFile.write(reinterpret_cast<char*>(fbb.GetBufferPointer()), size);
     }
@@ -254,7 +284,16 @@ int main(int argc, char **argv) {
       auto totalPrice = stod(tokens[3]);
       auto shipPriority = stoi(tokens[7]);
 
-      auto orders = CreateORDERS(fbb, orderKey, custKey, orderStatus, totalPrice, orderDate, orderPriorty, clerk, shipPriority, comment);
+      auto orders = CreateORDERS(fbb,
+                                 orderKey,
+                                 custKey,
+                                 orderStatus,
+                                 totalPrice,
+                                 orderDate,
+                                 orderPriorty,
+                                 clerk,
+                                 shipPriority,
+                                 comment);
       fbb.Finish(orders);
 
       int32_t size = static_cast<int32_t>(fbb.GetSize());
@@ -293,7 +332,15 @@ int main(int argc, char **argv) {
       auto nationKey = stoi(tokens[3]);
       auto phone = stoi(tokens[4]);
       auto acctBal = stod(tokens[5]);
-      auto customer = CreateCUSTOMER(fbb, custKey, name, address, nationKey, phone, acctBal, mktSegment, comment);
+      auto customer = CreateCUSTOMER(fbb,
+                                     custKey,
+                                     name,
+                                     address,
+                                     nationKey,
+                                     phone,
+                                     acctBal,
+                                     mktSegment,
+                                     comment);
 
       fbb.Finish(customer);
 
@@ -332,7 +379,14 @@ int main(int argc, char **argv) {
       auto nationKey = stoi(tokens[3]);
       auto acctBal = stod(tokens[5]);
 
-      auto supplier = CreateSUPPLIER(fbb, suppKey, name, address, nationKey, phone, acctBal, comment);
+      auto supplier = CreateSUPPLIER(fbb,
+                                     suppKey,
+                                     name,
+                                     address,
+                                     nationKey,
+                                     phone,
+                                     acctBal,
+                                     comment);
       fbb.Finish(supplier);
 
       int32_t size = static_cast<int32_t>(fbb.GetSize());

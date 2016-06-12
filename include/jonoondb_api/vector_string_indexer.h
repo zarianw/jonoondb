@@ -16,8 +16,8 @@
 #include "null_helpers.h"
 
 namespace jonoondb_api {
-class VectorStringIndexer final : public Indexer {
-public:
+class VectorStringIndexer final: public Indexer {
+ public:
   VectorStringIndexer(const IndexInfoImpl& indexInfo,
                       const FieldType& fieldType) {
     // TODO: Add index name in the error message as well
@@ -28,11 +28,11 @@ public:
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::VECTOR) {
       errorMsg =
-        "Argument indexInfo can only have IndexType VECTOR for VectorStringIndexer.";
+          "Argument indexInfo can only have IndexType VECTOR for VectorStringIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-        << " is not valid for VectorStringIndexer.";
+          << " is not valid for VectorStringIndexer.";
       errorMsg = ss.str();
     }
 
@@ -50,7 +50,8 @@ public:
 
   void ValidateForInsert(const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
+      auto subDoc =
+          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
                                  m_indexStat.GetFieldType());
     } else {
@@ -61,7 +62,8 @@ public:
 
   void Insert(std::uint64_t documentID, const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
+      auto subDoc =
+          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
       InsertInternal(documentID, *subDoc.get());
     } else {
       InsertInternal(documentID, document);
@@ -88,14 +90,15 @@ public:
         // TODO: Handle this
       default:
         std::ostringstream ss;
-        ss << "IndexConstraintOperator type " << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+        ss << "IndexConstraintOperator type "
+            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 
   std::shared_ptr<MamaJenniesBitmap> FilterRange(
-    const Constraint& lowerConstraint,
-    const Constraint& upperConstraint) {
+      const Constraint& lowerConstraint,
+      const Constraint& upperConstraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     auto lowerVal = GetOperandVal(lowerConstraint);
     auto upperVal = GetOperandVal(upperConstraint);
@@ -109,7 +112,7 @@ public:
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
-               && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+        && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] > lowerVal && m_dataVector[i] <= upperVal
             && !NullHelpers::IsNull(m_dataVector[i])) {
@@ -117,7 +120,7 @@ public:
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
-               && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
+        && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] >= lowerVal && m_dataVector[i] < upperVal
             && !NullHelpers::IsNull(m_dataVector[i])) {
@@ -125,7 +128,7 @@ public:
         }
       }
     } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
-               && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+        && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] >= lowerVal && m_dataVector[i] <= upperVal
             && !NullHelpers::IsNull(m_dataVector[i])) {
@@ -144,21 +147,21 @@ public:
     }
 
     return false;
-  }  
+  }
 
-private:
+ private:
   void InsertInternal(std::uint64_t documentID, const Document& document) {
     std::string val;
     switch (m_indexStat.GetFieldType()) {
       case FieldType::BASE_TYPE_STRING: {
         val = document.GetStringValue(m_fieldNameTokens.back());
         break;
-      }      
+      }
       default: {
         // This can never happen
         std::ostringstream ss;
         ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-          << " is not valid for VectorStringIndexer.";
+            << " is not valid for VectorStringIndexer.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
       }
     }
@@ -181,14 +184,14 @@ private:
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     auto val = GetOperandVal(constraint);
-    
+
     for (size_t i = 0; i < m_dataVector.size(); i++) {
       if (m_dataVector[i] == val && !NullHelpers::IsNull(m_dataVector[i])) {
         bitmap->Add(i);
       }
     }
-    
-   
+
+
     return bitmap;
   }
 

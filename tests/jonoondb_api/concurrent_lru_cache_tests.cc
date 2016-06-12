@@ -20,7 +20,7 @@ TEST(ConcurrentLRUCache, AddAndFind) {
       cacheObjectPtrs[i].reset(new CacheObject());
       cacheObjectPtrs[i]->Data = i;
       lruCache.Add(cacheObjectPtrs[i]->Data,
-                   shared_ptr < CacheObject > (cacheObjectPtrs[i]), true);
+                   shared_ptr<CacheObject>(cacheObjectPtrs[i]), true);
     }
 
     shared_ptr<CacheObject> foundObject;
@@ -42,7 +42,7 @@ TEST(ConcurrentLRUCache, PerformEviction_Sequential) {
       cacheObjectPtrs[i].reset(new CacheObject());
       cacheObjectPtrs[i]->Data = i;
       lruCache.Add(cacheObjectPtrs[i]->Data,
-                   shared_ptr < CacheObject > (cacheObjectPtrs[i]), true);
+                   shared_ptr<CacheObject>(cacheObjectPtrs[i]), true);
     }
 
     //Now perform eviction
@@ -73,7 +73,7 @@ TEST(ConcurrentLRUCache, PerformEviction_Random) {
       cacheObjectPtrs[i].reset(new CacheObject());
       cacheObjectPtrs[i]->Data = i;
       lruCache.Add(cacheObjectPtrs[i]->Data,
-                   shared_ptr < CacheObject > (cacheObjectPtrs[i]), true);
+                   shared_ptr<CacheObject>(cacheObjectPtrs[i]), true);
     }
 
     //Now access all the even keys
@@ -110,7 +110,7 @@ TEST(ConcurrentLRUCache, PerformEviction_Reverse) {
       cacheObjectPtrs[i].reset(new CacheObject());
       cacheObjectPtrs[i]->Data = i;
       lruCache.Add(cacheObjectPtrs[i]->Data,
-                   shared_ptr < CacheObject > (cacheObjectPtrs[i]), true);
+                   shared_ptr<CacheObject>(cacheObjectPtrs[i]), true);
     }
 
     //Now access all the in reverse order keys
@@ -147,10 +147,10 @@ TEST(ConcurrentLRUCache, PerformEviction_EvictableFlag) {
       cacheObjectPtrs[i]->Data = i;
       if ((i + 1) % 5 == 0) {
         lruCache.Add(cacheObjectPtrs[i]->Data,
-                     shared_ptr < CacheObject > (cacheObjectPtrs[i]), false);
+                     shared_ptr<CacheObject>(cacheObjectPtrs[i]), false);
       } else {
         lruCache.Add(cacheObjectPtrs[i]->Data,
-                     shared_ptr < CacheObject > (cacheObjectPtrs[i]), true);
+                     shared_ptr<CacheObject>(cacheObjectPtrs[i]), true);
       }
     }
 
@@ -188,10 +188,10 @@ TEST(ConcurrentLRUCache, PerformEviction_EvictableFlagReset) {
       cacheObjectPtrs[i]->Data = i;
       if ((i + 1) % 5 == 0 || i == arraySize - 2) {
         lruCache.Add(cacheObjectPtrs[i]->Data,
-                     shared_ptr < CacheObject > (cacheObjectPtrs[i]), false);
+                     shared_ptr<CacheObject>(cacheObjectPtrs[i]), false);
       } else {
         lruCache.Add(cacheObjectPtrs[i]->Data,
-                     shared_ptr < CacheObject > (cacheObjectPtrs[i]), true);
+                     shared_ptr<CacheObject>(cacheObjectPtrs[i]), true);
       }
     }
 

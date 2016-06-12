@@ -51,9 +51,13 @@ class ProcessUtils {
     std::ifstream ifs(fileName);
     std::string line;
     std::getline(ifs, line);
-    if(line.size() == 0) {
-      std::string message = "Unable to read " + fileName + " to determine memory usage.";
-      throw jonoondb_api::JonoonDBException(message, __FILE__, __func__, __LINE__);
+    if (line.size() == 0) {
+      std::string message =
+          "Unable to read " + fileName + " to determine memory usage.";
+      throw jonoondb_api::JonoonDBException(message,
+                                            __FILE__,
+                                            __func__,
+                                            __LINE__);
     }
 
     char* curr = nullptr;

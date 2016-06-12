@@ -7,7 +7,7 @@ TEST(Options, Ctor_Deafult) {
   Options opt;
   ASSERT_FALSE(opt.GetCompressionEnabled());
   ASSERT_TRUE(opt.GetCreateDBIfMissing());
-  ASSERT_TRUE(opt.GetSynchronous());   
+  ASSERT_TRUE(opt.GetSynchronous());
   ASSERT_EQ(opt.GetMemoryCleanupThreshold(), 1024LL * 1024LL * 1024LL * 4LL);
 }
 
@@ -24,7 +24,7 @@ TEST(Options, Copy_Ctor) {
   Options opt1;
   opt1.SetMaxDataFileSize(12345);
   opt1.SetMemoryCleanupThreshold(1024);
-  Options opt2(opt1);  
+  Options opt2(opt1);
   ASSERT_EQ(opt1.GetCompressionEnabled(), opt2.GetCompressionEnabled());
   ASSERT_EQ(opt1.GetCreateDBIfMissing(), opt2.GetCreateDBIfMissing());
   ASSERT_EQ(opt1.GetSynchronous(), opt2.GetSynchronous());

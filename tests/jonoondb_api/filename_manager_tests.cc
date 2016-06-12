@@ -25,8 +25,10 @@ TEST(FileNameManager, GetCurrentDataFileInfo) {
   FileInfo fileInfo;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentDataFileInfo_Collection.0");
-  std::string completePath = dbPath + "/FileNameManager_GetCurrentDataFileInfo_Collection.0";
+  ASSERT_STREQ(fileInfo.fileName.c_str(),
+               "FileNameManager_GetCurrentDataFileInfo_Collection.0");
+  std::string completePath =
+      dbPath + "/FileNameManager_GetCurrentDataFileInfo_Collection.0";
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.c_str());
 
   //Again get the same thing and make sure we get the same file
@@ -34,7 +36,8 @@ TEST(FileNameManager, GetCurrentDataFileInfo) {
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo2);
   ASSERT_EQ(fileInfo.fileKey, fileInfo2.fileKey);
   ASSERT_STREQ(fileInfo.fileName.c_str(), fileInfo2.fileName.c_str());
-  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
+  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(),
+               fileInfo2.fileNameWithPath.c_str());
 }
 
 TEST(FileNameManager, GetNextDataFileInfo) {
@@ -45,7 +48,8 @@ TEST(FileNameManager, GetNextDataFileInfo) {
 
   FileInfo fileInfo;
   string fileNamePattern = "FileNameManager_GetNextDataFileInfo_Collection.%d";
-  string fileNameWithPathPattern = (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
+  string fileNameWithPathPattern =
+      (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
 
@@ -78,20 +82,26 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined) {
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0");
+  ASSERT_STREQ(fileInfo.fileName.c_str(),
+               "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0");
   boost::filesystem::path completePath(dbPath);
-  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0";
-  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.generic_string().c_str());
+  completePath /=
+      "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0";
+  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(),
+               completePath.generic_string().c_str());
 
   //Again get the same thing and make sure we get the same file
   FileInfo fileInfo2;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo2);
   ASSERT_EQ(fileInfo.fileKey, fileInfo2.fileKey);
   ASSERT_STREQ(fileInfo.fileName.c_str(), fileInfo2.fileName.c_str());
-  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
+  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(),
+               fileInfo2.fileNameWithPath.c_str());
 
-  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.%d";
-  string fileNameWithPathPattern = (completePath.parent_path() / fileNamePattern).generic_string();
+  string fileNamePattern =
+      "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.%d";
+  string fileNameWithPathPattern =
+      (completePath.parent_path() / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
 
@@ -125,23 +135,29 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_Slash) {
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(), "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.0");
+  ASSERT_STREQ(fileInfo.fileName.c_str(),
+               "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.0");
   boost::filesystem::path completePath(dbPath);
   if (dbPath.at(dbPath.size() - 1) != '/') {
     completePath /= "/";
   }
-  completePath /= "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.0";
-  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.generic_string().c_str());
+  completePath /=
+      "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.0";
+  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(),
+               completePath.generic_string().c_str());
 
   //Again get the same thing and make sure we get the same file
   FileInfo fileInfo2;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo2);
   ASSERT_EQ(fileInfo.fileKey, fileInfo2.fileKey);
   ASSERT_STREQ(fileInfo.fileName.c_str(), fileInfo2.fileName.c_str());
-  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileInfo2.fileNameWithPath.c_str());
+  ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(),
+               fileInfo2.fileNameWithPath.c_str());
 
-  string fileNamePattern = "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.%d";
-  string fileNameWithPathPattern = (completePath.parent_path() / fileNamePattern).generic_string();
+  string fileNamePattern =
+      "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.%d";
+  string fileNameWithPathPattern =
+      (completePath.parent_path() / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
 
@@ -167,7 +183,8 @@ TEST(FileNameManager, GetDataFileInfo) {
 
   FileInfo fileInfo;
   string fileNamePattern = "FileNameManager_GetDataFileInfo_Collection.%d";
-  string fileNameWithPathPattern = (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
+  string fileNameWithPathPattern =
+      (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
   char fileName[200];
   char fileNameWithPath[1024];
 

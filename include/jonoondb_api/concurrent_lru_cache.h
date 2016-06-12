@@ -8,16 +8,18 @@
 #include <boost/thread/lock_types.hpp>
 
 namespace jonoondb_api {
-template<class T1, class T2> class ConcurrentLRUCache {
+template<class T1, class T2>
+class ConcurrentLRUCache {
  private:
-  template<class U1> class LRUCacheEntry {
+  template<class U1>
+  class LRUCacheEntry {
    public:
     std::shared_ptr<U1> Value;
     int64_t LastUsed;
     bool Evictable;
 
     LRUCacheEntry(const std::shared_ptr<U1>& value, int64_t lastUsed,
-    bool evictable)
+                  bool evictable)
         : Value(value),
           LastUsed(lastUsed),
           Evictable(evictable) {
@@ -26,9 +28,9 @@ template<class T1, class T2> class ConcurrentLRUCache {
 
   template<typename V1, typename V2>
   struct EvictionEntry {
-  public:
+   public:
     EvictionEntry(int64_t lastUsed, V1 key, std::shared_ptr<V2>& val) :
-      LastUsed(lastUsed), Key(std::move(key)), Value(val) {}
+        LastUsed(lastUsed), Key(std::move(key)), Value(val) { }
     int64_t LastUsed;
     V1 Key;
     std::shared_ptr<V2> Value;
@@ -45,8 +47,10 @@ template<class T1, class T2> class ConcurrentLRUCache {
 
     m_lastUsed++;
 
-    m_map[key] = std::unique_ptr < LRUCacheEntry
-        < T2 >> (new LRUCacheEntry<T2>(value, m_lastUsed, evictable));
+    m_map[key] = std::unique_ptr<LRUCacheEntry
+                                     <T2 >>(new LRUCacheEntry<T2>(value,
+                                                                  m_lastUsed,
+                                                                  evictable));
   }
 
   bool Find(const T1& key, std::shared_ptr<T2>& value) {
@@ -82,7 +86,7 @@ template<class T1, class T2> class ConcurrentLRUCache {
     std::list<EvictionEntry<T1, T2>> keysToEvict;
 
     {
-      boost::shared_lock<boost::shared_mutex> lock(m_mutex);      
+      boost::shared_lock<boost::shared_mutex> lock(m_mutex);
 
       if (m_map.size() > m_maxCacheSize) {
         auto itemsToEvictCount = m_map.size() - m_maxCacheSize;
@@ -92,25 +96,29 @@ template<class T1, class T2> class ConcurrentLRUCache {
 
           bool itemInserted = false;
           for (auto keysToEvictIter = keysToEvict.begin();
-              keysToEvictIter != keysToEvict.end(); keysToEvictIter++) {
+               keysToEvictIter != keysToEvict.end(); keysToEvictIter++) {
             if (iter->second->Evictable
                 && iter->second->LastUsed < keysToEvictIter->LastUsed) {
               keysToEvict.insert(
                   keysToEvictIter,
-                  EvictionEntry<T1, T2>(iter->second->LastUsed, iter->first, iter->second->Value));
-                  
+                  EvictionEntry<T1, T2>(iter->second->LastUsed,
+                                        iter->first,
+                                        iter->second->Value));
+
               itemInserted = true;
               break;
             }
 
             insertionIter = keysToEvictIter;
-          }          
+          }
 
           // Add in the end if required
           if (!itemInserted && iter->second->Evictable
               && keysToEvict.size() < itemsToEvictCount) {
             keysToEvict.push_back(
-              EvictionEntry<T1, T2>(iter->second->LastUsed, iter->first, iter->second->Value));
+                EvictionEntry<T1, T2>(iter->second->LastUsed,
+                                      iter->first,
+                                      iter->second->Value));
           }
 
           // Drop item from end if required. This helps in maintaining
@@ -136,10 +144,10 @@ template<class T1, class T2> class ConcurrentLRUCache {
   }
 
  private:
-  std::unordered_map<T1, std::unique_ptr<LRUCacheEntry<T2>>>m_map;
+  std::unordered_map<T1, std::unique_ptr<LRUCacheEntry<T2>>> m_map;
   boost::shared_mutex m_mutex;
   std::atomic<int64_t> m_lastUsed;
   size_t m_maxCacheSize;
 };
 }
-  // jonoondb_api
+// jonoondb_api

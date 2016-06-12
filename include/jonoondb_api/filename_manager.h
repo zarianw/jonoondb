@@ -16,7 +16,7 @@ namespace jonoondb_api {
 struct FileInfo;
 
 class FileNameManager {
-public:
+ public:
   FileNameManager(const std::string& dbPath, const std::string& dbName,
                   const std::string& collectionName, bool createDBIfMissing);
   ~FileNameManager();
@@ -24,13 +24,13 @@ public:
   void GetNextDataFileInfo(FileInfo& fileInfo);
   void GetFileInfo(const int fileKey, std::shared_ptr<FileInfo>& fileInfo);
   void UpdateDataFileLength(int fileKey, int64_t length);
-private:  
+ private:
   void AddFileRecord(int fileKey, const std::string& fileName);
   void FinalizeStatements();
   std::string m_dbName;
   boost::filesystem::path m_dbPath;
   std::string m_collectionName;
-  std::unique_ptr<sqlite3, void(*)(sqlite3*)> m_db;
+  std::unique_ptr<sqlite3, void (*)(sqlite3*)> m_db;
   sqlite3_stmt* m_putStatement;
   sqlite3_stmt* m_getFileNameStatement;
   sqlite3_stmt* m_getLastFileKeyStatement;

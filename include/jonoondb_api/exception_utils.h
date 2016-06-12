@@ -5,10 +5,11 @@
 
 namespace jonoondb_api {
 class ExceptionUtils {
-public:
+ public:
   static std::string GetMissingFieldErrorString(const std::string& fieldName);
-  static std::string GetInvalidStructFieldErrorString(const std::string& fieldName,
-                                                      const std::string& fullName);
+  static std::string
+      GetInvalidStructFieldErrorString(const std::string& fieldName,
+                                       const std::string& fullName);
   static int GetError();
   static std::string GetErrorTextFromErrorCode(int errorCode);
 };

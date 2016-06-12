@@ -8,11 +8,11 @@
 
 namespace jonoondb_api {
 class IDSequence final {
-public:
-  IDSequence(std::shared_ptr<MamaJenniesBitmap> bitmap, int vecSize);  
+ public:
+  IDSequence(std::shared_ptr<MamaJenniesBitmap> bitmap, int vecSize);
   const gsl::span<std::uint64_t>& Current();
   bool Next();
-private:
+ private:
   std::shared_ptr<MamaJenniesBitmap> m_bitmap;
   std::unique_ptr<MamaJenniesBitmap::const_iterator> m_iter;
   std::unique_ptr<MamaJenniesBitmap::const_iterator> m_end;

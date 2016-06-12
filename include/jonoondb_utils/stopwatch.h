@@ -4,17 +4,17 @@
 
 namespace jonoondb_utils {
 class Stopwatch {
-private:
+ private:
   typedef std::chrono::high_resolution_clock hires_clock;
   hires_clock::time_point m_startCounter;
   hires_clock::time_point m_stopCounter;
-  std::chrono::nanoseconds m_prevDuration;  
+  std::chrono::nanoseconds m_prevDuration;
   bool m_isRunning;
 
-public:
+ public:
 
-  Stopwatch(bool startNow = false) 
-    : m_isRunning(false), m_prevDuration(std::chrono::nanoseconds::zero()) {
+  Stopwatch(bool startNow = false)
+      : m_isRunning(false), m_prevDuration(std::chrono::nanoseconds::zero()) {
     if (startNow) {
       m_startCounter = hires_clock::now();
       m_isRunning = true;
@@ -39,7 +39,7 @@ public:
   void Reset() {
     Stop();
     m_startCounter = hires_clock::time_point::min();
-    m_stopCounter = hires_clock::time_point::min();    
+    m_stopCounter = hires_clock::time_point::min();
     m_prevDuration = std::chrono::nanoseconds::zero();
   }
 
@@ -55,7 +55,7 @@ public:
     } else {
       dur = (m_stopCounter - m_startCounter) + m_prevDuration;
     }
-    return std::chrono::duration_cast<std::chrono::seconds>(dur).count();    
+    return std::chrono::duration_cast<std::chrono::seconds>(dur).count();
   }
 
   int64_t ElapsedMilliSeconds() {
