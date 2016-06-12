@@ -23,8 +23,9 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 - wget https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz
-- tar xvzf boost_1_60_0.tar.gz
-- ./boost_1_60_0/bootstrap.sh --with-libraries=filesystem,system,thread,date_time,chrono,program_options && ./boost_1_60_0/b2 install address-model=64 --prefix=./boost_1_60_0/64bit
+- tar xvzf boost_1_60_0.tar.gz > boost.out
+- ./boost_1_60_0/bootstrap.sh --with-libraries=filesystem,system,thread,date_time,chrono,program_options
+- ./boost_1_60_0/b2 install address-model=64 --prefix=./boost_1_60_0/64bit
 
 script:
 - mkdir build && cd build && cmake .. -G "Unix Makefiles" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=../boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make && ctest -V; fi
