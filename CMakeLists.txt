@@ -163,7 +163,7 @@ add_executable(
  ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
  ${TEST_PATH}/jonoondb_api/proc_utils_tests.cc
  ${TEST_PATH}/jonoondb_utils/varint_tests.cc)
-target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
+target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES} rt)
 
 include(CTest)
 add_test(all_jonoondb_api_tests jonoondb_api_test)
