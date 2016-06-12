@@ -22,7 +22,7 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
-- wget https://cmake.org/files/v3.5/cmake-3.5.2.tar.gz
+- wget --no-check-certificate https://cmake.org/files/v3.5/cmake-3.5.2.tar.gz
 - tar xvzf cmake-3.5.2.tar.gz > cmake.out
 - $(cd cmake-3.5.2 && ./bootstrap >> cmake.out && make >> cmake.out && make install >> cmake.out)
 - wget https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz
