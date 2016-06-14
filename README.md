@@ -1,4 +1,4 @@
-## JonoonDB
+## JonoonDB  [![Build Status](https://travis-ci.org/zarianw/jonoondb.svg?branch=master)](https://travis-ci.org/zarianw/jonoondb) 
 It's a row store...It's a column store...NO! It's JonoonDB.
 
 Please visit [JonoonDB's Project Page](http://zarianw.github.io/jonoondb) for more information.
