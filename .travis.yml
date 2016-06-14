@@ -29,7 +29,10 @@ before_install:
 install:
 - bash ./scripts/install_boost_1.60.0.sh
 
-
 script:
 - cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make -j2
 - ctest -V
+
+cache:
+  directories:
+  - boost_1_60_0
