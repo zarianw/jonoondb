@@ -42,7 +42,7 @@ include_directories(${THIRDPARTY_PATH}/flatbuffers-1.3.0/include)
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS date_time chrono filesystem system thread program_options)
+find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread chrono program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
 message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
@@ -163,7 +163,7 @@ add_executable(
  ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
  ${TEST_PATH}/jonoondb_api/proc_utils_tests.cc
  ${TEST_PATH}/jonoondb_utils/varint_tests.cc)
-target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES} rt)
+target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 
 include(CTest)
 add_test(all_jonoondb_api_tests jonoondb_api_test)
