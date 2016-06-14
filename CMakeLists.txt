@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 2.8)
 
 project (JonoonDB)
 
@@ -42,7 +42,7 @@ include_directories(${THIRDPARTY_PATH}/flatbuffers-1.3.0/include)
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread date_time chrono program_options)
+find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread chrono program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
 message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
