@@ -1,0 +1,35 @@
+sudo: required
+dist: trusty
+
+language: cpp
+
+os:
+- linux
+#- osx
+
+compiler:
+  - gcc
+  #- clang
+
+env:
+  matrix:
+    - BUILD_TYPE=Debug
+    - BUILD_TYPE=Release    
+  global:
+    - GCC_VERSION="5"
+
+before_install:
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-$GCC_VERSION; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq gcc-$GCC_VERSION; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which g++-$GCC_VERSION) /usr/bin/g++; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
+- wget https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz
+- tar xvzf boost_1_60_0.tar.gz > boost.out
+- $(cd boost_1_60_0 && ./bootstrap.sh --with-libraries=filesystem,system,thread,date_time,chrono,program_options >> boost.out && ./b2 install address-model=64 --prefix=64bit >> boost.out)
+
+
+script:
+- cmake . -G "Unix Makefiles" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make
+- ctest -V
