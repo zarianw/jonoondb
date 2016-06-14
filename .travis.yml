@@ -27,7 +27,7 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
 install:
-- bash ./scripts/build/install_boost_1.60.0.sh
+- bash ./scripts/install_boost_1.60.0.sh
 
 cache:
   directories:
