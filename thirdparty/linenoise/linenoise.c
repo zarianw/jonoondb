@@ -105,22 +105,9 @@
 
 #if defined(_WIN32)
 // This library is not implemented for windows. We are just adding empty
-// functions so we can compile it in windows. But we never use linenoise
-// in windows
-void linenoiseSetCompletionCallback(linenoiseCompletionCallback *) {}
-void linenoiseSetHintsCallback(linenoiseHintsCallback *) {}
-void linenoiseSetFreeHintsCallback(linenoiseFreeHintsCallback *) {}
-void linenoiseAddCompletion(linenoiseCompletions *, const char *) {}
-
-char *linenoise(const char *prompt) { return nullptr; }
-void linenoiseFree(void *ptr) {}
-int linenoiseHistoryAdd(const char *line) { return 0; }
-int linenoiseHistorySetMaxLen(int len) {return 0; }
-int linenoiseHistorySave(const char *filename) { return 0; }
-int linenoiseHistoryLoad(const char *filename) { return 0; }
-void linenoiseClearScreen(void) {}
-void linenoiseSetMultiLine(int ml) {}
-void linenoisePrintKeyCodes(void) {}
+// function so we can compile it in windows. But we never use linenoise
+// in windows.
+void dummyFuncJustToCompileInWindows();
 #else
 
 #include <termios.h>

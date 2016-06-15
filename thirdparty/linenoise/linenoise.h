@@ -43,6 +43,12 @@
 extern "C" {
 #endif
 
+#if defined(_WIN32)
+// This library is not implemented for windows. We are just adding empty
+// function so we can compile it in windows. But we never use linenoise
+// in windows.
+void dummyFuncJustToCompileInWindows();
+#else
 typedef struct linenoiseCompletions {
   size_t len;
   char **cvec;
@@ -65,6 +71,7 @@ int linenoiseHistoryLoad(const char *filename);
 void linenoiseClearScreen(void);
 void linenoiseSetMultiLine(int ml);
 void linenoisePrintKeyCodes(void);
+#endif
 
 #ifdef __cplusplus
 }
