@@ -81,6 +81,45 @@ void PrintTime(Stopwatch sw) {
   cout << "Run Time: " << sw.ElapsedMilliSeconds() << " millisecs." << endl;
 }
 
+void LoadHistory(const string& path) {
+#if !defined(_WIN32)
+  linenoiseHistoryLoad(path.c_str());
+  linenoiseHistorySetMaxLen(30);
+#endif
+}
+
+void SaveHistory(const string& path) {
+#if !defined(_WIN32)
+  /* Save the history on disk. */
+  linenoiseHistorySave(path.c_str());
+#endif
+}
+
+void GetLine(std::string& line, const string& historyFilePath) {
+#if defined(_WIN32)
+  cout << "JonoonDB> ";
+  std::getline(std::cin, line);
+#else
+  static int counter = 0;
+  char* input = linenoise("JonoonDB> ");
+  if(input == nullptr) {
+    line = "";
+  } else {
+    line = input;
+    if(line.size() > 0) {
+      linenoiseHistoryAdd(input);
+      counter++;
+      if(counter % 5 == 0) {
+        // Save history every 5th command. This protects the history incase
+        // we don't have a normal shutdown using ".exit" cmd
+        SaveHistory(historyFilePath);
+      }
+    }
+    linenoiseFree(input);
+  }
+#endif
+}
+
 int StartJonoonDBCLI(string dbName, string dbPath) {
   try {
     cout << "JonoonDB - Lets change things." << "\n";
@@ -101,10 +140,11 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     std::string cmd;
     boost::char_separator<char> sep(" ");
     bool isTimerOn = true;
+    const string historyFilePath = ".jdb_cmd_history";
+    LoadHistory(historyFilePath);
 
     while (true) {
-      cout << "JonoonDB> ";
-      std::getline(std::cin, cmd);
+      GetLine(cmd, historyFilePath);
       if (cmd.size() == 0)
         continue;
 
@@ -314,6 +354,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
                 << "\". Assuming \"no\"." << endl;
           }
         } else if (tokens[0] == ".exit") {
+          SaveHistory(historyFilePath);
           return 0;
         } else {
           cout << "Unknow command " << tokens[0] << "." << endl;
