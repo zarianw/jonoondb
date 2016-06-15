@@ -38,6 +38,11 @@ add_library(
 include_directories(${THIRDPARTY_PATH}/flatbuffers-1.3.0/include)
 #add_subdirectory(${THIRDPARTY_PATH}/flatbuffers-1.3.0)
 
+# flatbuffers
+add_library(
+  linenoise
+  ${THIRDPARTY_PATH}/linenoise/linenoise.h ${THIRDPARTY_PATH}/linenoise/linenoise.c)
+
 # boost
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
@@ -120,7 +125,7 @@ target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
 add_executable(
  jonoondb_cli
  ${SRC_PATH}/jonoondb_cli/main.cc)
-target_link_libraries(jonoondb_cli jonoondb_api ${Boost_LIBRARIES})
+target_link_libraries(jonoondb_cli jonoondb_api linenoise ${Boost_LIBRARIES})
 
 # dbgen_converter
 add_executable(

@@ -12,6 +12,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/endian/conversion.hpp>
+#include "linenoise/linenoise.h"
 #include "database.h"
 #include "jonoondb_utils/stopwatch.h"
 #include "jonoondb_api/file.h"
