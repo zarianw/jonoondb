@@ -14,7 +14,7 @@ configuration:
 
 # scripts to run before build
 before_build:
-  - cmake -G "Visual Studio 14 Win64" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=C:\Libraries\boost_1_60_0
+  - cmake -G "Visual Studio 14 Win64" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=C:\Libraries\boost_1_60_0 -DBOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
   
 build:
   parallel: true             # enable MSBuild parallel builds
@@ -23,5 +23,5 @@ build:
 test_script:
   - ctest -V
   
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
