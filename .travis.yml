@@ -4,12 +4,14 @@ dist: trusty
 language: cpp
 
 os:
-- linux
-#- osx
+#- linux
+- osx
+
+osx_image: xcode7.3
 
 compiler:
-  - gcc
-  #- clang
+#- gcc
+- clang
 
 env:
   matrix:
