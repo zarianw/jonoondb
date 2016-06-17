@@ -4,6 +4,8 @@ machine:
     BUILD_TYPE: Release
 
 dependencies:
+  cache_directories:
+    - boost_1_60_0
   pre:
     - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     - sudo apt-get update -qq
