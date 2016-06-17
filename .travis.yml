@@ -4,12 +4,14 @@ dist: trusty
 language: cpp
 
 os:
-- linux
-#- osx
+#- linux
+- osx
+
+osx_image: xcode7.3
 
 compiler:
-  - gcc
-  #- clang
+#- gcc
+- clang
 
 env:
   matrix:
@@ -33,6 +35,6 @@ script:
 - cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make -j2
 - ctest -V
 
-#cache:
-#  directories:
-#  - boost_1_60_0
+cache:
+  directories:
+  - boost_1_60_0
