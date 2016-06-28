@@ -500,6 +500,16 @@ class ResultSet {
     return StringView(str, size);
   }
 
+  StringView GetBlob(std::int32_t columnIndex) const {
+    std::uint64_t size;
+    std::uint64_t* sizePtr = &size;
+    auto blob = jonoondb_resultset_getblob(m_opaque,
+                                           columnIndex,
+                                           &sizePtr,
+                                           ThrowOnError{});
+    return StringView(blob, size);
+  }
+
   std::int32_t GetColumnIndex(std::string columnLabel) {
     return jonoondb_resultset_getcolumnindex(m_opaque,
                                              columnLabel.c_str(),

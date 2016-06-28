@@ -534,6 +534,17 @@ const char* jonoondb_resultset_getstring(resultset_ptr rs,
   return strPtr;
 }
 
+const char* jonoondb_resultset_getblob(resultset_ptr rs,
+                                       int32_t columnIndex,
+                                       uint64_t** retValSize,
+                                       status_ptr* sts) {
+  char* blob;
+  TranslateExceptions([&] {
+    blob = const_cast<char*>(rs->impl.GetBlob(columnIndex, **retValSize));    
+  }, *sts);
+  return blob;
+}
+
 int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs,
                                           const char* columnLabel,
                                           uint64_t columnLabelLength,

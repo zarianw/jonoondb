@@ -138,6 +138,10 @@ const char* jonoondb_resultset_getstring(resultset_ptr rs,
                                          int32_t columnIndex,
                                          uint64_t** retValSize,
                                          status_ptr* sts);
+const char* jonoondb_resultset_getblob(resultset_ptr rs,
+                                       int32_t columnIndex,
+                                       uint64_t** retValSize,
+                                       status_ptr* sts);
 int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs,
                                           const char* columnLabel,
                                           uint64_t columnLabelLength,
