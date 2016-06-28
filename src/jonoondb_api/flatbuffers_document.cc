@@ -55,7 +55,9 @@ const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName,
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  return flatbuffers::GetFieldS(*m_table, *fieldDef)->c_str();
+  auto val = flatbuffers::GetFieldS(*m_table, *fieldDef);
+  size = val->size();
+  return val->c_str();
 }
 
 std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fieldName) const {
@@ -134,6 +136,28 @@ void FlatbuffersDocument::GetDocumentValue(const std::string& fieldName,
         "Make sure you are creating the val by calling AllocateDocument call.";
     throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
   }
+}
+
+const char* FlatbuffersDocument::GetBlobValue(const std::string& fieldName,
+                                 std::size_t& size) const {
+  auto fieldDef = m_obj->fields()->LookupByKey(fieldName.c_str());
+  if (fieldDef == nullptr) {
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName),
+                            __FILE__, __func__, __LINE__);
+  }
+  if (fieldDef->type()->base_type() != reflection::BaseType::Vector && 
+      (fieldDef->type()->element() != reflection::BaseType::Byte || 
+       fieldDef->type()->element() != reflection::BaseType::UByte)) {
+    std::ostringstream ss;
+    ss << "Field " << fieldName << " has FieldType "
+      << fieldDef->type()->base_type()
+      << " and it cannot be safely converted into blob.";
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  auto val = flatbuffers::GetFieldV<char>(*m_table, *fieldDef);
+  size = val->size();
+  return val->data();
 }
 
 std::unique_ptr<Document> FlatbuffersDocument::AllocateSubDocument() const {

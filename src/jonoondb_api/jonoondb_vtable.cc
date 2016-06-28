@@ -29,9 +29,10 @@ SQLITE_EXTENSION_INIT1;
 const int VECTOR_SIZE = 100;
 
 struct jonoondb_vtab {
+  
   sqlite3_vtab vtab;
   // This collection object is shared with the DatabaseImpl object
-  std::shared_ptr<DocumentCollectionInfo> collectionInfo;
+  std::shared_ptr<DocumentCollectionInfo> collectionInfo;  
 };
 
 struct jonoondb_cursor {
@@ -367,6 +368,30 @@ static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64* rowid) {
   return SQLITE_OK;
 }
 
+
+const char* GetBlobValue(std::unique_ptr<Document>& document,
+                         std::vector<std::string>& tokens,
+                         std::size_t& size) {
+  if (tokens.size() > 1) {
+    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
+                                                           tokens);
+    return subDoc->GetBlobValue(tokens.back(), size);
+  } else {
+    return document->GetBlobValue(tokens.back(), size);
+  }
+}
+
+void Sqlite3ResultBlob(sqlite3_context* ctx, const char* val,
+                       std::size_t size) {
+  if (val == nullptr || size == 0) {
+    sqlite3_result_null(ctx);
+  } else {
+    // SQLITE_TRANSIENT causes SQLite to copy
+    sqlite3_result_blob64(ctx, val, size, SQLITE_TRANSIENT);
+  }
+}
+
+
 static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
                            int cidx) {
   try {
@@ -437,6 +462,30 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
       } else {
         sqlite3_result_int64(ctx, val);
       }
+    } else if (columnInfo.columnType == FieldType::BASE_TYPE_BLOB) {
+      // Get the blob value      
+      std::size_t size = 0;
+      if (jdbCursor->document && jdbCursor->documentID == currentDocID) {        
+        auto val = GetBlobValue(jdbCursor->document,
+                                columnInfo.columnNameTokens,
+                                size);  
+        Sqlite3ResultBlob(ctx, val, size);
+      } else {
+        std::string blobVal;
+        jdbCursor->document.reset();
+        jdbCursor->documentID = currentDocID;
+        if (jdbCursor->collectionInfo->collection->TryGetBlobFieldFromIndexer(
+            currentDocID, columnInfo.columnName, blobVal)) {
+          Sqlite3ResultBlob(ctx, blobVal.data(), blobVal.size());
+        } else {
+          jdbCursor->collectionInfo->collection->GetDocumentAndBuffer(
+            currentDocID, jdbCursor->document, jdbCursor->buffer);
+          auto val = GetBlobValue(jdbCursor->document,
+                                  columnInfo.columnNameTokens,
+                                  size);
+          Sqlite3ResultBlob(ctx, val, size);
+        }        
+      }      
     } else {
       // Get the floating value      
       double val;

@@ -66,7 +66,7 @@ FieldType FlatbuffersDocumentSchema::GetFieldType(const std::string& fieldName) 
                               __FILE__, __func__, __LINE__);
     }
 
-    if (fieldDef->type()->base_type() != reflection::Obj) {
+    if (fieldDef->type()->base_type() != reflection::BaseType::Obj) {
       // TODO: Remove once unions are supported
       throw JonoonDBException(ExceptionUtils::GetInvalidStructFieldErrorString(
           tokenVec[i], fieldName), __FILE__, __func__, __LINE__);

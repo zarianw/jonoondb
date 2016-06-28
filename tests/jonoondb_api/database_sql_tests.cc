@@ -20,7 +20,7 @@ using namespace jonoondb_test;
 // This test was added after the bug that caused a crash
 // because the vectorized OP names were not added in
 // the sqlite3OpcodeName.
-TEST(Database, ExecuteSelect_Explain_Vec) {
+TEST(Database, ExecuteSelect_Explain) {
   string dbName = "Database_ExecuteSelect_Explain";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;

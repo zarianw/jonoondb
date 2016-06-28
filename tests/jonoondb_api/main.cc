@@ -33,7 +33,7 @@ std::string GetSchemaFilePath(const std::string& fileName) {
 
 Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
                        const std::string* nameStr, const std::string* textStr,
-                       double rating) {
+                       double rating, const std::string* binData) {
   // create user object
   FlatBufferBuilder fbb;
   Offset<String> name = 0;
@@ -47,7 +47,15 @@ Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
   if (textStr) {
     text = fbb.CreateString(*textStr);
   }
-  auto tweet = CreateTweet(fbb, tweetId, text, user, rating);
+  
+  Offset<Vector<int8_t>> binDataVec = 0;
+  if (binData) {
+    binDataVec = fbb.CreateVector<int8_t>(
+        reinterpret_cast<const int8_t*>(binData->data()),
+        binData->size());
+  }
+
+  auto tweet = CreateTweet(fbb, tweetId, text, user, rating, binDataVec);
 
   fbb.Finish(tweet);
   auto size = fbb.GetSize();

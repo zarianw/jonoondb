@@ -38,6 +38,10 @@ class Indexer {
     return false;
   }
 
+  virtual bool TryGetBlobValue(std::uint64_t documentID, std::string& val) {
+    return false;
+  }
+
   virtual bool TryGetIntegerVector(
       const gsl::span<std::uint64_t>& documentIDs,
       std::vector<std::int64_t>& values) {

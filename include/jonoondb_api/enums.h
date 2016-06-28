@@ -30,19 +30,23 @@ enum class FieldType
   BASE_TYPE_STRING,
   BASE_TYPE_VECTOR,
   BASE_TYPE_COMPLEX,
-  BASE_TYPE_UNION
+  BASE_TYPE_UNION,
+  BASE_TYPE_BLOB
 };
 
 // TODO: Come up with better management of enum to string functionality
-static const char* FieldTypeStrings[] = {"BASE_TYPE_UINT8", "BASE_TYPE_UINT16",
-                                         "BASE_TYPE_UINT32", "BASE_TYPE_UINT64",
-                                         "BASE_TYPE_INT8", "BASE_TYPE_INT16",
-                                         "BASE_TYPE_INT32", "BASE_TYPE_INT64",
-                                         "BASE_TYPE_FLOAT32",
-                                         "BASE_TYPE_DOUBLE", "BASE_TYPE_STRING",
-                                         "BASE_TYPE_VECTOR",
-                                         "BASE_TYPE_COMPLEX",
-                                         "BASE_TYPE_UNION"};
+static const char* FieldTypeStrings[] = {
+  "BASE_TYPE_INT8",
+  "BASE_TYPE_INT16",
+  "BASE_TYPE_INT32",
+  "BASE_TYPE_INT64",
+  "BASE_TYPE_FLOAT32",
+  "BASE_TYPE_DOUBLE",
+  "BASE_TYPE_STRING",
+  "BASE_TYPE_VECTOR",
+  "BASE_TYPE_COMPLEX",
+  "BASE_TYPE_UNION",
+  "BASE_TYPE_BLOB" };
 
 static const char* GetFieldString(FieldType fieldType) {
   return FieldTypeStrings[static_cast<int32_t>(fieldType)];

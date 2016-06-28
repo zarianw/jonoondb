@@ -201,6 +201,22 @@ bool IndexManager::TryGetStringValue(
   return false;
 }
 
+bool IndexManager::TryGetBlobValue(
+  std::uint64_t documentID, const std::string& columnName,
+  std::string& val) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType()
+          == IndexType::VECTOR) {
+        return indexer->TryGetBlobValue(documentID, val);
+      }
+    }
+  }
+
+  return false;
+}
+
 bool IndexManager::TryGetIntegerVector(
     const gsl::span<std::uint64_t>& documentIDs,
     const std::string& columnName,

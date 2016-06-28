@@ -166,6 +166,38 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
   }
 }
 
+void DocumentCollection::GetDocumentAndBuffer(
+  std::uint64_t docID, std::unique_ptr<Document>& document,
+  BufferImpl& buffer) const {
+  if (docID >= m_documentIDMap.size()) {
+    ostringstream ss;
+    ss << "Document with ID '" << docID << "' does exist in collection "
+      << m_name << ".";
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
+  document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
+}
+
+bool DocumentCollection::TryGetBlobFieldFromIndexer(
+    std::uint64_t docID, const std::string& columnName,
+    std::string& val) const {
+  if (docID >= m_documentIDMap.size()) {
+    ostringstream ss;
+    ss << "Document with ID '" << docID << "' does exist in collection "
+      << m_name << ".";
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  // lets see if we can get this value from any index  
+  if (m_indexManager->TryGetBlobValue(docID, columnName, val)) {
+    return true;
+  } 
+
+  return false;
+}
+
 std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
     std::uint64_t docID, const std::string& columnName,
     std::vector<std::string>& tokens, BufferImpl& buffer,

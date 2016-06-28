@@ -73,6 +73,7 @@ const char* GetSQLiteTypeString(FieldType fieldType) {
   static std::string integer = "INTEGER";
   static std::string real = "REAL";
   static std::string text = "TEXT";
+  static std::string blob = "BLOB";
   switch (fieldType) {
     case jonoondb_api::FieldType::BASE_TYPE_INT8:
     case jonoondb_api::FieldType::BASE_TYPE_INT16:
@@ -84,6 +85,8 @@ const char* GetSQLiteTypeString(FieldType fieldType) {
       return real.c_str();
     case jonoondb_api::FieldType::BASE_TYPE_STRING:
       return text.c_str();
+    case jonoondb_api::FieldType::BASE_TYPE_BLOB:
+      return blob.c_str();
     case jonoondb_api::FieldType::BASE_TYPE_VECTOR:
     case jonoondb_api::FieldType::BASE_TYPE_COMPLEX:
     default: {
@@ -111,6 +114,10 @@ void BuildCreateTableStatement(const Field* complexField,
       prefix.append(field->GetName());
       prefix.append(".");
       BuildCreateTableStatement(field, prefix, stringStream, columnNames);
+    } else if (field->GetType() == FieldType::BASE_TYPE_UNION ||
+               field->GetType() == FieldType::BASE_TYPE_VECTOR) {
+      // We don't support these types yet for querying
+      continue;
     } else {
       auto fullName = prefix;
       fullName.append(field->GetName());
@@ -123,10 +130,10 @@ void BuildCreateTableStatement(const Field* complexField,
   }
 }
 
-void GenerateCreateTableStatementForCollection(const std::shared_ptr<
-    DocumentCollection>& collection,
-                                               std::ostringstream& stringStream,
-                                               std::vector<ColumnInfo>& columnNames) {
+void GenerateCreateTableStatementForCollection(
+    const std::shared_ptr<DocumentCollection>& collection,
+    std::ostringstream& stringStream,
+    std::vector<ColumnInfo>& columnNames) {
   Field* field = collection->GetDocumentSchema()->AllocateField();
   std::unique_ptr<Field, void (*)(Field*)>
       fieldGuard(field, GuardFuncs::DisposeField);
@@ -151,11 +158,8 @@ void GenerateCreateTableStatementForCollection(const std::shared_ptr<
     }
   }
 
-  if (count > 0) {
-    stringStream.seekp(stringStream.tellp() - static_cast<std::streamoff>(2));
-  }
-
-  stringStream << ");";
+  // Add hidden columns
+  stringStream << "_document BLOB HIDDEN);";  
 }
 
 void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& collection) {

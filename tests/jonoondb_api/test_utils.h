@@ -12,7 +12,7 @@ extern jonoondb_api::BufferImpl GetTweetObject();
 extern jonoondb_api::Buffer
     GetTweetObject2(std::size_t tweetId, std::size_t userId,
                     const std::string* nameStr, const std::string* textStr,
-                    double rating);
+                    double rating, const std::string* binData);
 extern std::string GetSchemaFilePath(const std::string& fileName);
 extern jonoondb_api::Buffer GetAllFieldTypeObjectBuffer(
   char field1, unsigned char field2, bool field3, std::int16_t field4,

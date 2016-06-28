@@ -16,9 +16,8 @@ class FlatbuffersDocument final: public Document {
       FlatbuffersDocumentSchema* fbDocumentSchema, BufferImpl* buffer);
 
   std::string GetStringValue(const std::string& fieldName) const override;
-  const char
-      * GetStringValue(const std::string& fieldName, std::size_t& size) const
-      override;
+  const char* GetStringValue(const std::string& fieldName,
+                             std::size_t& size) const override;
 
   std::int64_t
       GetIntegerValueAsInt64(const std::string& fieldName) const override;
@@ -26,6 +25,10 @@ class FlatbuffersDocument final: public Document {
 
   void GetDocumentValue(const std::string& fieldName, Document& val) const
       override;
+
+  const char* GetBlobValue(const std::string& fieldName,
+                           std::size_t& size) const override;
+
   std::unique_ptr<Document> AllocateSubDocument() const override;
   void VerifyFieldForRead(const std::string& fieldName, FieldType type) const
       override;

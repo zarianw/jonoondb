@@ -12,6 +12,7 @@ table Tweet
   text:string;
   user:User;
   rating:double;
+  binData:[byte];
 }
 
 root_type Tweet;

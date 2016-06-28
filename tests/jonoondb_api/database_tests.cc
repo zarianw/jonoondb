@@ -150,7 +150,8 @@ TEST(Database, Insert_NoIndex) {
                       indexes);
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
+  std::string binData = "some_data";
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 }
 
@@ -174,7 +175,8 @@ TEST(Database, Insert_SingleIndex) {
                       schema, indexes);
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
+  std::string binData = "some_data";
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
 
   db.Insert(collectionName, documentData);
 }
@@ -284,7 +286,8 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
 
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
+  std::string binData = "some_data";
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;
@@ -332,7 +335,8 @@ TEST(Database, ExecuteSelect_Testing) {
 
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
+  std::string binData = "some_data";
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;
@@ -420,7 +424,9 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
 
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
+    std::string binData = "some_data_" + std::to_string(i);
+    documents.push_back(
+        GetTweetObject2(i, i, &name, &text, (double)i, &binData));
   }
 
   db.MultiInsert(collectionName, documents);
@@ -484,7 +490,9 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
     for (size_t i = 0; i < 10; i++) {
       std::string name = "zarian_" + std::to_string(i);
       std::string text = "hello_" + std::to_string(i);
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
+      std::string binData = "some_data_" + std::to_string(i);
+      documents.push_back(
+          GetTweetObject2(i, i, &name, &text, (double)i, &binData));
     }
 
     db.MultiInsert(collectionName1, documents);
@@ -561,7 +569,9 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
+    std::string binData = "some_data_" + std::to_string(i);
+    documents.push_back(
+        GetTweetObject2(i, i, &name, &text, (double)i, &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -598,7 +608,9 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
+    std::string binData = "some_data_" + std::to_string(i);
+    documents.push_back(
+        GetTweetObject2(i, i, &name, &text, (double)i, &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -848,11 +860,13 @@ TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
-                                        (double) i / 100.0));
+                                        (double) i / 100.0,
+                                        &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -881,11 +895,13 @@ TEST(Database, ExecuteSelect_DoubleExpression) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
-                                        (double) i / 100.0));
+                                        (double) i / 100.0,
+                                        &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -918,11 +934,13 @@ TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
-                                        (double) i / 100.0));
+                                        (double) i / 100.0,
+                                        &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -982,11 +1000,13 @@ TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
-                                        static_cast<double>(i)));
+                                        static_cast<double>(i),
+                                        &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -1029,11 +1049,13 @@ TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
-                                        static_cast<double>(i)));
+                                        static_cast<double>(i),
+                                        &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -1078,8 +1100,10 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
     std::vector<Buffer> documents;
     std::string text = "hello";
     std::string name = "zarian";
+    std::string binData = "some_data";
     for (size_t i = 0; i < idCnt; i++) {
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
+      documents.push_back(
+          GetTweetObject2(i, i, &name, &text, (double)i, &binData));
     }
 
     db.MultiInsert(collectionName, documents);
@@ -1118,9 +1142,11 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
     std::vector<Buffer> documents;
     std::string text = "hello";
     std::string name = "zarian";
+    std::string binData = "some_data";
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
+      documents.push_back(
+          GetTweetObject2(i, i, &name, &text, (double)i, &binData));
       expectedSum += i;
     }
 
@@ -1172,9 +1198,11 @@ TEST(Database, ExecuteSelect_Aggregation) {
     std::vector<Buffer> documents;
     std::string text = "hello";
     std::string name = "zarian";
+    std::string binData = "some_data";
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
-      documents.push_back(GetTweetObject2(i, i, &name, &text, (double) i));
+      documents.push_back(
+          GetTweetObject2(i, i, &name, &text, (double)i, &binData));
       expectedSum += i;
     }
 
@@ -1219,18 +1247,21 @@ TEST(Database, ExecuteSelect_NullStrFields) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
       documents.push_back(GetTweetObject2(i,
                                           i,
                                           &name,
                                           &text,
-                                          (double) i / 100.0));
+                                          (double) i / 100.0,
+                                          &binData));
     } else {
       documents.push_back(GetTweetObject2(i,
                                           i,
                                           nullptr,
                                           nullptr,
-                                          (double) i / 100.0));
+                                          (double) i / 100.0,
+                                          nullptr));
     }
   }
   db.MultiInsert("tweet", documents);
@@ -1313,18 +1344,21 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
       documents.push_back(GetTweetObject2(i,
                                           i,
                                           &name,
                                           &text,
-                                          (double) i / 100.0));
+                                          (double) i / 100.0,
+                                          &binData));
     } else {
       documents.push_back(GetTweetObject2(i,
                                           i,
                                           nullptr,
                                           nullptr,
-                                          (double) i / 100.0));
+                                          (double) i / 100.0,
+                                          &binData));
     }
   }
   db.MultiInsert("tweet", documents);
@@ -1410,18 +1444,21 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   for (size_t i = 0; i < 10; i++) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
       documents.push_back(GetTweetObject2(i,
                                           i,
                                           &name,
                                           &text,
-                                          (double) i / 100.0));
+                                          (double) i / 100.0,
+                                          &binData));
     } else {
       documents.push_back(GetTweetObject2(i,
                                           i,
                                           nullptr,
                                           nullptr,
-                                          (double) i / 100.0));
+                                          (double) i / 100.0,
+                                          &binData));
     }
   }
   db.MultiInsert("tweet", documents);
@@ -1504,7 +1541,8 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
 
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0);
+  std::string binData = "some_data";
+  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;

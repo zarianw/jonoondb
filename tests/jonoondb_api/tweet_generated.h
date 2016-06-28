@@ -54,12 +54,14 @@ struct Tweet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_ID = 4,
     VT_TEXT = 6,
     VT_USER = 8,
-    VT_RATING = 10
+    VT_RATING = 10,
+    VT_BINDATA = 12
   };
   int64_t id() const { return GetField<int64_t>(VT_ID, 0); }
   const flatbuffers::String *text() const { return GetPointer<const flatbuffers::String *>(VT_TEXT); }
   const User *user() const { return GetPointer<const User *>(VT_USER); }
   double rating() const { return GetField<double>(VT_RATING, 0); }
+  const flatbuffers::Vector<int8_t> *binData() const { return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_BINDATA); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int64_t>(verifier, VT_ID) &&
@@ -68,6 +70,8 @@ struct Tweet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_USER) &&
            verifier.VerifyTable(user()) &&
            VerifyField<double>(verifier, VT_RATING) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_BINDATA) &&
+           verifier.Verify(binData()) &&
            verifier.EndTable();
   }
 };
@@ -79,10 +83,11 @@ struct TweetBuilder {
   void add_text(flatbuffers::Offset<flatbuffers::String> text) { fbb_.AddOffset(Tweet::VT_TEXT, text); }
   void add_user(flatbuffers::Offset<User> user) { fbb_.AddOffset(Tweet::VT_USER, user); }
   void add_rating(double rating) { fbb_.AddElement<double>(Tweet::VT_RATING, rating, 0); }
+  void add_binData(flatbuffers::Offset<flatbuffers::Vector<int8_t>> binData) { fbb_.AddOffset(Tweet::VT_BINDATA, binData); }
   TweetBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   TweetBuilder &operator=(const TweetBuilder &);
   flatbuffers::Offset<Tweet> Finish() {
-    auto o = flatbuffers::Offset<Tweet>(fbb_.EndTable(start_, 4));
+    auto o = flatbuffers::Offset<Tweet>(fbb_.EndTable(start_, 5));
     return o;
   }
 };
@@ -91,10 +96,12 @@ inline flatbuffers::Offset<Tweet> CreateTweet(flatbuffers::FlatBufferBuilder &_f
    int64_t id = 0,
    flatbuffers::Offset<flatbuffers::String> text = 0,
    flatbuffers::Offset<User> user = 0,
-   double rating = 0) {
+   double rating = 0,
+   flatbuffers::Offset<flatbuffers::Vector<int8_t>> binData = 0) {
   TweetBuilder builder_(_fbb);
   builder_.add_rating(rating);
   builder_.add_id(id);
+  builder_.add_binData(binData);
   builder_.add_user(user);
   builder_.add_text(text);
   return builder_.Finish();
