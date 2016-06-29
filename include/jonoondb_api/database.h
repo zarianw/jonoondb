@@ -490,7 +490,7 @@ class ResultSet {
     return jonoondb_resultset_getdouble(m_opaque, columnIndex, ThrowOnError());
   }
 
-  StringView GetString(std::int32_t columnIndex) const {
+  StringView GetString(std::int32_t columnIndex) {
     std::uint64_t size;
     std::uint64_t* sizePtr = &size;
     const char* str = jonoondb_resultset_getstring(m_opaque,
@@ -500,14 +500,17 @@ class ResultSet {
     return StringView(str, size);
   }
 
-  StringView GetBlob(std::int32_t columnIndex) const {
+  const Buffer& GetBlob(std::int32_t columnIndex) {
     std::uint64_t size;
     std::uint64_t* sizePtr = &size;
     auto blob = jonoondb_resultset_getblob(m_opaque,
                                            columnIndex,
                                            &sizePtr,
                                            ThrowOnError{});
-    return StringView(blob, size);
+    // Todo: Optimize Buffer usage
+    m_tmpStorage = Buffer(blob, size, size);
+
+    return m_tmpStorage;
   }
 
   std::int32_t GetColumnIndex(std::string columnLabel) {
@@ -545,6 +548,7 @@ class ResultSet {
 
  private:
   resultset_ptr m_opaque;
+  Buffer m_tmpStorage;
 };
 
 class Database {

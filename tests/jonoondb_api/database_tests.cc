@@ -341,13 +341,17 @@ TEST(Database, ExecuteSelect_Testing) {
 
   int rows = 0;
   ResultSet rs = db.ExecuteSelect(
-      "SELECT id, text, [user.id], [user.name] FROM tweet WHERE id = 1;");
+      "SELECT id, text, [user.id], [user.name], rating, binData FROM tweet WHERE id = 1;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), 1);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("text")).str(),
                  "Say hello to my little friend!");
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("user.id")), 1);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(), "Zarian");
+    ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 2.0);
+    auto blob = rs.GetBlob(rs.GetColumnIndex("binData"));
+    ASSERT_EQ(blob.GetLength(), binData.size());
+    ASSERT_EQ(memcmp(blob.GetData(), binData.data(), blob.GetLength()), 0);
     ++rows;
   }
   ASSERT_EQ(rows, 1);
@@ -432,12 +436,16 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
   db.MultiInsert(collectionName, documents);
 
   // Now see if they were inserted correctly
-  auto rs = db.ExecuteSelect("SELECT [user.name] from tweet;");
+  auto rs = db.ExecuteSelect("SELECT [user.name], binData from tweet;");
   auto rowCnt = 0;
   while (rs.Next()) {
     std::string name = "zarian_" + std::to_string(rowCnt);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(),
                  name.c_str());
+    std::string binData = "some_data_" + std::to_string(rowCnt);
+    auto blob = rs.GetBlob(rs.GetColumnIndex("binData"));
+    ASSERT_EQ(blob.GetLength(), binData.size());
+    ASSERT_EQ(memcmp(blob.GetData(), binData.data(), blob.GetLength()), 0);
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
@@ -507,7 +515,7 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
 
   // Now see if we can read all the inserted data correctly
   std::string sqlStmt =
-      "SELECT id, text, [user.id], [user.name] FROM " + collectionName1 + ";";
+      "SELECT id, text, [user.id], [user.name], rating, binData FROM " + collectionName1 + ";";
   auto rs = db.ExecuteSelect(sqlStmt);
   auto rowCnt = 0;
   while (rs.Next()) {
@@ -518,13 +526,18 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
     std::string name = "zarian_" + std::to_string(rowCnt);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(),
                  name.c_str());
+    ASSERT_DOUBLE_EQ(rs.GetInteger(rs.GetColumnIndex("rating")), (double)rowCnt);
+    std::string binData = "some_data_" + std::to_string(rowCnt);
+    auto blob = rs.GetBlob(rs.GetColumnIndex("binData"));
+    ASSERT_EQ(blob.GetLength(), binData.size());
+    ASSERT_EQ(memcmp(blob.GetData(), binData.data(), blob.GetLength()), 0);
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
 
   // Now check collection2
   sqlStmt =
-      "SELECT id, text, [user.id], [user.name] FROM " + collectionName2 + ";";
+      "SELECT id, text, [user.id], [user.name], rating, binData FROM " + collectionName2 + ";";
   rs = db.ExecuteSelect(sqlStmt);
   rowCnt = 0;
   while (rs.Next()) {
@@ -535,6 +548,11 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
     std::string name = "zarian_" + std::to_string(rowCnt);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(),
                  name.c_str());
+    ASSERT_DOUBLE_EQ(rs.GetInteger(rs.GetColumnIndex("rating")), (double)rowCnt);
+    std::string binData = "some_data_" + std::to_string(rowCnt);
+    auto blob = rs.GetBlob(rs.GetColumnIndex("binData"));
+    ASSERT_EQ(blob.GetLength(), binData.size());
+    ASSERT_EQ(memcmp(blob.GetData(), binData.data(), blob.GetLength()), 0);
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
@@ -577,7 +595,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
 
   int rowCnt = 0;
   ResultSet rs = db.ExecuteSelect(
-      "SELECT id, text, [user.id], [user.name] FROM tweet WHERE id < 5;");
+      "SELECT id, text, [user.id], [user.name], rating, binData FROM tweet WHERE id < 5;");
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("id")), rowCnt);
     std::string text = "hello_" + std::to_string(rowCnt);
@@ -586,6 +604,11 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
     std::string name = "zarian_" + std::to_string(rowCnt);
     ASSERT_STREQ(rs.GetString(rs.GetColumnIndex("user.name")).str(),
                  name.c_str());
+    ASSERT_DOUBLE_EQ(rs.GetInteger(rs.GetColumnIndex("rating")), (double)rowCnt);
+    std::string binData = "some_data_" + std::to_string(rowCnt);
+    auto blob = rs.GetBlob(rs.GetColumnIndex("binData"));
+    ASSERT_EQ(blob.GetLength(), binData.size());
+    ASSERT_EQ(memcmp(blob.GetData(), binData.data(), blob.GetLength()), 0);
     rowCnt++;
   }
 
