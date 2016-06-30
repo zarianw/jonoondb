@@ -182,7 +182,7 @@ void DocumentCollection::GetDocumentAndBuffer(
 
 bool DocumentCollection::TryGetBlobFieldFromIndexer(
     std::uint64_t docID, const std::string& columnName,
-    std::string& val) const {
+    BufferImpl& val) const {
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
     ss << "Document with ID '" << docID << "' does exist in collection "

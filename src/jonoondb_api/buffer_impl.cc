@@ -210,6 +210,26 @@ bool BufferImpl::operator<(const BufferImpl& other) const {
   }
 }
 
+bool BufferImpl::operator<=(const BufferImpl& other) const {
+  return !(other < *this);
+}
+
+bool BufferImpl::operator>(const BufferImpl& other) const {
+  return (other < *this);
+}
+
+bool BufferImpl::operator>=(const BufferImpl& other) const {
+  return !(*this < other);
+}
+
+bool BufferImpl::operator==(const BufferImpl & other) const {
+  return (!(*this < other) && !(other < *this));
+}
+
+bool BufferImpl::operator!=(const BufferImpl & other) const {
+  return (*this < other || other < *this);
+}
+
 void BufferImpl::Resize(size_t newBufferCapacityInBytes) {
   if (newBufferCapacityInBytes == 0) {
     Reset();

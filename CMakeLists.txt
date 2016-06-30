@@ -88,6 +88,7 @@ add_library(
  ${INCLUDE_PATH}/jonoondb_api/vector_integer_indexer.h
  ${INCLUDE_PATH}/jonoondb_api/vector_double_indexer.h
  ${INCLUDE_PATH}/jonoondb_api/vector_string_indexer.h
+ ${INCLUDE_PATH}/jonoondb_api/vector_blob_indexer.h
  ${INCLUDE_PATH}/jonoondb_api/null_helpers.h
  ${INCLUDE_PATH}/jonoondb_api/proc_utils.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc

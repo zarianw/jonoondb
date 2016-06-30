@@ -54,7 +54,7 @@ class DocumentCollection final {
 
   bool TryGetBlobFieldFromIndexer(std::uint64_t docID,
                                   const std::string& columnName,
-                                  std::string& val) const;  
+                                  BufferImpl& val) const;  
   
   std::int64_t GetDocumentFieldAsInteger
       (std::uint64_t docID, const std::string& columnName,

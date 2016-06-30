@@ -272,7 +272,7 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
 
         Constraint constraint
             (cursor->collectionInfo->columnsInfo[colIndex].columnName, op);
-
+        std::size_t size = 0;
         switch (sqlite3_value_type(*value)) {
           case SQLITE_INTEGER:
             constraint.operandType = OperandType::INTEGER;
@@ -284,7 +284,15 @@ static int jonoondb_filter(sqlite3_vtab_cursor* cur, int idxnum,
             break;
           case SQLITE_TEXT:
             constraint.operandType = OperandType::STRING;
-            constraint.strVal = (char*) (sqlite3_value_text(*value));
+            constraint.strVal = reinterpret_cast<const char*>(
+                sqlite3_value_text(*value));
+            break;
+          case SQLITE_BLOB:
+            constraint.operandType = OperandType::BLOB;
+            size = sqlite3_value_bytes(*value);
+            constraint.blobVal.Resize(size);
+            constraint.blobVal.Copy(
+                static_cast<const char*>(sqlite3_value_blob(*value)), size);
             break;
           default:
             std::ostringstream ss;
@@ -471,12 +479,12 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
                                 size);  
         Sqlite3ResultBlob(ctx, val, size);
       } else {
-        std::string blobVal;
+        BufferImpl blobVal;
         jdbCursor->document.reset();
         jdbCursor->documentID = currentDocID;
         if (jdbCursor->collectionInfo->collection->TryGetBlobFieldFromIndexer(
             currentDocID, columnInfo.columnName, blobVal)) {
-          Sqlite3ResultBlob(ctx, blobVal.data(), blobVal.size());
+          Sqlite3ResultBlob(ctx, blobVal.GetData(), blobVal.GetLength());
         } else {
           jdbCursor->collectionInfo->collection->GetDocumentAndBuffer(
             currentDocID, jdbCursor->document, jdbCursor->buffer);
