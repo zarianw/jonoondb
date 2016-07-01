@@ -38,6 +38,7 @@ Indexer* IndexerFactory::CreateIndexer(
         EWAHCompressedBitmapIndexerBlob::Construct(indexInfo,
                                                    fieldType,
                                                    ewahIndexer);
+        return static_cast<Indexer*>(ewahIndexer);
       }
       else {
         EWAHCompressedBitmapIndexerInteger* ewahIndexer;

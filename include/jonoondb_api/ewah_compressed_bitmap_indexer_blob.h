@@ -154,7 +154,7 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
                                   std::vector<std::string>& fieldNameTokens)
       : m_indexStat(indexStat),
         m_fieldNameTokens(fieldNameTokens),
-        m_lastInsertedDocId(0) {
+        m_lastInsertedDocId(-1) {
   }
 
   void InsertInternal(std::uint64_t documentID, const Document& document) {
@@ -252,7 +252,7 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-  std::uint64_t m_lastInsertedDocId;
+  std::int64_t m_lastInsertedDocId;
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::map<BufferImpl, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;

@@ -82,7 +82,9 @@ FieldType FlatbuffersDocumentSchema::GetFieldType(const std::string& fieldName) 
                             __FILE__, __func__, __LINE__);
   }
 
-  return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(fieldDef->type()->base_type());
+  FlatbuffersField fbField;
+  fbField.SetMembers(const_cast<reflection::Field*>(fieldDef), m_schema);
+  return fbField.GetType();  
 }
 
 std::size_t FlatbuffersDocumentSchema::GetRootFieldCount() const {

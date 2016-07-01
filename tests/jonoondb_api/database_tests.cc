@@ -423,6 +423,12 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
                       schema,
                       indexes);
 
+  index.SetIndexName("IndexName4");
+  index.SetType(indexType);
+  index.SetIsAscending(true);
+  index.SetColumnName("binData");
+  indexes.push_back(index);  
+
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
 
@@ -484,6 +490,7 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
     indexes.push_back(IndexInfo("IndexName2", indexType, "text", true));
     indexes.push_back(IndexInfo("IndexName3", indexType, "user.id", true));
     indexes.push_back(IndexInfo("IndexName4", indexType, "user.name", true));
+    indexes.push_back(IndexInfo("IndexName5", indexType, "binData", true));
 
     db.CreateCollection(collectionName1,
                         SchemaType::FLAT_BUFFERS,
