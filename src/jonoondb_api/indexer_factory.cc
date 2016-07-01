@@ -1,14 +1,16 @@
 #include <sstream>
-#include "indexer_factory.h"
-#include "index_info_impl.h"
-#include "enums.h"
-#include "ewah_compressed_bitmap_indexer_integer.h"
-#include "ewah_compressed_bitmap_indexer_string.h"
-#include "ewah_compressed_bitmap_indexer_double.h"
-#include "jonoondb_exceptions.h"
-#include "vector_integer_indexer.h"
-#include "vector_double_indexer.h"
-#include "vector_string_indexer.h"
+#include "jonoondb_api/indexer_factory.h"
+#include "jonoondb_api/index_info_impl.h"
+#include "jonoondb_api/enums.h"
+#include "jonoondb_api/ewah_compressed_bitmap_indexer_integer.h"
+#include "jonoondb_api/ewah_compressed_bitmap_indexer_string.h"
+#include "jonoondb_api/ewah_compressed_bitmap_indexer_double.h"
+#include "jonoondb_api/ewah_compressed_bitmap_indexer_blob.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
+#include "jonoondb_api/vector_integer_indexer.h"
+#include "jonoondb_api/vector_double_indexer.h"
+#include "jonoondb_api/vector_string_indexer.h"
+#include "jonoondb_api/vector_blob_indexer.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -31,7 +33,13 @@ Indexer* IndexerFactory::CreateIndexer(
                                                      fieldType,
                                                      ewahIndexer);
         return static_cast<Indexer*>(ewahIndexer);
-      } else {
+      } else if (fieldType == FieldType::BASE_TYPE_BLOB) {
+        EWAHCompressedBitmapIndexerBlob* ewahIndexer;
+        EWAHCompressedBitmapIndexerBlob::Construct(indexInfo,
+                                                   fieldType,
+                                                   ewahIndexer);
+      }
+      else {
         EWAHCompressedBitmapIndexerInteger* ewahIndexer;
         EWAHCompressedBitmapIndexerInteger::Construct(indexInfo,
                                                       fieldType,
@@ -47,6 +55,8 @@ Indexer* IndexerFactory::CreateIndexer(
         return new VectorDoubleIndexer(indexInfo, fieldType);
       } else if (fieldType == FieldType::BASE_TYPE_INT64) {
         return new VectorIntegerIndexer<std::int64_t>(indexInfo, fieldType);
+      } else if (fieldType == FieldType::BASE_TYPE_BLOB) {
+        return new VectorBlobIndexer(indexInfo, fieldType);
       } else {
         return new VectorIntegerIndexer<std::int32_t>(indexInfo, fieldType);
       }

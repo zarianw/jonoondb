@@ -76,6 +76,7 @@ add_library(
  ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_integer.h
  ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_string.h
  ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_double.h
+ ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_blob.h
  ${INCLUDE_PATH}/jonoondb_api/field.h
  ${INCLUDE_PATH}/jonoondb_api/jonoondb_exceptions.h 
  ${INCLUDE_PATH}/jonoondb_api/database.h

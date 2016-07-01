@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <atomic>
 
+#define DOC_ID_START 0
+
 namespace jonoondb_api {
 class DocumentIDGenerator {
  public:
