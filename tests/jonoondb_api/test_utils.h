@@ -17,6 +17,7 @@ extern std::string GetSchemaFilePath(const std::string& fileName);
 extern jonoondb_api::Buffer GetAllFieldTypeObjectBuffer(
   char field1, unsigned char field2, bool field3, std::int16_t field4,
   std::uint16_t field5, std::int32_t field6, std::uint32_t field7, float field8,
-  std::int64_t field9, double field10, const std::string& field11);
+  std::int64_t field9, double field10, const std::string& field11,
+  const std::string& field12, const std::string& field13);
 extern jonoondb_api::Options GetDefaultDBOptions();
 }  // namespace jonoondb_test

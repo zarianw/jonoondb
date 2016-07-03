@@ -156,8 +156,13 @@ const char* FlatbuffersDocument::GetBlobValue(const std::string& fieldName,
   }
 
   auto val = flatbuffers::GetFieldV<char>(*m_table, *fieldDef);
-  size = val->size();
-  return val->data();
+  if (val) {
+    size = val->size();
+    return val->data();
+  } else {
+    size = 0;
+    return nullptr;
+  }
 }
 
 std::unique_ptr<Document> FlatbuffersDocument::AllocateSubDocument() const {

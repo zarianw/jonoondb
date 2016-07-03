@@ -90,7 +90,6 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
   }
 
   std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
-    assert(constraint.operandType == OperandType::STRING);
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
