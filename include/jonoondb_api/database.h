@@ -411,6 +411,27 @@ class Buffer {
     return (jonoondb_buffer_op_lessthan(m_opaque, other.m_opaque) != 0);
   }
 
+  bool operator<=(const Buffer& other) const {
+    return (jonoondb_buffer_op_lessthanorequal(m_opaque, other.m_opaque) != 0);
+  }
+
+  bool operator>(const Buffer& other) const {
+    return (jonoondb_buffer_op_greaterthan(m_opaque, other.m_opaque) != 0);
+  }
+
+  bool operator>=(const Buffer& other) const {
+    return (jonoondb_buffer_op_greaterthanorequal(m_opaque,
+                                                  other.m_opaque) != 0);
+  }
+
+  bool operator==(const Buffer& other) {
+    return (jonoondb_buffer_op_equal(m_opaque, other.m_opaque) != 0);
+  }
+
+  bool operator!=(const Buffer& other) {
+    return (jonoondb_buffer_op_notequal(m_opaque, other.m_opaque) != 0);
+  }
+
   void Copy(const char* srcBuffer, size_t bytesToCopy) {
     jonoondb_buffer_copy(m_opaque, srcBuffer, bytesToCopy, ThrowOnError{});
   }

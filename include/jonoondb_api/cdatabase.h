@@ -113,6 +113,16 @@ void jonoondb_buffer_copy_assignment
 void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf);
 int32_t jonoondb_buffer_op_lessthan
     (jonoondb_buffer_ptr self, jonoondb_buffer_ptr other);
+int32_t jonoondb_buffer_op_lessthanorequal(jonoondb_buffer_ptr self,
+                                           jonoondb_buffer_ptr other);
+int32_t jonoondb_buffer_op_greaterthan(jonoondb_buffer_ptr self,
+                                       jonoondb_buffer_ptr other);
+int32_t jonoondb_buffer_op_greaterthanorequal(jonoondb_buffer_ptr self,
+                                              jonoondb_buffer_ptr other);
+int32_t jonoondb_buffer_op_equal(jonoondb_buffer_ptr self,
+                                 jonoondb_buffer_ptr other);
+int32_t jonoondb_buffer_op_notequal(jonoondb_buffer_ptr self,
+                                    jonoondb_buffer_ptr other);
 void jonoondb_buffer_copy(jonoondb_buffer_ptr buf,
                           const char* srcBuf,
                           uint64_t bytesToCopy,

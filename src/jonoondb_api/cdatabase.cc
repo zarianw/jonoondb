@@ -450,6 +450,31 @@ int32_t jonoondb_buffer_op_lessthan(jonoondb_buffer_ptr self,
   return (self->impl < other->impl ? 1 : 0);
 }
 
+int32_t jonoondb_buffer_op_lessthanorequal(jonoondb_buffer_ptr self,
+                                           jonoondb_buffer_ptr other) {
+  return (self->impl <= other->impl ? 1 : 0);
+}
+
+int32_t jonoondb_buffer_op_greaterthan(jonoondb_buffer_ptr self,
+                                       jonoondb_buffer_ptr other) {
+  return (self->impl > other->impl ? 1 : 0);
+}
+
+int32_t jonoondb_buffer_op_greaterthanorequal(jonoondb_buffer_ptr self,
+                                              jonoondb_buffer_ptr other) {
+  return (self->impl >= other->impl ? 1 : 0);
+}
+
+int32_t jonoondb_buffer_op_equal(jonoondb_buffer_ptr self,
+                                 jonoondb_buffer_ptr other) {
+  return (self->impl == other->impl ? 1 : 0);
+}
+
+int32_t jonoondb_buffer_op_notequal(jonoondb_buffer_ptr self,
+                                    jonoondb_buffer_ptr other) {
+  return (self->impl != other->impl ? 1 : 0);
+}
+
 void jonoondb_buffer_copy(jonoondb_buffer_ptr buf,
                           const char* srcBuf,
                           uint64_t bytesToCopy,

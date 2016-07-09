@@ -206,3 +206,67 @@ TEST(Buffer, Buffer_Copy_SmallBuffer) {
   Buffer buffer(2);
   ASSERT_THROW(buffer.Copy(str.data(), str.length()), JonoonDBException);
 }
+
+TEST(Buffer, Buffer_LessThan) {
+  string str = "Hello";  
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_FALSE(buffer1 < buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer3 < buffer1);
+  ASSERT_LT(buffer1, buffer3);
+}
+
+TEST(Buffer, Buffer_LessThanEqual) {
+  string str = "Hello";  
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_LE(buffer1, buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer3 <= buffer1);
+  ASSERT_LE(buffer1, buffer3);
+}
+
+TEST(Buffer, Buffer_GreaterThan) {
+  string str = "Hello";
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_FALSE(buffer1 > buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer1 > buffer3);
+  ASSERT_GT(buffer3, buffer1);
+}
+
+TEST(Buffer, Buffer_GreaterThanEqual) {
+  string str = "Hello";
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_GE(buffer1, buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer1 >= buffer3);
+  ASSERT_GE(buffer3, buffer1);
+}
+
+TEST(Buffer, Buffer_EQ) {
+  string str = "Hello";
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_TRUE(buffer1 == buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer1 == buffer3);  
+}
+
+TEST(Buffer, Buffer_NotEQ) {
+  string str = "Hello";
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_FALSE(buffer1 != buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_TRUE(buffer1 != buffer3);
+}
