@@ -8,6 +8,7 @@
 #include "enums.h"
 
 namespace jonoondb_api {
+class BufferImpl;
 class Document {
  public:
   virtual ~Document() {
@@ -27,6 +28,7 @@ class Document {
   virtual std::unique_ptr<Document> AllocateSubDocument() const = 0;
   virtual void VerifyFieldForRead(const std::string& fieldName,
                                   FieldType type) const = 0;
+  virtual const BufferImpl* GetRawBuffer() const = 0;
 };
 
 class DocumentUtils {

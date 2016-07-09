@@ -35,6 +35,8 @@ class FlatbuffersDocument final: public Document {
 
   void SetMembers(FlatbuffersDocumentSchema* schema, BufferImpl* buffer,
                   reflection::Object* obj, flatbuffers::Table* table);
+  const BufferImpl* GetRawBuffer() const override;
+
  private:
   FlatbuffersDocument();
   std::string GetMissingFieldErrorString(const std::string& fieldName) const;

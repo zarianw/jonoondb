@@ -200,7 +200,7 @@ bool DocumentCollection::TryGetBlobFieldFromIndexer(
 
 std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
     std::uint64_t docID, const std::string& columnName,
-    std::vector<std::string>& tokens, BufferImpl& buffer,
+    const std::vector<std::string>& tokens, BufferImpl& buffer,
     std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
@@ -235,7 +235,7 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
 
 double DocumentCollection::GetDocumentFieldAsDouble(
     std::uint64_t docID, const std::string& columnName,
-    std::vector<std::string>& tokens, BufferImpl& buffer,
+    const std::vector<std::string>& tokens, BufferImpl& buffer,
     std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
@@ -271,7 +271,7 @@ double DocumentCollection::GetDocumentFieldAsDouble(
 // Todo: Need to avoid the string creation/copy cost
 std::string DocumentCollection::GetDocumentFieldAsString(
     std::uint64_t docID, const std::string& columnName,
-    std::vector<std::string>& tokens, BufferImpl& buffer,
+    const std::vector<std::string>& tokens, BufferImpl& buffer,
     std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
@@ -305,7 +305,7 @@ std::string DocumentCollection::GetDocumentFieldAsString(
 
 void DocumentCollection::GetDocumentFieldsAsIntegerVector(
     const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
-    std::vector<std::string>& tokens,
+    const std::vector<std::string>& tokens,
     std::vector<std::int64_t>& values) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
@@ -343,7 +343,7 @@ void DocumentCollection::GetDocumentFieldsAsIntegerVector(
 void DocumentCollection::GetDocumentFieldsAsDoubleVector(
     const gsl::span<std::uint64_t>& docIDs,
     const std::string& columnName,
-    std::vector<std::string>& tokens,
+    const std::vector<std::string>& tokens,
     std::vector<double>& values) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,

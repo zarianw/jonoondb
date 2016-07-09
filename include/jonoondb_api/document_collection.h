@@ -58,23 +58,23 @@ class DocumentCollection final {
   
   std::int64_t GetDocumentFieldAsInteger
       (std::uint64_t docID, const std::string& columnName,
-       std::vector<std::string>& tokens, BufferImpl& buffer,
+       const std::vector<std::string>& tokens, BufferImpl& buffer,
        std::unique_ptr<Document>& document) const;
   double GetDocumentFieldAsDouble
       (std::uint64_t docID, const std::string& columnName,
-       std::vector<std::string>& tokens, BufferImpl& buffer,
+       const std::vector<std::string>& tokens, BufferImpl& buffer,
        std::unique_ptr<Document>& document) const;
   std::string GetDocumentFieldAsString
       (std::uint64_t docID, const std::string& columnName,
-       std::vector<std::string>& tokens, BufferImpl& buffer,
+       const std::vector<std::string>& tokens, BufferImpl& buffer,
        std::unique_ptr<Document>& document) const;
   void GetDocumentFieldsAsIntegerVector(
       const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
-      std::vector<std::string>& tokens, std::vector<std::int64_t>& values)
+      const std::vector<std::string>& tokens, std::vector<std::int64_t>& values)
       const;
   void GetDocumentFieldsAsDoubleVector(
       const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
-      std::vector<std::string>& tokens, std::vector<double>& values) const;
+      const std::vector<std::string>& tokens, std::vector<double>& values) const;
   void UnmapLRUDataFiles();
 
  private:

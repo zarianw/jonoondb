@@ -44,3 +44,42 @@ TEST(Database, ExecuteSelect_Explain) {
   }
   ASSERT_GT(rowCnt, 0);
 }
+
+TEST(Database, ExecuteSelect_GetDocument) {
+  string dbName = "ExecuteSelect_GetDocument";
+  string collectionName = "tweet";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, GetDefaultDBOptions());
+
+  string filePath = GetSchemaFilePath("tweet.bfbs");
+  string schema = File::Read(filePath);
+  std::vector<IndexInfo> indexes;
+  
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes); 
+  
+  std::vector<Buffer> documents;
+  for (size_t i = 0; i < 10; i++) {
+
+    std::string name = "zarian_" + std::to_string(i);
+    std::string text = "hello_" + std::to_string(i);
+    std::string binData = "some_data_" + std::to_string(i);
+    documents.push_back(
+      GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+  }
+
+  db.MultiInsert(collectionName, documents);
+
+  // Now see if they were inserted correctly
+  auto rs = db.ExecuteSelect("SELECT _document FROM tweet;");
+  auto rowCnt = 0;
+  while (rs.Next()) {
+    auto blob = rs.GetBlob(rs.GetColumnIndex("_document"));
+    ASSERT_EQ(blob.GetLength(), documents[rowCnt].GetLength());
+    ASSERT_EQ(memcmp(blob.GetData(), documents[rowCnt].GetData(), blob.GetLength()), 0);
+    rowCnt++;
+  }
+  ASSERT_EQ(rowCnt, 10);
+}

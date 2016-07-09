@@ -199,6 +199,10 @@ void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName,
   }
 }
 
+const BufferImpl* FlatbuffersDocument::GetRawBuffer() const {
+  return m_buffer;
+}
+
 void FlatbuffersDocument::SetMembers(FlatbuffersDocumentSchema* schema,
                                      BufferImpl* buffer,
                                      reflection::Object* obj,
