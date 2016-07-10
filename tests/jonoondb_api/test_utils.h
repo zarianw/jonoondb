@@ -3,6 +3,7 @@
 #include <string>
 #include "buffer_impl.h"
 #include "database.h"
+#include "jonoondb_api/document.h"
 
 namespace jonoondb_test {
 extern std::string g_TestRootDirectory;
@@ -14,10 +15,16 @@ extern jonoondb_api::Buffer
                     const std::string* nameStr, const std::string* textStr,
                     double rating, const std::string* binData);
 extern std::string GetSchemaFilePath(const std::string& fileName);
-extern jonoondb_api::Buffer GetAllFieldTypeObjectBuffer(
-  char field1, unsigned char field2, bool field3, std::int16_t field4,
-  std::uint16_t field5, std::int32_t field6, std::uint32_t field7, float field8,
-  std::int64_t field9, double field10, const std::string& field11,
-  const std::string& field12, const std::string& field13);
 extern jonoondb_api::Options GetDefaultDBOptions();
+
+class TestUtils {
+public:
+  static void CompareTweetObject(const jonoondb_api::Document& doc,
+                                 const jonoondb_api::BufferImpl& tweetObject);
+  static jonoondb_api::Buffer GetAllFieldTypeObjectBuffer(
+    char field1, unsigned char field2, bool field3, std::int16_t field4,
+    std::uint16_t field5, std::int32_t field6, std::uint32_t field7, float field8,
+    std::int64_t field9, double field10, const std::string& field11,
+    const std::string& field12, const std::string& field13);
+};
 }  // namespace jonoondb_test

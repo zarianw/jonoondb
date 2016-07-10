@@ -151,7 +151,6 @@ include_directories(${gtest_SOURCE_DIR}/include)
 # jonoondb_test
 add_executable(
  jonoondb_api_test
- ${TEST_PATH}/jonoondb_api/test_utils.h
  ${TEST_PATH}/jonoondb_api/main.cc
  ${TEST_PATH}/jonoondb_api/status_impl_tests.cc
  ${TEST_PATH}/jonoondb_api/database_metadata_manager_tests.cc
@@ -169,7 +168,8 @@ add_executable(
  ${TEST_PATH}/jonoondb_api/index_info_tests.cc
  ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
  ${TEST_PATH}/jonoondb_api/proc_utils_tests.cc
- ${TEST_PATH}/jonoondb_utils/varint_tests.cc)
+ ${TEST_PATH}/jonoondb_utils/varint_tests.cc
+ ${TEST_PATH}/jonoondb_api/test_utils.h ${TEST_PATH}/jonoondb_api/test_utils.cc)
 target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 
 include(CTest)

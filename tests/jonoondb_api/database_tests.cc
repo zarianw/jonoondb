@@ -221,9 +221,10 @@ void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
                       indexes);
 
   Buffer
-      documentData = GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5, 6, 7, 8.0f,
-                                                 9, 10.0, "test", "test1",
-                                                 "test2");
+      documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
+                                                            6, 7, 8.0f, 9,
+                                                            10.0, "test",
+                                                            "test1", "test2");
   db.Insert(collectionName, documentData);
 }
 
@@ -711,17 +712,17 @@ void Execute_ExecuteSelect_LT_LTE_Test(Database& db, vector<IndexInfo>& indexes)
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string str = std::to_string(i);
-    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i),
-                                                    static_cast<uint8_t>(i),
-                                                    true,
-                                                    static_cast<int16_t>(i),
-                                                    static_cast<uint16_t>(i),
-                                                    static_cast<int32_t>(i),
-                                                    static_cast<uint32_t>(i),
-                                                    (float)i,
-                                                    static_cast<int64_t>(i),
-                                                    (double)i,
-                                                    str, str, str));
+    documents.push_back(TestUtils::GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i),
+                                                               static_cast<uint8_t>(i),
+                                                               true,
+                                                               static_cast<int16_t>(i),
+                                                               static_cast<uint16_t>(i),
+                                                               static_cast<int32_t>(i),
+                                                               static_cast<uint32_t>(i),
+                                                               (float)i,
+                                                               static_cast<int64_t>(i),
+                                                               (double)i,
+                                                               str, str, str));
   }
 
   db.MultiInsert("all_field_collection", documents);
@@ -854,17 +855,17 @@ void Execute_ExecuteSelect_GT_GTE_Test(Database& db,
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
     std::string str = std::to_string(i);
-    documents.push_back(GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i),
-                                                    static_cast<uint8_t>(i),
-                                                    true,
-                                                    static_cast<int16_t>(i),
-                                                    static_cast<uint16_t>(i),
-                                                    static_cast<int32_t>(i),
-                                                    static_cast<uint32_t>(i),
-                                                    (float)i,
-                                                    static_cast<int64_t>(i),
-                                                    (double)i,
-                                                    str, str, str));
+    documents.push_back(TestUtils::GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i),
+                                                               static_cast<uint8_t>(i),
+                                                               true,
+                                                               static_cast<int16_t>(i),
+                                                               static_cast<uint16_t>(i),
+                                                               static_cast<int32_t>(i),
+                                                               static_cast<uint32_t>(i),
+                                                               (float)i,
+                                                               static_cast<int64_t>(i),
+                                                               (double)i,
+                                                               str, str, str));
   }
 
   db.MultiInsert("all_field_collection", documents);
