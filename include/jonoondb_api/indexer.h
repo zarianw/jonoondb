@@ -10,6 +10,7 @@ class Document;
 class IndexStat;
 struct Constraint;
 class MamaJenniesBitmap;
+class BufferImpl;
 
 class Indexer {
  public:
@@ -35,6 +36,10 @@ class Indexer {
   }
 
   virtual bool TryGetStringValue(std::uint64_t documentID, std::string& val) {
+    return false;
+  }
+
+  virtual bool TryGetBlobValue(std::uint64_t documentID, BufferImpl& val) {
     return false;
   }
 

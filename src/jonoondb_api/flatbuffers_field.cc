@@ -11,8 +11,20 @@ const std::string FlatbuffersField::GetName() const {
 }
 
 FieldType FlatbuffersField::GetType() const {
+  if (m_fieldDef->type()->base_type() == reflection::BaseType::Vector && 
+      (m_fieldDef->type()->element() == reflection::BaseType::Byte || 
+       m_fieldDef->type()->element() == reflection::BaseType::UByte)) {
+    return FieldType::BASE_TYPE_BLOB;
+  }
+
   return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
       m_fieldDef->type()->base_type());
+}
+
+FieldType FlatbuffersField::GetElementType() const {
+  assert(m_fieldDef->type()->base_type() == reflection::BaseType::Vector);
+  return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
+      m_fieldDef->type()->element());
 }
 
 size_t FlatbuffersField::GetSubFieldCount() const {

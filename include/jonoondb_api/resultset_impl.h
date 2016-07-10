@@ -22,6 +22,7 @@ class ResultSetImpl {
   std::int64_t GetInteger(std::int32_t columnIndex) const;
   double GetDouble(std::int32_t columnIndex) const;
   const std::string& GetString(std::int32_t columnIndex) const;
+  const char* GetBlob(std::int32_t columnIndex, std::uint64_t& size) const;
   std::int32_t GetColumnIndex(const boost::string_ref& columnLabel) const;
   std::int32_t GetColumnCount();
   SqlType GetColumnType(std::int32_t columnIndex);

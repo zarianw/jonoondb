@@ -89,7 +89,7 @@ class VectorIntegerIndexer final: public Indexer {
       case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
         return GetBitmapLT(constraint, true);
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
-        return GetBitmapLT(constraint, false);
+        return GetBitmapGT(constraint, false);
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
         return GetBitmapGT(constraint, true);
       case jonoondb_api::IndexConstraintOperator::MATCH:

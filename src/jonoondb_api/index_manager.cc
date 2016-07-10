@@ -10,6 +10,7 @@
 #include "constraint.h"
 #include "mama_jennies_bitmap.h"
 #include "document_id_generator.h"
+#include "buffer_impl.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -194,6 +195,22 @@ bool IndexManager::TryGetStringValue(
       if (indexer->GetIndexStats().GetIndexInfo().GetType()
           == IndexType::VECTOR) {
         return indexer->TryGetStringValue(documentID, val);
+      }
+    }
+  }
+
+  return false;
+}
+
+bool IndexManager::TryGetBlobValue(
+  std::uint64_t documentID, const std::string& columnName,
+  BufferImpl& val) {
+  auto columnIndexerIter = m_columnIndexerMap->find(columnName);
+  if (columnIndexerIter != m_columnIndexerMap->end()) {
+    for (auto& indexer : columnIndexerIter->second) {
+      if (indexer->GetIndexStats().GetIndexInfo().GetType()
+          == IndexType::VECTOR) {
+        return indexer->TryGetBlobValue(documentID, val);
       }
     }
   }

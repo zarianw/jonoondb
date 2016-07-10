@@ -9,6 +9,7 @@ class FlatbuffersField final: public Field {
  public:
   const std::string GetName() const override;
   FieldType GetType() const override;
+  FieldType GetElementType() const;
   std::size_t GetSubFieldCount() const override;
   void GetSubField(size_t index, Field*& field) const override;
   Field* AllocateField() const override;

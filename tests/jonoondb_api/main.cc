@@ -15,7 +15,6 @@
 #include "tweet_generated.h"
 #include "database.h"
 #include "test/test_config_generated.h"
-#include "all_field_type_generated.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -33,7 +32,7 @@ std::string GetSchemaFilePath(const std::string& fileName) {
 
 Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
                        const std::string* nameStr, const std::string* textStr,
-                       double rating) {
+                       double rating, const std::string* binData) {
   // create user object
   FlatBufferBuilder fbb;
   Offset<String> name = 0;
@@ -47,7 +46,15 @@ Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
   if (textStr) {
     text = fbb.CreateString(*textStr);
   }
-  auto tweet = CreateTweet(fbb, tweetId, text, user, rating);
+  
+  Offset<Vector<int8_t>> binDataVec = 0;
+  if (binData) {
+    binDataVec = fbb.CreateVector<int8_t>(
+        reinterpret_cast<const int8_t*>(binData->data()),
+        binData->size());
+  }
+
+  auto tweet = CreateTweet(fbb, tweetId, text, user, rating, binDataVec);
 
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
@@ -69,23 +76,6 @@ BufferImpl GetTweetObject() {
   fbb.Finish(tweet);
   auto size = fbb.GetSize();
   return BufferImpl((char*) fbb.GetBufferPointer(), size, size);
-}
-
-Buffer GetAllFieldTypeObjectBuffer(char field1, unsigned char field2, bool field3, int16_t field4,
-                                   uint16_t field5, int32_t field6, uint32_t field7, float field8, int64_t field9,
-                                   double field10, const std::string& field11) {
-  FlatBufferBuilder fbb;
-  // create nested object
-  auto str = fbb.CreateString(field11);
-  auto nestedObj = CreateNestedAllFieldType(fbb, field1, field2, field3, field4, field5, field6, field7,
-                                            field8, field9, field10, str);
-  // create parent object
-  auto str2 = fbb.CreateString(field11);
-  auto parentObj = CreateAllFieldType(fbb, field1, field2, field3, field4, field5, field6, field7, field8,
-                                      field9, field10, str2, nestedObj);
-  fbb.Finish(parentObj);
-
-  return Buffer((char*) fbb.GetBufferPointer(), fbb.GetSize(), fbb.GetSize());
 }
 
 Options GetDefaultDBOptions() {

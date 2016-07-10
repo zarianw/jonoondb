@@ -15,6 +15,11 @@ class BufferImpl {
   BufferImpl& operator=(const BufferImpl& other);
   BufferImpl& operator=(BufferImpl&& other);
   bool operator<(const BufferImpl& other) const;
+  bool operator<=(const BufferImpl& other) const;
+  bool operator>(const BufferImpl& other) const;
+  bool operator>=(const BufferImpl& other) const;
+  bool operator==(const BufferImpl& other) const;
+  bool operator!=(const BufferImpl& other) const;
   void Resize(size_t newBufferCapacityInBytes);
 
   const char* GetData() const;

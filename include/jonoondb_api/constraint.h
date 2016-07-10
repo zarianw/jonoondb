@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include "buffer_impl.h"
 
 namespace jonoondb_api {
 // Forward declarations
@@ -13,10 +14,11 @@ union Operand {
   double doubleVal;
 };
 
-enum class OperandType: std::int32_t {
+enum class OperandType : std::int32_t {
   INTEGER,
   DOUBLE,
-  STRING
+  STRING,
+  BLOB
 };
 
 struct Constraint {
@@ -29,5 +31,6 @@ struct Constraint {
   IndexConstraintOperator op;
   Operand operand;
   OperandType operandType;
+  BufferImpl blobVal;
 };
 } // namespace jonoondb_api

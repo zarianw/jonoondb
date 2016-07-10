@@ -55,7 +55,9 @@ const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName,
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  return flatbuffers::GetFieldS(*m_table, *fieldDef)->c_str();
+  auto val = flatbuffers::GetFieldS(*m_table, *fieldDef);
+  size = val->size();
+  return val->c_str();
 }
 
 std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fieldName) const {
@@ -136,6 +138,33 @@ void FlatbuffersDocument::GetDocumentValue(const std::string& fieldName,
   }
 }
 
+const char* FlatbuffersDocument::GetBlobValue(const std::string& fieldName,
+                                 std::size_t& size) const {
+  auto fieldDef = m_obj->fields()->LookupByKey(fieldName.c_str());
+  if (fieldDef == nullptr) {
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName),
+                            __FILE__, __func__, __LINE__);
+  }
+  if (fieldDef->type()->base_type() != reflection::BaseType::Vector && 
+      (fieldDef->type()->element() != reflection::BaseType::Byte || 
+       fieldDef->type()->element() != reflection::BaseType::UByte)) {
+    std::ostringstream ss;
+    ss << "Field " << fieldName << " has FieldType "
+      << fieldDef->type()->base_type()
+      << " and it cannot be safely converted into blob.";
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  auto val = flatbuffers::GetFieldV<char>(*m_table, *fieldDef);
+  if (val) {
+    size = val->size();
+    return val->data();
+  } else {
+    size = 0;
+    return nullptr;
+  }
+}
+
 std::unique_ptr<Document> FlatbuffersDocument::AllocateSubDocument() const {
   return std::unique_ptr<Document>(new FlatbuffersDocument());
 }
@@ -150,8 +179,16 @@ void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName,
   }
 
   // Make sure it has the same type
-  auto actualType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
+  FieldType actualType;
+  if (fieldDef->type()->base_type() == reflection::BaseType::Vector &&
+     (fieldDef->type()->element() == reflection::BaseType::Byte ||
+     fieldDef->type()->element() == reflection::BaseType::UByte)) {
+    actualType = FieldType::BASE_TYPE_BLOB;
+  } else {
+    actualType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
       fieldDef->type()->base_type());
+  }
+
   if (actualType != expectedType) {
     ostringstream ss;
     ss << "Actual field type for field " << fieldName << " is "
@@ -160,6 +197,10 @@ void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName,
         << GetFieldString(expectedType) << ".";
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
+}
+
+const BufferImpl* FlatbuffersDocument::GetRawBuffer() const {
+  return m_buffer;
 }
 
 void FlatbuffersDocument::SetMembers(FlatbuffersDocumentSchema* schema,
