@@ -176,11 +176,10 @@ include(CTest)
 add_test(all_jonoondb_api_tests jonoondb_api_test)
 
 #installation
-SET(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR})
-install(TARGETS jonoondb_api DESTINATION install_packages)
-install(TARGETS jonoondb_cli DESTINATION install_packages)
+install(TARGETS jonoondb_api DESTINATION lib)
+install(TARGETS jonoondb_cli DESTINATION bin)
 install(FILES ${INCLUDE_PATH}/jonoondb_api/database.h
  ${INCLUDE_PATH}/jonoondb_api/enums.h
  ${INCLUDE_PATH}/jonoondb_api/jonoondb_exceptions.h
  ${INCLUDE_PATH}/jonoondb_api/cdatabase.h
- DESTINATION install_packages)
+ DESTINATION include/jonoondb/jonoondb_api)

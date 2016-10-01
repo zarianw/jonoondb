@@ -50,17 +50,17 @@ if(BUILD_LIBS)
     SOVERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}"
     )
         
-    install(TARGETS liblz4
+    #[[install(TARGETS liblz4
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
-    )
+    )]]
 
-    install(FILES
+    #[[install(FILES
     ${LZ4_DIR}/lz4.h
     ${LZ4_DIR}/lz4hc.h
     ${LZ4_DIR}/lz4frame.h
     DESTINATION include
-    )
+    )]]
     
     if(BUILD_TOOLS)
         target_link_libraries(lz4 liblz4)
