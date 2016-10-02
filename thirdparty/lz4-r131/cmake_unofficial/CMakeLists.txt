@@ -17,8 +17,8 @@ ENDIF()
 option(BUILD_TOOLS "Build the command line tools" ON)
 option(BUILD_LIBS  "Build the libraries in addition to the tools" ON)
 
-IF("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR
-   "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+IF(${CMAKE_C_COMPILER_ID} STREQUAL "GNU" OR
+   ${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
   SET(GNU_COMPATIBLE_COMPILER 1)
 ENDIF()
 
@@ -50,17 +50,17 @@ if(BUILD_LIBS)
     SOVERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}"
     )
         
-    #[[install(TARGETS liblz4
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    )]]
+    #install(TARGETS liblz4
+    #LIBRARY DESTINATION lib
+    #ARCHIVE DESTINATION lib
+    #)
 
-    #[[install(FILES
-    ${LZ4_DIR}/lz4.h
-    ${LZ4_DIR}/lz4hc.h
-    ${LZ4_DIR}/lz4frame.h
-    DESTINATION include
-    )]]
+    #install(FILES
+    #${LZ4_DIR}/lz4.h
+    #${LZ4_DIR}/lz4hc.h
+    #${LZ4_DIR}/lz4frame.h
+    #DESTINATION include
+    #)
     
     if(BUILD_TOOLS)
         target_link_libraries(lz4 liblz4)

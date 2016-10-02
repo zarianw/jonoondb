@@ -47,6 +47,7 @@ add_library(
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
+set(Boost_NO_SYSTEM_PATHS        ON)
 find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread chrono program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
