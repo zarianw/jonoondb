@@ -195,4 +195,5 @@ install(FILES ${INCLUDE_PATH}/jonoondb_api/database.h
  ${INCLUDE_PATH}/jonoondb_api/enums.h
  ${INCLUDE_PATH}/jonoondb_api/jonoondb_exceptions.h
  ${INCLUDE_PATH}/jonoondb_api/cdatabase.h
+ ${CMAKE_CURRENT_BINARY_DIR}/jonoondb_api_export.h
  DESTINATION include/jonoondb/jonoondb_api)
