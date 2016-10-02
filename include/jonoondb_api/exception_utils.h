@@ -2,9 +2,10 @@
 
 #include <string>
 #include <sstream>
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
-class ExceptionUtils {
+class JONOONDB_API_EXPORT ExceptionUtils {
  public:
   static std::string GetMissingFieldErrorString(const std::string& fieldName);
   static std::string

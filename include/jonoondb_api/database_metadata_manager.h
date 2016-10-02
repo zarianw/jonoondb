@@ -3,6 +3,7 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include "jonoondb_api_export.h"
 
 //Forward declarations
 struct sqlite3;
@@ -23,7 +24,7 @@ struct CollectionMetadata {
   std::vector<FileInfo> dataFiles;
 };
 
-class DatabaseMetadataManager final {
+class JONOONDB_API_EXPORT DatabaseMetadataManager final {
  public:
   DatabaseMetadataManager(const DatabaseMetadataManager&) = delete;
   DatabaseMetadataManager(DatabaseMetadataManager&&) = delete;

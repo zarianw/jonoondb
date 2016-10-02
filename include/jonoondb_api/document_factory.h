@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "enums.h"
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 // Forward Declaration
@@ -9,7 +10,7 @@ class BufferImpl;
 class Document;
 class DocumentSchema;
 
-class DocumentFactory {
+class JONOONDB_API_EXPORT DocumentFactory {
  public:
   static std::unique_ptr<Document> CreateDocument(
       const DocumentSchema& documentSchema,

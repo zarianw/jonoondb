@@ -4,6 +4,7 @@
 #include <string>
 #include "flatbuffers/idl.h"
 #include "document_schema.h"
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 //Forward declaration
@@ -12,7 +13,7 @@ enum class FieldType
 enum class SchemaType
     : std::int32_t;
 
-class FlatbuffersDocumentSchema final: public DocumentSchema {
+class JONOONDB_API_EXPORT FlatbuffersDocumentSchema final: public DocumentSchema {
  public:
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;

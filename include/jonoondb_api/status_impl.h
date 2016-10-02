@@ -1,12 +1,13 @@
 #pragma once
 
 #include <cstddef>
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 // Forward declarations
 struct StatusData;
 
-class StatusImpl {
+class JONOONDB_API_EXPORT StatusImpl {
  public:
   StatusImpl();
   StatusImpl(const StatusImpl& other);
@@ -43,25 +44,25 @@ class StatusImpl {
   StatusData* m_statusData;
 };
 
-extern const char kStatusGenericErrorCode;
-extern const char kStatusInvalidArgumentCode;
-extern const char kStatusMissingDatabaseFileCode;
-extern const char kStatusMissingDatabaseFolderCode;
-extern const char kStatusFailedToOpenMetadataDatabaseFileCode;
-extern const char kStatusOutOfMemoryErrorCode;
-extern const char kStatusDuplicateKeyErrorCode;
-extern const char kStatusDataFileMissingCode;
-extern const char kStatusDataFileInfoMissingCode;
-extern const char kStatusInvalidOperationCode;
-extern const char kStatusInvalidIteratorCode;
-extern const char kStatusFileIOErrorCode;
-extern const char kStatusAPIMisuseErrorCode;
-extern const char kStatusKeyNotFoundCode;
-extern const char kStatusCollectionAlreadyExistCode;
-extern const char kStatusIndexAlreadyExistCode;
-extern const char kStatusCollectionNotFoundCode;
-extern const char kStatusSchemaParseErrorCode;
-extern const char kStatusIndexOutOfBoundErrorCode;
+JONOONDB_API_EXPORT extern const char kStatusGenericErrorCode;
+JONOONDB_API_EXPORT extern const char kStatusInvalidArgumentCode;
+JONOONDB_API_EXPORT extern const char kStatusMissingDatabaseFileCode;
+JONOONDB_API_EXPORT extern const char kStatusMissingDatabaseFolderCode;
+JONOONDB_API_EXPORT extern const char kStatusFailedToOpenMetadataDatabaseFileCode;
+JONOONDB_API_EXPORT extern const char kStatusOutOfMemoryErrorCode;
+JONOONDB_API_EXPORT extern const char kStatusDuplicateKeyErrorCode;
+JONOONDB_API_EXPORT extern const char kStatusDataFileMissingCode;
+JONOONDB_API_EXPORT extern const char kStatusDataFileInfoMissingCode;
+JONOONDB_API_EXPORT extern const char kStatusInvalidOperationCode;
+JONOONDB_API_EXPORT extern const char kStatusInvalidIteratorCode;
+JONOONDB_API_EXPORT extern const char kStatusFileIOErrorCode;
+JONOONDB_API_EXPORT extern const char kStatusAPIMisuseErrorCode;
+JONOONDB_API_EXPORT extern const char kStatusKeyNotFoundCode;
+JONOONDB_API_EXPORT extern const char kStatusCollectionAlreadyExistCode;
+JONOONDB_API_EXPORT extern const char kStatusIndexAlreadyExistCode;
+JONOONDB_API_EXPORT extern const char kStatusCollectionNotFoundCode;
+JONOONDB_API_EXPORT extern const char kStatusSchemaParseErrorCode;
+JONOONDB_API_EXPORT extern const char kStatusIndexOutOfBoundErrorCode;
 
-extern const char kStatusSQLiteErrorCode;
+JONOONDB_API_EXPORT extern const char kStatusSQLiteErrorCode;
 }  // jonoon_api

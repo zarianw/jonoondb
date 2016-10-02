@@ -10,6 +10,7 @@
 #include "memory_mapped_file.h"
 #include "concurrent_lru_cache.h"
 #include "buffer_impl.h"
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 // Forward Declarations
@@ -17,7 +18,7 @@ struct BlobMetadata;
 class FileNameManager;
 
 // This class is responsible for reading/writing blobs into the data files
-class BlobManager final {
+class JONOONDB_API_EXPORT BlobManager final {
  public:
   BlobManager(std::unique_ptr<FileNameManager> fileNameManager,
               bool compressionEnabled, size_t maxDataFileSize,

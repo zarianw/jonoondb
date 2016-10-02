@@ -1,12 +1,13 @@
 #pragma once
 
 #include "enums.h"
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 // Forward Declaration
 class DocumentSchema;
 
-class DocumentSchemaFactory {
+class JONOONDB_API_EXPORT DocumentSchemaFactory {
  public:
   static DocumentSchema* CreateDocumentSchema(
       const std::string& schemaText, SchemaType schemaType);

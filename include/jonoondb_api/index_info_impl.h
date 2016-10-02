@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <string>
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 // Forward declaration
@@ -10,7 +11,7 @@ class BufferImpl;
 enum class IndexType
     : std::int32_t;
 
-class IndexInfoImpl {
+class JONOONDB_API_EXPORT IndexInfoImpl {
  public:
   IndexInfoImpl(std::string name, IndexType type, std::string columnName,
                 bool isAscending);

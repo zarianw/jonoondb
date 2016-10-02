@@ -1,7 +1,9 @@
 #pragma once
 
+#include "jonoondb_api_export.h"
+
 namespace jonoondb_api {
-class BufferImpl {
+class JONOONDB_API_EXPORT BufferImpl {
  public:
   BufferImpl();
   BufferImpl(size_t capacity);

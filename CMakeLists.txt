@@ -13,7 +13,7 @@ include_directories(${INCLUDE_PATH} ${INCLUDE_PATH}/jonoondb_api ${THIRDPARTY_PA
 if(APPLE)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++ -m64")
-elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+elseif(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++14 -m64")
 endif()
@@ -38,7 +38,7 @@ add_library(
 include_directories(${THIRDPARTY_PATH}/flatbuffers-1.3.0/include)
 #add_subdirectory(${THIRDPARTY_PATH}/flatbuffers-1.3.0)
 
-# flatbuffers
+# linenoise
 add_library(
   linenoise
   ${THIRDPARTY_PATH}/linenoise/linenoise.h ${THIRDPARTY_PATH}/linenoise/linenoise.c)
@@ -59,8 +59,15 @@ add_subdirectory(${THIRDPARTY_PATH}/lz4-r131/cmake_unofficial)
 include_directories(${THIRDPARTY_PATH}/lz4-r131/lib)
 
 # jonoondb_api
+SET(JONOONDB_STATIC_LIB FALSE CACHE BOOL "Build jonoondb_api as static library")
+if(JONOONDB_STATIC_LIB)
+  SET(LIB_TYPE STATIC)
+else()
+  SET(LIB_TYPE SHARED)
+endif()
+
 add_library(
- jonoondb_api 
+ jonoondb_api ${LIB_TYPE}
  ${INCLUDE_PATH}/jonoondb_api/standard_deleters.h 
  ${INCLUDE_PATH}/jonoondb_api/string_utils.h
  ${INCLUDE_PATH}/jonoondb_api/serializer_utils.h 
@@ -121,6 +128,12 @@ add_library(
  ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_PATH}/jonoondb_api/id_seq.h) 
  
 target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
+
+# visibility
+include(GenerateExportHeader)
+generate_export_header(jonoondb_api)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}) # this is where jonoondb_api_export.h will be generated
+add_compiler_export_flags()
 
 # Find a way to link against only the required boost libs
 # ${Boost_LIBRARIES} points to all the libs in find_package

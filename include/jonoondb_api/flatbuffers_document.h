@@ -3,6 +3,7 @@
 #include <memory>
 #include "flatbuffers/reflection.h"
 #include "document.h"
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 
@@ -10,7 +11,7 @@ namespace jonoondb_api {
 class FlatbuffersDocumentSchema;
 class BufferImpl;
 
-class FlatbuffersDocument final: public Document {
+class JONOONDB_API_EXPORT FlatbuffersDocument final: public Document {
  public:
   FlatbuffersDocument(
       FlatbuffersDocumentSchema* fbDocumentSchema, BufferImpl* buffer);

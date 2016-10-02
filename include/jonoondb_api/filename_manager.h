@@ -6,6 +6,7 @@
 #include <mutex>
 #include <boost/filesystem.hpp>
 #include "concurrent_map.h"
+#include "jonoondb_api_export.h"
 
 //Forward declarations
 struct sqlite3;
@@ -15,7 +16,7 @@ namespace jonoondb_api {
 //Forward declaration
 struct FileInfo;
 
-class FileNameManager {
+class JONOONDB_API_EXPORT  FileNameManager {
  public:
   FileNameManager(const std::string& dbPath, const std::string& dbName,
                   const std::string& collectionName, bool createDBIfMissing);
