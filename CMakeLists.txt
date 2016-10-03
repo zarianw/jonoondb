@@ -10,12 +10,14 @@ set (TEST_PATH ${PROJECT_SOURCE_DIR}/tests)
 # add the include directories
 include_directories(${INCLUDE_PATH} ${INCLUDE_PATH}/jonoondb_api ${THIRDPARTY_PATH})
 
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(APPLE)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++ -m64 -fPIC")
+    "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++ -m64")
 elseif(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++14 -m64 -fPIC")
+    "${CMAKE_CXX_FLAGS} -std=c++14 -m64")
 endif()
 
 #gsl
