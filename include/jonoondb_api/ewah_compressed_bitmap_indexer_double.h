@@ -108,7 +108,7 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
 
   std::shared_ptr<MamaJenniesBitmap> FilterRange(
       const Constraint& lowerConstraint,
-      const Constraint& upperConstraint) {
+      const Constraint& upperConstraint) override {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     double lowerVal = GetOperandVal(lowerConstraint);
     double upperVal = GetOperandVal(upperConstraint);
