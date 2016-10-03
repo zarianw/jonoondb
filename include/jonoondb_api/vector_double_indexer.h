@@ -99,7 +99,7 @@ class VectorDoubleIndexer final: public Indexer {
 
   std::shared_ptr<MamaJenniesBitmap> FilterRange(
       const Constraint& lowerConstraint,
-      const Constraint& upperConstraint) {
+      const Constraint& upperConstraint) override {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     double lowerVal = GetOperandVal(lowerConstraint);
     double upperVal = GetOperandVal(upperConstraint);
