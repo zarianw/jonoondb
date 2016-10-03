@@ -12,10 +12,10 @@ include_directories(${INCLUDE_PATH} ${INCLUDE_PATH}/jonoondb_api ${THIRDPARTY_PA
 
 if(APPLE)
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++ -m64")
+    "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++ -m64 -fPIC")
 elseif(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++14 -m64")
+    "${CMAKE_CXX_FLAGS} -std=c++14 -m64 -fPIC")
 endif()
 
 #gsl
