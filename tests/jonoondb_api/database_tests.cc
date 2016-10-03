@@ -57,6 +57,24 @@ TEST(Database, Ctor_Existing) {
   }
 }
 
+TEST(Database, Ctor2_New) {
+  string dbName = "Database_Ctor2_New";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName);
+}
+
+TEST(Database, Ctor2_Existing) {
+  string dbName = "Database_Ctor2_Existing";
+  string dbPath = g_TestRootDirectory;
+  {
+    Database db(dbPath, dbName);
+  }
+
+  {
+    Database db(dbPath, dbName);
+  }
+}
+
 TEST(Database, Ctor_CreateIfMissing) {
   Database db(g_TestRootDirectory,
               "Database_Ctor_CreateIfMissing",
@@ -85,6 +103,17 @@ TEST(Database, CreateCollection_New) {
                       SchemaType::FLAT_BUFFERS,
                       schema,
                       indexes);
+}
+
+TEST(Database, CreateCollection2_New) {
+  string dbName = "Database_CreateCollection2_New";
+  string dbPath = g_TestRootDirectory;
+  string filePath = GetSchemaFilePath("tweet.bfbs");
+  string schema = File::Read(filePath);
+  Database db(dbPath, dbName, GetDefaultDBOptions());  
+  db.CreateCollection("CollectionName",
+                      SchemaType::FLAT_BUFFERS,
+                      schema);
 }
 
 TEST(Database, CreateCollection_CollectionAlreadyExist) {

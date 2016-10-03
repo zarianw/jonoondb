@@ -24,6 +24,15 @@ TEST(Buffer, Buffer_DefaultConstructor) {
   ASSERT_TRUE(buffer.GetLength() == 0);
 }
 
+TEST(Buffer, Buffer_Ctor) {
+  string str = "hello";
+  Buffer buffer(str.c_str(), str.size());
+
+  ASSERT_EQ(memcmp(str.c_str(), buffer.GetData(), str.size()), 0);
+  ASSERT_TRUE(buffer.GetCapacity() == str.size());
+  ASSERT_TRUE(buffer.GetLength() == str.size());
+}
+
 TEST(Buffer, Buffer_MoveConstructor) {
   Buffer buffer1;
   Buffer buffer2 = move(buffer1);  //invoke move ctor

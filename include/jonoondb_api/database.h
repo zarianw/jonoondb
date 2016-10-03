@@ -369,6 +369,14 @@ class Buffer {
   }
 
   Buffer(const char* buffer,
+         std::size_t bufferLengthInBytes) :
+    m_opaque(jonoondb_buffer_construct3(buffer,
+                                        bufferLengthInBytes,
+                                        bufferLengthInBytes,
+                                        ThrowOnError{})) {
+  }
+
+  Buffer(const char* buffer,
          std::size_t bufferLengthInBytes,
          std::size_t bufferCapacityInBytes) :
       m_opaque(jonoondb_buffer_construct3(buffer,
@@ -574,6 +582,12 @@ class ResultSet {
 
 class Database {
  public:
+  // This is a delegating ctor that uses default db options
+  Database(const std::string& dbPath, const std::string& dbName) 
+      : Database(dbPath, dbName, Options()) {
+    
+  }
+
   Database(const std::string& dbPath, const std::string& dbName,
            const Options& opt)
       : m_opaque(jonoondb_database_construct(dbPath.c_str(),
@@ -584,6 +598,20 @@ class Database {
 
   ~Database() {
     jonoondb_database_destruct(m_opaque);
+  }
+
+  // Convenience func to create collection without indexes
+  void CreateCollection(const std::string& name,
+                        SchemaType schemaType,
+                        const std::string& schema) {
+    std::vector<indexinfo_ptr> vec;
+    jonoondb_database_createcollection(m_opaque, name.c_str(),
+                                       static_cast<int32_t>(schemaType),
+                                       schema.c_str(),
+                                       schema.size(),
+                                       vec.data(),
+                                       vec.size(),
+                                       ThrowOnError{});
   }
 
   void CreateCollection(const std::string& name,

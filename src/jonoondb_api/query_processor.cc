@@ -148,6 +148,10 @@ void GenerateCreateTableStatementForCollection(
       prefix.append(field->GetName());
       prefix.append(".");
       BuildCreateTableStatement(field, prefix, stringStream, columnNames);
+    } else if (field->GetType() == FieldType::BASE_TYPE_UNION ||
+               field->GetType() == FieldType::BASE_TYPE_VECTOR) {
+      // We don't support these types yet for querying
+      continue;
     } else {
       columnNames.push_back(ColumnInfo(field->GetName(), field->GetType(),
                                        StringUtils::Split(field->GetName(),
