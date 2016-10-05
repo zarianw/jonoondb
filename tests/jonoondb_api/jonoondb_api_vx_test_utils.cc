@@ -14,7 +14,7 @@ Options TestUtils::GetDefaultDBOptions() {
   return opt;
 }
 
-Buffer TestUtils::GetTweetObject2(std::size_t tweetId, std::size_t userId,
+Buffer TestUtils::GetTweetObject(std::size_t tweetId, std::size_t userId,
                                   const std::string* nameStr, const std::string* textStr,
                                   double rating, const std::string* binData) {
   // create user object

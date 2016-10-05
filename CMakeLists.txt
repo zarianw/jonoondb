@@ -162,6 +162,7 @@ add_executable(
  ${SRC_PATH}/jonoondb_cli/main.cc)
 target_link_libraries(jonoondb_cli ${JONOONDB_API_LIBRARY} linenoise ${Boost_LIBRARIES})
 
+
 # dbgen_converter
 add_executable(
  dbgen_converter
@@ -197,8 +198,8 @@ add_executable(
  ${TEST_PATH}/jonoondb_api/object_pool_tests.cc
  ${TEST_PATH}/jonoondb_api/proc_utils_tests.cc
  ${TEST_PATH}/jonoondb_utils/varint_tests.cc
- ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.cc
- ${TEST_PATH}/jonoondb_api/test_utils.h ${TEST_PATH}/jonoondb_api/test_utils.cc)
+ ${TEST_PATH}/jonoondb_api/test_utils.h
+ ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.cc)
 target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 
 add_executable(
@@ -209,8 +210,8 @@ add_executable(
  ${TEST_PATH}/jonoondb_api/options_tests.cc
  ${TEST_PATH}/jonoondb_api/index_info_tests.cc
  ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
- ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.cc
- ${TEST_PATH}/jonoondb_api/test_utils.h ${TEST_PATH}/jonoondb_api/test_utils.cc)
+ ${TEST_PATH}/jonoondb_api/test_utils.h
+ ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.cc)
 target_link_libraries(${JONOONDB_API_LIBRARY}_test gtest gtest_main ${JONOONDB_API_LIBRARY} ${Boost_LIBRARIES})
 
 include(CTest)

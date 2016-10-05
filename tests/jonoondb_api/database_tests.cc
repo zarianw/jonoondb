@@ -182,7 +182,7 @@ TEST(Database, Insert_NoIndex) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = TestUtils::TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::TestUtils::GetTweetObject(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 }
 
@@ -207,7 +207,7 @@ TEST(Database, Insert_SingleIndex) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::GetTweetObject(1, 1, &name, &text, 2.0, &binData);
 
   db.Insert(collectionName, documentData);
 }
@@ -326,7 +326,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::GetTweetObject(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;
@@ -375,7 +375,7 @@ TEST(Database, ExecuteSelect_Testing) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::GetTweetObject(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;
@@ -475,7 +475,7 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-        TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+        TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
   }
 
   db.MultiInsert(collectionName, documents);
@@ -546,7 +546,7 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
       std::string text = "hello_" + std::to_string(i);
       std::string binData = "some_data_" + std::to_string(i);
       documents.push_back(
-          TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+          TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
     }
 
     db.MultiInsert(collectionName1, documents);
@@ -635,7 +635,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-        TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+        TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -679,7 +679,7 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-        TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+        TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -1032,7 +1032,7 @@ TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(TestUtils::GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject(i,
                                         i,
                                         &name,
                                         &text,
@@ -1067,7 +1067,7 @@ TEST(Database, ExecuteSelect_DoubleExpression) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(TestUtils::GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject(i,
                                         i,
                                         &name,
                                         &text,
@@ -1106,7 +1106,7 @@ TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(TestUtils::GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject(i,
                                         i,
                                         &name,
                                         &text,
@@ -1172,7 +1172,7 @@ TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(TestUtils::GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject(i,
                                         i,
                                         &name,
                                         &text,
@@ -1221,7 +1221,7 @@ TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(TestUtils::GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject(i,
                                         i,
                                         &name,
                                         &text,
@@ -1274,7 +1274,7 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
     std::string binData = "some_data";
     for (size_t i = 0; i < idCnt; i++) {
       documents.push_back(
-          TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+          TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
     }
 
     db.MultiInsert(collectionName, documents);
@@ -1317,7 +1317,7 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
       documents.push_back(
-          TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+          TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
       expectedSum += i;
     }
 
@@ -1373,7 +1373,7 @@ TEST(Database, ExecuteSelect_Aggregation) {
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
       documents.push_back(
-          TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+          TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
       expectedSum += i;
     }
 
@@ -1420,14 +1420,14 @@ TEST(Database, ExecuteSelect_NullStrFields) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(TestUtils::GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject(i,
                                           i,
                                           &name,
                                           &text,
                                           (double) i / 100.0,
                                           &binData));
     } else {
-      documents.push_back(TestUtils::GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject(i,
                                           i,
                                           nullptr,
                                           nullptr,
@@ -1517,14 +1517,14 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(TestUtils::GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject(i,
                                           i,
                                           &name,
                                           &text,
                                           (double) i / 100.0,
                                           &binData));
     } else {
-      documents.push_back(TestUtils::GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject(i,
                                           i,
                                           nullptr,
                                           nullptr,
@@ -1617,14 +1617,14 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(TestUtils::GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject(i,
                                           i,
                                           &name,
                                           &text,
                                           (double) i / 100.0,
                                           &binData));
     } else {
-      documents.push_back(TestUtils::GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject(i,
                                           i,
                                           nullptr,
                                           nullptr,
@@ -1713,7 +1713,7 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::GetTweetObject(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;

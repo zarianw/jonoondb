@@ -7,7 +7,7 @@ namespace jonoondb_api_vx_test {
 class TestUtils {
 public:
   static jonoondb_api::Buffer
-    GetTweetObject2(std::size_t tweetId, std::size_t userId,
+    GetTweetObject(std::size_t tweetId, std::size_t userId,
                     const std::string* nameStr, const std::string* textStr,
                     double rating, const std::string* binData);
   static jonoondb_api::Options GetDefaultDBOptions();  

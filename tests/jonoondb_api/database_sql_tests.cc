@@ -69,7 +69,7 @@ TEST(Database, ExecuteSelect_GetDocument) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-      TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+      TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
   }
 
   db.MultiInsert(collectionName, documents);
