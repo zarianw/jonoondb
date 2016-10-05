@@ -62,15 +62,8 @@ add_subdirectory(${THIRDPARTY_PATH}/lz4-r131/cmake_unofficial)
 include_directories(${THIRDPARTY_PATH}/lz4-r131/lib)
 
 # jonoondb_api
-SET(JONOONDB_STATIC_LIB FALSE CACHE BOOL "Build jonoondb_api as static library")
-if(JONOONDB_STATIC_LIB)
-  SET(LIB_TYPE STATIC)
-else()
-  SET(LIB_TYPE SHARED)
-endif()
-
 add_library(
- jonoondb_api ${LIB_TYPE}
+ jonoondb_api
  ${INCLUDE_PATH}/jonoondb_api/standard_deleters.h 
  ${INCLUDE_PATH}/jonoondb_api/string_utils.h
  ${INCLUDE_PATH}/jonoondb_api/serializer_utils.h 
@@ -131,6 +124,29 @@ add_library(
  ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_PATH}/jonoondb_api/id_seq.h) 
  
 target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
+
+# JONOONDB_API_SHARED_LIB
+SET(JONOONDB_STATIC_LIB FALSE CACHE BOOL "Build jonoondb_api as static library")
+if(JONOONDB_STATIC_LIB)
+  SET(LIB_TYPE STATIC)
+else()
+  SET(LIB_TYPE SHARED)
+endif()
+
+set (MAJOR 0)
+set (MINOR 1)
+set (PATCH 0)
+configure_file (
+  "${INCLUDE_PATH}/jonoondb_api/jonoondb_api_version.h.in"
+  "${INCLUDE_PATH}/jonoondb_api/jonoondb_api_version_generated.h")
+set (JONOONDB_API_SHARED_LIB jonoondb_api_v${MAJOR})
+
+add_library(
+  ${JONOONDB_API_SHARED_LIB} ${LIB_TYPE}
+  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/jonoondb_api/cdatabase.h)
+
+target_link_libraries(${JONOONDB_API_SHARED_LIB} jonoondb_api)
+
 
 # visibility
 include(GenerateExportHeader)

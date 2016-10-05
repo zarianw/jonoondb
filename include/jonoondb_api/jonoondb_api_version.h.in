@@ -1,0 +1,4 @@
+// the configured options and settings
+#define MAJOR "@MAJOR@"
+#define MINOR "@MINOR@"
+#define PATCH "@PATCH@"
