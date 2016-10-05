@@ -7,7 +7,7 @@ namespace jonoondb_api {
 // Forward Declaration
 class DocumentSchema;
 
-class JONOONDB_API_EXPORT DocumentSchemaFactory {
+class DocumentSchemaFactory {
  public:
   static DocumentSchema* CreateDocumentSchema(
       const std::string& schemaText, SchemaType schemaType);

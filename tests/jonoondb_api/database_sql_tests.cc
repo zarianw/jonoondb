@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include "flatbuffers/flatbuffers.h"
 #include "test_utils.h"
+#include "jonoondb_api_vx_test_utils.h"
 #include "database.h"
 #include "enums.h"
 #include "buffer_impl.h"
@@ -15,6 +16,7 @@ using namespace std;
 using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
+using namespace jonoondb_api_vx_test;
 
 // Test whether we can get vectorized explain plan.
 // This test was added after the bug that caused a crash
@@ -24,7 +26,7 @@ TEST(Database, ExecuteSelect_Explain) {
   string dbName = "Database_ExecuteSelect_Explain";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -49,7 +51,7 @@ TEST(Database, ExecuteSelect_GetDocument) {
   string dbName = "ExecuteSelect_GetDocument";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -67,7 +69,7 @@ TEST(Database, ExecuteSelect_GetDocument) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-      GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+      TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
   }
 
   db.MultiInsert(collectionName, documents);

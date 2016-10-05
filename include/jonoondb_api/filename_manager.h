@@ -16,7 +16,7 @@ namespace jonoondb_api {
 //Forward declaration
 struct FileInfo;
 
-class JONOONDB_API_EXPORT  FileNameManager {
+class FileNameManager {
  public:
   FileNameManager(const std::string& dbPath, const std::string& dbName,
                   const std::string& collectionName, bool createDBIfMissing);

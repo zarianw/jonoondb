@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include "flatbuffers/flatbuffers.h"
 #include "test_utils.h"
+#include "jonoondb_api_vx_test_utils.h"
 #include "database.h"
 #include "enums.h"
 #include "buffer_impl.h"
@@ -14,6 +15,7 @@ using namespace std;
 using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace jonoondb_test;
+using namespace jonoondb_api_vx_test;
 
 TEST(Database, Ctor_InvalidArguments) {
   Options options;
@@ -42,18 +44,18 @@ TEST(Database, Ctor_MissingDatabaseFolder) {
 TEST(Database, Ctor_New) {
   string dbName = "Database_Ctor_New";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 }
 
 TEST(Database, Ctor_Existing) {
   string dbName = "Database_Ctor_Existing";
   string dbPath = g_TestRootDirectory;
   {
-    Database db(dbPath, dbName, GetDefaultDBOptions());
+    Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
   }
 
   {
-    Database db(dbPath, dbName, GetDefaultDBOptions());
+    Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
   }
 }
 
@@ -78,13 +80,13 @@ TEST(Database, Ctor2_Existing) {
 TEST(Database, Ctor_CreateIfMissing) {
   Database db(g_TestRootDirectory,
               "Database_Ctor_CreateIfMissing",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
 }
 
 TEST(Database, CreateCollection_InvalidSchema) {
   string dbName = "Database_CreateCollection_InvalidSchema";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
   ASSERT_THROW(db.CreateCollection("CollectionName",
                                    SchemaType::FLAT_BUFFERS,
@@ -97,7 +99,7 @@ TEST(Database, CreateCollection_New) {
   string dbPath = g_TestRootDirectory;
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
   db.CreateCollection("CollectionName",
                       SchemaType::FLAT_BUFFERS,
@@ -110,7 +112,7 @@ TEST(Database, CreateCollection2_New) {
   string dbPath = g_TestRootDirectory;
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  Database db(dbPath, dbName, GetDefaultDBOptions());  
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());  
   db.CreateCollection("CollectionName",
                       SchemaType::FLAT_BUFFERS,
                       schema);
@@ -121,7 +123,7 @@ TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string dbPath = g_TestRootDirectory;
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
   std::vector<IndexInfo> indexes;
   db.CreateCollection("CollectionName",
                       SchemaType::FLAT_BUFFERS,
@@ -137,7 +139,7 @@ TEST(Database, CreateCollection_DuplicateIndex) {
   string dbName = "Database_CreateCollection_DuplicateIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -167,7 +169,7 @@ TEST(Database, Insert_NoIndex) {
   string dbName = "Database_Insert_NoIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -180,7 +182,7 @@ TEST(Database, Insert_NoIndex) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 }
 
@@ -188,7 +190,7 @@ TEST(Database, Insert_SingleIndex) {
   string dbName = "Database_Insert_SingleIndex";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -205,7 +207,7 @@ TEST(Database, Insert_SingleIndex) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
 
   db.Insert(collectionName, documentData);
 }
@@ -238,7 +240,7 @@ void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
                                        IndexType indexType) {
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("all_field_type.bfbs");
   string schema = File::Read(filePath);
@@ -271,7 +273,7 @@ TEST(Database, ExecuteSelect_MissingCollection) {
   string dbName = "Database_ExecuteSelect_MissingCollection";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -287,7 +289,7 @@ TEST(Database, ExecuteSelect_EmptyDB_NoIndex) {
   string dbName = "Database_ExecuteSelect_EmptyDB_NoIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   db.CreateCollection(collectionName.c_str(),
@@ -308,7 +310,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   string dbName = "Database_ExecuteSelect_NonEmptyDB_SingleIndex";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -324,7 +326,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;
@@ -341,7 +343,7 @@ TEST(Database, ExecuteSelect_Testing) {
   string dbName = "Database_ExecuteSelect_Testing";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -373,7 +375,7 @@ TEST(Database, ExecuteSelect_Testing) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;
@@ -429,7 +431,7 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
                             IndexType indexType) {
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  auto opt = GetDefaultDBOptions();
+  auto opt = TestUtils::GetDefaultDBOptions();
   opt.SetCompressionEnabled(enableCompression);
   Database db(dbPath, dbName, opt);
 
@@ -473,7 +475,7 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-        GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+        TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
   }
 
   db.MultiInsert(collectionName, documents);
@@ -517,7 +519,7 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
 
   {
     //scope for database
-    auto opt = GetDefaultDBOptions();
+    auto opt = TestUtils::GetDefaultDBOptions();
     opt.SetCompressionEnabled(enableCompression);
     Database db(dbPath, dbName, opt);
     string filePath = GetSchemaFilePath("tweet.bfbs");
@@ -544,7 +546,7 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
       std::string text = "hello_" + std::to_string(i);
       std::string binData = "some_data_" + std::to_string(i);
       documents.push_back(
-          GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+          TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
     }
 
     db.MultiInsert(collectionName1, documents);
@@ -553,7 +555,7 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
   }
 
   //lets reopen the db
-  Options opt = GetDefaultDBOptions();
+  Options opt = TestUtils::GetDefaultDBOptions();
   opt.SetCreateDBIfMissing(false);
   Database db(dbPath, dbName, opt);
 
@@ -620,7 +622,7 @@ TEST(Database, Ctor_ReOpen_Vector) {
 TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_LessThanInteger",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes
@@ -633,7 +635,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-        GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+        TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -662,7 +664,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
 TEST(Database, ExecuteSelect_VectorIndexer) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_VectorIndexer",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo>
@@ -677,7 +679,7 @@ TEST(Database, ExecuteSelect_VectorIndexer) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-        GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+        TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
   }
   db.MultiInsert("tweet", documents);
 
@@ -853,21 +855,21 @@ void Execute_ExecuteSelect_LT_LTE_Test(Database& db, vector<IndexInfo>& indexes)
 
 TEST(Database, ExecuteSelect_LT_LTE) {
   Database
-      db(g_TestRootDirectory, "ExecuteSelect_LT_LTE", GetDefaultDBOptions());  
+      db(g_TestRootDirectory, "ExecuteSelect_LT_LTE", TestUtils::GetDefaultDBOptions());  
   std::vector<IndexInfo> indexes{};
   Execute_ExecuteSelect_LT_LTE_Test(db, indexes);
 }
 
 TEST(Database, ExecuteSelect_LT_LTE_EWAHIndexed) {
   Database db(g_TestRootDirectory, "ExecuteSelect_LT_LTE_EWAHIndexed",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   auto indexes = CreateAllTypeIndexes(IndexType::EWAH_COMPRESSED_BITMAP); 
   Execute_ExecuteSelect_LT_LTE_Test(db, indexes); 
 }
 
 TEST(Database, ExecuteSelect_LT_LTE_VECTORIndexed) {
   Database db(g_TestRootDirectory, "ExecuteSelect_LT_LTE_VECTORIndexed",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   auto indexes = CreateAllTypeIndexes(IndexType::VECTOR);
   Execute_ExecuteSelect_LT_LTE_Test(db, indexes);
 }
@@ -996,21 +998,21 @@ void Execute_ExecuteSelect_GT_GTE_Test(Database& db,
 
 TEST(Database, ExecuteSelect_GT_GTE) {
   Database db(g_TestRootDirectory, "ExecuteSelect_GT_GTE",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   vector<IndexInfo> indexes;  
   Execute_ExecuteSelect_GT_GTE_Test(db, indexes);
 }
 
 TEST(Database, ExecuteSelect_GT_GTE_EWAHIndexes) {
   Database db(g_TestRootDirectory, "ExecuteSelect_GT_GTE_EWAHIndexes",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   auto indexes = CreateAllTypeIndexes(IndexType::EWAH_COMPRESSED_BITMAP);
   Execute_ExecuteSelect_GT_GTE_Test(db, indexes);
 }
 
 TEST(Database, ExecuteSelect_GT_GTE_VECTORIndexed) {
   Database db(g_TestRootDirectory, "ExecuteSelect_GT_GTE_VECTORIndexed",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   auto indexes = CreateAllTypeIndexes(IndexType::VECTOR);
   Execute_ExecuteSelect_GT_GTE_Test(db, indexes);
 }
@@ -1018,7 +1020,7 @@ TEST(Database, ExecuteSelect_GT_GTE_VECTORIndexed) {
 TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_VECTORIndexed_DoubleExpression",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo>
@@ -1030,7 +1032,7 @@ TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
@@ -1054,7 +1056,7 @@ TEST(Database, ExecuteSelect_VECTORIndexed_DoubleExpression) {
 TEST(Database, ExecuteSelect_DoubleExpression) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_DoubleExpression",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes;
@@ -1065,7 +1067,7 @@ TEST(Database, ExecuteSelect_DoubleExpression) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
@@ -1090,7 +1092,7 @@ TEST(Database, ExecuteSelect_DoubleExpression) {
 TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_EWAHIndexed_String_GTE",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes{IndexInfo("IndexName1",
@@ -1104,7 +1106,7 @@ TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
@@ -1156,7 +1158,7 @@ void ValidateTweetResultSet(Database& db,
 TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_EWAHIndexed_Range",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true),
@@ -1170,7 +1172,7 @@ TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
@@ -1203,7 +1205,7 @@ TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
 TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_VECTORIndexed_Range",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   // Todo: Enable tests for string Vector indexer once we have implemented that.
@@ -1219,7 +1221,7 @@ TEST(Database, ExecuteSelect_VECTORIndexed_Range) {
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
-    documents.push_back(GetTweetObject2(i,
+    documents.push_back(TestUtils::GetTweetObject2(i,
                                         i,
                                         &name,
                                         &text,
@@ -1259,7 +1261,7 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
 
   for (auto idCnt: idCounts) {
     string dbName = "ExecuteSelect_ScanForIDSeq_" + to_string(idCnt);
-    Database db(dbPath, dbName, GetDefaultDBOptions());
+    Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
     std::vector<IndexInfo> indexes;
     db.CreateCollection(collectionName,
                         SchemaType::FLAT_BUFFERS,
@@ -1272,7 +1274,7 @@ TEST(Database, ExecuteSelect_ScanForIDSeq) {
     std::string binData = "some_data";
     for (size_t i = 0; i < idCnt; i++) {
       documents.push_back(
-          GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+          TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
     }
 
     db.MultiInsert(collectionName, documents);
@@ -1297,7 +1299,7 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
 
   for (auto idCnt : idCounts) {
     string dbName = "ExecuteSelect_Aggregation_Indexed_" + to_string(idCnt);
-    Database db(dbPath, dbName, GetDefaultDBOptions());
+    Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
     std::vector<IndexInfo>
         indexes{IndexInfo("IndexName1", IndexType::VECTOR, "id", true),
                 IndexInfo("IndexName2", IndexType::VECTOR, "rating", true),
@@ -1315,7 +1317,7 @@ TEST(Database, ExecuteSelect_Aggregation_Indexed) {
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
       documents.push_back(
-          GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+          TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
       expectedSum += i;
     }
 
@@ -1357,7 +1359,7 @@ TEST(Database, ExecuteSelect_Aggregation) {
 
   for (auto idCnt : idCounts) {
     string dbName = "ExecuteSelect_Aggregation_" + to_string(idCnt);
-    Database db(dbPath, dbName, GetDefaultDBOptions());
+    Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
     std::vector<IndexInfo> indexes;
     db.CreateCollection(collectionName,
                         SchemaType::FLAT_BUFFERS,
@@ -1371,7 +1373,7 @@ TEST(Database, ExecuteSelect_Aggregation) {
     std::int64_t expectedSum = 0;
     for (size_t i = 0; i < idCnt; i++) {
       documents.push_back(
-          GetTweetObject2(i, i, &name, &text, (double)i, &binData));
+          TestUtils::GetTweetObject2(i, i, &name, &text, (double)i, &binData));
       expectedSum += i;
     }
 
@@ -1406,7 +1408,7 @@ TEST(Database, ExecuteSelect_Aggregation) {
 TEST(Database, ExecuteSelect_NullStrFields) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_NullStrFields",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes;
@@ -1418,14 +1420,14 @@ TEST(Database, ExecuteSelect_NullStrFields) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject2(i,
                                           i,
                                           &name,
                                           &text,
                                           (double) i / 100.0,
                                           &binData));
     } else {
-      documents.push_back(GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject2(i,
                                           i,
                                           nullptr,
                                           nullptr,
@@ -1500,7 +1502,7 @@ TEST(Database, ExecuteSelect_NullStrFields) {
 TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_NullStrFields_Indexed",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo>
@@ -1515,14 +1517,14 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject2(i,
                                           i,
                                           &name,
                                           &text,
                                           (double) i / 100.0,
                                           &binData));
     } else {
-      documents.push_back(GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject2(i,
                                           i,
                                           nullptr,
                                           nullptr,
@@ -1597,7 +1599,7 @@ TEST(Database, ExecuteSelect_NullStrFields_VectorIndexed) {
 TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   Database db(g_TestRootDirectory,
               "ExecuteSelect_NullStrFields_EWAHIndexed",
-              GetDefaultDBOptions());
+              TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes
@@ -1615,14 +1617,14 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     if (i % 2 == 0) {
-      documents.push_back(GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject2(i,
                                           i,
                                           &name,
                                           &text,
                                           (double) i / 100.0,
                                           &binData));
     } else {
-      documents.push_back(GetTweetObject2(i,
+      documents.push_back(TestUtils::GetTweetObject2(i,
                                           i,
                                           nullptr,
                                           nullptr,
@@ -1698,7 +1700,7 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   string dbName = "ExecuteSelect_ResultsetConsumption";
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, GetDefaultDBOptions());
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
@@ -1711,7 +1713,7 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   std::string name = "Zarian";
   std::string text = "Say hello to my little friend!";
   std::string binData = "some_data";
-  Buffer documentData = GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
+  Buffer documentData = TestUtils::GetTweetObject2(1, 1, &name, &text, 2.0, &binData);
   db.Insert(collectionName, documentData);
 
   int rows = 0;

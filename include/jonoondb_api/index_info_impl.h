@@ -11,7 +11,7 @@ class BufferImpl;
 enum class IndexType
     : std::int32_t;
 
-class JONOONDB_API_EXPORT IndexInfoImpl {
+class IndexInfoImpl {
  public:
   IndexInfoImpl(std::string name, IndexType type, std::string columnName,
                 bool isAscending);

@@ -3,7 +3,7 @@
 #include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
-class JONOONDB_API_EXPORT BufferImpl {
+class BufferImpl {
  public:
   BufferImpl();
   BufferImpl(size_t capacity);

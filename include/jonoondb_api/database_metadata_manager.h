@@ -24,7 +24,7 @@ struct CollectionMetadata {
   std::vector<FileInfo> dataFiles;
 };
 
-class JONOONDB_API_EXPORT DatabaseMetadataManager final {
+class DatabaseMetadataManager final {
  public:
   DatabaseMetadataManager(const DatabaseMetadataManager&) = delete;
   DatabaseMetadataManager(DatabaseMetadataManager&&) = delete;

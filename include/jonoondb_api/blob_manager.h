@@ -18,7 +18,7 @@ struct BlobMetadata;
 class FileNameManager;
 
 // This class is responsible for reading/writing blobs into the data files
-class JONOONDB_API_EXPORT BlobManager final {
+class BlobManager final {
  public:
   BlobManager(std::unique_ptr<FileNameManager> fileNameManager,
               bool compressionEnabled, size_t maxDataFileSize,

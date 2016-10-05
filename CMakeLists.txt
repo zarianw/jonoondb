@@ -97,7 +97,6 @@ add_library(
  ${INCLUDE_PATH}/jonoondb_api/proc_utils.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/exception_utils.cc ${INCLUDE_PATH}/jonoondb_api/exception_utils.h
- ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/jonoondb_api/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/jonoondb_api/database_impl.h
  ${SRC_PATH}/jonoondb_api/status_impl.cc ${INCLUDE_PATH}/jonoondb_api/status_impl.h
  ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/jonoondb_api/options_impl.h
@@ -125,7 +124,7 @@ add_library(
  
 target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
 
-# JONOONDB_API_SHARED_LIB
+# JONOONDB_API_LIBRARY
 SET(JONOONDB_STATIC_LIB FALSE CACHE BOOL "Build jonoondb_api as static library")
 if(JONOONDB_STATIC_LIB)
   SET(LIB_TYPE STATIC)
@@ -139,18 +138,20 @@ set (PATCH 0)
 configure_file (
   "${INCLUDE_PATH}/jonoondb_api/jonoondb_api_version.h.in"
   "${INCLUDE_PATH}/jonoondb_api/jonoondb_api_version_generated.h")
-set (JONOONDB_API_SHARED_LIB jonoondb_api_v${MAJOR})
+set (JONOONDB_API_LIBRARY jonoondb_api_v${MAJOR})
 
 add_library(
-  ${JONOONDB_API_SHARED_LIB} ${LIB_TYPE}
+  ${JONOONDB_API_LIBRARY} ${LIB_TYPE}
   ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/jonoondb_api/cdatabase.h)
 
-target_link_libraries(${JONOONDB_API_SHARED_LIB} jonoondb_api)
+target_link_libraries(${JONOONDB_API_LIBRARY} jonoondb_api)
 
 
 # visibility
 include(GenerateExportHeader)
-generate_export_header(jonoondb_api)
+generate_export_header(${JONOONDB_API_LIBRARY}
+  BASE_NAME jonoondb_api)
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR}) # this is where jonoondb_api_export.h will be generated
 add_compiler_export_flags()
 
@@ -159,7 +160,7 @@ add_compiler_export_flags()
 add_executable(
  jonoondb_cli
  ${SRC_PATH}/jonoondb_cli/main.cc)
-target_link_libraries(jonoondb_cli jonoondb_api linenoise ${Boost_LIBRARIES})
+target_link_libraries(jonoondb_cli ${JONOONDB_API_LIBRARY} linenoise ${Boost_LIBRARIES})
 
 # dbgen_converter
 add_executable(
@@ -185,30 +186,39 @@ add_executable(
  jonoondb_api_test
  ${TEST_PATH}/jonoondb_api/main.cc
  ${TEST_PATH}/jonoondb_api/status_impl_tests.cc
- ${TEST_PATH}/jonoondb_api/database_metadata_manager_tests.cc
- ${TEST_PATH}/jonoondb_api/buffer_tests.cc
+ ${TEST_PATH}/jonoondb_api/database_metadata_manager_tests.cc 
  ${TEST_PATH}/jonoondb_api/concurrent_lru_cache_tests.cc
- ${TEST_PATH}/jonoondb_api/memory_mapped_file_tests.cc
- ${TEST_PATH}/jonoondb_api/database_tests.cc
+ ${TEST_PATH}/jonoondb_api/memory_mapped_file_tests.cc 
  ${TEST_PATH}/jonoondb_api/document_tests.cc
  ${TEST_PATH}/jonoondb_api/jonoondb_exception_tests.cc
  ${TEST_PATH}/jonoondb_api/filename_manager_tests.cc
  ${TEST_PATH}/jonoondb_api/flatbuffers_document_tests.cc
  ${TEST_PATH}/jonoondb_api/blob_manager_tests.cc
  ${TEST_PATH}/jonoondb_api/object_pool_tests.cc
- ${TEST_PATH}/jonoondb_api/options_tests.cc
- ${TEST_PATH}/jonoondb_api/index_info_tests.cc
- ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
  ${TEST_PATH}/jonoondb_api/proc_utils_tests.cc
  ${TEST_PATH}/jonoondb_utils/varint_tests.cc
+ ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.cc
  ${TEST_PATH}/jonoondb_api/test_utils.h ${TEST_PATH}/jonoondb_api/test_utils.cc)
 target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
 
+add_executable(
+ ${JONOONDB_API_LIBRARY}_test
+ ${TEST_PATH}/jonoondb_api/main.cc
+ ${TEST_PATH}/jonoondb_api/buffer_tests.cc
+ ${TEST_PATH}/jonoondb_api/database_tests.cc
+ ${TEST_PATH}/jonoondb_api/options_tests.cc
+ ${TEST_PATH}/jonoondb_api/index_info_tests.cc
+ ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
+ ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.cc
+ ${TEST_PATH}/jonoondb_api/test_utils.h ${TEST_PATH}/jonoondb_api/test_utils.cc)
+target_link_libraries(${JONOONDB_API_LIBRARY}_test gtest gtest_main ${JONOONDB_API_LIBRARY} ${Boost_LIBRARIES})
+
 include(CTest)
 add_test(all_jonoondb_api_tests jonoondb_api_test)
+add_test(all_${JONOONDB_API_LIBRARY}_tests ${JONOONDB_API_LIBRARY}_test)
 
 #installation
-install(TARGETS jonoondb_api DESTINATION lib)
+install(TARGETS ${JONOONDB_API_LIBRARY} DESTINATION lib)
 install(TARGETS jonoondb_cli DESTINATION bin)
 install(FILES ${INCLUDE_PATH}/jonoondb_api/database.h
  ${INCLUDE_PATH}/jonoondb_api/enums.h

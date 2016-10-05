@@ -10,7 +10,7 @@ class BufferImpl;
 class Document;
 class DocumentSchema;
 
-class JONOONDB_API_EXPORT DocumentFactory {
+class DocumentFactory {
  public:
   static std::unique_ptr<Document> CreateDocument(
       const DocumentSchema& documentSchema,

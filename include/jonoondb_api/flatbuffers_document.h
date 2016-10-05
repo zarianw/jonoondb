@@ -11,7 +11,7 @@ namespace jonoondb_api {
 class FlatbuffersDocumentSchema;
 class BufferImpl;
 
-class JONOONDB_API_EXPORT FlatbuffersDocument final: public Document {
+class FlatbuffersDocument final: public Document {
  public:
   FlatbuffersDocument(
       FlatbuffersDocumentSchema* fbDocumentSchema, BufferImpl* buffer);

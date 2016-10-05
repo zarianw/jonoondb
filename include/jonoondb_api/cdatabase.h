@@ -30,7 +30,6 @@ typedef enum jonoondb_status_codes {
 } jonoondb_status_codes;
 
 typedef struct status* status_ptr;
-
 JONOONDB_API_EXPORT void jonoondb_status_destruct(status_ptr sts);
 JONOONDB_API_EXPORT const char* jonoondb_status_message(status_ptr sts);
 JONOONDB_API_EXPORT uint64_t jonoondb_status_code(status_ptr sts);

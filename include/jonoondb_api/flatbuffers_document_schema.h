@@ -13,7 +13,7 @@ enum class FieldType
 enum class SchemaType
     : std::int32_t;
 
-class JONOONDB_API_EXPORT FlatbuffersDocumentSchema final: public DocumentSchema {
+class FlatbuffersDocumentSchema final: public DocumentSchema {
  public:
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
