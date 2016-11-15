@@ -99,10 +99,9 @@ TEST(Buffer, Buffer_Resize) {
 
 TEST(Buffer, Buffer_AssignCtor_InvalidArguments) {
   string str = "Hello";
-  //1. This is an error condition because we are saying take ownership but not providing the deleter
-  ASSERT_THROW(Buffer buffer1
-      (const_cast<char*>(str.data()), str.length(), str.capacity(), nullptr),
-               InvalidArgumentException);
+  //1. Valid condition
+  ASSERT_NO_THROW(Buffer buffer1
+      (const_cast<char*>(str.data()), str.length(), str.capacity(), nullptr));
 
   //2. Valid condition.
   Buffer buffer2(const_cast<char*>(str.data()), str.length(),

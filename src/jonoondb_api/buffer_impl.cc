@@ -99,13 +99,15 @@ BufferImpl::BufferImpl(char* buffer,
         __func__,
         __LINE__);
   } else if (customDeleterFunc == nullptr) {
-    throw InvalidArgumentException("Argument customDeleterFunc is nullptr.",
-                                   __FILE__, __func__, __LINE__);
-  } else {
-    m_bufferImpl = new BufferData(std::unique_ptr<char, void (*)(char*)>(buffer,
-                                                                         customDeleterFunc),
-                                  bufferLengthInBytes, bufferCapacityInBytes);
-  }
+    // nullptr means user does not want to delete this memory on destruction of
+    // this buffer.
+    customDeleterFunc = StandardDeleteNoOp;
+  }  
+  
+  m_bufferImpl = new BufferData(
+      std::unique_ptr<char, void (*)(char*)>(buffer, customDeleterFunc),
+      bufferLengthInBytes, bufferCapacityInBytes);
+  
 }
 
 BufferImpl::BufferImpl(BufferImpl&& other) {
