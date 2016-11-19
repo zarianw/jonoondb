@@ -146,7 +146,6 @@ add_library(
 
 target_link_libraries(${JONOONDB_API_LIBRARY} jonoondb_api)
 
-
 # visibility
 include(GenerateExportHeader)
 generate_export_header(${JONOONDB_API_LIBRARY}
@@ -155,13 +154,13 @@ generate_export_header(${JONOONDB_API_LIBRARY}
 include_directories(${CMAKE_CURRENT_BINARY_DIR}) # this is where jonoondb_api_export.h will be generated
 add_compiler_export_flags()
 
+# jonoondb_cli
 # Find a way to link against only the required boost libs
 # ${Boost_LIBRARIES} points to all the libs in find_package
 add_executable(
  jonoondb_cli
  ${SRC_PATH}/jonoondb_cli/main.cc)
-target_link_libraries(jonoondb_cli ${JONOONDB_API_LIBRARY} linenoise ${Boost_LIBRARIES})
-
+target_link_libraries(jonoondb_cli jonoondb_api linenoise ${Boost_LIBRARIES})
 
 # dbgen_converter
 add_executable(
