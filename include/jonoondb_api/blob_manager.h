@@ -10,7 +10,6 @@
 #include "memory_mapped_file.h"
 #include "concurrent_lru_cache.h"
 #include "buffer_impl.h"
-#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 // Forward Declarations

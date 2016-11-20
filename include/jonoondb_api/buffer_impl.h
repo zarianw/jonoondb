@@ -1,7 +1,5 @@
 #pragma once
 
-#include "jonoondb_api_export.h"
-
 namespace jonoondb_api {
 class BufferImpl {
  public:

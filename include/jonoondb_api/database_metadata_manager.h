@@ -3,7 +3,6 @@
 #include <string>
 #include <cstdint>
 #include <vector>
-#include "jonoondb_api_export.h"
 
 //Forward declarations
 struct sqlite3;

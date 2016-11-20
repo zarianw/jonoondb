@@ -3,7 +3,6 @@
 #include <memory>
 #include "flatbuffers/reflection.h"
 #include "document.h"
-#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 

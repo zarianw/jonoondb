@@ -2,7 +2,6 @@
 
 #include <string>
 #include <sstream>
-#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 class ExceptionUtils {

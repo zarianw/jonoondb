@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <string>
-#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 // Forward declaration

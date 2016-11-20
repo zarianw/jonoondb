@@ -4,7 +4,6 @@
 #include <string>
 #include "flatbuffers/idl.h"
 #include "document_schema.h"
-#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 //Forward declaration

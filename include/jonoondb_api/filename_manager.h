@@ -6,7 +6,6 @@
 #include <mutex>
 #include <boost/filesystem.hpp>
 #include "concurrent_map.h"
-#include "jonoondb_api_export.h"
 
 //Forward declarations
 struct sqlite3;
