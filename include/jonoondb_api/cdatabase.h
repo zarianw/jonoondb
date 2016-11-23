@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include "jonoondb_api_export.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,7 +79,7 @@ JONOONDB_API_EXPORT void jonoondb_indexinfo_destruct(indexinfo_ptr indexInfo);
 
 JONOONDB_API_EXPORT const char* jonoondb_indexinfo_getindexname(indexinfo_ptr indexInfo);
 JONOONDB_API_EXPORT void
-    jonoondb_indexinfo_setindexname(indexinfo_ptr indexInfo, const char* value);
+jonoondb_indexinfo_setindexname(indexinfo_ptr indexInfo, const char* value);
 JONOONDB_API_EXPORT int32_t jonoondb_indexinfo_gettype(indexinfo_ptr indexInfo);
 JONOONDB_API_EXPORT void jonoondb_indexinfo_settype(indexinfo_ptr indexInfo, int32_t value);
 JONOONDB_API_EXPORT const char* jonoondb_indexinfo_getcolumnname(indexinfo_ptr indexInfo);
@@ -95,41 +94,41 @@ JONOONDB_API_EXPORT bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexIn
 typedef struct jonoondb_buffer* jonoondb_buffer_ptr;
 JONOONDB_API_EXPORT jonoondb_buffer_ptr jonoondb_buffer_construct();
 JONOONDB_API_EXPORT jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes,
-                                               status_ptr* sts);
+                                                                   status_ptr* sts);
 JONOONDB_API_EXPORT jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
-                                               uint64_t bufferLengthInBytes,
-                                               uint64_t bufferCapacityInBytes,
-                                               status_ptr* sts);
+                                                                   uint64_t bufferLengthInBytes,
+                                                                   uint64_t bufferCapacityInBytes,
+                                                                   status_ptr* sts);
 JONOONDB_API_EXPORT jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
-                                               uint64_t bufferLengthInBytes,
-                                               uint64_t bufferCapacityInBytes,
-                                               void(* customDeleterFunc)(char*),
-                                               status_ptr* sts);
+                                                                   uint64_t bufferLengthInBytes,
+                                                                   uint64_t bufferCapacityInBytes,
+                                                                   void(* customDeleterFunc)(char*),
+                                                                   status_ptr* sts);
 
 JONOONDB_API_EXPORT jonoondb_buffer_ptr
-    jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf, status_ptr* sts);
+jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf, status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_buffer_copy_assignment
     (jonoondb_buffer_ptr self, jonoondb_buffer_ptr other, status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf);
 JONOONDB_API_EXPORT int32_t jonoondb_buffer_op_lessthan
     (jonoondb_buffer_ptr self, jonoondb_buffer_ptr other);
 JONOONDB_API_EXPORT int32_t jonoondb_buffer_op_lessthanorequal(jonoondb_buffer_ptr self,
-                                           jonoondb_buffer_ptr other);
+                                                               jonoondb_buffer_ptr other);
 JONOONDB_API_EXPORT int32_t jonoondb_buffer_op_greaterthan(jonoondb_buffer_ptr self,
-                                       jonoondb_buffer_ptr other);
+                                                           jonoondb_buffer_ptr other);
 JONOONDB_API_EXPORT int32_t jonoondb_buffer_op_greaterthanorequal(jonoondb_buffer_ptr self,
-                                              jonoondb_buffer_ptr other);
+                                                                  jonoondb_buffer_ptr other);
 JONOONDB_API_EXPORT int32_t jonoondb_buffer_op_equal(jonoondb_buffer_ptr self,
-                                 jonoondb_buffer_ptr other);
+                                                     jonoondb_buffer_ptr other);
 JONOONDB_API_EXPORT int32_t jonoondb_buffer_op_notequal(jonoondb_buffer_ptr self,
-                                    jonoondb_buffer_ptr other);
+                                                        jonoondb_buffer_ptr other);
 JONOONDB_API_EXPORT void jonoondb_buffer_copy(jonoondb_buffer_ptr buf,
-                          const char* srcBuf,
-                          uint64_t bytesToCopy,
-                          status_ptr* sts);
+                                              const char* srcBuf,
+                                              uint64_t bytesToCopy,
+                                              status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_buffer_resize(jonoondb_buffer_ptr buf,
-                            uint64_t newBufferCapacityInBytes,
-                            status_ptr* sts);
+                                                uint64_t newBufferCapacityInBytes,
+                                                status_ptr* sts);
 JONOONDB_API_EXPORT const char* jonoondb_buffer_getdata(jonoondb_buffer_ptr buf);
 JONOONDB_API_EXPORT uint64_t jonoondb_buffer_getlength(jonoondb_buffer_ptr buf);
 JONOONDB_API_EXPORT uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf);
@@ -145,24 +144,24 @@ JONOONDB_API_EXPORT int64_t jonoondb_resultset_getinteger
 JONOONDB_API_EXPORT double jonoondb_resultset_getdouble
     (resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 JONOONDB_API_EXPORT const char* jonoondb_resultset_getstring(resultset_ptr rs,
-                                         int32_t columnIndex,
-                                         uint64_t** retValSize,
-                                         status_ptr* sts);
+                                                             int32_t columnIndex,
+                                                             uint64_t** retValSize,
+                                                             status_ptr* sts);
 JONOONDB_API_EXPORT const char* jonoondb_resultset_getblob(resultset_ptr rs,
-                                       int32_t columnIndex,
-                                       uint64_t** retValSize,
-                                       status_ptr* sts);
+                                                           int32_t columnIndex,
+                                                           uint64_t** retValSize,
+                                                           status_ptr* sts);
 JONOONDB_API_EXPORT int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs,
-                                          const char* columnLabel,
-                                          uint64_t columnLabelLength,
-                                          status_ptr* sts);
+                                                              const char* columnLabel,
+                                                              uint64_t columnLabelLength,
+                                                              status_ptr* sts);
 JONOONDB_API_EXPORT int32_t jonoondb_resultset_getcolumncount(resultset_ptr rs);
 JONOONDB_API_EXPORT int32_t jonoondb_resultset_getcolumntype
     (resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 JONOONDB_API_EXPORT const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs,
-                                              int32_t columnIndex,
-                                              uint64_t** retValSize,
-                                              status_ptr* sts);
+                                                                  int32_t columnIndex,
+                                                                  uint64_t** retValSize,
+                                                                  status_ptr* sts);
 JONOONDB_API_EXPORT int32_t jonoondb_resultset_isnull
     (resultset_ptr rs, int32_t columnIndex, status_ptr* sts);
 
@@ -171,9 +170,9 @@ JONOONDB_API_EXPORT int32_t jonoondb_resultset_isnull
 //
 typedef struct database* database_ptr;
 JONOONDB_API_EXPORT database_ptr jonoondb_database_construct(const char* dbPath,
-                                         const char* dbName,
-                                         const options_ptr opt,
-                                         status_ptr* sts);
+                                                             const char* dbName,
+                                                             const options_ptr opt,
+                                                             status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_database_destruct(database_ptr db);
 JONOONDB_API_EXPORT void jonoondb_database_createcollection
     (database_ptr db,
@@ -185,17 +184,17 @@ JONOONDB_API_EXPORT void jonoondb_database_createcollection
      uint64_t indexesLength,
      status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_database_insert(database_ptr db,
-                              const char* collectionName,
-                              const jonoondb_buffer_ptr documentData,
-                              status_ptr* sts);
+                                                  const char* collectionName,
+                                                  const jonoondb_buffer_ptr documentData,
+                                                  status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_database_multi_insert
     (database_ptr db, const char* collectionName, uint64_t collectionNameLength,
      const jonoondb_buffer_ptr* documentArr, uint64_t documentArrLength,
      status_ptr* sts);
 JONOONDB_API_EXPORT resultset_ptr jonoondb_database_executeselect(database_ptr db,
-                                              const char* selectStmt,
-                                              uint64_t selectStmtLength,
-                                              status_ptr* sts);
+                                                                  const char* selectStmt,
+                                                                  uint64_t selectStmtLength,
+                                                                  status_ptr* sts);
 
 #ifdef __cplusplus
 } // extern "C"
