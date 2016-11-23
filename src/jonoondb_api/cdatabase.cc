@@ -450,6 +450,31 @@ int32_t jonoondb_buffer_op_lessthan(jonoondb_buffer_ptr self,
   return (self->impl < other->impl ? 1 : 0);
 }
 
+int32_t jonoondb_buffer_op_lessthanorequal(jonoondb_buffer_ptr self,
+                                           jonoondb_buffer_ptr other) {
+  return (self->impl <= other->impl ? 1 : 0);
+}
+
+int32_t jonoondb_buffer_op_greaterthan(jonoondb_buffer_ptr self,
+                                       jonoondb_buffer_ptr other) {
+  return (self->impl > other->impl ? 1 : 0);
+}
+
+int32_t jonoondb_buffer_op_greaterthanorequal(jonoondb_buffer_ptr self,
+                                              jonoondb_buffer_ptr other) {
+  return (self->impl >= other->impl ? 1 : 0);
+}
+
+int32_t jonoondb_buffer_op_equal(jonoondb_buffer_ptr self,
+                                 jonoondb_buffer_ptr other) {
+  return (self->impl == other->impl ? 1 : 0);
+}
+
+int32_t jonoondb_buffer_op_notequal(jonoondb_buffer_ptr self,
+                                    jonoondb_buffer_ptr other) {
+  return (self->impl != other->impl ? 1 : 0);
+}
+
 void jonoondb_buffer_copy(jonoondb_buffer_ptr buf,
                           const char* srcBuf,
                           uint64_t bytesToCopy,
@@ -532,6 +557,17 @@ const char* jonoondb_resultset_getstring(resultset_ptr rs,
     strPtr = const_cast<char*>(str.c_str());
   }, *sts);
   return strPtr;
+}
+
+const char* jonoondb_resultset_getblob(resultset_ptr rs,
+                                       int32_t columnIndex,
+                                       uint64_t** retValSize,
+                                       status_ptr* sts) {
+  char* blob;
+  TranslateExceptions([&] {
+    blob = const_cast<char*>(rs->impl.GetBlob(columnIndex, **retValSize));    
+  }, *sts);
+  return blob;
 }
 
 int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs,
@@ -651,21 +687,10 @@ void jonoondb_database_multi_insert(database_ptr db,
     boost::string_ref colName(collectionName, collectionNameLength);
     static_assert(sizeof(jonoondb_buffer) == sizeof(BufferImpl),
                   "Critical Error. Size assumptions not correct for jonoondb_buffer & BufferImpl.");
-    if (sizeof(jonoondb_buffer) == sizeof(BufferImpl)) {
-      // Todo: Use a safer cast than C Style cast
-      const BufferImpl** start = (const BufferImpl**) documentArr;
-      gsl::span<const BufferImpl*> documents(start, documentArrLength);
-      db->impl.MultiInsert(colName, documents);
-    }
-    else {
-      std::vector<const BufferImpl*> documentVec;
-      for (size_t i = 0; i < documentArrLength; i++) {
-        documentVec.push_back(&documentArr[i]->impl);
-      }
-      gsl::span<const BufferImpl*>
-          documents(documentVec.data(), documentVec.size());
-      db->impl.MultiInsert(colName, documents);
-    }
+    // Todo: Use a safer cast than C Style cast
+    const BufferImpl** start = (const BufferImpl**)documentArr;
+    gsl::span<const BufferImpl*> documents(start, documentArrLength);
+    db->impl.MultiInsert(colName, documents);
   }, *sts);
 }
 

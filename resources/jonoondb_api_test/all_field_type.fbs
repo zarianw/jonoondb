@@ -13,7 +13,9 @@ table NestedAllFieldType
   field9:long;  
   field10:double;
   field11:string;
-  // field12:[int]; uncomment and update test when we support vectors
+  field12:[byte];
+  field13:[ubyte];
+  field14:[string];
 }
 
 table AllFieldType
@@ -30,7 +32,9 @@ table AllFieldType
   field10:double;
   field11:string;
   nestedField:NestedAllFieldType;
-  // field12:[int]; uncomment and update test when we support vectors
+  field12:[byte];
+  field13:[ubyte];
+  field14:[string];
 }
 
 root_type AllFieldType;

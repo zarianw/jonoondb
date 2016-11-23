@@ -19,6 +19,7 @@ enum class IndexConstraintOperator
     : std::int8_t;
 struct Constraint;
 class DocumentIDGenerator;
+class BufferImpl;
 
 class IndexManager {
  public:
@@ -47,6 +48,10 @@ class IndexManager {
   bool TryGetStringValue(std::uint64_t documentID,
                          const std::string& columnName,
                          std::string& val);
+
+  bool TryGetBlobValue(std::uint64_t documentID,
+                       const std::string& columnName,
+                       BufferImpl& val);
 
   bool TryGetIntegerVector(const gsl::span<std::uint64_t>& documentIDs,
                            const std::string& columnName,

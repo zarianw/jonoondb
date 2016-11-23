@@ -33,7 +33,7 @@ bootstrap.bat
 b2 install address-model=64 --prefix=64bit
 (On Linux and Mac OS X)
 ./bootstrap.sh
-./b2 install address-model=64 --prefix=64bit
+./b2 install address-model=64 cxxflags="-fPIC" cflags="-fPIC" --prefix=64bit
 ```
 
 ### Clone and build JonoonDB

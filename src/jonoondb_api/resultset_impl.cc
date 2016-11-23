@@ -111,6 +111,18 @@ const std::string& ResultSetImpl::GetString(std::int32_t columnIndex) const {
   return m_tmpStrStorage;
 }
 
+const char* ResultSetImpl::GetBlob(std::int32_t columnIndex,
+                                   std::uint64_t& size) const {
+  auto val = sqlite3_column_blob(m_stmt.get(), columnIndex);
+  if (val != nullptr) {
+    size = sqlite3_column_bytes(m_stmt.get(), columnIndex);    
+  } else {
+    size = 0;
+  }
+
+  return static_cast<const char*>(val);
+}
+
 std::int32_t ResultSetImpl::GetColumnIndex(const boost::string_ref& columnLabel) const {
   auto iter = m_columnMap.find(columnLabel);
   if (iter == m_columnMap.end()) {

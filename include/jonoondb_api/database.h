@@ -369,6 +369,14 @@ class Buffer {
   }
 
   Buffer(const char* buffer,
+         std::size_t bufferLengthInBytes) :
+    m_opaque(jonoondb_buffer_construct3(buffer,
+                                        bufferLengthInBytes,
+                                        bufferLengthInBytes,
+                                        ThrowOnError{})) {
+  }
+
+  Buffer(const char* buffer,
          std::size_t bufferLengthInBytes,
          std::size_t bufferCapacityInBytes) :
       m_opaque(jonoondb_buffer_construct3(buffer,
@@ -409,6 +417,27 @@ class Buffer {
 
   bool operator<(const Buffer& other) const {
     return (jonoondb_buffer_op_lessthan(m_opaque, other.m_opaque) != 0);
+  }
+
+  bool operator<=(const Buffer& other) const {
+    return (jonoondb_buffer_op_lessthanorequal(m_opaque, other.m_opaque) != 0);
+  }
+
+  bool operator>(const Buffer& other) const {
+    return (jonoondb_buffer_op_greaterthan(m_opaque, other.m_opaque) != 0);
+  }
+
+  bool operator>=(const Buffer& other) const {
+    return (jonoondb_buffer_op_greaterthanorequal(m_opaque,
+                                                  other.m_opaque) != 0);
+  }
+
+  bool operator==(const Buffer& other) {
+    return (jonoondb_buffer_op_equal(m_opaque, other.m_opaque) != 0);
+  }
+
+  bool operator!=(const Buffer& other) {
+    return (jonoondb_buffer_op_notequal(m_opaque, other.m_opaque) != 0);
   }
 
   void Copy(const char* srcBuffer, size_t bytesToCopy) {
@@ -490,7 +519,7 @@ class ResultSet {
     return jonoondb_resultset_getdouble(m_opaque, columnIndex, ThrowOnError());
   }
 
-  StringView GetString(std::int32_t columnIndex) const {
+  StringView GetString(std::int32_t columnIndex) {
     std::uint64_t size;
     std::uint64_t* sizePtr = &size;
     const char* str = jonoondb_resultset_getstring(m_opaque,
@@ -498,6 +527,19 @@ class ResultSet {
                                                    &sizePtr,
                                                    ThrowOnError{});
     return StringView(str, size);
+  }
+
+  const Buffer& GetBlob(std::int32_t columnIndex) {
+    std::uint64_t size;
+    std::uint64_t* sizePtr = &size;
+    auto blob = jonoondb_resultset_getblob(m_opaque,
+                                           columnIndex,
+                                           &sizePtr,
+                                           ThrowOnError{});
+    // Todo: Optimize Buffer usage
+    m_tmpStorage = Buffer(blob, size, size);
+
+    return m_tmpStorage;
   }
 
   std::int32_t GetColumnIndex(std::string columnLabel) {
@@ -535,10 +577,17 @@ class ResultSet {
 
  private:
   resultset_ptr m_opaque;
+  Buffer m_tmpStorage;
 };
 
 class Database {
  public:
+  // This is a delegating ctor that uses default db options
+  Database(const std::string& dbPath, const std::string& dbName) 
+      : Database(dbPath, dbName, Options()) {
+    
+  }
+
   Database(const std::string& dbPath, const std::string& dbName,
            const Options& opt)
       : m_opaque(jonoondb_database_construct(dbPath.c_str(),

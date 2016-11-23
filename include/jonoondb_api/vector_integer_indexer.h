@@ -89,7 +89,7 @@ class VectorIntegerIndexer final: public Indexer {
       case jonoondb_api::IndexConstraintOperator::LESS_THAN_EQUAL:
         return GetBitmapLT(constraint, true);
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN:
-        return GetBitmapLT(constraint, false);
+        return GetBitmapGT(constraint, false);
       case jonoondb_api::IndexConstraintOperator::GREATER_THAN_EQUAL:
         return GetBitmapGT(constraint, true);
       case jonoondb_api::IndexConstraintOperator::MATCH:
@@ -104,7 +104,7 @@ class VectorIntegerIndexer final: public Indexer {
 
   std::shared_ptr<MamaJenniesBitmap> FilterRange(
       const Constraint& lowerConstraint,
-      const Constraint& upperConstraint) {
+      const Constraint& upperConstraint) override {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     std::int64_t lowerVal, upperVal;
 
@@ -153,7 +153,7 @@ class VectorIntegerIndexer final: public Indexer {
 
   bool TryGetIntegerVector(
       const gsl::span<std::uint64_t>& documentIDs,
-      std::vector<std::int64_t>& values) {
+      std::vector<std::int64_t>& values) override {
     assert(documentIDs.size() == values.size());
     for (auto i = 0; i < documentIDs.size(); i++) {
       if (documentIDs[i] >= m_dataVector.size()) {

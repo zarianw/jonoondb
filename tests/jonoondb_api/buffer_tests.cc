@@ -24,6 +24,15 @@ TEST(Buffer, Buffer_DefaultConstructor) {
   ASSERT_TRUE(buffer.GetLength() == 0);
 }
 
+TEST(Buffer, Buffer_Ctor) {
+  string str = "hello";
+  Buffer buffer(str.c_str(), str.size());
+
+  ASSERT_EQ(memcmp(str.c_str(), buffer.GetData(), str.size()), 0);
+  ASSERT_TRUE(buffer.GetCapacity() == str.size());
+  ASSERT_TRUE(buffer.GetLength() == str.size());
+}
+
 TEST(Buffer, Buffer_MoveConstructor) {
   Buffer buffer1;
   Buffer buffer2 = move(buffer1);  //invoke move ctor
@@ -90,10 +99,9 @@ TEST(Buffer, Buffer_Resize) {
 
 TEST(Buffer, Buffer_AssignCtor_InvalidArguments) {
   string str = "Hello";
-  //1. This is an error condition because we are saying take ownership but not providing the deleter
-  ASSERT_THROW(Buffer buffer1
-      (const_cast<char*>(str.data()), str.length(), str.capacity(), nullptr),
-               InvalidArgumentException);
+  //1. Valid condition
+  ASSERT_NO_THROW(Buffer buffer1
+      (const_cast<char*>(str.data()), str.length(), str.capacity(), nullptr));
 
   //2. Valid condition.
   Buffer buffer2(const_cast<char*>(str.data()), str.length(),
@@ -205,4 +213,68 @@ TEST(Buffer, Buffer_Copy_SmallBuffer) {
   string str = "Hello";
   Buffer buffer(2);
   ASSERT_THROW(buffer.Copy(str.data(), str.length()), JonoonDBException);
+}
+
+TEST(Buffer, Buffer_LessThan) {
+  string str = "Hello";  
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_FALSE(buffer1 < buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer3 < buffer1);
+  ASSERT_LT(buffer1, buffer3);
+}
+
+TEST(Buffer, Buffer_LessThanEqual) {
+  string str = "Hello";  
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_LE(buffer1, buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer3 <= buffer1);
+  ASSERT_LE(buffer1, buffer3);
+}
+
+TEST(Buffer, Buffer_GreaterThan) {
+  string str = "Hello";
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_FALSE(buffer1 > buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer1 > buffer3);
+  ASSERT_GT(buffer3, buffer1);
+}
+
+TEST(Buffer, Buffer_GreaterThanEqual) {
+  string str = "Hello";
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_GE(buffer1, buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer1 >= buffer3);
+  ASSERT_GE(buffer3, buffer1);
+}
+
+TEST(Buffer, Buffer_EQ) {
+  string str = "Hello";
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_TRUE(buffer1 == buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_FALSE(buffer1 == buffer3);  
+}
+
+TEST(Buffer, Buffer_NotEQ) {
+  string str = "Hello";
+  Buffer buffer1(str.c_str(), str.length(), str.length());
+  Buffer buffer2(str.c_str(), str.length(), str.length());
+  ASSERT_FALSE(buffer1 != buffer2);
+  string str2 = "Hellz";
+  Buffer buffer3(str2.c_str(), str2.length(), str2.length());
+  ASSERT_TRUE(buffer1 != buffer3);
 }

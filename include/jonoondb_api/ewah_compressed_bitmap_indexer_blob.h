@@ -18,14 +18,17 @@
 #include "constraint.h"
 #include "enums.h"
 #include "jonoondb_api/null_helpers.h"
+#include "jonoondb_api/buffer_impl.h"
+#include "jonoondb_api/standard_deleters.h"
+#include "document_id_generator.h"
 
 namespace jonoondb_api {
 
-class EWAHCompressedBitmapIndexerString final: public Indexer {
+class EWAHCompressedBitmapIndexerBlob final: public Indexer {
  public:
   static void Construct(const IndexInfoImpl& indexInfo,
                         const FieldType& fieldType,
-                        EWAHCompressedBitmapIndexerString*& obj) {
+                        EWAHCompressedBitmapIndexerBlob*& obj) {
     // TODO: Add index name in the error message as well
     std::string errorMsg;
     if (indexInfo.GetIndexName().size() == 0) {
@@ -38,7 +41,7 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-          << " is not valid for EWAHCompressedBitmapIndexerString.";
+          << " is not valid for EWAHCompressedBitmapIndexerBlob.";
       errorMsg = ss.str();
     }
 
@@ -50,14 +53,14 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
         tokens = StringUtils::Split(indexInfo.GetColumnName(),
                                     ".");
     IndexStat indexStat(indexInfo, fieldType);
-    obj = new EWAHCompressedBitmapIndexerString(indexStat, tokens);
+    obj = new EWAHCompressedBitmapIndexerBlob(indexStat, tokens);
   }
 
-  ~EWAHCompressedBitmapIndexerString() override {
+  ~EWAHCompressedBitmapIndexerBlob() override {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::BASE_TYPE_STRING);
+    return (fieldType == FieldType::BASE_TYPE_BLOB);
   }
 
   void ValidateForInsert(const Document& document) override {
@@ -87,7 +90,6 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
   }
 
   std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
-    assert(constraint.operandType == OperandType::STRING);
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
@@ -113,35 +115,27 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
       const Constraint& lowerConstraint,
       const Constraint& upperConstraint) override {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
-    if (lowerConstraint.operandType == OperandType::STRING &&
-        upperConstraint.operandType == OperandType::STRING) {
-      std::map<std::string, std::shared_ptr<MamaJenniesBitmap>>::const_iterator
+    if (lowerConstraint.operandType == OperandType::BLOB &&
+        upperConstraint.operandType == OperandType::BLOB) {
+      std::map<BufferImpl, std::shared_ptr<MamaJenniesBitmap>>::const_iterator
           startIter, endIter;
 
       if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL) {
-        startIter = m_compressedBitmaps.lower_bound(lowerConstraint.strVal);
+        startIter = m_compressedBitmaps.lower_bound(lowerConstraint.blobVal);
       } else {
-        startIter = m_compressedBitmaps.upper_bound(lowerConstraint.strVal);
+        startIter = m_compressedBitmaps.upper_bound(lowerConstraint.blobVal);
       }
-
-      bool nullChkRequired = true;
+      
       while (startIter != m_compressedBitmaps.end()) {
-        if (nullChkRequired) {
-          if (NullHelpers::IsNull(startIter->first)) {
-            continue;
-          }
+        if (startIter->first.GetData() == nullptr) {
+          continue;
+        }        
 
-          if (!NullHelpers::ContainsJustNullChars(startIter->first) &&
-              !NullHelpers::IsNull(startIter->first)) {
-            nullChkRequired = false;
-          }
-        }
-
-        if (startIter->first < upperConstraint.strVal) {
+        if (startIter->first < upperConstraint.blobVal) {
           bitmaps.push_back(startIter->second);
         } else if (
             upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL
-                && startIter->first == upperConstraint.strVal) {
+                && startIter->first == upperConstraint.blobVal) {
           bitmaps.push_back(startIter->second);
         } else {
           break;
@@ -155,21 +149,26 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
   }
 
  private:
-  EWAHCompressedBitmapIndexerString(const IndexStat& indexStat,
-                                    std::vector<std::string>& fieldNameTokens)
+  EWAHCompressedBitmapIndexerBlob(const IndexStat& indexStat,
+                                  std::vector<std::string>& fieldNameTokens)
       : m_indexStat(indexStat),
-        m_fieldNameTokens(fieldNameTokens) {
+        m_fieldNameTokens(fieldNameTokens),
+        m_lastInsertedDocId(-1) {
   }
 
   void InsertInternal(std::uint64_t documentID, const Document& document) {
     switch (m_indexStat.GetFieldType()) {
-      case FieldType::BASE_TYPE_STRING: {
-        auto val = document.GetStringValue(m_fieldNameTokens.back());
-        auto compressedBitmap = m_compressedBitmaps.find(val);
+      case FieldType::BASE_TYPE_BLOB: {
+        std::size_t size = 0;
+        auto val = document.GetBlobValue(m_fieldNameTokens.back(), size);
+        BufferImpl buffer(const_cast<char*>(val), size, size, StandardDeleteNoOp);
+        auto compressedBitmap = m_compressedBitmaps.find(buffer);
         if (compressedBitmap == m_compressedBitmaps.end()) {
           auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+          assert(documentID == m_lastInsertedDocId + 1);
           bm->Add(documentID);
-          m_compressedBitmaps[val] = bm;
+          m_compressedBitmaps[buffer] = bm;
+          m_lastInsertedDocId = documentID;
         } else {
           compressedBitmap->second->Add(documentID);
         }
@@ -179,7 +178,7 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
         // This can never happen
         std::ostringstream ss;
         ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-            << " is not valid for EWAHCompressedBitmapIndexerString.";
+            << " is not valid for EWAHCompressedBitmapIndexerBlob.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
       }
     }
@@ -187,10 +186,10 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
-    if (constraint.operandType == OperandType::STRING) {
-      auto iter = m_compressedBitmaps.find(constraint.strVal);
+    if (constraint.operandType == OperandType::BLOB) {
+      auto iter = m_compressedBitmaps.find(constraint.blobVal);
       if (iter != m_compressedBitmaps.end() &&
-          !NullHelpers::IsNull(iter->first)) {
+          iter->first.GetData() != nullptr) {
         bitmaps.push_back(iter->second);
       }
     }
@@ -201,24 +200,16 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
   std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint,
                                                  bool orEqual) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
-    bool nullChkRequired = true;
-    if (constraint.operandType == OperandType::STRING) {
+    if (constraint.operandType == OperandType::BLOB) {
       for (auto& item : m_compressedBitmaps) {
-        if (nullChkRequired) {
-          if (NullHelpers::IsNull(item.first)) {
-            continue;
-          }
-
-          if (!NullHelpers::ContainsJustNullChars(item.first) &&
-              !NullHelpers::IsNull(item.first)) {
-            nullChkRequired = false;
-          }
+        if (item.first.GetData() == nullptr) {
+          continue;
         }
 
-        if (item.first.compare(constraint.strVal) < 0) {
+        if (item.first < constraint.blobVal) {
           bitmaps.push_back(item.second);
         } else {
-          if (orEqual && item.first.compare(constraint.strVal) == 0) {
+          if (orEqual && item.first == constraint.blobVal) {
             bitmaps.push_back(item.second);
           }
           break;
@@ -232,38 +223,37 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
   std::shared_ptr<MamaJenniesBitmap> GetBitmapGT(const Constraint& constraint,
                                                  bool orEqual) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
-    if (constraint.operandType == OperandType::STRING) {
-      std::map<std::string, std::shared_ptr<MamaJenniesBitmap>>::const_iterator
+    if (constraint.operandType == OperandType::BLOB) {
+      std::map<BufferImpl, std::shared_ptr<MamaJenniesBitmap>>::const_iterator
           iter;
       if (orEqual) {
-        iter = m_compressedBitmaps.lower_bound(constraint.strVal);
+        iter = m_compressedBitmaps.lower_bound(constraint.blobVal);
       } else {
-        iter = m_compressedBitmaps.upper_bound(constraint.strVal);
+        iter = m_compressedBitmaps.upper_bound(constraint.blobVal);
       }
-
-      bool nullChkRequired = true;
+      
       while (iter != m_compressedBitmaps.end()) {
-        if (nullChkRequired) {
-          if (NullHelpers::IsNull(iter->first)) {
-            continue;
-          }
-
-          if (!NullHelpers::ContainsJustNullChars(iter->first) &&
-              !NullHelpers::IsNull(iter->first)) {
-            nullChkRequired = false;
-          }
-        }
+        if (iter->first.GetData() == nullptr) {
+          continue;
+        }        
 
         bitmaps.push_back(iter->second);
         iter++;
       }
+    } else {
+      auto bm = make_shared<MamaJenniesBitmap>();
+      for (std::uint64_t i = DOC_ID_START; i < m_lastInsertedDocId; i++) {
+        bm->Add(i);
+      }
+      bitmaps.push_back(bm);
     }
 
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
+  std::int64_t m_lastInsertedDocId;
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
-  std::map<std::string, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
+  std::map<BufferImpl, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
 };
 }  // namespace jonoondb_api

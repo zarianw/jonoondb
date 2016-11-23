@@ -166,9 +166,41 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
   }
 }
 
+void DocumentCollection::GetDocumentAndBuffer(
+  std::uint64_t docID, std::unique_ptr<Document>& document,
+  BufferImpl& buffer) const {
+  if (docID >= m_documentIDMap.size()) {
+    ostringstream ss;
+    ss << "Document with ID '" << docID << "' does exist in collection "
+      << m_name << ".";
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
+  document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
+}
+
+bool DocumentCollection::TryGetBlobFieldFromIndexer(
+    std::uint64_t docID, const std::string& columnName,
+    BufferImpl& val) const {
+  if (docID >= m_documentIDMap.size()) {
+    ostringstream ss;
+    ss << "Document with ID '" << docID << "' does exist in collection "
+      << m_name << ".";
+    throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  // lets see if we can get this value from any index  
+  if (m_indexManager->TryGetBlobValue(docID, columnName, val)) {
+    return true;
+  } 
+
+  return false;
+}
+
 std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
     std::uint64_t docID, const std::string& columnName,
-    std::vector<std::string>& tokens, BufferImpl& buffer,
+    const std::vector<std::string>& tokens, BufferImpl& buffer,
     std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
@@ -203,7 +235,7 @@ std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
 
 double DocumentCollection::GetDocumentFieldAsDouble(
     std::uint64_t docID, const std::string& columnName,
-    std::vector<std::string>& tokens, BufferImpl& buffer,
+    const std::vector<std::string>& tokens, BufferImpl& buffer,
     std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
@@ -239,7 +271,7 @@ double DocumentCollection::GetDocumentFieldAsDouble(
 // Todo: Need to avoid the string creation/copy cost
 std::string DocumentCollection::GetDocumentFieldAsString(
     std::uint64_t docID, const std::string& columnName,
-    std::vector<std::string>& tokens, BufferImpl& buffer,
+    const std::vector<std::string>& tokens, BufferImpl& buffer,
     std::unique_ptr<Document>& document) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
@@ -273,7 +305,7 @@ std::string DocumentCollection::GetDocumentFieldAsString(
 
 void DocumentCollection::GetDocumentFieldsAsIntegerVector(
     const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
-    std::vector<std::string>& tokens,
+    const std::vector<std::string>& tokens,
     std::vector<std::int64_t>& values) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
@@ -311,7 +343,7 @@ void DocumentCollection::GetDocumentFieldsAsIntegerVector(
 void DocumentCollection::GetDocumentFieldsAsDoubleVector(
     const gsl::span<std::uint64_t>& docIDs,
     const std::string& columnName,
-    std::vector<std::string>& tokens,
+    const std::vector<std::string>& tokens,
     std::vector<double>& values) const {
   if (tokens.size() == 0) {
     throw InvalidArgumentException("Argument tokens is empty.", __FILE__,

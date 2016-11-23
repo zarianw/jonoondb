@@ -13,7 +13,11 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/endian/conversion.hpp>
 #include "linenoise/linenoise.h"
-#include "database.h"
+#include "jonoondb_api/database_impl.h"
+#include "jonoondb_api/buffer_impl.h"
+#include "jonoondb_api/options_impl.h"
+#include "jonoondb_api/index_info_impl.h"
+#include "jonoondb_api/resultset_impl.h"
 #include "jonoondb_utils/stopwatch.h"
 #include "jonoondb_api/file.h"
 #include "jonoondb_utils/varint.h"
@@ -24,10 +28,7 @@ using namespace jonoondb_api;
 using namespace jonoondb_utils;
 using namespace boost::filesystem;
 
-inline void DeleteNoOp(char*) {
-}
-
-void PrintResultSet(ResultSet& rs) {
+void PrintResultSet(ResultSetImpl& rs) {
   std::int32_t colCount = rs.GetColumnCount();
   vector<size_t> columnWidths(colCount, 0);
 
@@ -37,11 +38,11 @@ void PrintResultSet(ResultSet& rs) {
   while (count < 50 && rs.Next()) {
     readVals.push_back(vector<string>());
     for (std::int32_t i = 0; i < colCount; i++) {
-      auto val = rs.GetString(i);
+      const string& val = rs.GetString(i);
       if (columnWidths[i] <= val.size()) {
         columnWidths[i] = val.size() + 1;
       }
-      readVals.back().push_back(string(val.str(), val.size()));
+      readVals.back().push_back(val);
     }
     count++;
   }
@@ -54,7 +55,7 @@ void PrintResultSet(ResultSet& rs) {
     }
 
     cout << left << std::setw(columnWidths[i]) << std::setfill(fill)
-        << rs.GetColumnLabel(i).str() << "|";
+        << rs.GetColumnLabel(i) << "|";
   }
   cout << "\n";
 
@@ -71,7 +72,7 @@ void PrintResultSet(ResultSet& rs) {
   while (rs.Next()) {
     for (std::int32_t i = 0; i < colCount; i++) {
       cout << left << std::setw(columnWidths[i]) << std::setfill(fill)
-          << rs.GetString(i).str() << "|";
+          << rs.GetString(i) << "|";
     }
     cout << "\n";
   }
@@ -127,12 +128,12 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     cout << "DBPATH: " << dbPath << "\n";
     cout << "Loading DB ..." << endl;
 
-    Options opt;
+    OptionsImpl opt;
     opt.SetCompressionEnabled(true);
     //opt.SetMaxDataFileSize(1024 * 1024 * 128);
     //opt.SetMemoryCleanupThreshold(1024 * 1024 * 512);
     Stopwatch loadSW(true);
-    Database db(dbPath, dbName, opt);
+    DatabaseImpl db(dbPath, dbName, opt);
     loadSW.Stop();
     cout << "Loading completed in " << loadSW.ElapsedMilliSeconds()
         << " millisecs." << "\n";
@@ -192,7 +193,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             continue;
           }
 
-          vector<IndexInfo> indexes;
+          vector<IndexInfoImpl> indexes;
           if (tokens.size() == 4) {
             // We have a index file lets read the indexes from it
             auto& indexFile = tokens[3];
@@ -232,7 +233,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
                 if (boost::iequals("ASC", idxTokens[3])) {
                   isAscending = true;
                 }
-                indexes.push_back(IndexInfo(idxTokens[0],
+                indexes.push_back(IndexInfoImpl(idxTokens[0],
                                             IndexType::EWAH_COMPRESSED_BITMAP,
                                             idxTokens[2],
                                             isAscending));
@@ -241,7 +242,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
                 if (boost::iequals("ASC", idxTokens[3])) {
                   isAscending = true;
                 }
-                indexes.push_back(IndexInfo(idxTokens[0], IndexType::VECTOR,
+                indexes.push_back(IndexInfoImpl(idxTokens[0], IndexType::VECTOR,
                                             idxTokens[2], isAscending));
               } else {
                 ostringstream ss;
@@ -255,10 +256,14 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           }
 
           auto schema = File::Read(tokens[2]);
+          vector<IndexInfoImpl*> idxs;
+          for (auto& item : indexes) {
+            idxs.push_back(&item);
+          }
           db.CreateCollection(tokens[1],
                               SchemaType::FLAT_BUFFERS,
                               schema,
-                              indexes);
+                              idxs);
         } else if (tokens[0] == ".i") {
           // import command
           // make sure we have enough params
@@ -285,7 +290,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           auto fileSize = mappedRegion.get_size();
           char* currentPostion =
               reinterpret_cast<char*>(mappedRegion.get_address());
-          std::vector<Buffer> documents;
+          std::vector<BufferImpl> documents;
           std::size_t bytesRead = 0;
           std::int64_t bytesReadForCurrRegion = 0;
           std::uint32_t size = 0;
@@ -304,13 +309,18 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             }
 
             currentPostion += sizeof(std::uint32_t);
-            documents.push_back(Buffer(currentPostion, size, size, DeleteNoOp));
+            documents.push_back(BufferImpl(currentPostion, size, size, nullptr));
             currentPostion += size;
             bytesReadForCurrRegion += sizeof(std::uint32_t) + size;
             bytesRead += sizeof(std::uint32_t) + size;
             if (bytesReadForCurrRegion > (1024 * 1024 * 1024)) {
               // Insert accumulated docs
-              db.MultiInsert(tokens[1], documents);
+              vector<const BufferImpl*> docs;
+              for (auto& item : documents) {
+                docs.push_back(&item);
+              }
+              gsl::span<const BufferImpl*> docSpan(docs.data(), docs.size());
+              db.MultiInsert(tokens[1], docSpan);
               documents.clear();
 
               // Remap to not use too much memory
@@ -329,7 +339,12 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           }
 
           if (documents.size() > 0) {
-            db.MultiInsert(tokens[1], documents);
+            vector<const BufferImpl*> docs;
+            for (auto& item : documents) {
+              docs.push_back(&item);
+            }
+            gsl::span<const BufferImpl*> docSpan(docs.data(), docs.size());
+            db.MultiInsert(tokens[1], docSpan);            
           }
 
           if (isTimerOn) {

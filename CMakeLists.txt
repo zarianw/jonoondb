@@ -10,10 +10,12 @@ set (TEST_PATH ${PROJECT_SOURCE_DIR}/tests)
 # add the include directories
 include_directories(${INCLUDE_PATH} ${INCLUDE_PATH}/jonoondb_api ${THIRDPARTY_PATH})
 
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(APPLE)
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++ -m64")
-elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+elseif(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++14 -m64")
 endif()
@@ -38,7 +40,7 @@ add_library(
 include_directories(${THIRDPARTY_PATH}/flatbuffers-1.3.0/include)
 #add_subdirectory(${THIRDPARTY_PATH}/flatbuffers-1.3.0)
 
-# flatbuffers
+# linenoise
 add_library(
   linenoise
   ${THIRDPARTY_PATH}/linenoise/linenoise.h ${THIRDPARTY_PATH}/linenoise/linenoise.c)
@@ -47,6 +49,7 @@ add_library(
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
+set(Boost_NO_SYSTEM_PATHS        ON)
 find_package(Boost 1.60.0 EXACT REQUIRED COMPONENTS filesystem system thread chrono program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
@@ -60,7 +63,7 @@ include_directories(${THIRDPARTY_PATH}/lz4-r131/lib)
 
 # jonoondb_api
 add_library(
- jonoondb_api 
+ jonoondb_api
  ${INCLUDE_PATH}/jonoondb_api/standard_deleters.h 
  ${INCLUDE_PATH}/jonoondb_api/string_utils.h
  ${INCLUDE_PATH}/jonoondb_api/serializer_utils.h 
@@ -76,6 +79,7 @@ add_library(
  ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_integer.h
  ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_string.h
  ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_double.h
+ ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_blob.h
  ${INCLUDE_PATH}/jonoondb_api/field.h
  ${INCLUDE_PATH}/jonoondb_api/jonoondb_exceptions.h 
  ${INCLUDE_PATH}/jonoondb_api/database.h
@@ -88,11 +92,11 @@ add_library(
  ${INCLUDE_PATH}/jonoondb_api/vector_integer_indexer.h
  ${INCLUDE_PATH}/jonoondb_api/vector_double_indexer.h
  ${INCLUDE_PATH}/jonoondb_api/vector_string_indexer.h
+ ${INCLUDE_PATH}/jonoondb_api/vector_blob_indexer.h
  ${INCLUDE_PATH}/jonoondb_api/null_helpers.h
  ${INCLUDE_PATH}/jonoondb_api/proc_utils.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/exception_utils.cc ${INCLUDE_PATH}/jonoondb_api/exception_utils.h
- ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/jonoondb_api/cdatabase.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/jonoondb_api/database_impl.h
  ${SRC_PATH}/jonoondb_api/status_impl.cc ${INCLUDE_PATH}/jonoondb_api/status_impl.h
  ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/jonoondb_api/options_impl.h
@@ -120,6 +124,37 @@ add_library(
  
 target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
 
+# JONOONDB_API_LIBRARY
+SET(JONOONDB_STATIC_LIB FALSE CACHE BOOL "Build jonoondb_api as static library")
+if(JONOONDB_STATIC_LIB)
+  SET(LIB_TYPE STATIC)
+else()
+  SET(LIB_TYPE SHARED)
+endif()
+
+set (MAJOR 0)
+set (MINOR 1)
+set (PATCH 0)
+configure_file (
+  "${INCLUDE_PATH}/jonoondb_api/jonoondb_api_version.h.in"
+  "${INCLUDE_PATH}/jonoondb_api/jonoondb_api_version_generated.h")
+set (JONOONDB_API_LIBRARY jonoondb_api_v${MAJOR})
+
+add_library(
+  ${JONOONDB_API_LIBRARY} ${LIB_TYPE}
+  ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/jonoondb_api/cdatabase.h)
+
+target_link_libraries(${JONOONDB_API_LIBRARY} jonoondb_api)
+
+# visibility
+include(GenerateExportHeader)
+generate_export_header(${JONOONDB_API_LIBRARY}
+  BASE_NAME jonoondb_api)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR}) # this is where jonoondb_api_export.h will be generated
+add_compiler_export_flags()
+
+# jonoondb_cli
 # Find a way to link against only the required boost libs
 # ${Boost_LIBRARIES} points to all the libs in find_package
 add_executable(
@@ -149,36 +184,45 @@ include_directories(${gtest_SOURCE_DIR}/include)
 # jonoondb_test
 add_executable(
  jonoondb_api_test
- ${TEST_PATH}/jonoondb_api/test_utils.h
  ${TEST_PATH}/jonoondb_api/main.cc
  ${TEST_PATH}/jonoondb_api/status_impl_tests.cc
- ${TEST_PATH}/jonoondb_api/database_metadata_manager_tests.cc
- ${TEST_PATH}/jonoondb_api/buffer_tests.cc
+ ${TEST_PATH}/jonoondb_api/database_metadata_manager_tests.cc 
  ${TEST_PATH}/jonoondb_api/concurrent_lru_cache_tests.cc
- ${TEST_PATH}/jonoondb_api/memory_mapped_file_tests.cc
- ${TEST_PATH}/jonoondb_api/database_tests.cc
+ ${TEST_PATH}/jonoondb_api/memory_mapped_file_tests.cc 
  ${TEST_PATH}/jonoondb_api/document_tests.cc
  ${TEST_PATH}/jonoondb_api/jonoondb_exception_tests.cc
  ${TEST_PATH}/jonoondb_api/filename_manager_tests.cc
  ${TEST_PATH}/jonoondb_api/flatbuffers_document_tests.cc
  ${TEST_PATH}/jonoondb_api/blob_manager_tests.cc
  ${TEST_PATH}/jonoondb_api/object_pool_tests.cc
+ ${TEST_PATH}/jonoondb_api/proc_utils_tests.cc
+ ${TEST_PATH}/jonoondb_utils/varint_tests.cc
+ ${TEST_PATH}/jonoondb_api/test_utils.h
+ ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.cc)
+target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
+
+add_executable(
+ ${JONOONDB_API_LIBRARY}_test
+ ${TEST_PATH}/jonoondb_api/main.cc
+ ${TEST_PATH}/jonoondb_api/buffer_tests.cc
+ ${TEST_PATH}/jonoondb_api/database_tests.cc
  ${TEST_PATH}/jonoondb_api/options_tests.cc
  ${TEST_PATH}/jonoondb_api/index_info_tests.cc
  ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
- ${TEST_PATH}/jonoondb_api/proc_utils_tests.cc
- ${TEST_PATH}/jonoondb_utils/varint_tests.cc)
-target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
+ ${TEST_PATH}/jonoondb_api/test_utils.h
+ ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.cc)
+target_link_libraries(${JONOONDB_API_LIBRARY}_test gtest gtest_main ${JONOONDB_API_LIBRARY} ${Boost_LIBRARIES})
 
 include(CTest)
 add_test(all_jonoondb_api_tests jonoondb_api_test)
+add_test(all_${JONOONDB_API_LIBRARY}_tests ${JONOONDB_API_LIBRARY}_test)
 
 #installation
-SET(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR})
-install(TARGETS jonoondb_api DESTINATION install_packages)
-install(TARGETS jonoondb_cli DESTINATION install_packages)
+install(TARGETS ${JONOONDB_API_LIBRARY} DESTINATION lib)
+install(TARGETS jonoondb_cli DESTINATION bin)
 install(FILES ${INCLUDE_PATH}/jonoondb_api/database.h
  ${INCLUDE_PATH}/jonoondb_api/enums.h
  ${INCLUDE_PATH}/jonoondb_api/jonoondb_exceptions.h
  ${INCLUDE_PATH}/jonoondb_api/cdatabase.h
- DESTINATION install_packages)
+ ${CMAKE_CURRENT_BINARY_DIR}/jonoondb_api_export.h
+ DESTINATION include/jonoondb/jonoondb_api)

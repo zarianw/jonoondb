@@ -99,7 +99,7 @@ class VectorDoubleIndexer final: public Indexer {
 
   std::shared_ptr<MamaJenniesBitmap> FilterRange(
       const Constraint& lowerConstraint,
-      const Constraint& upperConstraint) {
+      const Constraint& upperConstraint) override {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     double lowerVal = GetOperandVal(lowerConstraint);
     double upperVal = GetOperandVal(upperConstraint);
@@ -148,7 +148,7 @@ class VectorDoubleIndexer final: public Indexer {
 
   virtual bool TryGetDoubleVector(
       const gsl::span<std::uint64_t>& documentIDs,
-      std::vector<double>& values) {
+      std::vector<double>& values) override {
     assert(documentIDs.size() == values.size());
     for (auto i = 0; i < documentIDs.size(); i++) {
       if (documentIDs[i] >= m_dataVector.size()) {
