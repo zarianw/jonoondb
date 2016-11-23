@@ -687,21 +687,10 @@ void jonoondb_database_multi_insert(database_ptr db,
     boost::string_ref colName(collectionName, collectionNameLength);
     static_assert(sizeof(jonoondb_buffer) == sizeof(BufferImpl),
                   "Critical Error. Size assumptions not correct for jonoondb_buffer & BufferImpl.");
-    if (sizeof(jonoondb_buffer) == sizeof(BufferImpl)) {
-      // Todo: Use a safer cast than C Style cast
-      const BufferImpl** start = (const BufferImpl**) documentArr;
-      gsl::span<const BufferImpl*> documents(start, documentArrLength);
-      db->impl.MultiInsert(colName, documents);
-    }
-    else {
-      std::vector<const BufferImpl*> documentVec;
-      for (size_t i = 0; i < documentArrLength; i++) {
-        documentVec.push_back(&documentArr[i]->impl);
-      }
-      gsl::span<const BufferImpl*>
-          documents(documentVec.data(), documentVec.size());
-      db->impl.MultiInsert(colName, documents);
-    }
+    // Todo: Use a safer cast than C Style cast
+    const BufferImpl** start = (const BufferImpl**)documentArr;
+    gsl::span<const BufferImpl*> documents(start, documentArrLength);
+    db->impl.MultiInsert(colName, documents);
   }, *sts);
 }
 
