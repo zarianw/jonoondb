@@ -1,28 +1,50 @@
 #include "gtest/gtest.h"
-#include "test_utils.h"
+#include "jonoondb_api_vx_test_utils.h"
 #include "tweet_generated.h"
 #include "all_field_type_generated.h"
 
 using namespace jonoondb_test;
+using namespace jonoondb_api_vx_test;
 using namespace jonoondb_api;
 using namespace flatbuffers;
 
-void TestUtils::CompareTweetObject(const Document& doc,
-                                   const BufferImpl& tweetObject) {
-  auto tweet = GetTweet(tweetObject.GetData());
-  ASSERT_EQ(doc.GetIntegerValueAsInt64("id"), tweet->id());
-  ASSERT_STREQ(doc.GetStringValue("text").c_str(), tweet->text()->c_str());
+Options TestUtils::GetDefaultDBOptions() {
+  Options opt;
+  opt.SetMaxDataFileSize(1024 * 1024);
+  return opt;
+}
 
-  auto subDoc = doc.AllocateSubDocument();
-  doc.GetDocumentValue("user", *subDoc.get());
-  ASSERT_EQ(subDoc->GetIntegerValueAsInt64("id"), tweet->user()->id());
-  ASSERT_STREQ(subDoc->GetStringValue("name").c_str(),
-               tweet->user()->name()->c_str());
-  ASSERT_DOUBLE_EQ(doc.GetFloatingValueAsDouble("rating"), tweet->rating());
-  std::size_t size;
-  auto data = doc.GetBlobValue("binData", size);
-  ASSERT_EQ(memcmp(data, reinterpret_cast<const char*>(tweet->binData()),
-                   size), 0);
+Buffer TestUtils::GetTweetObject(std::size_t tweetId, std::size_t userId,
+                                  const std::string* nameStr, const std::string* textStr,
+                                  double rating, const std::string* binData) {
+  // create user object
+  FlatBufferBuilder fbb;
+  Offset<String> name = 0;
+  if (nameStr) {
+    name = fbb.CreateString(*nameStr);
+  }
+  auto user = CreateUser(fbb, name, userId);
+
+  // create tweet
+  Offset<String> text = 0;
+  if (textStr) {
+    text = fbb.CreateString(*textStr);
+  }
+
+  Offset<Vector<int8_t>> binDataVec = 0;
+  if (binData) {
+    binDataVec = fbb.CreateVector<int8_t>(
+      reinterpret_cast<const int8_t*>(binData->data()),
+      binData->size());
+  }
+
+  auto tweet = CreateTweet(fbb, tweetId, text, user, rating, binDataVec);
+
+  fbb.Finish(tweet);
+  auto size = fbb.GetSize();
+
+  Buffer buffer((char*)fbb.GetBufferPointer(), size, size);
+  return buffer;
 }
 
 Buffer TestUtils::GetAllFieldTypeObjectBuffer(char field1,
@@ -38,9 +60,9 @@ Buffer TestUtils::GetAllFieldTypeObjectBuffer(char field1,
   // create nested object
   auto str11 = fbb.CreateString(field11);
   auto vec12 = fbb.CreateVector<int8_t>(
-    reinterpret_cast<const int8_t*>(field11.c_str()), field11.size());
+    reinterpret_cast<const int8_t*>(field12.c_str()), field12.size());
   auto vec13 = fbb.CreateVector<uint8_t>(
-    reinterpret_cast<const uint8_t*>(field11.c_str()), field11.size());
+    reinterpret_cast<const uint8_t*>(field13.c_str()), field13.size());
   auto nestedObj = CreateNestedAllFieldType(fbb, field1, field2, field3,
                                             field4, field5, field6, field7,
                                             field8, field9, field10, str11,
@@ -48,9 +70,9 @@ Buffer TestUtils::GetAllFieldTypeObjectBuffer(char field1,
   // create parent object
   auto str2_11 = fbb.CreateString(field11);
   auto vec2_12 = fbb.CreateVector<int8_t>(
-    reinterpret_cast<const int8_t*>(field11.c_str()), field11.size());
+    reinterpret_cast<const int8_t*>(field12.c_str()), field12.size());
   auto vec2_13 = fbb.CreateVector<uint8_t>(
-    reinterpret_cast<const uint8_t*>(field11.c_str()), field11.size());
+    reinterpret_cast<const uint8_t*>(field13.c_str()), field13.size());
   auto parentObj = CreateAllFieldType(fbb, field1, field2, field3, field4,
                                       field5, field6, field7, field8,
                                       field9, field10, str2_11, nestedObj,

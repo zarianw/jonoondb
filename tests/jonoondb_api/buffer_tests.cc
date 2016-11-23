@@ -24,6 +24,15 @@ TEST(Buffer, Buffer_DefaultConstructor) {
   ASSERT_TRUE(buffer.GetLength() == 0);
 }
 
+TEST(Buffer, Buffer_Ctor) {
+  string str = "hello";
+  Buffer buffer(str.c_str(), str.size());
+
+  ASSERT_EQ(memcmp(str.c_str(), buffer.GetData(), str.size()), 0);
+  ASSERT_TRUE(buffer.GetCapacity() == str.size());
+  ASSERT_TRUE(buffer.GetLength() == str.size());
+}
+
 TEST(Buffer, Buffer_MoveConstructor) {
   Buffer buffer1;
   Buffer buffer2 = move(buffer1);  //invoke move ctor
@@ -90,10 +99,9 @@ TEST(Buffer, Buffer_Resize) {
 
 TEST(Buffer, Buffer_AssignCtor_InvalidArguments) {
   string str = "Hello";
-  //1. This is an error condition because we are saying take ownership but not providing the deleter
-  ASSERT_THROW(Buffer buffer1
-      (const_cast<char*>(str.data()), str.length(), str.capacity(), nullptr),
-               InvalidArgumentException);
+  //1. Valid condition
+  ASSERT_NO_THROW(Buffer buffer1
+      (const_cast<char*>(str.data()), str.length(), str.capacity(), nullptr));
 
   //2. Valid condition.
   Buffer buffer2(const_cast<char*>(str.data()), str.length(),

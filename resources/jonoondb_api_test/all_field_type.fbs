@@ -15,6 +15,7 @@ table NestedAllFieldType
   field11:string;
   field12:[byte];
   field13:[ubyte];
+  field14:[string];
 }
 
 table AllFieldType
@@ -33,6 +34,7 @@ table AllFieldType
   nestedField:NestedAllFieldType;
   field12:[byte];
   field13:[ubyte];
+  field14:[string];
 }
 
 root_type AllFieldType;

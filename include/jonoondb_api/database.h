@@ -369,6 +369,14 @@ class Buffer {
   }
 
   Buffer(const char* buffer,
+         std::size_t bufferLengthInBytes) :
+    m_opaque(jonoondb_buffer_construct3(buffer,
+                                        bufferLengthInBytes,
+                                        bufferLengthInBytes,
+                                        ThrowOnError{})) {
+  }
+
+  Buffer(const char* buffer,
          std::size_t bufferLengthInBytes,
          std::size_t bufferCapacityInBytes) :
       m_opaque(jonoondb_buffer_construct3(buffer,
@@ -574,6 +582,12 @@ class ResultSet {
 
 class Database {
  public:
+  // This is a delegating ctor that uses default db options
+  Database(const std::string& dbPath, const std::string& dbName) 
+      : Database(dbPath, dbName, Options()) {
+    
+  }
+
   Database(const std::string& dbPath, const std::string& dbName,
            const Options& opt)
       : m_opaque(jonoondb_database_construct(dbPath.c_str(),

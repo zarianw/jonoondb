@@ -10,17 +10,11 @@
 #include <boost/exception_ptr.hpp>
 #include <boost/filesystem.hpp>
 #include "test_utils.h"
-#include "buffer_impl.h"
-#include "enums.h"
-#include "tweet_generated.h"
-#include "database.h"
 #include "test/test_config_generated.h"
 
 using namespace std;
 using namespace boost::filesystem;
 using namespace jonoondb_test;
-using namespace jonoondb_api;
-using namespace flatbuffers;
 
 namespace jonoondb_test {
 string g_TestRootDirectory;
@@ -28,60 +22,6 @@ string g_ResourcesFolderPath;
 
 std::string GetSchemaFilePath(const std::string& fileName) {
   return g_ResourcesFolderPath + "/jonoondb_api_test/" + fileName;
-}
-
-Buffer GetTweetObject2(std::size_t tweetId, std::size_t userId,
-                       const std::string* nameStr, const std::string* textStr,
-                       double rating, const std::string* binData) {
-  // create user object
-  FlatBufferBuilder fbb;
-  Offset<String> name = 0;
-  if (nameStr) {
-    name = fbb.CreateString(*nameStr);
-  }
-  auto user = CreateUser(fbb, name, userId);
-
-  // create tweet
-  Offset<String> text = 0;
-  if (textStr) {
-    text = fbb.CreateString(*textStr);
-  }
-  
-  Offset<Vector<int8_t>> binDataVec = 0;
-  if (binData) {
-    binDataVec = fbb.CreateVector<int8_t>(
-        reinterpret_cast<const int8_t*>(binData->data()),
-        binData->size());
-  }
-
-  auto tweet = CreateTweet(fbb, tweetId, text, user, rating, binDataVec);
-
-  fbb.Finish(tweet);
-  auto size = fbb.GetSize();
-
-  Buffer buffer((char*) fbb.GetBufferPointer(), size, size);
-  return buffer;
-}
-
-BufferImpl GetTweetObject() {
-  // create user object
-  FlatBufferBuilder fbb;
-  auto name = fbb.CreateString("Zarian");
-  auto user = CreateUser(fbb, name, 1);
-
-  // create tweet
-  auto text = fbb.CreateString("Say hello to my little friend!");
-  auto tweet = CreateTweet(fbb, 1, text, user);
-
-  fbb.Finish(tweet);
-  auto size = fbb.GetSize();
-  return BufferImpl((char*) fbb.GetBufferPointer(), size, size);
-}
-
-Options GetDefaultDBOptions() {
-  Options opt;
-  opt.SetMaxDataFileSize(1024 * 1024);
-  return opt;
 }
 
 void RemoveAndCreateFile(const char* path, size_t fileSize) {

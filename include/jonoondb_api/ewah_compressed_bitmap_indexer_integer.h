@@ -111,7 +111,7 @@ class EWAHCompressedBitmapIndexerInteger final: public Indexer {
 
   std::shared_ptr<MamaJenniesBitmap> FilterRange(
       const Constraint& lowerConstraint,
-      const Constraint& upperConstraint) {
+      const Constraint& upperConstraint) override {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     std::int64_t lowerVal, upperVal;
     if (lowerConstraint.operandType == OperandType::DOUBLE) {

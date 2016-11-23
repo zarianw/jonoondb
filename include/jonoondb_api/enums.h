@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "jonoondb_exceptions.h"
+#include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
 enum class SchemaType
@@ -16,7 +17,7 @@ enum class IndexType
   EWAH_COMPRESSED_BITMAP = 1,
   VECTOR = 2,
 };
-extern IndexType ToIndexType(std::int32_t type);
+JONOONDB_API_EXPORT extern IndexType ToIndexType(std::int32_t type);
 
 
 enum class FieldType
