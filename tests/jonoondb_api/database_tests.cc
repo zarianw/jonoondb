@@ -107,17 +107,6 @@ TEST(Database, CreateCollection_New) {
                       indexes);
 }
 
-TEST(Database, CreateCollection2_New) {
-  string dbName = "Database_CreateCollection2_New";
-  string dbPath = g_TestRootDirectory;
-  string filePath = GetSchemaFilePath("tweet.bfbs");
-  string schema = File::Read(filePath);
-  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());  
-  db.CreateCollection("CollectionName",
-                      SchemaType::FLAT_BUFFERS,
-                      schema);
-}
-
 TEST(Database, CreateCollection_CollectionAlreadyExist) {
   string dbName = "Database_CreateCollection_CollectionAlreadyExist";
   string dbPath = g_TestRootDirectory;

@@ -600,20 +600,6 @@ class Database {
     jonoondb_database_destruct(m_opaque);
   }
 
-  // Convenience func to create collection without indexes
-  void CreateCollection(const std::string& name,
-                        SchemaType schemaType,
-                        const std::string& schema) {
-    std::vector<indexinfo_ptr> vec;
-    jonoondb_database_createcollection(m_opaque, name.c_str(),
-                                       static_cast<int32_t>(schemaType),
-                                       schema.c_str(),
-                                       schema.size(),
-                                       vec.data(),
-                                       vec.size(),
-                                       ThrowOnError{});
-  }
-
   void CreateCollection(const std::string& name,
                         SchemaType schemaType,
                         const std::string& schema,

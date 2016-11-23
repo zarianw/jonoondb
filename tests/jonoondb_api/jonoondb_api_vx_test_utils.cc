@@ -60,9 +60,9 @@ Buffer TestUtils::GetAllFieldTypeObjectBuffer(char field1,
   // create nested object
   auto str11 = fbb.CreateString(field11);
   auto vec12 = fbb.CreateVector<int8_t>(
-    reinterpret_cast<const int8_t*>(field11.c_str()), field11.size());
+    reinterpret_cast<const int8_t*>(field12.c_str()), field12.size());
   auto vec13 = fbb.CreateVector<uint8_t>(
-    reinterpret_cast<const uint8_t*>(field11.c_str()), field11.size());
+    reinterpret_cast<const uint8_t*>(field13.c_str()), field13.size());
   auto nestedObj = CreateNestedAllFieldType(fbb, field1, field2, field3,
                                             field4, field5, field6, field7,
                                             field8, field9, field10, str11,
@@ -70,9 +70,9 @@ Buffer TestUtils::GetAllFieldTypeObjectBuffer(char field1,
   // create parent object
   auto str2_11 = fbb.CreateString(field11);
   auto vec2_12 = fbb.CreateVector<int8_t>(
-    reinterpret_cast<const int8_t*>(field11.c_str()), field11.size());
+    reinterpret_cast<const int8_t*>(field12.c_str()), field12.size());
   auto vec2_13 = fbb.CreateVector<uint8_t>(
-    reinterpret_cast<const uint8_t*>(field11.c_str()), field11.size());
+    reinterpret_cast<const uint8_t*>(field13.c_str()), field13.size());
   auto parentObj = CreateAllFieldType(fbb, field1, field2, field3, field4,
                                       field5, field6, field7, field8,
                                       field9, field10, str2_11, nestedObj,
