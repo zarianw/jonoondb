@@ -21,8 +21,8 @@ class Document {
       GetIntegerValueAsInt64(const std::string& fieldName) const = 0;
   virtual double
       GetFloatingValueAsDouble(const std::string& fieldName) const = 0;
-  virtual void
-      GetDocumentValue(const std::string& fieldName, Document& val) const = 0;
+  virtual bool
+      TryGetDocumentValue(const std::string& fieldName, Document& val) const = 0;
   virtual const char* GetBlobValue(const std::string& fieldName,
                                    std::size_t& size) const = 0;
   virtual std::unique_ptr<Document> AllocateSubDocument() const = 0;
@@ -32,15 +32,19 @@ class Document {
 };
 
 class DocumentUtils {
- public:
+public:
   static std::unique_ptr<Document> GetSubDocumentRecursively(
-      const Document& parentDoc,  const std::vector<std::string>& tokens) {
+    const Document& parentDoc, const std::vector<std::string>& tokens) {
     auto doc = parentDoc.AllocateSubDocument();
     for (size_t i = 0; i < tokens.size() - 1; i++) {
       if (i == 0) {
-        parentDoc.GetDocumentValue(tokens[i], *doc.get());
+        if (!parentDoc.TryGetDocumentValue(tokens[i], *doc.get())) {
+          nullptr;
+        }
       } else {
-        doc->GetDocumentValue(tokens[i], *doc.get());
+        if (!doc->TryGetDocumentValue(tokens[i], *doc.get())) {
+          return nullptr;
+        }
       }
     }
 

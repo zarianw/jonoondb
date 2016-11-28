@@ -30,7 +30,7 @@ void TestUtils::CompareTweetObject(const Document& doc,
   ASSERT_STREQ(doc.GetStringValue("text").c_str(), tweet->text()->c_str());
 
   auto subDoc = doc.AllocateSubDocument();
-  doc.GetDocumentValue("user", *subDoc.get());
+  ASSERT_TRUE(doc.TryGetDocumentValue("user", *subDoc.get()));
   ASSERT_EQ(subDoc->GetIntegerValueAsInt64("id"), tweet->user()->id());
   ASSERT_STREQ(subDoc->GetStringValue("name").c_str(),
                tweet->user()->name()->c_str());

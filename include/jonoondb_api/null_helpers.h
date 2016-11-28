@@ -6,6 +6,7 @@
 namespace jonoondb_api {
 
 const std::string JONOONDB_NULL_STR("\0\0\0\0", 4);
+const std::int32_t JONOONDB_NULL_INT32 = std::numeric_limits<std::int32_t>::min();
 
 class NullHelpers {
  public:

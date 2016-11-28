@@ -201,7 +201,6 @@ TEST(Database, Insert_SingleIndex) {
   db.Insert(collectionName, documentData);
 }
 
-
 vector<IndexInfo> CreateAllTypeIndexes(IndexType indexType) {
   vector<IndexInfo> indexes;
   const int indexLength = 26;
@@ -226,7 +225,7 @@ vector<IndexInfo> CreateAllTypeIndexes(IndexType indexType) {
 }
 
 void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
-                                       IndexType indexType) {
+                                       IndexType indexType, bool nullifyNestedField) {
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
@@ -244,18 +243,24 @@ void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
       documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
                                                             6, 7, 8.0f, 9,
                                                             10.0, "test",
-                                                            "test1", "test2");
+                                                            "test1", "test2",
+                                                            nullifyNestedField);
   db.Insert(collectionName, documentData);
 }
 
 TEST(Database, Insert_AllIndexTypes_EWAHCB) {
   string dbName = "Database_Insert_AllIndexTypes_EWAHCB";
-  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP);
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP, false);
 }
 
 TEST(Database, Insert_AllIndexTypes_Vector) {
   string dbName = "Database_Insert_AllIndexTypes_Vector";
-  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::VECTOR);
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::VECTOR, false);
+}
+
+TEST(Database, Insert_AllIndexTypes_EWAHCB_NestedNull) {
+  string dbName = "Insert_AllIndexTypes_EWAHCB_NestedNull";
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP, true);
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {
@@ -1733,3 +1738,27 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
 
   rs.Close();
 }
+
+/*TEST(Database, NestedNullField) {
+  string dbName = "NestedNullField";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
+
+  string filePath = GetSchemaFilePath("all_field_type.bfbs");
+  string schema = File::Read(filePath);
+  // auto indexes = CreateAllTypeIndexes(indexType);
+  std::vector<IndexInfo> indexes;
+
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
+
+  Buffer
+    documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
+                                                          6, 7, 8.0f, 9,
+                                                          10.0, "test",
+                                                          "test1", "test2", true);
+  db.Insert(collectionName, documentData);
+}*/
