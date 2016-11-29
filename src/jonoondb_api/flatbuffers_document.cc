@@ -254,11 +254,15 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
     case reflection::BaseType::Double:
       isValid = v.Verify(flatbuffers::GetFieldV<double>(*table, *vecField));
       break;
-    case reflection::BaseType::String:
-      // TODO: isValid = v.Verify(flatbuffers::GetFieldV<String>(*table, *vecField));
+    case reflection::BaseType::String: {
+      auto vecString =
+        flatbuffers::GetFieldV<flatbuffers::
+        Offset<flatbuffers::String>>(*table, *vecField);
+      isValid = v.Verify(vecString) && v.VerifyVectorOfStrings(vecString);
       break;
+    }
     case reflection::BaseType::Vector:
-      // TODO: flatbuffers::GetFieldV()
+      assert(false);
       break;
     case reflection::BaseType::Obj:
       // TODO
@@ -268,6 +272,7 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
   }
 }
 
+// TODO: 1 struct, 2 vectorOfTables/vectorOfStructs/vectorOfUnions, Union, 
 bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
                                        flatbuffers::Table* table,
                                        const reflection::Object* obj) const {
@@ -311,8 +316,7 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
         break;
       case reflection::BaseType::Vector:
         isValid = VerifyVector(v, table, fieldDef);
-      case reflection::BaseType::Obj:
-      {
+      case reflection::BaseType::Obj: {
         auto obj = reflection::GetSchema(
           m_fbDcumentSchema->GetSchemaText().c_str())->
           objects()->Get(fieldDef->type()->index());
