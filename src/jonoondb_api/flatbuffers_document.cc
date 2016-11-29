@@ -285,7 +285,7 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
     switch (fieldDef->type()->base_type()) {
       case reflection::BaseType::None:
       case reflection::BaseType::UType:
-        assert(false);
+        isValid = table->VerifyField<uint8_t>(v, fieldDef->offset());
         break;
       case reflection::BaseType::Bool:
       case reflection::BaseType::Byte:
@@ -323,7 +323,14 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
         isValid = VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj);
         break;
       }
-      case reflection::BaseType::Union:
+      case reflection::BaseType::Union: {
+        //  get union type from the prev field 
+        /*auto obj = reflection::GetSchema(
+          m_fbDcumentSchema->GetSchemaText().c_str())->
+          enums()->Get(fieldDef->type()->index());
+        isValid = VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj);
+        break;*/
+      }
       default:
         break;
     }

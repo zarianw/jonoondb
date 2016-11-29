@@ -1,5 +1,22 @@
 namespace jonoondb_test;
 
+struct StructType {
+  field1:byte;
+  field2:ubyte;
+}
+
+table UnionTypeA {
+  field1:byte;
+  field2:ubyte;
+}
+
+table UnionTypeB {
+  field3:bool;
+  field4:short;
+}
+
+union UnionType { UnionTypeA, UnionTypeB }
+
 table NestedAllFieldType
 {
   field1:byte;
@@ -16,6 +33,9 @@ table NestedAllFieldType
   field12:[byte];
   field13:[ubyte];
   field14:[string];
+  field15:StructType;
+  field16:[StructType];
+  field17:UnionType;      
 }
 
 table AllFieldType
@@ -35,6 +55,10 @@ table AllFieldType
   field12:[byte];
   field13:[ubyte];
   field14:[string];
+  field15:StructType;
+  field16:[StructType];
+  field17:UnionType;    
+  nestedFieldVector:[NestedAllFieldType];
 }
 
 root_type AllFieldType;
