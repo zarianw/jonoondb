@@ -40,9 +40,9 @@ class FlatbuffersDocument final: public Document {
 
  private:
   FlatbuffersDocument();
-  bool VerifyVector(flatbuffers::Verifier& v, flatbuffers::Table* table,
+  bool VerifyVector(flatbuffers::Verifier& v, const flatbuffers::Table* table,
                     const reflection::Field* vecField) const;
-  bool VerifyObject(flatbuffers::Verifier& v, flatbuffers::Table* table,
+  bool VerifyObject(flatbuffers::Verifier& v, const flatbuffers::Table* table,
                     const reflection::Object* obj) const;
   std::string GetMissingFieldErrorString(const std::string& fieldName) const;
   FlatbuffersDocumentSchema* m_fbDcumentSchema = nullptr;

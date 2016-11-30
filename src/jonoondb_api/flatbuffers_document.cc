@@ -219,7 +219,7 @@ void FlatbuffersDocument::SetMembers(FlatbuffersDocumentSchema* schema,
 }
 
 bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
-                                       flatbuffers::Table* table,
+                                       const flatbuffers::Table* table,
                                        const reflection::Field* vecField) const {
   assert(vecField->type()->base_type() == reflection::BaseType::Vector);
   bool isValid = table->VerifyField<uoffset_t>(v, vecField->offset());
@@ -228,8 +228,10 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
 
   switch (vecField->type()->element()) {
     case reflection::BaseType::None:
-    case reflection::BaseType::UType:
       assert(false);
+      break;
+    case reflection::BaseType::UType:
+      isValid = v.Verify(flatbuffers::GetFieldV<uint8_t>(*table, *vecField));
       break;
     case reflection::BaseType::Bool:
     case reflection::BaseType::Byte:
@@ -264,9 +266,24 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
     case reflection::BaseType::Vector:
       assert(false);
       break;
-    case reflection::BaseType::Obj:
-      // TODO
+    case reflection::BaseType::Obj: {
+      auto vec =
+        flatbuffers::GetFieldV<flatbuffers::
+        Offset<flatbuffers::Table>>(*table, *vecField);
+      isValid = v.Verify(vec);
+      if (vec) {
+        auto obj = reflection::GetSchema(
+          m_fbDcumentSchema->GetSchemaText().c_str())->
+          objects()->Get(vecField->type()->index());
+        for (uoffset_t j = 0; j < vec->size(); j++) {          
+          isValid = VerifyObject(v, vec->Get(j), obj);
+        }
+      }
+      break;     
+    }
     case reflection::BaseType::Union:
+      assert(false);
+      break;
     default:
       break;
   }
@@ -274,7 +291,7 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
 
 // TODO: 1 struct, 2 vectorOfTables/vectorOfStructs/vectorOfUnions, Union, 
 bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
-                                       flatbuffers::Table* table,
+                                       const flatbuffers::Table* table,
                                        const reflection::Object* obj) const {
   bool isValid = table->VerifyTableStart(v);
   if (!isValid)
@@ -316,6 +333,7 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
         break;
       case reflection::BaseType::Vector:
         isValid = VerifyVector(v, table, fieldDef);
+        break;
       case reflection::BaseType::Obj: {
         auto obj = reflection::GetSchema(
           m_fbDcumentSchema->GetSchemaText().c_str())->
@@ -325,11 +343,14 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
       }
       case reflection::BaseType::Union: {
         //  get union type from the prev field 
-        /*auto obj = reflection::GetSchema(
+        auto utype = obj->fields()->Get(i-1);
+        assert(utype->type()->base_type() == reflection::BaseType::UType);        
+        auto fbEnum = reflection::GetSchema(
           m_fbDcumentSchema->GetSchemaText().c_str())->
           enums()->Get(fieldDef->type()->index());
-        isValid = VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj);
-        break;*/
+        auto obj = fbEnum->values()->Get(flatbuffers::GetFieldI<uint8_t>(*table, *utype))->object();
+        isValid = VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj);        
+        break;
       }
       default:
         break;
