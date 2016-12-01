@@ -218,149 +218,210 @@ void FlatbuffersDocument::SetMembers(FlatbuffersDocumentSchema* schema,
   m_table = table;
 }
 
+bool VerifyVectorOfStructs(flatbuffers::Verifier& v,
+                           const flatbuffers::Table* parentTable,
+                           uint16_t fieldOffset,
+                           const reflection::Object* obj,
+                           bool isRequired) {
+  auto offset = parentTable->GetOptionalFieldOffset(fieldOffset);
+  const uint8_t* end;
+  if (!isRequired) {        
+    return !offset || v.VerifyVector(reinterpret_cast<const uint8_t*>(parentTable) + offset, obj->bytesize(), &end);
+  } else {
+    return offset && v.VerifyVector(reinterpret_cast<const uint8_t*>(parentTable) + offset, obj->bytesize(), &end);
+  }
+}
+
 bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
                                        const flatbuffers::Table* table,
                                        const reflection::Field* vecField) const {
   assert(vecField->type()->base_type() == reflection::BaseType::Vector);
-  bool isValid = table->VerifyField<uoffset_t>(v, vecField->offset());
-  if (!isValid)
-    return isValid;
+  if (!table->VerifyField<uoffset_t>(v, vecField->offset()))
+    return false;
 
   switch (vecField->type()->element()) {
     case reflection::BaseType::None:
       assert(false);
       break;
     case reflection::BaseType::UType:
-      isValid = v.Verify(flatbuffers::GetFieldV<uint8_t>(*table, *vecField));
-      break;
+      return v.Verify(flatbuffers::GetFieldV<uint8_t>(*table, *vecField));      
     case reflection::BaseType::Bool:
     case reflection::BaseType::Byte:
     case reflection::BaseType::UByte:
-      isValid = v.Verify(flatbuffers::GetFieldV<int8_t>(*table, *vecField));
-      break;
+      return v.Verify(flatbuffers::GetFieldV<int8_t>(*table, *vecField));     
     case reflection::BaseType::Short:
     case reflection::BaseType::UShort:
-      isValid = v.Verify(flatbuffers::GetFieldV<int16_t>(*table, *vecField));
-      break;
+      return v.Verify(flatbuffers::GetFieldV<int16_t>(*table, *vecField));      
     case reflection::BaseType::Int:
     case reflection::BaseType::UInt:
-      isValid = v.Verify(flatbuffers::GetFieldV<int32_t>(*table, *vecField));
-      break;
+      return v.Verify(flatbuffers::GetFieldV<int32_t>(*table, *vecField));     
     case reflection::BaseType::Long:
     case reflection::BaseType::ULong:
-      isValid = v.Verify(flatbuffers::GetFieldV<int64_t>(*table, *vecField));
-      break;
+      return v.Verify(flatbuffers::GetFieldV<int64_t>(*table, *vecField));      
     case reflection::BaseType::Float:
-      isValid = v.Verify(flatbuffers::GetFieldV<float>(*table, *vecField));
-      break;
+      return v.Verify(flatbuffers::GetFieldV<float>(*table, *vecField));      
     case reflection::BaseType::Double:
-      isValid = v.Verify(flatbuffers::GetFieldV<double>(*table, *vecField));
-      break;
+      return v.Verify(flatbuffers::GetFieldV<double>(*table, *vecField));      
     case reflection::BaseType::String: {
       auto vecString =
         flatbuffers::GetFieldV<flatbuffers::
         Offset<flatbuffers::String>>(*table, *vecField);
-      isValid = v.Verify(vecString) && v.VerifyVectorOfStrings(vecString);
-      break;
+      if (v.Verify(vecString) && v.VerifyVectorOfStrings(vecString)) {
+        return true;
+      } else {
+        return false;
+      }
     }
     case reflection::BaseType::Vector:
       assert(false);
       break;
     case reflection::BaseType::Obj: {
-      auto vec =
-        flatbuffers::GetFieldV<flatbuffers::
-        Offset<flatbuffers::Table>>(*table, *vecField);
-      isValid = v.Verify(vec);
-      if (vec) {
-        auto obj = reflection::GetSchema(
-          m_fbDcumentSchema->GetSchemaText().c_str())->
-          objects()->Get(vecField->type()->index());
-        for (uoffset_t j = 0; j < vec->size(); j++) {          
-          isValid = VerifyObject(v, vec->Get(j), obj);
+      auto obj = reflection::GetSchema(
+        m_fbDcumentSchema->GetSchemaText().c_str())->
+        objects()->Get(vecField->type()->index());
+
+      if (obj->is_struct()) {          
+        if (!VerifyVectorOfStructs(v, table, vecField->offset(), obj, vecField->required())) {
+          return false;
+        }
+      } else {
+        auto vec =
+          flatbuffers::GetFieldV<flatbuffers::
+          Offset<flatbuffers::Table>>(*table, *vecField);
+        if (!v.Verify(vec))
+          return false;
+        if (vec) {
+          for (uoffset_t j = 0; j < vec->size(); j++) {
+            if (!VerifyObject(v, vec->Get(j), obj)) {
+              return false;
+            }
+          }
         }
       }
-      break;     
+      return true;
     }
     case reflection::BaseType::Union:
       assert(false);
       break;
     default:
+      assert(false);
       break;
+  }
+
+  return false;
+}
+
+bool FlatbuffersDocument::VerifyStruct(flatbuffers::Verifier& v,
+                                       const flatbuffers::Table* parentTable,
+                                       uint16_t fieldOffset,
+                                       const reflection::Object* obj,
+                                       bool isRequired) const {
+  assert(obj->is_struct());  
+  auto offset = parentTable->GetOptionalFieldOffset(fieldOffset);
+  if (!isRequired) {
+    // Check the actual field.
+    return !offset || v.Verify(reinterpret_cast<const uint8_t*>(parentTable) + offset, obj->bytesize());
+  } else {
+    return offset && v.Verify(reinterpret_cast<const uint8_t*>(parentTable) + offset, obj->bytesize());
   }
 }
 
-// TODO: 1 struct, 2 vectorOfTables/vectorOfStructs/vectorOfUnions, Union, 
+// TODO: 1 struct, 2 vectorOfStructs/VectorOfObjects
 bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
                                        const flatbuffers::Table* table,
                                        const reflection::Object* obj) const {
-  bool isValid = table->VerifyTableStart(v);
-  if (!isValid)
-    return isValid;
+  if(!table->VerifyTableStart(v))
+    return false;
 
   for (int i = 0; i < obj->fields()->size(); i++) {
     auto fieldDef = obj->fields()->Get(i);
     switch (fieldDef->type()->base_type()) {
       case reflection::BaseType::None:
+        assert(false);
+        break;
       case reflection::BaseType::UType:
-        isValid = table->VerifyField<uint8_t>(v, fieldDef->offset());
+        if (!table->VerifyField<uint8_t>(v, fieldDef->offset()))
+          return false;
         break;
       case reflection::BaseType::Bool:
       case reflection::BaseType::Byte:
       case reflection::BaseType::UByte:
-        isValid = table->VerifyField<int8_t>(v, fieldDef->offset());
+        if(!table->VerifyField<int8_t>(v, fieldDef->offset()))
+          return false;
         break;
       case reflection::BaseType::Short:
       case reflection::BaseType::UShort:
-        isValid = table->VerifyField<int16_t>(v, fieldDef->offset());
+        if(!table->VerifyField<int16_t>(v, fieldDef->offset()))
+          return false;
         break;
       case reflection::BaseType::Int:
       case reflection::BaseType::UInt:
-        isValid = table->VerifyField<int32_t>(v, fieldDef->offset());
+        if(!table->VerifyField<int32_t>(v, fieldDef->offset()))
+          return false;
         break;
       case reflection::BaseType::Long:
       case reflection::BaseType::ULong:
-        isValid = table->VerifyField<int64_t>(v, fieldDef->offset());
+        if(!table->VerifyField<int64_t>(v, fieldDef->offset()))
+          return false;
         break;
       case reflection::BaseType::Float:
-        isValid = table->VerifyField<float>(v, fieldDef->offset());
+        if(!table->VerifyField<float>(v, fieldDef->offset()))
+          return false;
         break;
       case reflection::BaseType::Double:
-        isValid = table->VerifyField<double>(v, fieldDef->offset());
+        if(!table->VerifyField<double>(v, fieldDef->offset()))
+          return false;
         break;
       case reflection::BaseType::String:
-        isValid = table->VerifyField<uoffset_t>(v, fieldDef->offset()) &&
-          v.Verify(flatbuffers::GetFieldS(*table, *fieldDef));
+        if (!table->VerifyField<uoffset_t>(v, fieldDef->offset()) ||
+            !v.Verify(flatbuffers::GetFieldS(*table, *fieldDef))) {
+          return false;
+        } 
         break;
       case reflection::BaseType::Vector:
-        isValid = VerifyVector(v, table, fieldDef);
+        if(!VerifyVector(v, table, fieldDef))
+          return false;
         break;
       case reflection::BaseType::Obj: {
         auto obj = reflection::GetSchema(
           m_fbDcumentSchema->GetSchemaText().c_str())->
           objects()->Get(fieldDef->type()->index());
-        isValid = VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj);
+        if (obj->is_struct()) {
+          if (!VerifyStruct(v, table, fieldDef->offset(), obj, fieldDef->required())) {
+            return false;
+          }
+        } else {
+          if (!VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj)) {
+            return false;
+          }
+        }
         break;
       }
       case reflection::BaseType::Union: {
         //  get union type from the prev field 
-        auto utype = obj->fields()->Get(i-1);
-        assert(utype->type()->base_type() == reflection::BaseType::UType);        
-        auto fbEnum = reflection::GetSchema(
-          m_fbDcumentSchema->GetSchemaText().c_str())->
-          enums()->Get(fieldDef->type()->index());
-        auto obj = fbEnum->values()->Get(flatbuffers::GetFieldI<uint8_t>(*table, *utype))->object();
-        isValid = VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj);        
+        voffset_t utypeOffset = fieldDef->offset() - sizeof(voffset_t);
+        auto utype = table->GetField<voffset_t>(utypeOffset, 0);
+        if (utype != 0) {
+          // Means we have this union field present
+          auto fbEnum = reflection::GetSchema(
+            m_fbDcumentSchema->GetSchemaText().c_str())->
+            enums()->Get(fieldDef->type()->index());
+          auto obj = fbEnum->values()->Get(utype)->object();
+          if (!VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj))
+            return false;
+        }
         break;
       }
       default:
+        assert(false);
         break;
-    }
-
-    return isValid;
+    }    
   }
+
+  return true;
 }
 
-bool FlatbuffersDocument::Verify() {
+bool FlatbuffersDocument::Verify() const {
   return VerifyObject(Verifier(reinterpret_cast<const uint8_t*>(m_buffer->GetData()),
                                m_buffer->GetLength()), m_table, m_obj);
 }

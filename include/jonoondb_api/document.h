@@ -29,6 +29,7 @@ class Document {
   virtual void VerifyFieldForRead(const std::string& fieldName,
                                   FieldType type) const = 0;
   virtual const BufferImpl* GetRawBuffer() const = 0;
+  virtual bool Verify() const = 0;
 };
 
 class DocumentUtils {

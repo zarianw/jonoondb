@@ -36,12 +36,17 @@ class FlatbuffersDocument final: public Document {
   void SetMembers(FlatbuffersDocumentSchema* schema, BufferImpl* buffer,
                   reflection::Object* obj, flatbuffers::Table* table);
   const BufferImpl* GetRawBuffer() const override;
-  bool Verify();
+  bool Verify() const override;
 
  private:
   FlatbuffersDocument();
   bool VerifyVector(flatbuffers::Verifier& v, const flatbuffers::Table* table,
                     const reflection::Field* vecField) const;
+  bool VerifyStruct(flatbuffers::Verifier& v,
+                    const flatbuffers::Table* parentTable,
+                    uint16_t fieldOffset,
+                    const reflection::Object* obj,
+                    bool isRequired) const;
   bool VerifyObject(flatbuffers::Verifier& v, const flatbuffers::Table* table,
                     const reflection::Object* obj) const;
   std::string GetMissingFieldErrorString(const std::string& fieldName) const;

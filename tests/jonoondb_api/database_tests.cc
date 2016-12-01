@@ -1739,6 +1739,29 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   rs.Close();
 }
 
+TEST(Database, Insert_Invalid) {
+  string dbName = "Insert_Invalid";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
+
+  string filePath = GetSchemaFilePath("all_field_type.bfbs");
+  string schema = File::Read(filePath);  
+  vector<IndexInfo> indexes;
+
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
+
+  Buffer
+    documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
+                                                          6, 7, 8.0f, 9,
+                                                          10.0, "test",
+                                                          "test1", "test2", true);
+  db.Insert(collectionName, documentData);
+}
+
 /*TEST(Database, NestedNullField) {
   string dbName = "NestedNullField";
   string collectionName = "CollectionName";

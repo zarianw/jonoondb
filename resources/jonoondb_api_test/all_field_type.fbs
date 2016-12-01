@@ -35,7 +35,8 @@ table NestedAllFieldType
   field14:[string];
   field15:StructType;
   field16:[StructType];
-  field17:UnionType;      
+  field17:UnionType;  
+  field18:UnionType;  
 }
 
 table AllFieldType
@@ -57,7 +58,8 @@ table AllFieldType
   field14:[string];
   field15:StructType;
   field16:[StructType];
-  field17:UnionType;    
+  field17:UnionType;   
+  field18:UnionType;  
   nestedFieldVector:[NestedAllFieldType];
 }
 

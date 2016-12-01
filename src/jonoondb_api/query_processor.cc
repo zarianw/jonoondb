@@ -99,7 +99,7 @@ const char* GetSQLiteTypeString(FieldType fieldType) {
 }
 
 void BuildCreateTableStatement(const Field* complexField,
-                               std::string& prefix,
+                               std::list<std::string>& prefixes,
                                std::ostringstream& stringStream,
                                std::vector<ColumnInfo>& columnNames) {
   assert(complexField->GetType() == FieldType::BASE_TYPE_COMPLEX);
@@ -111,15 +111,17 @@ void BuildCreateTableStatement(const Field* complexField,
     complexField->GetSubField(i, field);
 
     if (field->GetType() == FieldType::BASE_TYPE_COMPLEX) {
-      prefix.append(field->GetName());
-      prefix.append(".");
-      BuildCreateTableStatement(field, prefix, stringStream, columnNames);
+      prefixes.push_back(field->GetName());
+      BuildCreateTableStatement(field, prefixes, stringStream, columnNames);
     } else if (field->GetType() == FieldType::BASE_TYPE_UNION ||
                field->GetType() == FieldType::BASE_TYPE_VECTOR) {
       // We don't support these types yet for querying
       continue;
     } else {
-      auto fullName = prefix;
+      std::string fullName;
+      for (auto& prefix : prefixes) {
+        fullName.append(prefix).append(".");
+      }     
       fullName.append(field->GetName());
       columnNames.push_back(ColumnInfo(fullName, field->GetType(),
                                        StringUtils::Split(fullName, ".")));
@@ -127,6 +129,10 @@ void BuildCreateTableStatement(const Field* complexField,
           << GetSQLiteTypeString(field->GetType());
       stringStream << ", ";
     }
+  }
+
+  if (!prefixes.empty()) {
+    prefixes.pop_back();
   }
 }
 
@@ -144,10 +150,9 @@ void GenerateCreateTableStatementForCollection(
   for (size_t i = 0; i < count; i++) {
     collection->GetDocumentSchema()->GetRootField(i, field);
     if (field->GetType() == FieldType::BASE_TYPE_COMPLEX) {
-      std::string prefix;
-      prefix.append(field->GetName());
-      prefix.append(".");
-      BuildCreateTableStatement(field, prefix, stringStream, columnNames);
+      std::list<std::string> prefixes;
+      prefixes.push_back(field->GetName());      
+      BuildCreateTableStatement(field, prefixes, stringStream, columnNames);
     } else if (field->GetType() == FieldType::BASE_TYPE_UNION ||
                field->GetType() == FieldType::BASE_TYPE_VECTOR) {
       // We don't support these types yet for querying

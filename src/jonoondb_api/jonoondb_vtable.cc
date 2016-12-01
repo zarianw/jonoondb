@@ -148,8 +148,12 @@ static int jonoondb_create(sqlite3* db, void* udp, int argc,
 
   int code =
       sqlite3_declare_vtab(db, v->collectionInfo->createVTableStmt.c_str());
-  if (code != SQLITE_OK)
+  if (code != SQLITE_OK) {
+    std::string errMessage = sqlite3_errmsg(db);
+    AllocateAndCopy(errMessage, errmsg);
     return code;
+  }
+    
 
   *vtab = (sqlite3_vtab*) v.release();
 

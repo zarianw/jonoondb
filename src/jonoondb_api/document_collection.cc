@@ -111,12 +111,16 @@ void DocumentCollection::Insert(const BufferImpl& documentData) {
 
 void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {
   std::vector<std::unique_ptr<Document>> docs;
-  for (auto documentData : documents) {
-    docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema,
-                                                   *documentData));
-  }
 
-  m_indexManager->ValidateForIndexing(docs);
+  for (size_t i = 0; i < documents.size(); i++) {
+    docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema,
+                                                   *documents[i]));
+    if (!docs.back()->Verify()) {
+      ostringstream ss;
+      ss << "Document at index location " << i << " is not valid.";
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+    }
+  }  
 
   std::vector<BlobMetadata> blobMetadataVec(documents.size());
   // Indexing should not fail after we have called ValidateForIndexing
