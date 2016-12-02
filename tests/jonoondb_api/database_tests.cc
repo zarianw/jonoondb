@@ -1758,7 +1758,7 @@ TEST(Database, Insert_Invalid) {
     documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
                                                           6, 7, 8.0f, 9,
                                                           10.0, "test",
-                                                          "test1", "test2", true);
+                                                          "test1", "test2", false);
   db.Insert(collectionName, documentData);
 }
 

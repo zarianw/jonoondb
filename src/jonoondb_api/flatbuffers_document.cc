@@ -292,7 +292,7 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
           return false;
         if (vec) {
           for (uoffset_t j = 0; j < vec->size(); j++) {
-            if (!VerifyObject(v, vec->Get(j), obj)) {
+            if (!VerifyObject(v, vec->Get(j), obj, true)) {
               return false;
             }
           }
@@ -329,7 +329,15 @@ bool FlatbuffersDocument::VerifyStruct(flatbuffers::Verifier& v,
 // TODO: 1 struct, 2 vectorOfStructs/VectorOfObjects
 bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
                                        const flatbuffers::Table* table,
-                                       const reflection::Object* obj) const {
+                                       const reflection::Object* obj,
+                                       bool isRequired) const {
+  if (!table) {
+    if (!isRequired)
+      return true;
+    else
+      return false;
+  }
+
   if(!table->VerifyTableStart(v))
     return false;
 
@@ -391,7 +399,8 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
             return false;
           }
         } else {
-          if (!VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj)) {
+          if (!VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef),
+                            obj, fieldDef->required())) {
             return false;
           }
         }
@@ -400,15 +409,17 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
       case reflection::BaseType::Union: {
         //  get union type from the prev field 
         voffset_t utypeOffset = fieldDef->offset() - sizeof(voffset_t);
-        auto utype = table->GetField<voffset_t>(utypeOffset, 0);
+        auto utype = table->GetField<uint8_t>(utypeOffset, 0);
         if (utype != 0) {
           // Means we have this union field present
           auto fbEnum = reflection::GetSchema(
             m_fbDcumentSchema->GetSchemaText().c_str())->
             enums()->Get(fieldDef->type()->index());
           auto obj = fbEnum->values()->Get(utype)->object();
-          if (!VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef), obj))
+          if (!VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef),
+                            obj, fieldDef->required())) {
             return false;
+          }
         }
         break;
       }
@@ -423,7 +434,7 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
 
 bool FlatbuffersDocument::Verify() const {
   return VerifyObject(Verifier(reinterpret_cast<const uint8_t*>(m_buffer->GetData()),
-                               m_buffer->GetLength()), m_table, m_obj);
+                               m_buffer->GetLength()), m_table, m_obj, true);
 }
 
 FlatbuffersDocument::FlatbuffersDocument() {

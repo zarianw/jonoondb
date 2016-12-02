@@ -48,7 +48,7 @@ class FlatbuffersDocument final: public Document {
                     const reflection::Object* obj,
                     bool isRequired) const;
   bool VerifyObject(flatbuffers::Verifier& v, const flatbuffers::Table* table,
-                    const reflection::Object* obj) const;
+                    const reflection::Object* obj, bool isRequired) const;
   std::string GetMissingFieldErrorString(const std::string& fieldName) const;
   FlatbuffersDocumentSchema* m_fbDcumentSchema = nullptr;
   BufferImpl* m_buffer = nullptr;
