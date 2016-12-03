@@ -1754,12 +1754,11 @@ TEST(Database, Insert_Invalid) {
                       schema,
                       indexes);
 
-  Buffer
-    documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
-                                                          6, 7, 8.0f, 9,
-                                                          10.0, "test",
-                                                          "test1", "test2", false);
-  db.Insert(collectionName, documentData);
+  string str = "some invalid data buffer";
+  Buffer documentData(str.data(), str.length(), str.length());
+  
+  ASSERT_THROW(db.Insert(collectionName, documentData),
+               JonoonDBException);
 }
 
 /*TEST(Database, NestedNullField) {

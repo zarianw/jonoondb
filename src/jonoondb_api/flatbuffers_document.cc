@@ -218,17 +218,34 @@ void FlatbuffersDocument::SetMembers(FlatbuffersDocumentSchema* schema,
   m_table = table;
 }
 
+bool VerifyStruct(flatbuffers::Verifier& v,
+                  const flatbuffers::Table* parentTable,
+                  uint16_t fieldOffset,
+                  const reflection::Object* obj,
+                  bool isRequired) {
+  assert(obj->is_struct());
+  auto offset = parentTable->GetOptionalFieldOffset(fieldOffset);
+  if (!isRequired) {
+    // Check the actual field.
+    return !offset || v.Verify(reinterpret_cast<const uint8_t*>(parentTable)
+                               + offset, obj->bytesize());
+  } else {
+    return offset && v.Verify(reinterpret_cast<const uint8_t*>(parentTable)
+                              + offset, obj->bytesize());
+  }
+}
+
 bool VerifyVectorOfStructs(flatbuffers::Verifier& v,
                            const flatbuffers::Table* parentTable,
                            uint16_t fieldOffset,
                            const reflection::Object* obj,
                            bool isRequired) {
-  auto offset = parentTable->GetOptionalFieldOffset(fieldOffset);
+  auto p = parentTable->GetPointer<const uint8_t*>(fieldOffset);
   const uint8_t* end;
-  if (!isRequired) {        
-    return !offset || v.VerifyVector(reinterpret_cast<const uint8_t*>(parentTable) + offset, obj->bytesize(), &end);
+  if (!isRequired) {
+    return !p || v.VerifyVector(p, obj->bytesize(), &end);
   } else {
-    return offset && v.VerifyVector(reinterpret_cast<const uint8_t*>(parentTable) + offset, obj->bytesize(), &end);
+    return p && v.VerifyVector(p, obj->bytesize(), &end);
   }
 }
 
@@ -244,24 +261,24 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
       assert(false);
       break;
     case reflection::BaseType::UType:
-      return v.Verify(flatbuffers::GetFieldV<uint8_t>(*table, *vecField));      
+      return v.Verify(flatbuffers::GetFieldV<uint8_t>(*table, *vecField));
     case reflection::BaseType::Bool:
     case reflection::BaseType::Byte:
     case reflection::BaseType::UByte:
-      return v.Verify(flatbuffers::GetFieldV<int8_t>(*table, *vecField));     
+      return v.Verify(flatbuffers::GetFieldV<int8_t>(*table, *vecField));
     case reflection::BaseType::Short:
     case reflection::BaseType::UShort:
-      return v.Verify(flatbuffers::GetFieldV<int16_t>(*table, *vecField));      
+      return v.Verify(flatbuffers::GetFieldV<int16_t>(*table, *vecField));
     case reflection::BaseType::Int:
     case reflection::BaseType::UInt:
-      return v.Verify(flatbuffers::GetFieldV<int32_t>(*table, *vecField));     
+      return v.Verify(flatbuffers::GetFieldV<int32_t>(*table, *vecField));
     case reflection::BaseType::Long:
     case reflection::BaseType::ULong:
-      return v.Verify(flatbuffers::GetFieldV<int64_t>(*table, *vecField));      
+      return v.Verify(flatbuffers::GetFieldV<int64_t>(*table, *vecField));
     case reflection::BaseType::Float:
-      return v.Verify(flatbuffers::GetFieldV<float>(*table, *vecField));      
+      return v.Verify(flatbuffers::GetFieldV<float>(*table, *vecField));
     case reflection::BaseType::Double:
-      return v.Verify(flatbuffers::GetFieldV<double>(*table, *vecField));      
+      return v.Verify(flatbuffers::GetFieldV<double>(*table, *vecField));
     case reflection::BaseType::String: {
       auto vecString =
         flatbuffers::GetFieldV<flatbuffers::
@@ -280,8 +297,9 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
         m_fbDcumentSchema->GetSchemaText().c_str())->
         objects()->Get(vecField->type()->index());
 
-      if (obj->is_struct()) {          
-        if (!VerifyVectorOfStructs(v, table, vecField->offset(), obj, vecField->required())) {
+      if (obj->is_struct()) {
+        if (!VerifyVectorOfStructs(v, table, vecField->offset(), obj,
+                                   vecField->required())) {
           return false;
         }
       } else {
@@ -311,22 +329,6 @@ bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
   return false;
 }
 
-bool FlatbuffersDocument::VerifyStruct(flatbuffers::Verifier& v,
-                                       const flatbuffers::Table* parentTable,
-                                       uint16_t fieldOffset,
-                                       const reflection::Object* obj,
-                                       bool isRequired) const {
-  assert(obj->is_struct());  
-  auto offset = parentTable->GetOptionalFieldOffset(fieldOffset);
-  if (!isRequired) {
-    // Check the actual field.
-    return !offset || v.Verify(reinterpret_cast<const uint8_t*>(parentTable) + offset, obj->bytesize());
-  } else {
-    return offset && v.Verify(reinterpret_cast<const uint8_t*>(parentTable) + offset, obj->bytesize());
-  }
-}
-
-// TODO: 1 struct, 2 vectorOfStructs/VectorOfObjects
 bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
                                        const flatbuffers::Table* table,
                                        const reflection::Object* obj,
@@ -338,7 +340,7 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
       return false;
   }
 
-  if(!table->VerifyTableStart(v))
+  if (!table->VerifyTableStart(v))
     return false;
 
   for (int i = 0; i < obj->fields()->size(); i++) {
@@ -354,40 +356,40 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
       case reflection::BaseType::Bool:
       case reflection::BaseType::Byte:
       case reflection::BaseType::UByte:
-        if(!table->VerifyField<int8_t>(v, fieldDef->offset()))
+        if (!table->VerifyField<int8_t>(v, fieldDef->offset()))
           return false;
         break;
       case reflection::BaseType::Short:
       case reflection::BaseType::UShort:
-        if(!table->VerifyField<int16_t>(v, fieldDef->offset()))
+        if (!table->VerifyField<int16_t>(v, fieldDef->offset()))
           return false;
         break;
       case reflection::BaseType::Int:
       case reflection::BaseType::UInt:
-        if(!table->VerifyField<int32_t>(v, fieldDef->offset()))
+        if (!table->VerifyField<int32_t>(v, fieldDef->offset()))
           return false;
         break;
       case reflection::BaseType::Long:
       case reflection::BaseType::ULong:
-        if(!table->VerifyField<int64_t>(v, fieldDef->offset()))
+        if (!table->VerifyField<int64_t>(v, fieldDef->offset()))
           return false;
         break;
       case reflection::BaseType::Float:
-        if(!table->VerifyField<float>(v, fieldDef->offset()))
+        if (!table->VerifyField<float>(v, fieldDef->offset()))
           return false;
         break;
       case reflection::BaseType::Double:
-        if(!table->VerifyField<double>(v, fieldDef->offset()))
+        if (!table->VerifyField<double>(v, fieldDef->offset()))
           return false;
         break;
       case reflection::BaseType::String:
         if (!table->VerifyField<uoffset_t>(v, fieldDef->offset()) ||
             !v.Verify(flatbuffers::GetFieldS(*table, *fieldDef))) {
           return false;
-        } 
+        }
         break;
       case reflection::BaseType::Vector:
-        if(!VerifyVector(v, table, fieldDef))
+        if (!VerifyVector(v, table, fieldDef))
           return false;
         break;
       case reflection::BaseType::Obj: {
@@ -395,7 +397,8 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
           m_fbDcumentSchema->GetSchemaText().c_str())->
           objects()->Get(fieldDef->type()->index());
         if (obj->is_struct()) {
-          if (!VerifyStruct(v, table, fieldDef->offset(), obj, fieldDef->required())) {
+          if (!VerifyStruct(v, table, fieldDef->offset(), obj,
+                            fieldDef->required())) {
             return false;
           }
         } else {
@@ -426,15 +429,16 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
       default:
         assert(false);
         break;
-    }    
+    }
   }
 
   return true;
 }
 
 bool FlatbuffersDocument::Verify() const {
-  return VerifyObject(Verifier(reinterpret_cast<const uint8_t*>(m_buffer->GetData()),
-                               m_buffer->GetLength()), m_table, m_obj, true);
+  return VerifyObject(
+    Verifier(reinterpret_cast<const uint8_t*>(m_buffer->GetData()),
+             m_buffer->GetLength()), m_table, m_obj, true);
 }
 
 FlatbuffersDocument::FlatbuffersDocument() {

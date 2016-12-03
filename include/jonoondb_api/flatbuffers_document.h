@@ -42,11 +42,6 @@ class FlatbuffersDocument final: public Document {
   FlatbuffersDocument();
   bool VerifyVector(flatbuffers::Verifier& v, const flatbuffers::Table* table,
                     const reflection::Field* vecField) const;
-  bool VerifyStruct(flatbuffers::Verifier& v,
-                    const flatbuffers::Table* parentTable,
-                    uint16_t fieldOffset,
-                    const reflection::Object* obj,
-                    bool isRequired) const;
   bool VerifyObject(flatbuffers::Verifier& v, const flatbuffers::Table* table,
                     const reflection::Object* obj, bool isRequired) const;
   std::string GetMissingFieldErrorString(const std::string& fieldName) const;
