@@ -34,7 +34,8 @@ class FlatbuffersDocument final: public Document {
       override;
 
   void SetMembers(FlatbuffersDocumentSchema* schema, BufferImpl* buffer,
-                  reflection::Object* obj, flatbuffers::Table* table);
+                  reflection::Object* obj, flatbuffers::Table* table,
+                  flatbuffers::Struct* structure);
   const BufferImpl* GetRawBuffer() const override;
   bool Verify() const override;
 
@@ -49,6 +50,7 @@ class FlatbuffersDocument final: public Document {
   BufferImpl* m_buffer = nullptr;
   reflection::Object* m_obj = nullptr;
   flatbuffers::Table* m_table = nullptr;
+  flatbuffers::Struct* m_struct = nullptr;
 };
 
 }  // jonoondb_api

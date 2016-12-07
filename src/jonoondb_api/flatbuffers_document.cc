@@ -77,6 +77,11 @@ std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fiel
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  if (m_obj->is_struct()) {
+    auto a = flatbuffers::GetAnyFieldI(*m_struct, *fieldDef);
+    auto ab = a;
+  }
+
   return flatbuffers::GetAnyFieldI(*m_table, *fieldDef);
 }
 
@@ -121,17 +126,29 @@ bool FlatbuffersDocument::TryGetDocumentValue(const std::string& fieldName,
     objects()->Get(fieldDef->type()->index());
   assert(obj != nullptr);
 
-  auto table = flatbuffers::GetFieldT(*m_table, *fieldDef);
-  if (!table) {
-    // this means that this nested field is null
-    return false;
+  Table* table = nullptr;
+  Struct* structure = nullptr;
+
+  if (obj->is_struct()) {
+    structure = flatbuffers::GetFieldStruct(*m_table, *fieldDef);
+    if (!structure) {
+      // this means that this nested field is null
+      return false;
+    }
+  } else {
+    table = flatbuffers::GetFieldT(*m_table, *fieldDef);
+    if (!table) {
+      // this means that this nested field is null
+      return false;
+    }
   }
 
   try {
     // Todo: dynamic_cast can be expensive, this should be optimized.
     FlatbuffersDocument& fbDoc = dynamic_cast<FlatbuffersDocument&>(val);
     fbDoc.SetMembers(m_fbDcumentSchema, m_buffer,
-                     const_cast<reflection::Object*>(obj), table);
+                     const_cast<reflection::Object*>(obj), table,
+                     structure);
   } catch (std::bad_cast) {
     // This means that the passed in doc cannot be casted to FlatbuffersDocument    
     string errorMsg = "Argument val cannot be casted to underlying document "
@@ -211,11 +228,13 @@ const BufferImpl* FlatbuffersDocument::GetRawBuffer() const {
 void FlatbuffersDocument::SetMembers(FlatbuffersDocumentSchema* schema,
                                      BufferImpl* buffer,
                                      reflection::Object* obj,
-                                     flatbuffers::Table* table) {
+                                     flatbuffers::Table* table,
+                                     flatbuffers::Struct* structure) {
   m_fbDcumentSchema = schema;
   m_buffer = buffer;
   m_obj = obj;
   m_table = table;
+  m_struct = structure;
 }
 
 bool VerifyStruct(flatbuffers::Verifier& v,
