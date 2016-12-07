@@ -40,7 +40,7 @@ public:
     for (size_t i = 0; i < tokens.size() - 1; i++) {
       if (i == 0) {
         if (!parentDoc.TryGetDocumentValue(tokens[i], *doc.get())) {
-          nullptr;
+          return nullptr;
         }
       } else {
         if (!doc->TryGetDocumentValue(tokens[i], *doc.get())) {

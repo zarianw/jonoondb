@@ -202,109 +202,58 @@ bool DocumentCollection::TryGetBlobFieldFromIndexer(
   return false;
 }
 
-std::int64_t DocumentCollection::GetDocumentFieldAsInteger(
-    std::uint64_t docID, const std::string& columnName,
-    const std::vector<std::string>& tokens, BufferImpl& buffer,
-    std::unique_ptr<Document>& document) const {
-  if (tokens.size() == 0) {
-    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
-                                   "", __LINE__);
-  }
-
+bool DocumentCollection::TryGetIntegerFieldFromIndexer(
+  std::uint64_t docID, const std::string& columnName,
+  std::int64_t& val) const {
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
     ss << "Document with ID '" << docID << "' does exist in collection "
-        << m_name << ".";
+      << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  // First lets see if we can get this value from any index
-  std::int64_t val;
+  // lets see if we can get this value from any index  
   if (m_indexManager->TryGetIntegerValue(docID, columnName, val)) {
-    if (document)
-      document.reset();
-    return val;
+    return true;
   }
 
-  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
-
-  document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
-  if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
-    return subDoc->GetIntegerValueAsInt64(tokens.back());
-  } else {
-    return document->GetIntegerValueAsInt64(tokens.front());
-  }
+  return false;
 }
 
-double DocumentCollection::GetDocumentFieldAsDouble(
-    std::uint64_t docID, const std::string& columnName,
-    const std::vector<std::string>& tokens, BufferImpl& buffer,
-    std::unique_ptr<Document>& document) const {
-  if (tokens.size() == 0) {
-    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
-                                   "", __LINE__);
-  }
-
+bool DocumentCollection::TryGetFloatFieldFromIndexer(
+  std::uint64_t docID, const std::string& columnName,
+  double& val) const {
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does not exist in collection "
-        << m_name << ".";
+    ss << "Document with ID '" << docID << "' does exist in collection "
+      << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  // First lets see if we can get this value from any index
-  double val;
+  // lets see if we can get this value from any index  
   if (m_indexManager->TryGetDoubleValue(docID, columnName, val)) {
-    if (document)
-      document.reset();
-    return val;
+    return true;
   }
 
-  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
-
-  document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
-  if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
-    return subDoc->GetFloatingValueAsDouble(tokens.back());
-  } else {
-    return document->GetFloatingValueAsDouble(tokens.front());
-  }
+  return false;
 }
 
-// Todo: Need to avoid the string creation/copy cost
-std::string DocumentCollection::GetDocumentFieldAsString(
-    std::uint64_t docID, const std::string& columnName,
-    const std::vector<std::string>& tokens, BufferImpl& buffer,
-    std::unique_ptr<Document>& document) const {
-  if (tokens.size() == 0) {
-    throw InvalidArgumentException("Argument tokens is empty.", __FILE__,
-                                   "", __LINE__);
-  }
-
+bool DocumentCollection::TryGetStringFieldFromIndexer(
+  std::uint64_t docID, const std::string& columnName,
+  std::string& val) const {
   if (docID >= m_documentIDMap.size()) {
     ostringstream ss;
-    ss << "Document with ID '" << docID << "' does not exist in collection "
-        << m_name << ".";
+    ss << "Document with ID '" << docID << "' does exist in collection "
+      << m_name << ".";
     throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  string val;
+  // lets see if we can get this value from any index  
   if (m_indexManager->TryGetStringValue(docID, columnName, val)) {
-    if (document)
-      document.reset();
-    return val;
+    return true;
   }
 
-  m_blobManager->Get(m_documentIDMap.at(docID), buffer);
-
-  document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
-  if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document, tokens);
-    return subDoc->GetStringValue(tokens.back());
-  } else {
-    return document->GetStringValue(tokens.front());
-  }
+  return false;
 }
 
 void DocumentCollection::GetDocumentFieldsAsIntegerVector(

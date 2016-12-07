@@ -1761,7 +1761,7 @@ TEST(Database, Insert_Invalid) {
                JonoonDBException);
 }
 
-/*TEST(Database, NestedNullField) {
+TEST(Database, NestedNullField) {
   string dbName = "NestedNullField";
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
@@ -1783,4 +1783,12 @@ TEST(Database, Insert_Invalid) {
                                                           10.0, "test",
                                                           "test1", "test2", true);
   db.Insert(collectionName, documentData);
-}*/
+
+  auto rs = db.ExecuteSelect("select field1, \"nestedField.field1\", "
+                             "\"nestedField.field2\" FROM CollectionName;");
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("field1")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("nestedField.field1")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("nestedField.field2")));
+  }
+}

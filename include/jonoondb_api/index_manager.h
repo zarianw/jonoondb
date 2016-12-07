@@ -31,8 +31,6 @@ class IndexManager {
   void CreateIndex(const IndexInfoImpl& indexInfo,
                    const std::unordered_map<std::string,
                                             FieldType>& columnTypes);
-  void ValidateForIndexing
-      (const std::vector<std::unique_ptr<Document>>& documents);
   std::uint64_t IndexDocuments(DocumentIDGenerator& documentIDGenerator,
                                const std::vector<std::unique_ptr<Document>>& documents);
   bool
