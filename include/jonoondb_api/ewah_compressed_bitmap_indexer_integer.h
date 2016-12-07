@@ -61,18 +61,6 @@ class EWAHCompressedBitmapIndexerInteger final: public Indexer {
         || fieldType == FieldType::BASE_TYPE_INT64);
   }
 
-  void ValidateForInsert(const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
-                                 m_indexStat.GetFieldType());
-    } else {
-      document.VerifyFieldForRead(m_fieldNameTokens.back(),
-                                  m_indexStat.GetFieldType());
-    }
-  }
-
   void Insert(std::uint64_t documentID, const Document& document) override {
     if (m_fieldNameTokens.size() > 1) {
       auto subDoc =
