@@ -33,7 +33,8 @@ std::string FlatbuffersDocument::GetStringValue(const std::string& fieldName) co
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  if (m_table->CheckField(fieldDef->offset())) {
+  if (m_table->CheckField(fieldDef->offset())) {    
+    // strings can only occur in tables so no need to handle structs here
     return flatbuffers::GetAnyFieldS(*m_table, *fieldDef, nullptr);
   } else {
     return JONOONDB_NULL_STR;
@@ -55,6 +56,7 @@ const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName,
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  // strings can only occur in tables so no need to handle structs here
   auto val = flatbuffers::GetFieldS(*m_table, *fieldDef);
   size = val->size();
   return val->c_str();
@@ -78,8 +80,7 @@ std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fiel
   }
 
   if (m_obj->is_struct()) {
-    auto a = flatbuffers::GetAnyFieldI(*m_struct, *fieldDef);
-    auto ab = a;
+    return flatbuffers::GetAnyFieldI(*m_struct, *fieldDef);
   }
 
   return flatbuffers::GetAnyFieldI(*m_table, *fieldDef);
@@ -100,6 +101,10 @@ double FlatbuffersDocument::GetFloatingValueAsDouble(const std::string& fieldNam
         << fieldDef->type()->base_type()
         << " and it cannot be safely converted into a 64 bit floating value.";
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  if (m_obj->is_struct()) {
+    return flatbuffers::GetAnyFieldF(*m_struct, *fieldDef);
   }
 
   return flatbuffers::GetAnyFieldF(*m_table, *fieldDef);
@@ -130,7 +135,13 @@ bool FlatbuffersDocument::TryGetDocumentValue(const std::string& fieldName,
   Struct* structure = nullptr;
 
   if (obj->is_struct()) {
-    structure = flatbuffers::GetFieldStruct(*m_table, *fieldDef);
+    if (m_obj->is_struct()) {
+      structure = flatbuffers::GetFieldStruct(*m_struct, *fieldDef);      
+    }
+    else {
+      structure = flatbuffers::GetFieldStruct(*m_table, *fieldDef);
+    }
+
     if (!structure) {
       // this means that this nested field is null
       return false;
@@ -177,6 +188,7 @@ const char* FlatbuffersDocument::GetBlobValue(const std::string& fieldName,
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  // vectors can only occur in tables so no need to handle structs
   auto val = flatbuffers::GetFieldV<char>(*m_table, *fieldDef);
   if (val) {
     size = val->size();

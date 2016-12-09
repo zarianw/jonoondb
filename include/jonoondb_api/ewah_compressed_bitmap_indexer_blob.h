@@ -64,12 +64,22 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      InsertInternal(documentID, *subDoc.get());
+    std::size_t size = 0;
+    auto val = DocumentUtils::GetBlobValue(document,
+                                           m_subDoc,
+                                           m_fieldNameTokens,
+                                           size);
+
+    BufferImpl buffer(const_cast<char*>(val), size, size, nullptr);
+    auto compressedBitmap = m_compressedBitmaps.find(buffer);
+    if (compressedBitmap == m_compressedBitmaps.end()) {
+      auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+      assert(documentID == m_lastInsertedDocId + 1);
+      bm->Add(documentID);
+      m_compressedBitmaps[buffer] = bm;
+      m_lastInsertedDocId = documentID;
     } else {
-      InsertInternal(documentID, document);
+      compressedBitmap->second->Add(documentID);
     }
   }
 
@@ -142,35 +152,7 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
       : m_indexStat(indexStat),
         m_fieldNameTokens(fieldNameTokens),
         m_lastInsertedDocId(-1) {
-  }
-
-  void InsertInternal(std::uint64_t documentID, const Document& document) {
-    switch (m_indexStat.GetFieldType()) {
-      case FieldType::BASE_TYPE_BLOB: {
-        std::size_t size = 0;
-        auto val = document.GetBlobValue(m_fieldNameTokens.back(), size);
-        BufferImpl buffer(const_cast<char*>(val), size, size, StandardDeleteNoOp);
-        auto compressedBitmap = m_compressedBitmaps.find(buffer);
-        if (compressedBitmap == m_compressedBitmaps.end()) {
-          auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
-          assert(documentID == m_lastInsertedDocId + 1);
-          bm->Add(documentID);
-          m_compressedBitmaps[buffer] = bm;
-          m_lastInsertedDocId = documentID;
-        } else {
-          compressedBitmap->second->Add(documentID);
-        }
-        break;
-      }
-      default: {
-        // This can never happen
-        std::ostringstream ss;
-        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-            << " is not valid for EWAHCompressedBitmapIndexerBlob.";
-        throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
-      }
-    }
-  }
+  }  
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
@@ -243,5 +225,6 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::map<BufferImpl, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
+  std::unique_ptr<Document> m_subDoc;
 };
 }  // namespace jonoondb_api

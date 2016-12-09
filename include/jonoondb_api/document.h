@@ -4,11 +4,11 @@
 #include <memory>
 #include <string>
 #include <vector>
-
 #include "enums.h"
+#include "null_helpers.h"
+#include "buffer_impl.h"
 
 namespace jonoondb_api {
-class BufferImpl;
 class Document {
  public:
   virtual ~Document() {
@@ -34,22 +34,104 @@ class Document {
 
 class DocumentUtils {
 public:
-  static std::unique_ptr<Document> GetSubDocumentRecursively(
-    const Document& parentDoc, const std::vector<std::string>& tokens) {
-    auto doc = parentDoc.AllocateSubDocument();
+  static bool TryGetSubDocumentRecursively(
+    const Document& parentDoc, const std::vector<std::string>& tokens,
+    Document& subDoc) {
     for (size_t i = 0; i < tokens.size() - 1; i++) {
       if (i == 0) {
-        if (!parentDoc.TryGetDocumentValue(tokens[i], *doc.get())) {
-          return nullptr;
+        if (!parentDoc.TryGetDocumentValue(tokens[i], subDoc)) {
+          return false;
         }
       } else {
-        if (!doc->TryGetDocumentValue(tokens[i], *doc.get())) {
-          return nullptr;
+        if (!subDoc.TryGetDocumentValue(tokens[i], subDoc)) {
+          return false;
         }
       }
     }
 
-    return doc;
+    return tokens.size() > 0;
+  }
+
+  static const char* GetBlobValue(const Document& document,
+                                  std::unique_ptr<Document>& subDoc,
+                                  const std::vector<std::string>& tokens,
+                                  std::size_t& size) {
+    if (tokens.size() > 1) {
+      if (!subDoc) {
+        subDoc = document.AllocateSubDocument();
+      }
+      if (!DocumentUtils::TryGetSubDocumentRecursively(document,
+                                                       tokens,
+                                                       *subDoc.get())) {
+        size = 0;
+        return nullptr;
+      }
+
+      return subDoc->GetBlobValue(tokens.back(), size);
+    } else {
+      if (tokens.back() == "_document") {
+        auto buffer = document.GetRawBuffer();
+        size = buffer->GetLength();
+        return buffer->GetData();
+      } else {
+        return document.GetBlobValue(tokens.back(), size);
+      }
+    }
+  }
+
+  static int64_t GetIntegerValue(const Document& document,
+                                 std::unique_ptr<Document>& subDoc,
+                                 const std::vector<std::string>& tokens) {
+    if (tokens.size() > 1) {
+      if (!subDoc) {
+        subDoc = document.AllocateSubDocument();
+      }
+      if (!DocumentUtils::TryGetSubDocumentRecursively(document,
+                                                       tokens,
+                                                       *subDoc.get())) {
+        return JONOONDB_NULL_INT64;
+      }
+      return subDoc->GetIntegerValueAsInt64(tokens.back());
+    } else {
+      return document.GetIntegerValueAsInt64(tokens.back());
+    }
+  }
+
+  static double GetFloatValue(const Document& document,
+                              std::unique_ptr<Document>& subDoc,
+                              const std::vector<std::string>& tokens) {
+    if (tokens.size() > 1) {
+      if (!subDoc) {
+        subDoc = document.AllocateSubDocument();
+      }
+      if (!DocumentUtils::TryGetSubDocumentRecursively(document,
+                                                       tokens,
+                                                       *subDoc.get())) {
+        return JONOONDB_NULL_DOUBLE;
+      }
+      return subDoc->GetFloatingValueAsDouble(tokens.back());
+    } else {
+      return document.GetFloatingValueAsDouble(tokens.back());
+    }
+  }
+
+  // Todo: Need to avoid the string creation/copy cost
+  static std::string GetStringValue(const Document& document,
+                                    std::unique_ptr<Document>& subDoc,
+                                    const std::vector<std::string>& tokens) {
+    if (tokens.size() > 1) {
+      if (!subDoc) {
+        subDoc = document.AllocateSubDocument();
+      }
+      if (!DocumentUtils::TryGetSubDocumentRecursively(document,
+                                                       tokens,
+                                                       *subDoc.get())) {
+        return JONOONDB_NULL_STR;
+      }
+      return subDoc->GetStringValue(tokens.back());
+    } else {
+      return document.GetStringValue(tokens.back());
+    }
   }
 };
 }

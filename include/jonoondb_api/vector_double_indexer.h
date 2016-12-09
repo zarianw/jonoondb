@@ -50,13 +50,10 @@ class VectorDoubleIndexer final: public Indexer {
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      InsertInternal(documentID, *subDoc.get());
-    } else {
-      InsertInternal(documentID, document);
-    }
+    auto val = DocumentUtils::GetFloatValue(document, m_subDoc,
+                                            m_fieldNameTokens);
+    assert(m_dataVector.size() == documentID);
+    m_dataVector.push_back(val);
   }
 
   const IndexStat& GetIndexStats() override {
@@ -149,12 +146,6 @@ class VectorDoubleIndexer final: public Indexer {
   }
 
  private:
-  void InsertInternal(std::uint64_t documentID, const Document& document) {
-    double val = document.GetFloatingValueAsDouble(m_fieldNameTokens.back());
-    assert(m_dataVector.size() == documentID);
-    m_dataVector.push_back(val);
-  }
-
   inline double GetOperandVal(const Constraint& constraint) {
     double val = 0;
     if (constraint.operandType == OperandType::INTEGER) {
@@ -237,5 +228,6 @@ class VectorDoubleIndexer final: public Indexer {
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::vector<double> m_dataVector;
+  std::unique_ptr<Document> m_subDoc;
 };
 } // namespace jonoondb_api

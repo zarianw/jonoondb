@@ -272,6 +272,7 @@ void DocumentCollection::GetDocumentFieldsAsIntegerVector(
 
   BufferImpl buffer;
   assert(docIDs.size() == values.size());
+  std::unique_ptr<Document> subDoc;
   for (int i = 0; i < docIDs.size(); i++) {
     if (docIDs[i] >= m_documentIDMap.size()) {
       ostringstream ss;
@@ -283,13 +284,10 @@ void DocumentCollection::GetDocumentFieldsAsIntegerVector(
     m_blobManager->Get(m_documentIDMap.at(docIDs[i]), buffer);
 
     auto document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
-    if (tokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
-                                                             tokens);
-      values[i] = subDoc->GetIntegerValueAsInt64(tokens.back());
-    } else {
-      values[i] = document->GetIntegerValueAsInt64(tokens.front());
+    if (!subDoc) {
+      subDoc = document->AllocateSubDocument();
     }
+    values[i] = DocumentUtils::GetIntegerValue(*document.get(), subDoc, tokens);
   }
 }
 
@@ -310,6 +308,7 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
 
   BufferImpl buffer;
   assert(docIDs.size() == values.size());
+  std::unique_ptr<Document> subDoc;
   for (int i = 0; i < docIDs.size(); i++) {
     if (docIDs[i] >= m_documentIDMap.size()) {
       ostringstream ss;
@@ -321,13 +320,10 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
     m_blobManager->Get(m_documentIDMap.at(docIDs[i]), buffer);
 
     auto document = DocumentFactory::CreateDocument(*m_documentSchema, buffer);
-    if (tokens.size() > 1) {
-      auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
-                                                             tokens);
-      values[i] = subDoc->GetFloatingValueAsDouble(tokens.back());
-    } else {
-      values[i] = document->GetFloatingValueAsDouble(tokens.front());
+    if (!subDoc) {
+      subDoc = document->AllocateSubDocument();
     }
+    values[i] = DocumentUtils::GetFloatValue(*document.get(), subDoc, tokens);
   }
 }
 
