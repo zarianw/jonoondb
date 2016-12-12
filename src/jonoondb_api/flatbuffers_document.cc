@@ -467,9 +467,11 @@ bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
 }
 
 bool FlatbuffersDocument::Verify() const {
-  return VerifyObject(
-    Verifier(reinterpret_cast<const uint8_t*>(m_buffer->GetData()),
-             m_buffer->GetLength()), m_table, m_obj, true);
+  flatbuffers::Verifier v(
+      reinterpret_cast<const uint8_t*>(m_buffer->GetData()),
+      m_buffer->GetLength());
+
+  return VerifyObject(v, m_table, m_obj, true);
 }
 
 FlatbuffersDocument::FlatbuffersDocument() {
