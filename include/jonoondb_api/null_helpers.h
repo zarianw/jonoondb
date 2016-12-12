@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 #include <limits>
 
 namespace jonoondb_api {
@@ -16,7 +17,7 @@ class NullHelpers {
   // jonoondb considers a string of size 4 will all null characters as null
   static bool IsNull(const std::string& str) {
     int zero = 0;
-    if (str.size() == 4 && memcmp(str.data(), &zero, 4) == 0) {
+    if (str.size() == 4 && std::memcmp(str.data(), &zero, 4) == 0) {
       return true;
     }
 
@@ -25,7 +26,7 @@ class NullHelpers {
 
   static bool ContainsJustNullChars(const std::string& str) {
     int zero = 0;
-    if (memcmp(str.data(), &zero, str.size()) == 0) {
+    if (std::memcmp(str.data(), &zero, str.size()) == 0) {
       return true;
     }
 
