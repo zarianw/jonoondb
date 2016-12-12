@@ -1690,6 +1690,38 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   ASSERT_EQ(rowCnt, 5);
 }
 
+TEST(Database, NullNestedField) {
+  string dbName = "NullNestedField";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
+
+  string filePath = GetSchemaFilePath("all_field_type.bfbs");
+  string schema = File::Read(filePath);
+  // auto indexes = CreateAllTypeIndexes(indexType);
+  std::vector<IndexInfo> indexes;
+
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
+
+  Buffer
+    documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
+                                                          6, 7, 8.0f, 9,
+                                                          10.0, "test",
+                                                          "test1", "test2", true);
+  db.Insert(collectionName, documentData);
+
+  auto rs = db.ExecuteSelect("select field1, \"nestedField.field1\", "
+                             "\"nestedField.field2\" FROM CollectionName;");
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("field1")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("nestedField.field1")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("nestedField.field2")));
+  }
+}
+
 TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   string dbName = "ExecuteSelect_ResultsetConsumption";
   string collectionName = "tweet";
@@ -1759,36 +1791,4 @@ TEST(Database, Insert_Invalid) {
   
   ASSERT_THROW(db.Insert(collectionName, documentData),
                JonoonDBException);
-}
-
-TEST(Database, NestedNullField) {
-  string dbName = "NestedNullField";
-  string collectionName = "CollectionName";
-  string dbPath = g_TestRootDirectory;
-  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
-
-  string filePath = GetSchemaFilePath("all_field_type.bfbs");
-  string schema = File::Read(filePath);
-  // auto indexes = CreateAllTypeIndexes(indexType);
-  std::vector<IndexInfo> indexes;
-
-  db.CreateCollection(collectionName,
-                      SchemaType::FLAT_BUFFERS,
-                      schema,
-                      indexes);
-
-  Buffer
-    documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
-                                                          6, 7, 8.0f, 9,
-                                                          10.0, "test",
-                                                          "test1", "test2", true);
-  db.Insert(collectionName, documentData);
-
-  auto rs = db.ExecuteSelect("select field1, \"nestedField.field1\", "
-                             "\"nestedField.field2\" FROM CollectionName;");
-  while (rs.Next()) {
-    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("field1")));
-    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("nestedField.field1")));
-    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("nestedField.field2")));
-  }
 }
