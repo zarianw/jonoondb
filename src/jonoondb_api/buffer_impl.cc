@@ -10,38 +10,24 @@ using namespace std;
 
 using namespace jonoondb_api;
 
-struct BufferImpl::BufferData {
- public:
-  BufferData(std::unique_ptr<char, void (*)(char*)> bufferData,
-             size_t bufferLength,
-             size_t bufferCapacity)
-      : bufferPtr(std::move(bufferData)),
-        bufferLength(bufferLength),
-        bufferCapacity(bufferCapacity) {
-  }
-
-  std::unique_ptr<char, void (*)(char*)> bufferPtr;
-  size_t bufferLength;
-  size_t bufferCapacity;
-};
-
-BufferImpl::BufferImpl() : m_bufferImpl(nullptr) {
+BufferImpl::BufferImpl() : 
+  m_buffer(nullptr, StandardDelete), m_length(0),
+  m_capacity(0) {
 }
 
-BufferImpl::BufferImpl(size_t capacity) : m_bufferImpl(nullptr) {
+BufferImpl::BufferImpl(size_t capacity) : BufferImpl() {
   if (capacity > 0) {
-    std::unique_ptr<char, void (*)(char*)>
-        data(new char[capacity], StandardDelete);
-    m_bufferImpl = new BufferData(std::move(data), 0, capacity);
+    m_buffer.reset(new char[capacity]);
+    m_length = 0;
+    m_capacity = capacity;    
   }
 }
 
 BufferImpl::BufferImpl(const char* buffer, size_t bufferLengthInBytes,
-                       size_t bufferCapacityInBytes) : m_bufferImpl(nullptr) {
+                       size_t bufferCapacityInBytes) : BufferImpl() {
   if (buffer == nullptr && bufferLengthInBytes == 0
       && bufferCapacityInBytes == 0) {
-    // This is a special case, this kind of buffer is created by default ctor
-    m_bufferImpl = nullptr;
+    // This is a special case, this kind of buffer is created by default ctor  
   } else if (buffer == nullptr) {
     throw InvalidArgumentException(
         "Argument buffer is nullptr whereas bufferLengthInBytes or bufferCapacityInBytes are greater than 0.",
@@ -62,23 +48,25 @@ BufferImpl::BufferImpl(const char* buffer, size_t bufferLengthInBytes,
         __func__,
         __LINE__);
   } else {
-    std::unique_ptr<char, void (*)(char*)>
-        data(new char[bufferCapacityInBytes], StandardDelete);
-    memcpy(data.get(), buffer, bufferCapacityInBytes);
-    m_bufferImpl = new BufferData(std::move(data),
-                                  bufferLengthInBytes,
-                                  bufferCapacityInBytes);
+    m_buffer.reset(new char[bufferCapacityInBytes]);
+    memcpy(m_buffer.get(), buffer, bufferCapacityInBytes);
+    m_length = bufferLengthInBytes;
+    m_capacity = bufferCapacityInBytes;
   }
 }
 
 BufferImpl::BufferImpl(char* buffer,
                        size_t bufferLengthInBytes,
                        size_t bufferCapacityInBytes,
-                       void(* customDeleterFunc)(char*)) {
+                       void(* customDeleterFunc)(char*)) : BufferImpl() {
   if (buffer == nullptr && bufferLengthInBytes == 0
       && bufferCapacityInBytes == 0) {
-    // This is a special case, this kind of buffer is created by default ctor
-    m_bufferImpl = nullptr;
+    m_buffer =
+      std::unique_ptr<char, void(*)(char*)>(
+        nullptr,
+        (customDeleterFunc == nullptr) ? StandardDeleteNoOp : customDeleterFunc);
+    m_length = 0;
+    m_capacity = 0;
   } else if (buffer == nullptr) {
     throw InvalidArgumentException(
         "Argument buffer is nullptr whereas bufferLengthInBytes or bufferCapacityInBytes are greater than 0.",
@@ -98,71 +86,65 @@ BufferImpl::BufferImpl(char* buffer,
         __FILE__,
         __func__,
         __LINE__);
-  } else if (customDeleterFunc == nullptr) {
-    // nullptr means user does not want to delete this memory on destruction of
-    // this buffer.
-    customDeleterFunc = StandardDeleteNoOp;
-  }  
-  
-  m_bufferImpl = new BufferData(
-      std::unique_ptr<char, void (*)(char*)>(buffer, customDeleterFunc),
-      bufferLengthInBytes, bufferCapacityInBytes);
-  
-}
-
-BufferImpl::BufferImpl(BufferImpl&& other) {
-  this->m_bufferImpl = other.m_bufferImpl;
-  other.m_bufferImpl = nullptr;
-}
-
-BufferImpl::BufferImpl(const BufferImpl& other) : m_bufferImpl(nullptr) {
-  if (other.GetData() != nullptr) {
-    std::unique_ptr<char, void (*)(char*)>
-        data(new char[other.GetCapacity()], StandardDelete);
-    memcpy(data.get(), other.GetData(), other.GetCapacity());
-    m_bufferImpl =
-        new BufferData(std::move(data), other.GetLength(), other.GetCapacity());
+  } else {
+    // nullptr for deleter means user does not want to delete this memory on 
+    // destruction of this buffer.
+    m_buffer =
+      std::unique_ptr<char, void(*)(char*)>(
+        buffer,
+        (customDeleterFunc == nullptr) ? StandardDeleteNoOp : customDeleterFunc);
+    m_length = bufferLengthInBytes;
+    m_capacity = bufferCapacityInBytes;
   }
 }
 
-BufferImpl::~BufferImpl() {
-  Reset();
+BufferImpl::BufferImpl(BufferImpl&& other) : 
+    m_buffer(std::move(other.m_buffer)),
+    m_length(other.GetLength()),
+    m_capacity(other.GetCapacity()) {
+}
+
+BufferImpl::BufferImpl(const BufferImpl& other) : BufferImpl() {
+  if (other.GetData() != nullptr) {
+    m_buffer.reset(new char[other.GetCapacity()]);
+    memcpy(m_buffer.get(), other.GetData(), other.GetCapacity());
+    m_length = other.GetLength();
+    m_capacity = other.GetCapacity();
+  }
 }
 
 BufferImpl& BufferImpl::operator=(const BufferImpl& other) {
   if (this != &other) {
     if (other.GetData() == nullptr) {
-      Reset();
+      m_buffer.reset(nullptr);
     } else {
       // We have to delete existing buffer, create a new buffer and then copy
       // First check if our existing buffer has the same capacity
       if (GetCapacity() != other.GetCapacity()) {
         std::unique_ptr<char, void (*)(char*)>
             data(new char[other.GetCapacity()], StandardDelete);
-        memcpy(data.get(), other.GetData(), other.GetCapacity());
-        // We have to delete existing buffer, create a new buffer and then copy
-        Reset();
-        m_bufferImpl = new BufferData(std::move(data),
-                                      other.GetLength(),
-                                      other.GetCapacity());
+        memcpy(data.get(), other.GetData(), other.GetCapacity());        
+        m_buffer = std::move(data);             
       } else {
         // Our capacity is the same so no need to reallocate the buffer
-        memcpy(m_bufferImpl->bufferPtr.get(),
+        memcpy(m_buffer.get(),
                other.GetData(),
-               other.GetCapacity());
-        m_bufferImpl->bufferLength = other.GetLength();
+               other.GetCapacity());        
       }
     }
+
+    m_length = other.GetLength();
+    m_capacity = other.GetCapacity();
   }
 
   return *this;
 }
 
 BufferImpl& BufferImpl::operator=(BufferImpl&& other) {
-  if (this != &other) {
-    Reset();
-    this->m_bufferImpl = other.m_bufferImpl;
-    other.m_bufferImpl = nullptr;
+  if (this != &other) {    
+    this->m_buffer = std::move(other.m_buffer);
+    this->m_length = other.GetLength();
+    this->m_capacity = other.GetCapacity();
   }
 
   return *this;
@@ -234,55 +216,34 @@ bool BufferImpl::operator!=(const BufferImpl & other) const {
 
 void BufferImpl::Resize(size_t newBufferCapacityInBytes) {
   if (newBufferCapacityInBytes == 0) {
-    Reset();
+    m_buffer.reset(nullptr);
+    m_length = 0;
+    m_capacity = 0;
   } else if (newBufferCapacityInBytes == GetCapacity()) {
     return; // no op
   } else {
     std::unique_ptr<char, void (*)(char*)>
-        data(new char[newBufferCapacityInBytes], StandardDelete);
-    Reset();
-    m_bufferImpl = new BufferData(std::move(data), 0,
-                                  newBufferCapacityInBytes);
-  }
-}
-
-void BufferImpl::Reset() {
-  if (m_bufferImpl != nullptr) {
-    delete m_bufferImpl;
-    m_bufferImpl = nullptr;
+        data(new char[newBufferCapacityInBytes], StandardDelete);    
+    m_buffer = std::move(data);
+    m_length = 0;
+    m_capacity = newBufferCapacityInBytes;
   }
 }
 
 const char* BufferImpl::GetData() const {
-  if (m_bufferImpl == nullptr) {
-    return nullptr;
-  } else {
-    return m_bufferImpl->bufferPtr.get();
-  }
+  return m_buffer.get();
 }
 
 char* BufferImpl::GetDataForWrite() {
-  if (m_bufferImpl == nullptr) {
-    return nullptr;
-  } else {
-    return m_bufferImpl->bufferPtr.get();
-  }
+  return m_buffer.get();
 }
 
 const size_t BufferImpl::GetCapacity() const {
-  if (m_bufferImpl == nullptr) {
-    return 0;
-  } else {
-    return m_bufferImpl->bufferCapacity;
-  }
+  return m_capacity;
 }
 
 const size_t BufferImpl::GetLength() const {
-  if (m_bufferImpl == nullptr) {
-    return 0;
-  } else {
-    return m_bufferImpl->bufferLength;
-  }
+  return m_length;
 }
 
 void BufferImpl::SetLength(size_t val) {
@@ -297,7 +258,7 @@ void BufferImpl::SetLength(size_t val) {
 
   if (GetLength() == val) return; // no op
 
-  m_bufferImpl->bufferLength = val;
+  m_length = val;
 }
 
 void BufferImpl::Copy(const char* buffer, size_t bytesToCopy) {
@@ -315,9 +276,9 @@ void BufferImpl::Copy(const char* buffer, size_t bytesToCopy) {
           << GetCapacity() << " bytes.";
       throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     } else {
-      // Our existing bufer is big enough, no need to reallocate
-      memcpy(m_bufferImpl->bufferPtr.get(), buffer, bytesToCopy);
-      m_bufferImpl->bufferLength = bytesToCopy;
+      // Our existing bufer is big enough
+      memcpy(m_buffer.get(), buffer, bytesToCopy);
+      m_length = bytesToCopy;
     }
   }
 }
