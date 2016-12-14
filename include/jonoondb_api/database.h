@@ -164,12 +164,10 @@ class Options {
   Options(bool createDBIfMissing,
           size_t maxDataFileSize,
           bool compressionEnabled,
-          bool synchronous,
           size_t memCleanupThresholdInBytes) :
       m_opaque(jonoondb_options_construct2(createDBIfMissing,
                                            maxDataFileSize,
                                            compressionEnabled,
-                                           synchronous,
                                            memCleanupThresholdInBytes,
                                            ThrowOnError{})) {
   }
@@ -227,14 +225,6 @@ class Options {
     return jonoondb_options_getmaxdatafilesize(m_opaque);
   }
 
-  void SetSynchronous(bool value) {
-    jonoondb_options_setsynchronous(m_opaque, value);
-  }
-
-  bool GetSynchronous() const {
-    return jonoondb_options_getsynchronous(m_opaque);
-  }
-
   void SetMemoryCleanupThreshold(std::size_t valueInBytes) {
     jonoondb_options_setmemorycleanupthreshold(m_opaque, valueInBytes);
   }
@@ -249,6 +239,74 @@ class Options {
 
  private:
   options_ptr m_opaque;
+};
+
+//
+// WriteOptions
+//
+class WriteOptions {
+public:
+  //Default constructor that sets all the options to their default value
+  WriteOptions() : m_opaque(jonoondb_write_options_construct()) {
+  }
+
+  WriteOptions(bool compress, bool verifyDocuments) :
+    m_opaque(jonoondb_write_options_construct2(compress,
+                                               verifyDocuments)) {
+  }
+
+  WriteOptions(const WriteOptions& other) :
+    m_opaque(jonoondb_write_options_copy_construct(other.m_opaque)) {
+  }
+
+  friend void swap(WriteOptions& first, WriteOptions& second) {
+    using std::swap;
+    swap(first.m_opaque, second.m_opaque);
+  }
+
+  WriteOptions(WriteOptions&& other) : m_opaque(nullptr) {
+    swap(*this, other);
+  }
+
+  WriteOptions& operator=(const WriteOptions& other) {
+    WriteOptions copy(other);
+    swap(*this, copy);
+    return *this;
+  }
+
+  WriteOptions& operator=(WriteOptions&& other) {
+    swap(*this, other);
+    return *this;
+  }
+
+  ~WriteOptions() {
+    if (m_opaque != nullptr) {
+      jonoondb_write_options_destruct(m_opaque);
+    }
+  }
+
+  void Compress(bool value) {
+    jonoondb_write_options_set_compress(m_opaque, value);
+  }
+
+  bool Compress() const {
+    return jonoondb_write_options_get_compress(m_opaque);
+  }
+
+  void VerifyDocuments(bool value) {
+    jonoondb_write_options_set_verify_documents(m_opaque, value);
+  }
+
+  bool VerifyDocuments() const {
+    return jonoondb_write_options_get_verify_documents(m_opaque);
+  }
+
+  const write_options_ptr GetOpaquePtr() const {
+    return m_opaque;
+  }
+
+private:
+  write_options_ptr m_opaque;
 };
 
 //

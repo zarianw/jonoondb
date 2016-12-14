@@ -10,6 +10,7 @@
 #include "buffer_impl.h"
 #include "resultset_impl.h"
 #include "status_impl.h"
+#include "write_options_impl.h"
 
 using namespace jonoondb_api;
 
@@ -198,12 +199,10 @@ struct options {
   options() : impl() { }
 
   options(bool createDBIfMissing, uint64_t maxDataFileSize,
-          bool compressionEnabled, bool synchronous,
-          uint64_t memCleanupThresholdInBytes) :
+          bool compressionEnabled, uint64_t memCleanupThresholdInBytes) :
       impl(createDBIfMissing,
            maxDataFileSize,
            compressionEnabled,
-           synchronous,
            memCleanupThresholdInBytes) {
   }
 
@@ -221,7 +220,6 @@ options_ptr jonoondb_options_copy_construct(const options_ptr other) {
 options_ptr jonoondb_options_construct2(bool createDBIfMissing,
                                         uint64_t maxDataFileSize,
                                         bool compressionEnabled,
-                                        bool synchronous,
                                         uint64_t memCleanupThresholdInBytes,
                                         status_ptr* sts) {
   options_ptr val = nullptr;
@@ -229,7 +227,6 @@ options_ptr jonoondb_options_construct2(bool createDBIfMissing,
     val = new options(createDBIfMissing,
                       maxDataFileSize,
                       compressionEnabled,
-                      synchronous,
                       memCleanupThresholdInBytes);
   }, *sts);
 
@@ -264,14 +261,6 @@ void jonoondb_options_setmaxdatafilesize(options_ptr opt, uint64_t value) {
   return opt->impl.SetMaxDataFileSize(value);
 }
 
-bool jonoondb_options_getsynchronous(options_ptr opt) {
-  return opt->impl.GetSynchronous();
-}
-
-void jonoondb_options_setsynchronous(options_ptr opt, bool value) {
-  return opt->impl.SetSynchronous(value);
-}
-
 uint64_t jonoondb_options_getmemorycleanupthreshold(options_ptr opt) {
   return opt->impl.GetMemoryCleanupThreshold();
 }
@@ -279,6 +268,55 @@ uint64_t jonoondb_options_getmemorycleanupthreshold(options_ptr opt) {
 void jonoondb_options_setmemorycleanupthreshold(options_ptr opt,
                                                 uint64_t valueInBytes) {
   opt->impl.SetMemoryCleanupThreshold(valueInBytes);
+}
+
+//
+// WriteOptions Functions
+//
+struct write_options {
+  write_options() : impl() {}
+
+  write_options(bool compress, bool verifyDocuments) :
+    impl(compress, verifyDocuments) {
+  }
+
+  WriteOptionsImpl impl;
+};
+
+write_options_ptr jonoondb_write_options_construct() {
+  return new write_options();
+}
+
+write_options_ptr jonoondb_write_options_copy_construct(
+    const write_options_ptr other) {
+  return new write_options(*other);
+}
+
+write_options_ptr jonoondb_write_options_construct2(bool compress,
+                                                    bool verifyDocuments) {
+  return new write_options(compress, verifyDocuments);
+}
+
+void jonoondb_write_options_destruct(write_options_ptr opt) {
+  delete opt;
+}
+
+bool jonoondb_write_options_get_compress(write_options_ptr opt) {
+  return opt->impl.compress;
+}
+
+void jonoondb_write_options_set_compress(write_options_ptr opt,
+                                         bool value) {
+  opt->impl.compress = value;
+}
+
+bool jonoondb_write_options_get_verify_documents(write_options_ptr opt) {
+  return opt->impl.verifyDocuments;
+}
+
+void jonoondb_write_options_set_verify_documents(write_options_ptr opt,
+                                                 bool value) {
+  opt->impl.verifyDocuments = value;
 }
 
 //

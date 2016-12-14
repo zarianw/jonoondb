@@ -95,11 +95,12 @@ add_library(
  ${INCLUDE_PATH}/jonoondb_api/vector_blob_indexer.h
  ${INCLUDE_PATH}/jonoondb_api/null_helpers.h
  ${INCLUDE_PATH}/jonoondb_api/proc_utils.h
+ ${INCLUDE_PATH}/jonoondb_api/write_options_impl.h
  ${SRC_PATH}/jonoondb_api/jonoondb_vtable.cc
  ${SRC_PATH}/jonoondb_api/exception_utils.cc ${INCLUDE_PATH}/jonoondb_api/exception_utils.h
  ${SRC_PATH}/jonoondb_api/database_impl.cc ${INCLUDE_PATH}/jonoondb_api/database_impl.h
  ${SRC_PATH}/jonoondb_api/status_impl.cc ${INCLUDE_PATH}/jonoondb_api/status_impl.h
- ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/jonoondb_api/options_impl.h
+ ${SRC_PATH}/jonoondb_api/options_impl.cc ${INCLUDE_PATH}/jonoondb_api/options_impl.h 
  ${SRC_PATH}/jonoondb_api/database_metadata_manager.cc ${INCLUDE_PATH}/jonoondb_api/database_metadata_manager.h
  ${SRC_PATH}/jonoondb_api/document_collection.cc ${INCLUDE_PATH}/jonoondb_api/document_collection.h
  ${SRC_PATH}/jonoondb_api/index_info_impl.cc ${INCLUDE_PATH}/jonoondb_api/index_info_impl.h 

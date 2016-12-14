@@ -205,7 +205,7 @@ std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
   auto bm = std::make_unique<BlobManager>(move(fnm),
                                           m_options.GetCompressionEnabled(),
                                           m_options.GetMaxDataFileSize(),
-                                          m_options.GetSynchronous());
+                                          true);
 
   return std::make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(),
                                               name,

@@ -46,7 +46,6 @@ JONOONDB_API_EXPORT options_ptr jonoondb_options_construct2
     (bool createDBIfMissing,
      uint64_t maxDataFileSize,
      bool compressionEnabled,
-     bool isSynchronous,
      uint64_t memCleanupThresholdInBytes,
      status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_options_destruct(options_ptr opt);
@@ -60,12 +59,28 @@ JONOONDB_API_EXPORT void jonoondb_options_setcompressionenabled(options_ptr opt,
 JONOONDB_API_EXPORT uint64_t jonoondb_options_getmaxdatafilesize(options_ptr opt);
 JONOONDB_API_EXPORT void jonoondb_options_setmaxdatafilesize(options_ptr opt, uint64_t value);
 
-JONOONDB_API_EXPORT bool jonoondb_options_getsynchronous(options_ptr opt);
-JONOONDB_API_EXPORT void jonoondb_options_setsynchronous(options_ptr opt, bool value);
-
 JONOONDB_API_EXPORT uint64_t jonoondb_options_getmemorycleanupthreshold(options_ptr opt);
 JONOONDB_API_EXPORT void jonoondb_options_setmemorycleanupthreshold
     (options_ptr opt, uint64_t valueInBytes);
+
+//
+// WriteOptions Functions
+//
+typedef struct write_options* write_options_ptr;
+JONOONDB_API_EXPORT write_options_ptr jonoondb_write_options_construct();
+JONOONDB_API_EXPORT write_options_ptr jonoondb_write_options_copy_construct(
+    const write_options_ptr other);
+JONOONDB_API_EXPORT write_options_ptr jonoondb_write_options_construct2(
+    bool compress, bool verifyDocuments);
+JONOONDB_API_EXPORT void jonoondb_write_options_destruct(write_options_ptr opt);
+
+JONOONDB_API_EXPORT bool jonoondb_write_options_get_compress(write_options_ptr opt);
+JONOONDB_API_EXPORT void jonoondb_write_options_set_compress(
+    write_options_ptr opt, bool value);
+
+JONOONDB_API_EXPORT bool jonoondb_write_options_get_verify_documents(write_options_ptr opt);
+JONOONDB_API_EXPORT void jonoondb_write_options_set_verify_documents(
+  write_options_ptr opt, bool value);
 
 //
 // IndexInfo Functions
