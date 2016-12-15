@@ -199,10 +199,9 @@ struct options {
   options() : impl() { }
 
   options(bool createDBIfMissing, uint64_t maxDataFileSize,
-          bool compressionEnabled, uint64_t memCleanupThresholdInBytes) :
+          uint64_t memCleanupThresholdInBytes) :
       impl(createDBIfMissing,
            maxDataFileSize,
-           compressionEnabled,
            memCleanupThresholdInBytes) {
   }
 
@@ -219,14 +218,12 @@ options_ptr jonoondb_options_copy_construct(const options_ptr other) {
 
 options_ptr jonoondb_options_construct2(bool createDBIfMissing,
                                         uint64_t maxDataFileSize,
-                                        bool compressionEnabled,
                                         uint64_t memCleanupThresholdInBytes,
                                         status_ptr* sts) {
   options_ptr val = nullptr;
   TranslateExceptions([&] {
     val = new options(createDBIfMissing,
                       maxDataFileSize,
-                      compressionEnabled,
                       memCleanupThresholdInBytes);
   }, *sts);
 
@@ -243,14 +240,6 @@ bool jonoondb_options_getcreatedbifmissing(options_ptr opt) {
 
 void jonoondb_options_setcreatedbifmissing(options_ptr opt, bool value) {
   return opt->impl.SetCreateDBIfMissing(value);
-}
-
-bool jonoondb_options_getcompressionenabled(options_ptr opt) {
-  return opt->impl.GetCompressionEnabled();
-}
-
-void jonoondb_options_setcompressionenabled(options_ptr opt, bool value) {
-  return opt->impl.SetCompressionEnabled(value);
 }
 
 uint64_t jonoondb_options_getmaxdatafilesize(options_ptr opt) {
@@ -709,9 +698,10 @@ void jonoondb_database_createcollection(database_ptr db,
 void jonoondb_database_insert(database_ptr db,
                               const char* collectionName,
                               const jonoondb_buffer_ptr documentData,
+                              const write_options_ptr wo,
                               status_ptr* sts) {
   TranslateExceptions([&] {
-    db->impl.Insert(collectionName, documentData->impl);
+    db->impl.Insert(collectionName, documentData->impl, wo->impl);
   }, *sts);
 }
 
@@ -720,6 +710,7 @@ void jonoondb_database_multi_insert(database_ptr db,
                                     uint64_t collectionNameLength,
                                     const jonoondb_buffer_ptr* documentArr,
                                     uint64_t documentArrLength,
+                                    const write_options_ptr wo,
                                     status_ptr* sts) {
   TranslateExceptions([&] {
     boost::string_ref colName(collectionName, collectionNameLength);
@@ -728,7 +719,7 @@ void jonoondb_database_multi_insert(database_ptr db,
     // Todo: Use a safer cast than C Style cast
     const BufferImpl** start = (const BufferImpl**)documentArr;
     gsl::span<const BufferImpl*> documents(start, documentArrLength);
-    db->impl.MultiInsert(colName, documents);
+    db->impl.MultiInsert(colName, documents, wo->impl);
   }, *sts);
 }
 

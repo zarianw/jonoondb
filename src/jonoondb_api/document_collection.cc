@@ -22,6 +22,7 @@
 #include "buffer_impl.h"
 #include "file_info.h"
 #include "filename_manager.h"
+#include "jonoondb_api/write_options_impl.h"
 
 using namespace jonoondb_api;
 
@@ -103,19 +104,21 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
   }
 }
 
-void DocumentCollection::Insert(const BufferImpl& documentData) {
+void DocumentCollection::Insert(const BufferImpl& documentData,
+                                const WriteOptionsImpl& wo) {
   std::vector<const BufferImpl*> vec = {&documentData};
   gsl::span<const BufferImpl*> span = vec;
-  MultiInsert(span);
+  MultiInsert(span, wo);
 }
 
-void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>& documents) {
+void jonoondb_api::DocumentCollection::MultiInsert(
+    gsl::span<const BufferImpl*>& documents, const WriteOptionsImpl& wo) {
   std::vector<std::unique_ptr<Document>> docs;
 
   for (size_t i = 0; i < documents.size(); i++) {
     docs.push_back(DocumentFactory::CreateDocument(*m_documentSchema,
                                                    *documents[i]));
-    if (!docs.back()->Verify()) {
+    if (wo.verifyDocuments && !docs.back()->Verify()) {
       ostringstream ss;
       ss << "Document at index location " << i << " is not valid.";
       throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
@@ -127,7 +130,7 @@ void jonoondb_api::DocumentCollection::MultiInsert(gsl::span<const BufferImpl*>&
   try {
     auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
     assert(startID == m_documentIDMap.size());
-    m_blobManager->MultiPut(documents, blobMetadataVec);
+    m_blobManager->MultiPut(documents, blobMetadataVec, wo.compress);
   } catch (...) {
     // This is a serious error. Exception at this point will leave DB in a invalid state.
     // Only thing we can do here is to log the error and terminate the process.

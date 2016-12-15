@@ -45,16 +45,12 @@ JONOONDB_API_EXPORT options_ptr jonoondb_options_copy_construct(const options_pt
 JONOONDB_API_EXPORT options_ptr jonoondb_options_construct2
     (bool createDBIfMissing,
      uint64_t maxDataFileSize,
-     bool compressionEnabled,
      uint64_t memCleanupThresholdInBytes,
      status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_options_destruct(options_ptr opt);
 
 JONOONDB_API_EXPORT bool jonoondb_options_getcreatedbifmissing(options_ptr opt);
 JONOONDB_API_EXPORT void jonoondb_options_setcreatedbifmissing(options_ptr opt, bool value);
-
-JONOONDB_API_EXPORT bool jonoondb_options_getcompressionenabled(options_ptr opt);
-JONOONDB_API_EXPORT void jonoondb_options_setcompressionenabled(options_ptr opt, bool value);
 
 JONOONDB_API_EXPORT uint64_t jonoondb_options_getmaxdatafilesize(options_ptr opt);
 JONOONDB_API_EXPORT void jonoondb_options_setmaxdatafilesize(options_ptr opt, uint64_t value);
@@ -201,11 +197,12 @@ JONOONDB_API_EXPORT void jonoondb_database_createcollection
 JONOONDB_API_EXPORT void jonoondb_database_insert(database_ptr db,
                                                   const char* collectionName,
                                                   const jonoondb_buffer_ptr documentData,
+                                                  const write_options_ptr wo,
                                                   status_ptr* sts);
 JONOONDB_API_EXPORT void jonoondb_database_multi_insert
     (database_ptr db, const char* collectionName, uint64_t collectionNameLength,
      const jonoondb_buffer_ptr* documentArr, uint64_t documentArrLength,
-     status_ptr* sts);
+     const write_options_ptr wo, status_ptr* sts);
 JONOONDB_API_EXPORT resultset_ptr jonoondb_database_executeselect(database_ptr db,
                                                                   const char* selectStmt,
                                                                   uint64_t selectStmtLength,

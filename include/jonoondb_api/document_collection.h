@@ -26,6 +26,7 @@ struct Constraint;
 class MamaJenniesBitmap;
 class BlobManager;
 struct FileInfo;
+class WriteOptionsImpl;
 
 class DocumentCollection final {
  public:
@@ -37,8 +38,9 @@ class DocumentCollection final {
                      std::unique_ptr<BlobManager> blobManager,
                      const std::vector<FileInfo>& dataFilesToLoad);
 
-  void Insert(const BufferImpl& documentData);
-  void MultiInsert(gsl::span<const BufferImpl*>& documents);
+  void Insert(const BufferImpl& documentData, const WriteOptionsImpl& wo);
+  void MultiInsert(gsl::span<const BufferImpl*>& documents,
+                   const WriteOptionsImpl& wo);
   const std::string& GetName();
   const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
   bool

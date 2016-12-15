@@ -82,7 +82,6 @@ add_library(
  ${INCLUDE_PATH}/jonoondb_api/ewah_compressed_bitmap_indexer_blob.h
  ${INCLUDE_PATH}/jonoondb_api/field.h
  ${INCLUDE_PATH}/jonoondb_api/jonoondb_exceptions.h 
- ${INCLUDE_PATH}/jonoondb_api/database.h
  ${INCLUDE_PATH}/jonoondb_api/concurrent_map.h
  ${INCLUDE_PATH}/jonoondb_api/index_info_fb_generated.h
  ${INCLUDE_PATH}/jonoondb_api/constraint.h
@@ -143,6 +142,7 @@ set (JONOONDB_API_LIBRARY jonoondb_api_v${MAJOR})
 
 add_library(
   ${JONOONDB_API_LIBRARY} ${LIB_TYPE}
+  ${INCLUDE_PATH}/jonoondb_api/database.h
   ${SRC_PATH}/jonoondb_api/cdatabase.cc ${INCLUDE_PATH}/jonoondb_api/cdatabase.h)
 
 target_link_libraries(${JONOONDB_API_LIBRARY} jonoondb_api)

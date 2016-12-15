@@ -8,13 +8,10 @@ class OptionsImpl {
   //Default constructor that sets all the options to their default value
   OptionsImpl();
   OptionsImpl(bool createDBIfMissing, std::size_t maxDataFileSize,
-              bool compressionEnabled, std::size_t memClenupThresholdInBytes);
+              std::size_t memClenupThresholdInBytes);
 
   void SetCreateDBIfMissing(bool value);
   bool GetCreateDBIfMissing() const;
-
-  void SetCompressionEnabled(bool value);
-  bool GetCompressionEnabled() const;
 
   void SetMaxDataFileSize(std::size_t value);
   std::size_t GetMaxDataFileSize() const;
@@ -25,7 +22,6 @@ class OptionsImpl {
  private:
   bool m_createDBIfMissing;
   std::size_t m_maxDataFileSize;
-  bool m_compressionEnabled;
   std::size_t m_memCleanupThresholdInBytes;
 };
 }  // namespace jonoondb_api

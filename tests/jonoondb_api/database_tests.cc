@@ -426,7 +426,6 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   auto opt = TestUtils::GetDefaultDBOptions();
-  opt.SetCompressionEnabled(enableCompression);
   Database db(dbPath, dbName, opt);
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
@@ -472,7 +471,9 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
         TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
   }
 
-  db.MultiInsert(collectionName, documents);
+  WriteOptions wo;
+  wo.Compress(enableCompression);
+  db.MultiInsert(collectionName, documents, wo);
 
   // Now see if they were inserted correctly
   auto rs = db.ExecuteSelect("SELECT [user.name], binData from tweet;");
@@ -514,7 +515,6 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
   {
     //scope for database
     auto opt = TestUtils::GetDefaultDBOptions();
-    opt.SetCompressionEnabled(enableCompression);
     Database db(dbPath, dbName, opt);
     string filePath = GetSchemaFilePath("tweet.bfbs");
     string schema = File::Read(filePath);
@@ -543,8 +543,10 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
           TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
     }
 
-    db.MultiInsert(collectionName1, documents);
-    db.MultiInsert(collectionName2, documents);
+    WriteOptions wo;
+    wo.Compress(enableCompression);
+    db.MultiInsert(collectionName1, documents, wo);
+    db.MultiInsert(collectionName2, documents, wo);
     // db will be closed on next line because of scope
   }
 

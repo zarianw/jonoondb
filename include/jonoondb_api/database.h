@@ -163,11 +163,9 @@ class Options {
 
   Options(bool createDBIfMissing,
           size_t maxDataFileSize,
-          bool compressionEnabled,
           size_t memCleanupThresholdInBytes) :
       m_opaque(jonoondb_options_construct2(createDBIfMissing,
                                            maxDataFileSize,
-                                           compressionEnabled,
                                            memCleanupThresholdInBytes,
                                            ThrowOnError{})) {
   }
@@ -207,14 +205,6 @@ class Options {
   }
   bool GetCreateDBIfMissing() const {
     return jonoondb_options_getcreatedbifmissing(m_opaque);
-  }
-
-  void SetCompressionEnabled(bool value) {
-    jonoondb_options_setcompressionenabled(m_opaque, value);
-  }
-
-  bool GetCompressionEnabled() const {
-    return jonoondb_options_getcompressionenabled(m_opaque);
   }
 
   void SetMaxDataFileSize(size_t value) {
@@ -676,15 +666,18 @@ class Database {
                                        ThrowOnError{});
   }
 
-  void Insert(const std::string& collectionName, const Buffer& documentData) {
+  void Insert(const std::string& collectionName, const Buffer& documentData,
+              const WriteOptions& wo = WriteOptions()) {
     jonoondb_database_insert(m_opaque,
                              collectionName.c_str(),
                              documentData.GetOpaqueType(),
+                             wo.GetOpaquePtr(),
                              ThrowOnError{});
   }
 
   void MultiInsert(const std::string& collectionName,
-                   const std::vector<Buffer>& documents) {
+                   const std::vector<Buffer>& documents,
+                   const WriteOptions& wo = WriteOptions()) {
     static_assert(sizeof(Buffer) == sizeof(jonoondb_buffer_ptr),
                   "Critical Error. Size assumptions not correct for Buffer & jonoondb_buffer_ptr.");
     jonoondb_database_multi_insert(m_opaque,
@@ -692,6 +685,7 @@ class Database {
                                    collectionName.size(),
                                    reinterpret_cast<const jonoondb_buffer_ptr*>(documents.data()),
                                    documents.size(),
+                                   wo.GetOpaquePtr(),
                                    ThrowOnError{});
   }
 
