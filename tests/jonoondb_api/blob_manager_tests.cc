@@ -19,7 +19,7 @@ TEST(BlobManager, Constructor) {
   auto fileSize = 1024 * 1024;
   auto fnm =
       std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
-  BlobManager bm(move(fnm), false, fileSize, true);
+  BlobManager bm(move(fnm), fileSize, true);
 
   // make sure the file is there and it is the same size
   ASSERT_TRUE(boost::filesystem::exists(pathObj));
@@ -34,11 +34,11 @@ TEST(BlobManager, Put) {
   auto fileSize = 1024 * 1024;
   auto fnm =
       std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
-  BlobManager bm(move(fnm), false, fileSize, true);
+  BlobManager bm(move(fnm), fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
   BlobMetadata metadata;
-  bm.Put(buffer, metadata);
+  bm.Put(buffer, metadata, false);
   ASSERT_EQ(metadata.fileKey, 0);
   ASSERT_EQ(metadata.offset, 0);
 }
@@ -50,16 +50,16 @@ TEST(BlobManager, Putx2) {
   auto fileSize = 1024 * 1024;
   auto fnm =
       std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
-  BlobManager bm(move(fnm), false, fileSize, true);
+  BlobManager bm(move(fnm), fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
   BlobMetadata metadata;
-  bm.Put(buffer, metadata);
+  bm.Put(buffer, metadata, false);
   ASSERT_EQ(metadata.fileKey, 0);
   ASSERT_EQ(metadata.offset, 0);
 
   // Do another put and make sure the offset changes
-  bm.Put(buffer, metadata);
+  bm.Put(buffer, metadata, false);
   ASSERT_GT(metadata.offset, 0);
 }
 
@@ -69,11 +69,11 @@ void ExecuteGetTest(const std::string& dbName, bool enableCompression) {
   auto fileSize = 1024 * 1024;
   auto fnm =
       std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
-  BlobManager bm(move(fnm), enableCompression, fileSize, true);
+  BlobManager bm(move(fnm), fileSize, true);
   std::string data = "This is the string!";
   BufferImpl buffer(data.c_str(), data.size(), data.size());
   BlobMetadata metadata;
-  bm.Put(buffer, metadata);
+  bm.Put(buffer, metadata, enableCompression);
   BufferImpl outBuffer;
   bm.Get(metadata, outBuffer);
   ASSERT_EQ(buffer.GetLength(), outBuffer.GetLength());
@@ -84,7 +84,7 @@ void ExecuteGetTest(const std::string& dbName, bool enableCompression) {
   data = "This is the string2!";
   buffer.Resize(data.size());
   buffer.Copy(data.c_str(), data.size());
-  bm.Put(buffer, metadata);
+  bm.Put(buffer, metadata, enableCompression);
   bm.Get(metadata, outBuffer);
   ASSERT_EQ(buffer.GetLength(), outBuffer.GetLength());
   ASSERT_EQ(memcmp(buffer.GetData(), outBuffer.GetData(), buffer.GetLength()),
@@ -107,7 +107,7 @@ void ExecuteMultiputTest(const std::string& dbName, bool enableCompression) {
   auto fileSize = 1024 * 1024;
   auto fnm =
       std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
-  BlobManager bm(move(fnm), enableCompression, fileSize, true);
+  BlobManager bm(move(fnm), fileSize, true);
 
   const int SIZE = 10;
   std::vector<BlobMetadata> metadataArray(SIZE);
@@ -124,8 +124,8 @@ void ExecuteMultiputTest(const std::string& dbName, bool enableCompression) {
   for (auto& buf : bufferArray) {
     bufferPtrArray.push_back(&buf);
   }
-
-  bm.MultiPut(bufferPtrArray, metadataArray);
+  
+  bm.MultiPut(bufferPtrArray, metadataArray, enableCompression);
 
   BufferImpl outBuffer;
   for (size_t i = 0; i < SIZE; i++) {
@@ -155,7 +155,7 @@ void ExecuteMultiput_SwitchFileTest(const std::string& dbName,
   auto fileSize = 128;
   auto fnm =
       std::make_unique<FileNameManager>(dbPath, dbName, collectionName, true);
-  BlobManager bm(move(fnm), false, fileSize, true);
+  BlobManager bm(move(fnm), fileSize, true);
 
   const int SIZE = 20;
   std::vector<BlobMetadata> metadataArray(SIZE);
@@ -173,7 +173,7 @@ void ExecuteMultiput_SwitchFileTest(const std::string& dbName,
     bufferPtrArray.push_back(&buf);
   }
 
-  bm.MultiPut(bufferPtrArray, metadataArray);
+  bm.MultiPut(bufferPtrArray, metadataArray, false);
 
   // Make sure that we wrote to multiple files
   bool hasMutipleFiles = false;

@@ -54,26 +54,17 @@ class VectorIntegerIndexer final: public Indexer {
         || fieldType == FieldType::BASE_TYPE_INT64);
   }
 
-  void ValidateForInsert(const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
-                                 m_indexStat.GetFieldType());
-    } else {
-      document.VerifyFieldForRead(m_fieldNameTokens.back(),
-                                  m_indexStat.GetFieldType());
-    }
-  }
-
   void Insert(std::uint64_t documentID, const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      InsertInternal(documentID, *subDoc.get());
-    } else {
-      InsertInternal(documentID, document);
-    }
+    auto val = DocumentUtils::GetIntegerValue(document, m_subDoc,
+                                              m_fieldNameTokens);
+    assert(m_dataVector.size() == documentID);
+    assert(val <= std::numeric_limits<T>::max());
+    assert(val >= std::numeric_limits<T>::min());
+    // We create this class with int32_t as T for int32 and smaller types
+    // So we should never get a overflow situation for int32_t. However it is technically
+    // possible to abuse this situation hence adding the asserts above to catch any misuse
+    // atleast in debug build
+    m_dataVector.push_back(val);
   }
 
   const IndexStat& GetIndexStats() override {
@@ -166,18 +157,6 @@ class VectorIntegerIndexer final: public Indexer {
   }
 
  private:
-  void InsertInternal(std::uint64_t documentID, const Document& document) {
-    int64_t val = document.GetIntegerValueAsInt64(m_fieldNameTokens.back());
-    assert(m_dataVector.size() == documentID);
-    assert(val <= std::numeric_limits<T>::max());
-    assert(val >= std::numeric_limits<T>::min());
-    // We create this class with int32_t as T for int32 and smaller types
-    // So we should never get a overflow situation for int32_t. However it is technically
-    // possible to abuse this situation hence adding the asserts above to catch any misuse
-    // atleast in debug build
-    m_dataVector.push_back(val);
-  }
-
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     if (constraint.operandType == OperandType::INTEGER) {
@@ -256,5 +235,6 @@ class VectorIntegerIndexer final: public Indexer {
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::vector<T> m_dataVector;
+  std::unique_ptr<Document> m_subDoc;
 };
 } // namespace jonoondb_api

@@ -201,7 +201,6 @@ TEST(Database, Insert_SingleIndex) {
   db.Insert(collectionName, documentData);
 }
 
-
 vector<IndexInfo> CreateAllTypeIndexes(IndexType indexType) {
   vector<IndexInfo> indexes;
   const int indexLength = 26;
@@ -226,7 +225,7 @@ vector<IndexInfo> CreateAllTypeIndexes(IndexType indexType) {
 }
 
 void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
-                                       IndexType indexType) {
+                                       IndexType indexType, bool nullifyNestedField) {
   string collectionName = "CollectionName";
   string dbPath = g_TestRootDirectory;
   Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
@@ -244,18 +243,24 @@ void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
       documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
                                                             6, 7, 8.0f, 9,
                                                             10.0, "test",
-                                                            "test1", "test2");
+                                                            "test1", "test2",
+                                                            nullifyNestedField);
   db.Insert(collectionName, documentData);
 }
 
 TEST(Database, Insert_AllIndexTypes_EWAHCB) {
   string dbName = "Database_Insert_AllIndexTypes_EWAHCB";
-  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP);
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP, false);
 }
 
 TEST(Database, Insert_AllIndexTypes_Vector) {
   string dbName = "Database_Insert_AllIndexTypes_Vector";
-  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::VECTOR);
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::VECTOR, false);
+}
+
+TEST(Database, Insert_AllIndexTypes_EWAHCB_NestedNull) {
+  string dbName = "Insert_AllIndexTypes_EWAHCB_NestedNull";
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP, true);
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {
@@ -421,7 +426,6 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
   string collectionName = "tweet";
   string dbPath = g_TestRootDirectory;
   auto opt = TestUtils::GetDefaultDBOptions();
-  opt.SetCompressionEnabled(enableCompression);
   Database db(dbPath, dbName, opt);
 
   string filePath = GetSchemaFilePath("tweet.bfbs");
@@ -467,7 +471,9 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
         TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
   }
 
-  db.MultiInsert(collectionName, documents);
+  WriteOptions wo;
+  wo.Compress(enableCompression);
+  db.MultiInsert(collectionName, documents, wo);
 
   // Now see if they were inserted correctly
   auto rs = db.ExecuteSelect("SELECT [user.name], binData from tweet;");
@@ -509,7 +515,6 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
   {
     //scope for database
     auto opt = TestUtils::GetDefaultDBOptions();
-    opt.SetCompressionEnabled(enableCompression);
     Database db(dbPath, dbName, opt);
     string filePath = GetSchemaFilePath("tweet.bfbs");
     string schema = File::Read(filePath);
@@ -538,8 +543,10 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
           TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
     }
 
-    db.MultiInsert(collectionName1, documents);
-    db.MultiInsert(collectionName2, documents);
+    WriteOptions wo;
+    wo.Compress(enableCompression);
+    db.MultiInsert(collectionName1, documents, wo);
+    db.MultiInsert(collectionName2, documents, wo);
     // db will be closed on next line because of scope
   }
 
@@ -1685,6 +1692,38 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   ASSERT_EQ(rowCnt, 5);
 }
 
+TEST(Database, NullNestedField) {
+  string dbName = "NullNestedField";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
+
+  string filePath = GetSchemaFilePath("all_field_type.bfbs");
+  string schema = File::Read(filePath);
+  // auto indexes = CreateAllTypeIndexes(indexType);
+  std::vector<IndexInfo> indexes;
+
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
+
+  Buffer
+    documentData = TestUtils::GetAllFieldTypeObjectBuffer(1, 2, true, 4, 5,
+                                                          6, 7, 8.0f, 9,
+                                                          10.0, "test",
+                                                          "test1", "test2", true);
+  db.Insert(collectionName, documentData);
+
+  auto rs = db.ExecuteSelect("select field1, \"nestedField.field1\", "
+                             "\"nestedField.field2\" FROM CollectionName;");
+  while (rs.Next()) {
+    ASSERT_FALSE(rs.IsNull(rs.GetColumnIndex("field1")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("nestedField.field1")));
+    ASSERT_TRUE(rs.IsNull(rs.GetColumnIndex("nestedField.field2")));
+  }
+}
+
 TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   string dbName = "ExecuteSelect_ResultsetConsumption";
   string collectionName = "tweet";
@@ -1732,4 +1771,26 @@ TEST(Database, ExecuteSelect_ResultsetDoubleConsumption) {
   ASSERT_DOUBLE_EQ(rs.GetDouble(rs.GetColumnIndex("rating")), 0.0);
 
   rs.Close();
+}
+
+TEST(Database, Insert_Invalid) {
+  string dbName = "Insert_Invalid";
+  string collectionName = "CollectionName";
+  string dbPath = g_TestRootDirectory;
+  Database db(dbPath, dbName, TestUtils::GetDefaultDBOptions());
+
+  string filePath = GetSchemaFilePath("all_field_type.bfbs");
+  string schema = File::Read(filePath);  
+  vector<IndexInfo> indexes;
+
+  db.CreateCollection(collectionName,
+                      SchemaType::FLAT_BUFFERS,
+                      schema,
+                      indexes);
+
+  string str = "some invalid data buffer";
+  Buffer documentData(str.data(), str.length(), str.length());
+  
+  ASSERT_THROW(db.Insert(collectionName, documentData),
+               JonoonDBException);
 }

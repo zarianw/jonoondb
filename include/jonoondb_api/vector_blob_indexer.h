@@ -49,26 +49,12 @@ class VectorBlobIndexer final: public Indexer {
     return (fieldType == FieldType::BASE_TYPE_BLOB);
   }
 
-  void ValidateForInsert(const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
-                                 m_indexStat.GetFieldType());
-    } else {
-      document.VerifyFieldForRead(m_fieldNameTokens.back(),
-                                  m_indexStat.GetFieldType());
-    }
-  }
-
   void Insert(std::uint64_t documentID, const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      InsertInternal(documentID, *subDoc.get());
-    } else {
-      InsertInternal(documentID, document);
-    }
+    std::size_t size = 0;
+    auto data = DocumentUtils::GetBlobValue(document, m_subDoc,
+                                            m_fieldNameTokens, size);   
+    assert(m_dataVector.size() == documentID);
+    m_dataVector.push_back(BufferImpl(data, size, size));
   }
 
   const IndexStat& GetIndexStats() override {
@@ -167,25 +153,6 @@ class VectorBlobIndexer final: public Indexer {
   }
 
  private:
-  void InsertInternal(std::uint64_t documentID, const Document& document) {
-    switch (m_indexStat.GetFieldType()) {
-      case FieldType::BASE_TYPE_BLOB: {
-        std::size_t size = 0;
-        auto data = document.GetBlobValue(m_fieldNameTokens.back(), size);
-        assert(m_dataVector.size() == documentID);
-        m_dataVector.push_back(BufferImpl(data, size, size));
-        break;
-      }
-      default: {
-        // This can never happen
-        std::ostringstream ss;
-        ss << "FieldType " << GetFieldString(m_indexStat.GetFieldType())
-            << " is not valid for VectorBlobIndexer.";
-        throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
-      }
-    }    
-  }  
-
   // We follow the comparison rules between different type from sqlite given at
   // https://www.sqlite.org/datatype3.html#section_4_3
   // This ensures that the behaviour between index scans/lookups and table
@@ -279,5 +246,6 @@ class VectorBlobIndexer final: public Indexer {
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::vector<BufferImpl> m_dataVector;
+  std::unique_ptr<Document> m_subDoc;
 };
 } // namespace jonoondb_api

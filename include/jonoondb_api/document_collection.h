@@ -26,6 +26,7 @@ struct Constraint;
 class MamaJenniesBitmap;
 class BlobManager;
 struct FileInfo;
+class WriteOptionsImpl;
 
 class DocumentCollection final {
  public:
@@ -37,8 +38,9 @@ class DocumentCollection final {
                      std::unique_ptr<BlobManager> blobManager,
                      const std::vector<FileInfo>& dataFilesToLoad);
 
-  void Insert(const BufferImpl& documentData);
-  void MultiInsert(gsl::span<const BufferImpl*>& documents);
+  void Insert(const BufferImpl& documentData, const WriteOptionsImpl& wo);
+  void MultiInsert(gsl::span<const BufferImpl*>& documents,
+                   const WriteOptionsImpl& wo);
   const std::string& GetName();
   const std::shared_ptr<DocumentSchema>& GetDocumentSchema();
   bool
@@ -54,20 +56,16 @@ class DocumentCollection final {
 
   bool TryGetBlobFieldFromIndexer(std::uint64_t docID,
                                   const std::string& columnName,
-                                  BufferImpl& val) const;  
-  
-  std::int64_t GetDocumentFieldAsInteger
-      (std::uint64_t docID, const std::string& columnName,
-       const std::vector<std::string>& tokens, BufferImpl& buffer,
-       std::unique_ptr<Document>& document) const;
-  double GetDocumentFieldAsDouble
-      (std::uint64_t docID, const std::string& columnName,
-       const std::vector<std::string>& tokens, BufferImpl& buffer,
-       std::unique_ptr<Document>& document) const;
-  std::string GetDocumentFieldAsString
-      (std::uint64_t docID, const std::string& columnName,
-       const std::vector<std::string>& tokens, BufferImpl& buffer,
-       std::unique_ptr<Document>& document) const;
+                                  BufferImpl& val) const;
+  bool TryGetIntegerFieldFromIndexer(std::uint64_t docID,
+                                     const std::string& columnName,
+                                     std::int64_t& val) const;
+  bool TryGetFloatFieldFromIndexer(std::uint64_t docID,
+                                   const std::string& columnName,
+                                   double& val) const;
+  bool TryGetStringFieldFromIndexer(std::uint64_t docID,
+                                    const std::string& columnName,
+                                    std::string& val) const;    
   void GetDocumentFieldsAsIntegerVector(
       const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
       const std::vector<std::string>& tokens, std::vector<std::int64_t>& values)

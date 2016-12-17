@@ -49,6 +49,7 @@ struct jonoondb_cursor {
   int idSeq_index;
   BufferImpl buffer; // buffer to keep the current doc
   std::unique_ptr<Document> document;
+  std::unique_ptr<Document> subDocument;
   std::uint64_t documentID;
 };
 
@@ -148,8 +149,12 @@ static int jonoondb_create(sqlite3* db, void* udp, int argc,
 
   int code =
       sqlite3_declare_vtab(db, v->collectionInfo->createVTableStmt.c_str());
-  if (code != SQLITE_OK)
+  if (code != SQLITE_OK) {
+    std::string errMessage = sqlite3_errmsg(db);
+    AllocateAndCopy(errMessage, errmsg);
     return code;
+  }
+    
 
   *vtab = (sqlite3_vtab*) v.release();
 
@@ -190,9 +195,10 @@ static int jonoondb_bestindex(sqlite3_vtab* vtab, sqlite3_index_info* info) {
 
         IndexConstraintOperator
             op = MapSQLiteToJonoonDBOperator(info->aConstraint[i].op);
-        if (jdbVtab->collectionInfo->collection->TryGetBestIndex(jdbVtab->collectionInfo->columnsInfo[info->aConstraint[i].iColumn].columnName,
-                                                                 op,
-                                                                 indexStat)) {
+        if (jdbVtab->collectionInfo->collection->TryGetBestIndex(
+            jdbVtab->collectionInfo->columnsInfo[info->aConstraint[i].iColumn].columnName,
+            op,
+            indexStat)) {
           info->aConstraintUsage[i].argvIndex = ++argvIndex;
           info->aConstraintUsage[i].omit = 1;
           assert(sizeof(int) == sizeof(info->aConstraint[i].iColumn));
@@ -376,25 +382,6 @@ static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64* rowid) {
   return SQLITE_OK;
 }
 
-
-const char* GetBlobValue(std::unique_ptr<Document>& document,
-                         const std::vector<std::string>& tokens,
-                         std::size_t& size) {
-  if (tokens.size() > 1) {
-    auto subDoc = DocumentUtils::GetSubDocumentRecursively(*document,
-                                                           tokens);
-    return subDoc->GetBlobValue(tokens.back(), size);
-  } else {
-    if (tokens.back() == "_document") {
-      auto buffer = document->GetRawBuffer();
-      size = buffer->GetLength();
-      return buffer->GetData();
-    } else {
-      return document->GetBlobValue(tokens.back(), size);
-    }
-  }
-}
-
 void Sqlite3ResultBlob(sqlite3_context* ctx, const char* val,
                        std::size_t size) {
   if (val == nullptr || size == 0) {
@@ -424,23 +411,19 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
       std::string val;
       // First check if we have the current document already cached on our side
       if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
-        if (columnInfo->columnNameTokens.size() > 1) {
-          auto subDoc =
-              DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document,
-                                                       columnInfo->columnNameTokens);
-          val = subDoc->GetStringValue(columnInfo->columnNameTokens.back());
-        } else {
-          val =
-              jdbCursor->document->GetStringValue(columnInfo->columnNameTokens.back());
-        }
+        val = DocumentUtils::GetStringValue(*jdbCursor->document.get(),
+                                            jdbCursor->subDocument,
+                                            columnInfo->columnNameTokens);
       } else {
-        jdbCursor->documentID = currentDocID;
-        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsString(
-            currentDocID,
-            columnInfo->columnName,
-            columnInfo->columnNameTokens,
-            jdbCursor->buffer,
-            jdbCursor->document);
+        if (!jdbCursor->collectionInfo->collection->TryGetStringFieldFromIndexer(
+            currentDocID, columnInfo->columnName, val)) {
+          jdbCursor->collectionInfo->collection->GetDocumentAndBuffer(
+            currentDocID, jdbCursor->document, jdbCursor->buffer);
+          jdbCursor->documentID = currentDocID;
+          val = DocumentUtils::GetStringValue(*jdbCursor->document.get(),
+                                              jdbCursor->subDocument,
+                                              columnInfo->columnNameTokens);
+        }       
       }
 
       // First check if string is null
@@ -458,24 +441,19 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
       std::int64_t val;
       // First check if we have the current document already cached on our side
       if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
-        if (columnInfo->columnNameTokens.size() > 1) {
-          auto subDoc =
-              DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document,
-                                                       columnInfo->columnNameTokens);
-          val =
-              subDoc->GetIntegerValueAsInt64(columnInfo->columnNameTokens.back());
-        } else {
-          val =
-              jdbCursor->document->GetIntegerValueAsInt64(columnInfo->columnNameTokens.back());
-        }
+        val = DocumentUtils::GetIntegerValue(*jdbCursor->document.get(),
+                                             jdbCursor->subDocument,
+                                             columnInfo->columnNameTokens);
       } else {
-        jdbCursor->documentID = currentDocID;
-        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsInteger(
-            currentDocID,
-            columnInfo->columnName,
-            columnInfo->columnNameTokens,
-            jdbCursor->buffer,
-            jdbCursor->document);
+        if (!jdbCursor->collectionInfo->collection->TryGetIntegerFieldFromIndexer(
+          currentDocID, columnInfo->columnName, val)) {
+          jdbCursor->collectionInfo->collection->GetDocumentAndBuffer(
+            currentDocID, jdbCursor->document, jdbCursor->buffer);
+          jdbCursor->documentID = currentDocID;
+          val = DocumentUtils::GetIntegerValue(*jdbCursor->document.get(),
+                                               jdbCursor->subDocument,
+                                               columnInfo->columnNameTokens);
+        }
       }
 
       if (NullHelpers::IsNull(val)) {
@@ -487,23 +465,24 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
       // Get the blob value      
       std::size_t size = 0;
       if (jdbCursor->document && jdbCursor->documentID == currentDocID) {        
-        auto val = GetBlobValue(jdbCursor->document,
-                                columnInfo->columnNameTokens,
-                                size);  
+        auto val = DocumentUtils::GetBlobValue(*jdbCursor->document.get(),
+                                               jdbCursor->subDocument,
+                                               columnInfo->columnNameTokens,
+                                               size);
         Sqlite3ResultBlob(ctx, val, size);
       } else {
-        BufferImpl blobVal;
-        jdbCursor->document.reset();
-        jdbCursor->documentID = currentDocID;
+        BufferImpl blobVal;        
         if (jdbCursor->collectionInfo->collection->TryGetBlobFieldFromIndexer(
             currentDocID, columnInfo->columnName, blobVal)) {
           Sqlite3ResultBlob(ctx, blobVal.GetData(), blobVal.GetLength());
         } else {
           jdbCursor->collectionInfo->collection->GetDocumentAndBuffer(
-            currentDocID, jdbCursor->document, jdbCursor->buffer);
-          auto val = GetBlobValue(jdbCursor->document,
-                                  columnInfo->columnNameTokens,
-                                  size);
+            currentDocID, jdbCursor->document, jdbCursor->buffer); 
+          jdbCursor->documentID = currentDocID;
+          auto val = DocumentUtils::GetBlobValue(*jdbCursor->document.get(),
+                                                 jdbCursor->subDocument,
+                                                 columnInfo->columnNameTokens,
+                                                 size);
           Sqlite3ResultBlob(ctx, val, size);
         }        
       }      
@@ -512,24 +491,19 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
       double val;
       // First check if we have the current document already cached on our side
       if (jdbCursor->document && jdbCursor->documentID == currentDocID) {
-        if (columnInfo->columnNameTokens.size() > 1) {
-          auto subDoc =
-              DocumentUtils::GetSubDocumentRecursively(*jdbCursor->document,
-                                                       columnInfo->columnNameTokens);
-          val =
-              subDoc->GetFloatingValueAsDouble(columnInfo->columnNameTokens.back());
-        } else {
-          val =
-              jdbCursor->document->GetFloatingValueAsDouble(columnInfo->columnNameTokens.back());
-        }
+        val = DocumentUtils::GetFloatValue(*jdbCursor->document.get(),
+                                           jdbCursor->subDocument,
+                                           columnInfo->columnNameTokens);
       } else {
-        jdbCursor->documentID = currentDocID;
-        val = jdbCursor->collectionInfo->collection->GetDocumentFieldAsDouble(
-            currentDocID,
-            columnInfo->columnName,
-            columnInfo->columnNameTokens,
-            jdbCursor->buffer,
-            jdbCursor->document);
+        if (!jdbCursor->collectionInfo->collection->TryGetFloatFieldFromIndexer(
+          currentDocID, columnInfo->columnName, val)) {
+          jdbCursor->collectionInfo->collection->GetDocumentAndBuffer(
+            currentDocID, jdbCursor->document, jdbCursor->buffer);
+          jdbCursor->documentID = currentDocID;
+          val = DocumentUtils::GetFloatValue(*jdbCursor->document.get(),
+                                             jdbCursor->subDocument,
+                                             columnInfo->columnNameTokens);
+        }
       }
 
       if (NullHelpers::IsNull(val)) {

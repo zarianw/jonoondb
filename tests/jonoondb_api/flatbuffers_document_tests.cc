@@ -45,7 +45,7 @@ void CompareObjects(const FlatbuffersDocument& fbDoc,
                allFieldObj.field11()->c_str());
   // Check rest of the fields
   auto subDoc = fbDoc.AllocateSubDocument();
-  fbDoc.GetDocumentValue("nestedField", *subDoc);
+  ASSERT_TRUE(fbDoc.TryGetDocumentValue("nestedField", *subDoc));
   ASSERT_EQ(subDoc->GetIntegerValueAsInt64("field1"),
             allFieldObj.nestedField()->field1());
   ASSERT_EQ(subDoc->GetIntegerValueAsInt64("field2"),

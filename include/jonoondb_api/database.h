@@ -163,13 +163,9 @@ class Options {
 
   Options(bool createDBIfMissing,
           size_t maxDataFileSize,
-          bool compressionEnabled,
-          bool synchronous,
           size_t memCleanupThresholdInBytes) :
       m_opaque(jonoondb_options_construct2(createDBIfMissing,
                                            maxDataFileSize,
-                                           compressionEnabled,
-                                           synchronous,
                                            memCleanupThresholdInBytes,
                                            ThrowOnError{})) {
   }
@@ -211,28 +207,12 @@ class Options {
     return jonoondb_options_getcreatedbifmissing(m_opaque);
   }
 
-  void SetCompressionEnabled(bool value) {
-    jonoondb_options_setcompressionenabled(m_opaque, value);
-  }
-
-  bool GetCompressionEnabled() const {
-    return jonoondb_options_getcompressionenabled(m_opaque);
-  }
-
   void SetMaxDataFileSize(size_t value) {
     jonoondb_options_setmaxdatafilesize(m_opaque, value);
   }
 
   size_t GetMaxDataFileSize() const {
     return jonoondb_options_getmaxdatafilesize(m_opaque);
-  }
-
-  void SetSynchronous(bool value) {
-    jonoondb_options_setsynchronous(m_opaque, value);
-  }
-
-  bool GetSynchronous() const {
-    return jonoondb_options_getsynchronous(m_opaque);
   }
 
   void SetMemoryCleanupThreshold(std::size_t valueInBytes) {
@@ -249,6 +229,74 @@ class Options {
 
  private:
   options_ptr m_opaque;
+};
+
+//
+// WriteOptions
+//
+class WriteOptions {
+public:
+  //Default constructor that sets all the options to their default value
+  WriteOptions() : m_opaque(jonoondb_write_options_construct()) {
+  }
+
+  WriteOptions(bool compress, bool verifyDocuments) :
+    m_opaque(jonoondb_write_options_construct2(compress,
+                                               verifyDocuments)) {
+  }
+
+  WriteOptions(const WriteOptions& other) :
+    m_opaque(jonoondb_write_options_copy_construct(other.m_opaque)) {
+  }
+
+  friend void swap(WriteOptions& first, WriteOptions& second) {
+    using std::swap;
+    swap(first.m_opaque, second.m_opaque);
+  }
+
+  WriteOptions(WriteOptions&& other) : m_opaque(nullptr) {
+    swap(*this, other);
+  }
+
+  WriteOptions& operator=(const WriteOptions& other) {
+    WriteOptions copy(other);
+    swap(*this, copy);
+    return *this;
+  }
+
+  WriteOptions& operator=(WriteOptions&& other) {
+    swap(*this, other);
+    return *this;
+  }
+
+  ~WriteOptions() {
+    if (m_opaque != nullptr) {
+      jonoondb_write_options_destruct(m_opaque);
+    }
+  }
+
+  void Compress(bool value) {
+    jonoondb_write_options_set_compress(m_opaque, value);
+  }
+
+  bool Compress() const {
+    return jonoondb_write_options_get_compress(m_opaque);
+  }
+
+  void VerifyDocuments(bool value) {
+    jonoondb_write_options_set_verify_documents(m_opaque, value);
+  }
+
+  bool VerifyDocuments() const {
+    return jonoondb_write_options_get_verify_documents(m_opaque);
+  }
+
+  const write_options_ptr GetOpaquePtr() const {
+    return m_opaque;
+  }
+
+private:
+  write_options_ptr m_opaque;
 };
 
 //
@@ -618,15 +666,18 @@ class Database {
                                        ThrowOnError{});
   }
 
-  void Insert(const std::string& collectionName, const Buffer& documentData) {
+  void Insert(const std::string& collectionName, const Buffer& documentData,
+              const WriteOptions& wo = WriteOptions()) {
     jonoondb_database_insert(m_opaque,
                              collectionName.c_str(),
                              documentData.GetOpaqueType(),
+                             wo.GetOpaquePtr(),
                              ThrowOnError{});
   }
 
   void MultiInsert(const std::string& collectionName,
-                   const std::vector<Buffer>& documents) {
+                   const std::vector<Buffer>& documents,
+                   const WriteOptions& wo = WriteOptions()) {
     static_assert(sizeof(Buffer) == sizeof(jonoondb_buffer_ptr),
                   "Critical Error. Size assumptions not correct for Buffer & jonoondb_buffer_ptr.");
     jonoondb_database_multi_insert(m_opaque,
@@ -634,6 +685,7 @@ class Database {
                                    collectionName.size(),
                                    reinterpret_cast<const jonoondb_buffer_ptr*>(documents.data()),
                                    documents.size(),
+                                   wo.GetOpaquePtr(),
                                    ThrowOnError{});
   }
 

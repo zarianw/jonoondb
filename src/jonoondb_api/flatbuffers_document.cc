@@ -33,7 +33,8 @@ std::string FlatbuffersDocument::GetStringValue(const std::string& fieldName) co
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
-  if (m_table->CheckField(fieldDef->offset())) {
+  if (m_table->CheckField(fieldDef->offset())) {    
+    // strings can only occur in tables so no need to handle structs here
     return flatbuffers::GetAnyFieldS(*m_table, *fieldDef, nullptr);
   } else {
     return JONOONDB_NULL_STR;
@@ -55,6 +56,7 @@ const char* FlatbuffersDocument::GetStringValue(const std::string& fieldName,
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  // strings can only occur in tables so no need to handle structs here
   auto val = flatbuffers::GetFieldS(*m_table, *fieldDef);
   size = val->size();
   return val->c_str();
@@ -77,6 +79,10 @@ std::int64_t FlatbuffersDocument::GetIntegerValueAsInt64(const std::string& fiel
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  if (m_obj->is_struct()) {
+    return flatbuffers::GetAnyFieldI(*m_struct, *fieldDef);
+  }
+
   return flatbuffers::GetAnyFieldI(*m_table, *fieldDef);
 }
 
@@ -97,45 +103,72 @@ double FlatbuffersDocument::GetFloatingValueAsDouble(const std::string& fieldNam
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  if (m_obj->is_struct()) {
+    return flatbuffers::GetAnyFieldF(*m_struct, *fieldDef);
+  }
+
   return flatbuffers::GetAnyFieldF(*m_table, *fieldDef);
 }
 
-void FlatbuffersDocument::GetDocumentValue(const std::string& fieldName,
-                                           Document& val) const {
+bool FlatbuffersDocument::TryGetDocumentValue(const std::string& fieldName,
+                                              Document& val) const {  
+  auto fieldDef = m_obj->fields()->LookupByKey(fieldName.c_str());
+  if (fieldDef == nullptr) {
+    throw JonoonDBException(GetMissingFieldErrorString(fieldName),
+                            __FILE__, __func__, __LINE__);
+  }
+
+  if (fieldDef->type()->base_type() != reflection::BaseType::Obj) {
+    std::ostringstream ss;
+    ss << "Field " << fieldName << " has FieldType "
+      << fieldDef->type()->base_type()
+      << " and it cannot be safely converted into a document value.";
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  auto obj = reflection::GetSchema(
+    m_fbDcumentSchema->GetSchemaText().c_str())->
+    objects()->Get(fieldDef->type()->index());
+  assert(obj != nullptr);
+
+  Table* table = nullptr;
+  Struct* structure = nullptr;
+
+  if (obj->is_struct()) {
+    if (m_obj->is_struct()) {
+      structure = flatbuffers::GetFieldStruct(*m_struct, *fieldDef);      
+    }
+    else {
+      structure = flatbuffers::GetFieldStruct(*m_table, *fieldDef);
+    }
+
+    if (!structure) {
+      // this means that this nested field is null
+      return false;
+    }
+  } else {
+    table = flatbuffers::GetFieldT(*m_table, *fieldDef);
+    if (!table) {
+      // this means that this nested field is null
+      return false;
+    }
+  }
+
   try {
     // Todo: dynamic_cast can be expensive, this should be optimized.
     FlatbuffersDocument& fbDoc = dynamic_cast<FlatbuffersDocument&>(val);
-    auto fieldDef = m_obj->fields()->LookupByKey(fieldName.c_str());
-    if (fieldDef == nullptr) {
-      throw JonoonDBException(GetMissingFieldErrorString(fieldName),
-                              __FILE__, __func__, __LINE__);
-    }
-
-    if (fieldDef->type()->base_type() != reflection::BaseType::Obj) {
-      std::ostringstream ss;
-      ss << "Field " << fieldName << " has FieldType "
-          << fieldDef->type()->base_type()
-          << " and it cannot be safely converted into a document value.";
-      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
-    }
-
-    auto obj = reflection::GetSchema(
-        m_fbDcumentSchema->GetSchemaText().c_str())->
-        objects()->Get(fieldDef->type()->index());
-    assert(obj != nullptr);
-
-    auto table = flatbuffers::GetFieldT(*m_table, *fieldDef);
-    assert(table != nullptr);
-
     fbDoc.SetMembers(m_fbDcumentSchema, m_buffer,
-                     const_cast<reflection::Object*>(obj), table);
+                     const_cast<reflection::Object*>(obj), table,
+                     structure);
   } catch (std::bad_cast) {
     // This means that the passed in doc cannot be casted to FlatbuffersDocument    
     string errorMsg = "Argument val cannot be casted to underlying document "
-        "implementation i.e. FlatbuffersDocument. "
-        "Make sure you are creating the val by calling AllocateDocument call.";
+      "implementation i.e. FlatbuffersDocument. "
+      "Make sure you are creating the val by calling AllocateDocument call.";
     throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
   }
+
+  return true;
 }
 
 const char* FlatbuffersDocument::GetBlobValue(const std::string& fieldName,
@@ -155,6 +188,7 @@ const char* FlatbuffersDocument::GetBlobValue(const std::string& fieldName,
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
+  // vectors can only occur in tables so no need to handle structs
   auto val = flatbuffers::GetFieldV<char>(*m_table, *fieldDef);
   if (val) {
     size = val->size();
@@ -206,11 +240,238 @@ const BufferImpl* FlatbuffersDocument::GetRawBuffer() const {
 void FlatbuffersDocument::SetMembers(FlatbuffersDocumentSchema* schema,
                                      BufferImpl* buffer,
                                      reflection::Object* obj,
-                                     flatbuffers::Table* table) {
+                                     flatbuffers::Table* table,
+                                     flatbuffers::Struct* structure) {
   m_fbDcumentSchema = schema;
   m_buffer = buffer;
   m_obj = obj;
   m_table = table;
+  m_struct = structure;
+}
+
+bool VerifyStruct(flatbuffers::Verifier& v,
+                  const flatbuffers::Table* parentTable,
+                  uint16_t fieldOffset,
+                  const reflection::Object* obj,
+                  bool isRequired) {
+  assert(obj->is_struct());
+  auto offset = parentTable->GetOptionalFieldOffset(fieldOffset);
+  if (!isRequired) {
+    // Check the actual field.
+    return !offset || v.Verify(reinterpret_cast<const uint8_t*>(parentTable)
+                               + offset, obj->bytesize());
+  } else {
+    return offset && v.Verify(reinterpret_cast<const uint8_t*>(parentTable)
+                              + offset, obj->bytesize());
+  }
+}
+
+bool VerifyVectorOfStructs(flatbuffers::Verifier& v,
+                           const flatbuffers::Table* parentTable,
+                           uint16_t fieldOffset,
+                           const reflection::Object* obj,
+                           bool isRequired) {
+  auto p = parentTable->GetPointer<const uint8_t*>(fieldOffset);
+  const uint8_t* end;
+  if (!isRequired) {
+    return !p || v.VerifyVector(p, obj->bytesize(), &end);
+  } else {
+    return p && v.VerifyVector(p, obj->bytesize(), &end);
+  }
+}
+
+bool FlatbuffersDocument::VerifyVector(flatbuffers::Verifier& v,
+                                       const flatbuffers::Table* table,
+                                       const reflection::Field* vecField) const {
+  assert(vecField->type()->base_type() == reflection::BaseType::Vector);
+  if (!table->VerifyField<uoffset_t>(v, vecField->offset()))
+    return false;
+
+  switch (vecField->type()->element()) {
+    case reflection::BaseType::None:
+      assert(false);
+      break;
+    case reflection::BaseType::UType:
+      return v.Verify(flatbuffers::GetFieldV<uint8_t>(*table, *vecField));
+    case reflection::BaseType::Bool:
+    case reflection::BaseType::Byte:
+    case reflection::BaseType::UByte:
+      return v.Verify(flatbuffers::GetFieldV<int8_t>(*table, *vecField));
+    case reflection::BaseType::Short:
+    case reflection::BaseType::UShort:
+      return v.Verify(flatbuffers::GetFieldV<int16_t>(*table, *vecField));
+    case reflection::BaseType::Int:
+    case reflection::BaseType::UInt:
+      return v.Verify(flatbuffers::GetFieldV<int32_t>(*table, *vecField));
+    case reflection::BaseType::Long:
+    case reflection::BaseType::ULong:
+      return v.Verify(flatbuffers::GetFieldV<int64_t>(*table, *vecField));
+    case reflection::BaseType::Float:
+      return v.Verify(flatbuffers::GetFieldV<float>(*table, *vecField));
+    case reflection::BaseType::Double:
+      return v.Verify(flatbuffers::GetFieldV<double>(*table, *vecField));
+    case reflection::BaseType::String: {
+      auto vecString =
+        flatbuffers::GetFieldV<flatbuffers::
+        Offset<flatbuffers::String>>(*table, *vecField);
+      if (v.Verify(vecString) && v.VerifyVectorOfStrings(vecString)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    case reflection::BaseType::Vector:
+      assert(false);
+      break;
+    case reflection::BaseType::Obj: {
+      auto obj = reflection::GetSchema(
+        m_fbDcumentSchema->GetSchemaText().c_str())->
+        objects()->Get(vecField->type()->index());
+
+      if (obj->is_struct()) {
+        if (!VerifyVectorOfStructs(v, table, vecField->offset(), obj,
+                                   vecField->required())) {
+          return false;
+        }
+      } else {
+        auto vec =
+          flatbuffers::GetFieldV<flatbuffers::
+          Offset<flatbuffers::Table>>(*table, *vecField);
+        if (!v.Verify(vec))
+          return false;
+        if (vec) {
+          for (uoffset_t j = 0; j < vec->size(); j++) {
+            if (!VerifyObject(v, vec->Get(j), obj, true)) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+    case reflection::BaseType::Union:
+      assert(false);
+      break;
+    default:
+      assert(false);
+      break;
+  }
+
+  return false;
+}
+
+bool FlatbuffersDocument::VerifyObject(flatbuffers::Verifier& v,
+                                       const flatbuffers::Table* table,
+                                       const reflection::Object* obj,
+                                       bool isRequired) const {
+  if (!table) {
+    if (!isRequired)
+      return true;
+    else
+      return false;
+  }
+
+  if (!table->VerifyTableStart(v))
+    return false;
+
+  for (int i = 0; i < obj->fields()->size(); i++) {
+    auto fieldDef = obj->fields()->Get(i);
+    switch (fieldDef->type()->base_type()) {
+      case reflection::BaseType::None:
+        assert(false);
+        break;
+      case reflection::BaseType::UType:
+        if (!table->VerifyField<uint8_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Bool:
+      case reflection::BaseType::Byte:
+      case reflection::BaseType::UByte:
+        if (!table->VerifyField<int8_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Short:
+      case reflection::BaseType::UShort:
+        if (!table->VerifyField<int16_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Int:
+      case reflection::BaseType::UInt:
+        if (!table->VerifyField<int32_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Long:
+      case reflection::BaseType::ULong:
+        if (!table->VerifyField<int64_t>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Float:
+        if (!table->VerifyField<float>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::Double:
+        if (!table->VerifyField<double>(v, fieldDef->offset()))
+          return false;
+        break;
+      case reflection::BaseType::String:
+        if (!table->VerifyField<uoffset_t>(v, fieldDef->offset()) ||
+            !v.Verify(flatbuffers::GetFieldS(*table, *fieldDef))) {
+          return false;
+        }
+        break;
+      case reflection::BaseType::Vector:
+        if (!VerifyVector(v, table, fieldDef))
+          return false;
+        break;
+      case reflection::BaseType::Obj: {
+        auto obj = reflection::GetSchema(
+          m_fbDcumentSchema->GetSchemaText().c_str())->
+          objects()->Get(fieldDef->type()->index());
+        if (obj->is_struct()) {
+          if (!VerifyStruct(v, table, fieldDef->offset(), obj,
+                            fieldDef->required())) {
+            return false;
+          }
+        } else {
+          if (!VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef),
+                            obj, fieldDef->required())) {
+            return false;
+          }
+        }
+        break;
+      }
+      case reflection::BaseType::Union: {
+        //  get union type from the prev field 
+        voffset_t utypeOffset = fieldDef->offset() - sizeof(voffset_t);
+        auto utype = table->GetField<uint8_t>(utypeOffset, 0);
+        if (utype != 0) {
+          // Means we have this union field present
+          auto fbEnum = reflection::GetSchema(
+            m_fbDcumentSchema->GetSchemaText().c_str())->
+            enums()->Get(fieldDef->type()->index());
+          auto obj = fbEnum->values()->Get(utype)->object();
+          if (!VerifyObject(v, flatbuffers::GetFieldT(*table, *fieldDef),
+                            obj, fieldDef->required())) {
+            return false;
+          }
+        }
+        break;
+      }
+      default:
+        assert(false);
+        break;
+    }
+  }
+
+  return true;
+}
+
+bool FlatbuffersDocument::Verify() const {
+  flatbuffers::Verifier v(
+      reinterpret_cast<const uint8_t*>(m_buffer->GetData()),
+      m_buffer->GetLength());
+
+  return VerifyObject(v, m_table, m_obj, true);
 }
 
 FlatbuffersDocument::FlatbuffersDocument() {

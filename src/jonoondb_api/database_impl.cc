@@ -17,6 +17,7 @@
 #include "document_collection_dictionary.h"
 #include "index_info_impl.h"
 #include "proc_utils.h"
+#include "jonoondb_api/write_options_impl.h"
 
 using namespace jonoondb_api;
 
@@ -160,7 +161,8 @@ void DatabaseImpl::CreateCollection(const std::string& name,
 }
 
 void DatabaseImpl::Insert(const char* collectionName,
-                          const BufferImpl& documentData) {
+                          const BufferImpl& documentData,
+                          const WriteOptionsImpl& wo) {
   // Todo (zarian): Check what is a clean way to avoid the string copy from char * to string
   auto item = m_collectionContainer.find(collectionName);
   if (item == m_collectionContainer.end()) {
@@ -170,11 +172,12 @@ void DatabaseImpl::Insert(const char* collectionName,
   }
 
   // Add data in collection
-  item->second->Insert(documentData);
+  item->second->Insert(documentData, wo);
 }
 
 void DatabaseImpl::MultiInsert(const boost::string_ref& collectionName,
-                               gsl::span<const BufferImpl*>& documents) {
+                               gsl::span<const BufferImpl*>& documents,
+                               const WriteOptionsImpl& wo) {
   auto item = m_collectionContainer.find(collectionName);
   if (item == m_collectionContainer.end()) {
     std::ostringstream ss;
@@ -183,7 +186,7 @@ void DatabaseImpl::MultiInsert(const boost::string_ref& collectionName,
   }
 
   // Add data in collection
-  item->second->MultiInsert(documents);
+  item->second->MultiInsert(documents, wo);
 }
 
 ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {
@@ -203,9 +206,8 @@ std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
                                                name, false);
 
   auto bm = std::make_unique<BlobManager>(move(fnm),
-                                          m_options.GetCompressionEnabled(),
                                           m_options.GetMaxDataFileSize(),
-                                          m_options.GetSynchronous());
+                                          true);
 
   return std::make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(),
                                               name,

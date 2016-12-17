@@ -17,6 +17,7 @@ namespace jonoondb_api {
 class BufferImpl;
 class IndexInfoImpl;
 class ResultSetImpl;
+class WriteOptionsImpl;
 enum class SchemaType
     : std::int32_t;
 
@@ -33,9 +34,11 @@ class DatabaseImpl final {
                         SchemaType schemaType,
                         const std::string& schema,
                         const std::vector<IndexInfoImpl*>& indexes);
-  void Insert(const char* collectionName, const BufferImpl& documentData);
+  void Insert(const char* collectionName, const BufferImpl& documentData,
+              const WriteOptionsImpl& wo);
   void MultiInsert(const boost::string_ref& collectionName,
-                   gsl::span<const BufferImpl*>& documents);
+                   gsl::span<const BufferImpl*>& documents,
+                   const WriteOptionsImpl& wo);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
 
  private:

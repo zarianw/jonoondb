@@ -23,7 +23,7 @@ class FlatbuffersDocument final: public Document {
       GetIntegerValueAsInt64(const std::string& fieldName) const override;
   double GetFloatingValueAsDouble(const std::string& fieldName) const override;
 
-  void GetDocumentValue(const std::string& fieldName, Document& val) const
+  bool TryGetDocumentValue(const std::string& fieldName, Document& val) const
       override;
 
   const char* GetBlobValue(const std::string& fieldName,
@@ -34,16 +34,23 @@ class FlatbuffersDocument final: public Document {
       override;
 
   void SetMembers(FlatbuffersDocumentSchema* schema, BufferImpl* buffer,
-                  reflection::Object* obj, flatbuffers::Table* table);
+                  reflection::Object* obj, flatbuffers::Table* table,
+                  flatbuffers::Struct* structure);
   const BufferImpl* GetRawBuffer() const override;
+  bool Verify() const override;
 
  private:
   FlatbuffersDocument();
+  bool VerifyVector(flatbuffers::Verifier& v, const flatbuffers::Table* table,
+                    const reflection::Field* vecField) const;
+  bool VerifyObject(flatbuffers::Verifier& v, const flatbuffers::Table* table,
+                    const reflection::Object* obj, bool isRequired) const;
   std::string GetMissingFieldErrorString(const std::string& fieldName) const;
   FlatbuffersDocumentSchema* m_fbDcumentSchema = nullptr;
   BufferImpl* m_buffer = nullptr;
   reflection::Object* m_obj = nullptr;
   flatbuffers::Table* m_table = nullptr;
+  flatbuffers::Struct* m_struct = nullptr;
 };
 
 }  // jonoondb_api
