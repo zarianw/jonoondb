@@ -61,25 +61,17 @@ class EWAHCompressedBitmapIndexerInteger final: public Indexer {
         || fieldType == FieldType::BASE_TYPE_INT64);
   }
 
-  void ValidateForInsert(const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      subDoc->VerifyFieldForRead(m_fieldNameTokens.back(),
-                                 m_indexStat.GetFieldType());
-    } else {
-      document.VerifyFieldForRead(m_fieldNameTokens.back(),
-                                  m_indexStat.GetFieldType());
-    }
-  }
-
   void Insert(std::uint64_t documentID, const Document& document) override {
-    if (m_fieldNameTokens.size() > 1) {
-      auto subDoc =
-          DocumentUtils::GetSubDocumentRecursively(document, m_fieldNameTokens);
-      InsertInternal(documentID, *subDoc.get());
+    auto val = DocumentUtils::GetIntegerValue(document,
+                                              m_subDoc,
+                                              m_fieldNameTokens);
+    auto compressedBitmap = m_compressedBitmaps.find(val);
+    if (compressedBitmap == m_compressedBitmaps.end()) {
+      auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
+      bm->Add(documentID);
+      m_compressedBitmaps[val] = bm;
     } else {
-      InsertInternal(documentID, document);
+      compressedBitmap->second->Add(documentID);
     }
   }
 
@@ -170,19 +162,6 @@ class EWAHCompressedBitmapIndexerInteger final: public Indexer {
                                      std::vector<std::string>& fieldNameTokens)
       : m_indexStat(indexStat),
         m_fieldNameTokens(fieldNameTokens) {
-  }
-
-  void InsertInternal(std::uint64_t documentID, const Document& document) {
-    int64_t val = document.GetIntegerValueAsInt64(m_fieldNameTokens.back());
-
-    auto compressedBitmap = m_compressedBitmaps.find(val);
-    if (compressedBitmap == m_compressedBitmaps.end()) {
-      auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
-      bm->Add(documentID);
-      m_compressedBitmaps[val] = bm;
-    } else {
-      compressedBitmap->second->Add(documentID);
-    }
   }
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
@@ -286,5 +265,6 @@ class EWAHCompressedBitmapIndexerInteger final: public Indexer {
   std::vector<std::string> m_fieldNameTokens;
   std::map<std::int64_t, std::shared_ptr<MamaJenniesBitmap>>
       m_compressedBitmaps;
+  std::unique_ptr<Document> m_subDoc;
 };
 }  // namespace jonoondb_api

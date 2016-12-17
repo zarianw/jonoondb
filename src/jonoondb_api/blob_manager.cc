@@ -151,11 +151,9 @@ int GetCompressedSize(std::uint64_t size) {
 }
 
 BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager,
-                         bool compressionEnabled,
                          size_t maxDataFileSize,
                          bool synchronous)
     : m_fileNameManager(move(fileNameManager)),
-      m_compressionEnabled(compressionEnabled),
       m_maxDataFileSize(maxDataFileSize), m_currentBlobFile(nullptr),
       m_synchronous(synchronous),
       m_readerFiles(DEFAULT_MEM_MAP_LRU_CACHE_SIZE) {
@@ -183,16 +181,15 @@ BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager,
   m_readerFiles.Add(m_currentBlobFileInfo.fileKey, m_currentBlobFile, false);
 }
 
-void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata) {
+void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata,
+                      bool compress) {
   //Lock will be acquired on the next line and released when lock goes out of scope
   lock_guard<mutex> lock(m_writeMutex);
-  size_t bytesWritten = 0;
   size_t currentOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();
-  int compSize =
-      m_compressionEnabled ? GetCompressedSize(blob.GetLength()) : -1;
+  int compSize = compress ? GetCompressedSize(blob.GetLength()) : -1;
   int headerSize = BlobHeader::GetHeaderSize(blob.GetLength(), compSize);
   auto estimatedBytesToWrite = headerSize +
-      (m_compressionEnabled ? compSize : blob.GetLength());
+      (compress ? compSize : blob.GetLength());
 
   if (estimatedBytesToWrite + currentOffsetInFile > m_maxDataFileSize) {
     SwitchToNewDataFile();
@@ -200,7 +197,7 @@ void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata) {
   }
 
   try {
-    PutInternal(blob, blobMetadata, bytesWritten);
+    size_t bytesWritten = PutInternal(blob, blobMetadata, compress);
     //Flush the contents to ensure durability
     Flush(currentOffsetInFile, bytesWritten);
   } catch (...) {
@@ -214,7 +211,8 @@ void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata) {
 }
 
 void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs,
-                           std::vector<BlobMetadata>& blobMetadataVec) {
+                           std::vector<BlobMetadata>& blobMetadataVec,
+                           bool compress) {
   assert(blobs.size() == blobMetadataVec.size());
   size_t bytesWritten = 0, totalBytesWrittenInFile = 0;
   // Lock will be acquired on the next line and released when lock goes out of scope  
@@ -224,10 +222,10 @@ void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs,
   for (int i = 0; i < blobs.size(); i++) {
     size_t currentOffset = m_currentBlobFile->GetCurrentWriteOffset();
     int compSize =
-        m_compressionEnabled ? GetCompressedSize(blobs[i]->GetLength()) : -1;
+        compress ? GetCompressedSize(blobs[i]->GetLength()) : -1;
     int headerSize = BlobHeader::GetHeaderSize(blobs[i]->GetLength(), compSize);
     auto estimatedBytesToWrite = headerSize +
-        (m_compressionEnabled ? compSize : blobs[i]->GetLength());
+        (compress ? compSize : blobs[i]->GetLength());
     if (estimatedBytesToWrite + currentOffset > m_maxDataFileSize) {
       // The file size will exceed the m_maxDataFileSize if blob is written in the current file
       // First flush the contents if required
@@ -246,7 +244,7 @@ void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs,
     }
 
     try {
-      PutInternal(*blobs[i], blobMetadataVec[i], bytesWritten);
+      bytesWritten = PutInternal(*blobs[i], blobMetadataVec[i], compress);
     } catch (...) {
       m_currentBlobFile->SetCurrentWriteOffset(baseOffsetInFile);
       throw;
@@ -407,16 +405,17 @@ void BlobManager::SwitchToNewDataFile() {
   m_readerFiles.Add(m_currentBlobFileInfo.fileKey, m_currentBlobFile, false);
 }
 
-void BlobManager::PutInternal(const BufferImpl& blob,
-                              BlobMetadata& blobMetadata,
-                              size_t& bytesWritten) {
+size_t BlobManager::PutInternal(const BufferImpl& blob,
+                                BlobMetadata& blobMetadata,
+                                bool compress) {
   BlobHeader header;
   header.version = kBlobHeaderVersion;
-  header.compressed = m_compressionEnabled;
+  header.compressed = compress;
+  size_t bytesWritten = 0;
   // Record the current offset.
   size_t offset = m_currentBlobFile->GetCurrentWriteOffset();
   // Compress if required and capture the storage size of blob
-  if (m_compressionEnabled) {
+  if (compress) {
     auto maxCompSize = GetCompressedSize(blob.GetLength());
     if (maxCompSize > m_compBuffer.GetCapacity()) {
       m_compBuffer.Resize(maxCompSize);
@@ -452,4 +451,6 @@ void BlobManager::PutInternal(const BufferImpl& blob,
   // 6. Fill and return blobMetaData
   blobMetadata.offset = offset;
   blobMetadata.fileKey = m_currentBlobFileInfo.fileKey;
+
+  return bytesWritten;
 }

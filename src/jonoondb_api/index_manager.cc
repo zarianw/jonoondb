@@ -48,17 +48,6 @@ void IndexManager::CreateIndex(const IndexInfoImpl& indexInfo,
   (*m_columnIndexerMap)[indexInfo.GetColumnName()].push_back(move(indexer));
 }
 
-void IndexManager::ValidateForIndexing(const std::vector<std::unique_ptr<
-    Document>>& documents) {
-  for (const auto& doc : documents) {
-    for (const auto& columnIndexerMapPair : *m_columnIndexerMap) {
-      for (const auto& indexer : columnIndexerMapPair.second) {
-        indexer->ValidateForInsert(*doc);
-      }
-    }
-  }
-}
-
 std::uint64_t IndexManager::IndexDocuments(DocumentIDGenerator& documentIDGenerator,
                                            const std::vector<std::unique_ptr<
                                                Document>>& documents) {

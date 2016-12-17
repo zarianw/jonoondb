@@ -21,6 +21,7 @@
 #include "jonoondb_utils/stopwatch.h"
 #include "jonoondb_api/file.h"
 #include "jonoondb_utils/varint.h"
+#include "jonoondb_api/write_options_impl.h"
 
 namespace po = boost::program_options;
 using namespace std;
@@ -129,7 +130,6 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
     cout << "Loading DB ..." << endl;
 
     OptionsImpl opt;
-    opt.SetCompressionEnabled(true);
     //opt.SetMaxDataFileSize(1024 * 1024 * 128);
     //opt.SetMemoryCleanupThreshold(1024 * 1024 * 512);
     Stopwatch loadSW(true);
@@ -302,6 +302,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             swapEndianess = true;
           }
 
+          WriteOptionsImpl wo(true, true);
           while (bytesRead < fileSize) {
             memcpy(&size, currentPostion, sizeof(std::uint32_t));
             if (swapEndianess) {
@@ -320,7 +321,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
                 docs.push_back(&item);
               }
               gsl::span<const BufferImpl*> docSpan(docs.data(), docs.size());
-              db.MultiInsert(tokens[1], docSpan);
+              db.MultiInsert(tokens[1], docSpan, wo);
               documents.clear();
 
               // Remap to not use too much memory
@@ -344,7 +345,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
               docs.push_back(&item);
             }
             gsl::span<const BufferImpl*> docSpan(docs.data(), docs.size());
-            db.MultiInsert(tokens[1], docSpan);            
+            db.MultiInsert(tokens[1], docSpan, wo);            
           }
 
           if (isTimerOn) {
