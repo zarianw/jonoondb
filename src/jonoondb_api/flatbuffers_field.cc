@@ -46,7 +46,7 @@ void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
     throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
   }
 
-  if (index > GetSubFieldCount() - 1 || index < 0) {
+  if (index > GetSubFieldCount() - 1) {
     throw IndexOutOfBoundException("Index was outside the bounds of the array.",
                                    __FILE__, __func__, __LINE__);
   }

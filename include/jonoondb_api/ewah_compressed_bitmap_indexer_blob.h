@@ -221,7 +221,7 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-  std::int64_t m_lastInsertedDocId;
+  std::uint64_t m_lastInsertedDocId;
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::map<BufferImpl, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
