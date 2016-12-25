@@ -14,7 +14,7 @@ extern SchemaType ToSchemaType(std::int32_t type);
 
 enum class IndexType
     : std::int32_t {
-  EWAH_COMPRESSED_BITMAP = 1,
+  INVERTED_COMPRESSED_BITMAP = 1,
   VECTOR = 2,
 };
 JONOONDB_API_EXPORT extern IndexType ToIndexType(std::int32_t type);
