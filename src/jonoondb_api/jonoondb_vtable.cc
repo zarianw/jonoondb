@@ -587,54 +587,28 @@ static int jonoondb_column_vec(sqlite3_vtab_cursor* cur,
 }
 
 static int jonoondb_rename(sqlite3_vtab* vtab, const char* newname) {
-  // printf("RENAME\n");
-  return SQLITE_OK;
+  return SQLITE_ERROR;
 }
 
 static int jonoondb_update(sqlite3_vtab* vtab, int argc, sqlite3_value** argv,
                            sqlite_int64* rowid) {
-  printf("UPDATE: ");
-
-  if (argc == 1) {
-    printf("DELETE %d\n", sqlite3_value_int(argv[0]));
-
-    return SQLITE_OK;
-  }
-
-  if (sqlite3_value_type(argv[0]) == SQLITE_NULL) {
-    if (sqlite3_value_type(argv[1]) == SQLITE_NULL) {
-      printf("INSERT -\n");
-
-      *rowid = 10;
-    } else {
-      printf("INSERT %d\n", sqlite3_value_int(argv[1]));
-    }
-    return SQLITE_OK;
-  }
-
-  printf("UPDATE %d %d\n", sqlite3_value_int(argv[0]),
-         sqlite3_value_int(argv[1]));
-  return SQLITE_OK;
+  return SQLITE_ERROR;
 }
 
 static int jonoondb_begin(sqlite3_vtab* vtab) {
-  // printf("BEGIN\n");
-  return SQLITE_OK;
+  return SQLITE_ERROR;
 }
 
 static int jonoondb_sync(sqlite3_vtab* vtab) {
-  //printf("SYNC\n");
-  return SQLITE_OK;
+  return SQLITE_ERROR;
 }
 
 static int jonoondb_commit(sqlite3_vtab* vtab) {
-  //printf("COMMIT\n");
-  return SQLITE_OK;
+  return SQLITE_ERROR;
 }
 
 static int jonoondb_rollback(sqlite3_vtab* vtab) {
-  // printf("ROLLBACK\n");
-  return SQLITE_OK;
+  return SQLITE_ERROR;
 }
 
 static int jonoondb_xFindFunction(
@@ -644,6 +618,7 @@ static int jonoondb_xFindFunction(
     void (** pxFunc)(sqlite3_context*, int, sqlite3_value**), /* OUT: Result */
     void** ppArg /* Unused */
 ) {
+  return SQLITE_ERROR;
 }
 
 static sqlite3_module jonoondb_mod = {
@@ -660,19 +635,21 @@ static sqlite3_module jonoondb_mod = {
     jonoondb_eof,           /* xEof()          */
     jonoondb_column,        /* xColumn()       */
     jonoondb_rowid,         /* xRowid()        */
-    jonoondb_update,        /* xUpdate()       */
-    jonoondb_begin,         /* xBegin()        */
-    jonoondb_sync,          /* xSync()         */
-    jonoondb_commit,        /* xCommit()       */
-    jonoondb_rollback,      /* xRollback()     */
+    NULL,                   /* xUpdate()       */
+    NULL,                   /* xBegin()        */
+    NULL,                   /* xSync()         */
+    NULL,                   /* xCommit()       */
+    NULL,                   /* xRollback()     */
     NULL,                   /* xFindFunction() */
-    jonoondb_rename,        /* xRename()       */
+    NULL,                   /* xRename()       */
     NULL,                   /* xSavepoint()    */
     NULL,                   /* xRelease()      */
-    NULL,                   /* xRollbackTo()   */
-    jonoondb_column_vec,    /* xColumnVec()    */
-    jonoondb_next_vec       /* xNextVec()      */
+    NULL                    /* xRollbackTo()   */
 };
+
+//  jonoondb_column_vec,    /* xColumnVec()    */
+//  jonoondb_next_vec       /* xNextVec()      */
+
 
 int jonoondb_vtable_init(sqlite3* db, char** error,
                          const sqlite3_api_routines* api) {

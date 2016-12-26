@@ -102,7 +102,7 @@ void FlatbuffersDocumentSchema::GetRootField(size_t index,
     throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
   }
 
-  if (index > GetRootFieldCount() - 1 || index < 0) {
+  if (index > GetRootFieldCount() - 1) {
     throw IndexOutOfBoundException("Index was outside the bounds of the array.",
                                    __FILE__,
                                    __func__,

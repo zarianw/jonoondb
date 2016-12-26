@@ -39,15 +39,15 @@ struct BlobHeader {
       return 3;
     } else if (num < 268435456) {
       return 4;
-    } else if (num < 34359738368L) {
+    } else if (num < 34359738368U) {
       return 5;
-    } else if (num < 4398046511104L) {
+    } else if (num < 4398046511104U) {
       return 6;
-    } else if (num < 562949953421312L) {
+    } else if (num < 562949953421312U) {
       return 7;
-    } else if (num < 72057594037927936L) {
+    } else if (num < 72057594037927936U) {
       return 8;
-    } else if (num < 9223372036854775808L) {
+    } else if (num < 9223372036854775808U) {
       return 9;
     } else {
       return 10;

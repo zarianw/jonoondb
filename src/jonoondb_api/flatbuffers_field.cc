@@ -5,7 +5,8 @@ using namespace flatbuffers;
 using namespace jonoondb_api;
 using namespace std;
 
-// Todo change the return type to gsl::span
+// Todo find a more optimized way to avoid string copy
+// flatbuffers api is returning the string as a copy
 const std::string FlatbuffersField::GetName() const {
   return m_fieldDef->name()->str();
 }
@@ -46,7 +47,7 @@ void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
     throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
   }
 
-  if (index > GetSubFieldCount() - 1 || index < 0) {
+  if (index > GetSubFieldCount() - 1) {
     throw IndexOutOfBoundException("Index was outside the bounds of the array.",
                                    __FILE__, __func__, __LINE__);
   }
