@@ -38,3 +38,9 @@ script:
 cache:
   directories:
   - boost_1_60_0
+
+# blocklist
+branches:
+  except:
+  - website
+

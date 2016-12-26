@@ -19,3 +19,8 @@ test:
   override:
     - cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make -j2
     - ctest -V
+
+general:
+  branches:
+    ignore:
+      - website # list of branches to ignore
