@@ -70,6 +70,7 @@ enum class SqlType : std::int32_t {
   INTEGER = 1,
   DOUBLE = 2,
   TEXT = 3,
-  DB_NULL = 4
+  BLOB = 4,
+  DB_NULL = 5
 };
 }  // namespace jonoondb_api
