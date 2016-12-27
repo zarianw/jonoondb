@@ -178,7 +178,7 @@ a:hover {
 
 @media (max-width: 1530px) {
     .menu-sidebar {
-        width: 128px;
+        width: 150px;
         font-size: 10px;
         font-weight: 500;
     }
@@ -189,7 +189,7 @@ a:hover {
     }
 }
 
-@media (max-width: 1420) {
+@media (max-width: 1420px) {
     .menu-sidebar {
         width: 70px;
         font-size: 10px;
@@ -204,7 +204,7 @@ a:hover {
 
 @media (max-width: 767px) {
     .menu-sidebar {
-        width: 110px;
+        width: 150px;
         margin-left: 40px;
         font-size: 8px;
         font-weight: 500;
