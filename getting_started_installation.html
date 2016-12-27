@@ -191,9 +191,9 @@ b2 install address-model=64 --prefix=64bit
 <span style="color:#8da6ce">cd</span> jonoondb/
 mkdir build
 <span style="color:#8da6ce">cd</span> build
-cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/software/boost_1_60_0/64bit
+cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/software/boost_1_60_0/64bit -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
 </pre>
-                    <p>Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. Inorder to generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
+                    <p>CMAKE_INSTALL_PREFIX sets the install directory where JonoonDB will be installed. If you don't specify it then this variable defaults to /usr/local on Linux/MacOS X and C:/Program Files on Windows. Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. In order to generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
                 </div>
             </div>
         </div>
@@ -205,13 +205,27 @@ cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_
 <span style="color:#8da6ce">cd</span> jonoondb/
 mkdir build
 <span style="color:#8da6ce">cd</span> build
-cmake .. -G <span style="color:#61ce3c">"Unix Makefiles"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=/path/to/boost
+cmake .. -G <span style="color:#61ce3c">"Unix Makefiles"</span> -DBOOST_ROOT=/path/to/boost -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
 make
 </pre>
                     <p>If you want to run unittests from terminal then you can type "ctest -V" from inside the build directory.</p>
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Install JonoonDB</h5>
+                    <p>Its time to install JonoonDB library and headers in the location specified by CMAKE_INSTALL_PREFIX above.</p>
+                    <p>On windows, just build the INSTALL project from within Visual Studio.</p>
+                    <p>On Linux/MacOS X, just execute the command "sudo make install". </p> 
+                    <p>That's it folks. You should see the JonoonDB library, tools and headers in the install directory.</p>        
+                </div>
+            </div>
+        </div>
+
+
+
         <!-- Content Ends here -->
     </div>
     <!-- Container Ends here -->
