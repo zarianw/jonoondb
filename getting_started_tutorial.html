@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<!--
+     Author/Designer : Omar Waheed
+     LinkedIn : https://www.linkedin.com/in/omar-waheed-5937a361
+ -->
+
+<head>
+    <!-- meta with name viewport is needed to determine device
+        props
+     -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <!--CSS include-->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/custom_sidebar.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <!--JS include-->
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/custom_sidebar.js"></script>
+</head>
+<!-- 
+    To Add programming language code to html use :-
+    http://markup.su/highlighter/
+ -->
+
+<body>
+    <!--Top header-->
+    <section class="page-header col-md-12" id="logo-background">
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <h1 id="logo-text">JonoonDB</h1>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="row col-md-12">
+            <div class="col-md-4"></div>
+            <div class="col-md-4" id="heading-text">JonoonDB - It's a row store...It's a column store...NO! It's JonoonDB</div>
+            <div class="col-md-4"></div>
+        </div>
+        <div class="row col-md-12">
+            <div class="col-lg-3"></div>
+            <div class="col-lg-2 btn btn-primary social-media-btn outline">
+                <a class="social-media" target="_blank" href="https://github.com/zarianw/jonoondb">
+                    <i class="fa fa-github red header-icon"></i> Github
+                </a>
+            </div>
+            <div class="col-lg-2 btn social-media-btn btn-primary outline">
+                <a class="social-media" href="https://github.com/zarianw/jonoondb/zipball/master">
+                    <i class="fa fa-download red header-icon"></i> Download ZIP
+                </a>
+            </div>
+            <div class="col-lg-2 btn social-media-btn btn-primary outline">
+                <a class="social-media" href="https://groups.google.com/forum/#!forum/jonoondb" target="_blank">
+                    <i class="fa fa-google red header-icon"></i> Discuss
+                </a>
+            </div>
+            <div class="col-lg-3"></div>
+        </div>
+    </section>
+    <!-- Sidebar menu begins here -->
+    <!-- Fixed version of sidebar menu -> display:none when floating menu version in action and vice versa -->
+    <div id="sb" class="col-sm-2 menu-sidebar absolute title-font">
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="index.html">Introduction  </a>
+            <i id="intro_btn" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <ul id="intro-submenu-absolute" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="getting_started_installation.html">Getting Started</a>
+            <i id="getting_started_btn_1" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <ul id="getting_started_submenu_absolute" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="tutorial.html">Tutorial</a>
+            <i id="tutorial_btn" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <!-- The unordered list below is created dynamically -->
+            <ul id="tutorial-submenu-absolute" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="green-hover">
+            <a class="cover-div" href="dummy.html">Contact</a>
+            <i id="contact_btn" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+        </div>
+    </div>
+    <div id="sb" class="col-sm-2 menu-sidebar fixed title-font">
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="index.html">Introduction  </a>
+            <i id="intro_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <!-- The unordered list below is created dynamically -->
+            <ul id="intro-submenu-fixed" class="menu-sub-item">
+            </ul>
+        </div>
+        <!-- The floating version of sidebar menu -->
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="getting_started_installation.html">Getting Started</a>
+            <i id="getting_started_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <ul id="getting_started_submenu_fixed" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="tutorial.html">Tutorial</a>
+            <i id="tutorial_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <ul id="tutorial-submenu-fixed" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="green-hover">
+            <a class="cover-div" href="dummy.html">Contact</a>
+            <i id="contact_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+        </div>
+    </div>
+    <!-- Sidebar menu ends here -->
+    <!-- To add content use below template
+     as follows:
+     create in following order :- 
+///////////////////////////////////
+        div row
+            div col
+                div content
+                        (heading or para or any element that holds your content)
+                div /content
+            div /col
+        div /row   
+////////////////////////////////////
+        Repeat the same pattern if you want to add more content
+
+    See below for an example         
+ -->
+    <!-- Container hold all of the content -->
+    <div class="container">
+        <!--content begins Here-->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h2 class="bold">Tutorial</h2>
+                    <p>This tutorial assumes that you are familiar with serialization library flatbuffers and know how to use it. The complete code for this tutorial is available on <a href="https://github.com/zarianw/jonoondb_tutorial">github</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Prerequisite</h5>
+                    <ul>
+                        <li>You would need the flatbuffers compiler flatc and its header files. You can build it from sources by following directions at this <a href="http://google.github.io/flatbuffers/flatbuffers_guide_building.html">link</a>.</li>
+                        <li>You would need the <a href="https://github.com/zarianw/jonoondb">JonoonDB library</a>.</li>
+                    </ul>
+                    <h5 class="bold">Open a database</h5>
+                    <p>
+                        A JonoonDB database has a name which corresponds to a file system directory. All of the contents of database are stored in this directory. The following example shows how to open a database, creating it if necessary:
+                    </p>
+                    <!-- Adding code -->
+                    <pre style="background:#0c1021;color:#f8f8f8">#<span style="color:#fbde2d">include</span> <span style="color:#61ce3c">"jonoondb/jonoondb_api/database.h"</span>
+
+<span style="color:#fbde2d">using</span> <span style="color:#fbde2d">namespace</span> <span style="color:#ff6400">std</span>;
+<span style="color:#fbde2d">using</span> <span style="color:#fbde2d">namespace</span> <span style="color:#ff6400">flatbuffers</span>;
+<span style="color:#fbde2d">using</span> <span style="color:#fbde2d">namespace</span> <span style="color:#ff6400">jonoondb_tutorial</span>;
+<span style="color:#fbde2d">using</span> <span style="color:#fbde2d">namespace</span> <span style="color:#ff6400">jonoondb_api</span>;
+
+<span style="color:#aeaeae">// Open a database with default options</span>
+Database <span style="color:#ff6400">db</span>("/path/to/db",     // path where db files will be created
+            "game_of_thrones"  // database name              
+);
+</pre>
+                    <p>If you want to raise an error if the database already exists, use the other constructor overload of jonoondb_api::Database class.</p>
+                    <pre style="background:#0c1021;color:#f8f8f8">Options opt;
+opt.SetCreateDBIfMissing(<span style="color:#d8fa3c">false</span>);
+Database db(<span style="color:#61ce3c">"/path/to/db"</span>,     <span style="color:#aeaeae">// path where db files will be created</span>
+            <span style="color:#61ce3c">"game_of_thrones"</span>, <span style="color:#aeaeae">// database name </span>
+            opt                <span style="color:#aeaeae">// options             </span>
+);
+</pre>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Create a collection</h5>
+                    <p>In JonoonDB collections are like tables. A given database can have 1 or more collections. Each collection also has a schema which specifies the collection fields and their types. Currently JonoonDB only supports flatbuffers schema type.
+                    </p>
+                    <h6 class="bold">Schema</h6>
+                    <p>Lets look at the flatbuffers schema that we will use for our tutorial.
+                    </p>
+                    <pre style="background:#0c1021;color:#f8f8f8">namespace jonoondb_tutorial;
+
+<span style="color:#ff6400">table</span> Actor {
+  name: string;
+  date_of_birth: string;
+  birth_city: string;
+}
+
+<span style="color:#ff6400">table</span> Character {
+  name:string;
+  house:string;  
+  played_by:Actor;
+  age:int;
+  first_seen:string;  
+}
+
+root_type Character;
+</pre>
+                    <p>Before proceeding any further we need to generate few files using the flatbuffers compiler flatc. Save the schema shown above in a text file and name it character.fbs. Next compile this file using the following command.
+                    </p>
+                    <pre style="background:#0c1021;color:#f8f8f8">flatc <span style="color:#fbde2d">-</span>c <span style="color:#fbde2d">-</span>b <span style="color:#aeaeae">--schema character.fbs</span></pre>
+                    <p>This will generate a header file <strong>character_generated.h</strong> and binary flatbuffers schema file <strong>chsracter.bfbs</strong>. The character_generated.h file has helper functions to generate flatbuffers object for Character type. The chracter.bfbs has the same schema shown above but in binary form. This is required because internally JonoonDB uses flatbuffers reflection mechanism to read flatbuffer objects and for reflection we need the binary schema.</p>
+                    <p>The code below reads the binary flatbuffers schema from the file characters.bfbs and creates a collection.
+                    </p>
+                    <pre style="background:#0c1021;color:#f8f8f8"><span style="color:#fbde2d">auto</span> schema = ReadFile(<span style="color:#61ce3c">"path/to/character.bfbs"</span>);
+vector&lt;IndexInfo> indexes;
+db.CreateCollection(<span style="color:#61ce3c">"character"</span>,                  <span style="color:#aeaeae">// collection name   </span>
+                    SchemaType::FLAT_BUFFERS,     <span style="color:#aeaeae">// collection schema type</span>
+                    schema,                       <span style="color:#aeaeae">// collection schema</span>
+                    indexes                       <span style="color:#aeaeae">// indexes to create</span>
+);
+</pre>
+                    <p>The indexes parameter specifies the indexes that should be created for this collection. The use of indexes is covered in its own sections later in the tutorial. For now we will not create any indexes and pass an empty vector. ReadFile() is just reading the entire binary file and returning its contents. You can look at its implementation here.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Insert single document</h5>
+                    <p>First we will construct a flatbuffer object. We are using the CreateActor() and CreateCharacter() functions that were generated by the flatc compiler inside character_generated.h. Next we construct a object of type Buffer that we pass to the db.Insert() function.
+                    </p>
+                    <pre style="background:#0c1021;color:#f8f8f8">#<span style="color:#fbde2d">include</span> <span style="color:#61ce3c">"character_generated.h"</span>
+
+FlatBufferBuilder fbb;
+<span style="color:#fbde2d">auto</span> actor = CreateActor(fbb, fbb.CreateString(<span style="color:#61ce3c">"Peter Dinklage"</span>),
+                         fbb.CreateString(<span style="color:#61ce3c">"Morristown"</span>),
+                         fbb.CreateString(<span style="color:#61ce3c">"1969-06-11"</span>));
+<span style="color:#fbde2d">auto</span> obj = CreateCharacter(fbb, fbb.CreateString(<span style="color:#61ce3c">"Tyrion Lannister"</span>),
+                           fbb.CreateString(<span style="color:#61ce3c">"Lannister"</span>),
+                           actor,
+                           <span style="color:#d8fa3c">39</span>, fbb.CreateString(<span style="color:#61ce3c">"Winter is Coming"</span>));
+fbb.Finish(obj);
+Buffer <span style="color:#ff6400">tyrion</span>(reinterpret_cast&lt;char*>(fbb.GetBufferPointer()), <span style="color:#aeaeae">// Buffer pointer</span>
+                  fbb.GetSize(), <span style="color:#aeaeae">// Buffer size</span>
+                  fbb.GetSize(), <span style="color:#aeaeae">// Buffer capacity</span>
+                  nullptr);      <span style="color:#aeaeae">// Deleter func ptr, nullptr means don't delete memory</span>
+db.Insert(<span style="color:#61ce3c">"character"</span>,   <span style="color:#aeaeae">// collection name in which to insert</span>
+          tyrion         <span style="color:#aeaeae">// data that is to be inserted</span>
+);
+</pre>
+                    <p>One important thing to note here is how the Buffer object "tyrion" was constructed. Buffer class objects can be of two types. They either own the underlying memory in which case they will delete the underlying buffer on destruction. The second type is just a view on top of some memory and on destruction it does not delete any memory. Here we are using the latter type by specifying the function pointer to deleter as nullptr.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Insert multiple documents / Bulk Insert</h5>
+                    <p>The MultiInsert() function is optimized for loading large number of documents into the database. It is way faster than Insert() function and should be the preferred way to load data into the database.
+                    </p>
+                    <pre style="background:#0c1021;color:#f8f8f8">std::vector&lt;Buffer> characters; <span style="color:#aeaeae">// vector to hold all documents to be inserted</span>
+fbb.Clear(); <span style="color:#aeaeae">// This is necessary if we want to reuse flatbufferbuilder</span>
+actor = CreateActor(fbb, fbb.CreateString(<span style="color:#61ce3c">"Kit Harington"</span>),
+                    fbb.CreateString(<span style="color:#61ce3c">"London"</span>),
+                    fbb.CreateString(<span style="color:#61ce3c">"1986-12-26"</span>));
+obj = CreateCharacter(fbb, fbb.CreateString(<span style="color:#61ce3c">"Jon Snow"</span>),
+                      fbb.CreateString(<span style="color:#61ce3c">"Stark"</span>),
+                      actor,
+                      <span style="color:#d8fa3c">21</span>, fbb.CreateString(<span style="color:#61ce3c">"Winter is Coming"</span>));
+fbb.Finish(obj);
+characters.push_back(
+    <span style="color:#ff6400">Buffer</span>(reinterpret_cast&lt;char*>(fbb.GetBufferPointer()), <span style="color:#aeaeae">// Buffer pointer</span>
+           fbb.GetSize()  <span style="color:#aeaeae">// Buffer size</span>
+    )
+);
+
+fbb.Clear();
+actor = CreateActor(fbb, fbb.CreateString(<span style="color:#61ce3c">"Aidan Gillen"</span>),
+                    fbb.CreateString(<span style="color:#61ce3c">"Dublin"</span>),
+                    fbb.CreateString(<span style="color:#61ce3c">"1968-04-24"</span>));
+obj = CreateCharacter(fbb, fbb.CreateString(<span style="color:#61ce3c">"Petyr Baelish"</span>),
+                      fbb.CreateString(<span style="color:#61ce3c">"Baelish"</span>),
+                      actor,
+                      <span style="color:#d8fa3c">51</span>, fbb.CreateString(<span style="color:#61ce3c">"Lord Snow"</span>));
+fbb.Finish(obj);
+characters.push_back(
+  <span style="color:#ff6400">Buffer</span>(reinterpret_cast&lt;char*>(fbb.GetBufferPointer()), <span style="color:#aeaeae">// Buffer pointer</span>
+         fbb.GetSize()  <span style="color:#aeaeae">// Buffer size</span>
+  )
+);
+
+db.MultiInsert(<span style="color:#61ce3c">"character"</span>,   <span style="color:#aeaeae">// collection name in which to insert</span>
+               characters     <span style="color:#aeaeae">// data that is to be inserted</span>
+);
+</pre>
+                    <p>Note that here we are constructing the Buffer using a different constructor overload. This type of Buffer has its own underlying memory that it will delete on destruction. This was necessary here because we are reusing the FlatbufferBuilder object fbb. We do that by calling fbb.clear() before constructing every new character. Hence the underlying fbb memory is no longer valid after this call, so we create a copy of it before the clear() call.</p>
+                    <p>There are other more optimized ways to go about this as well for example instead of creating new object of type Buffer, you can have a reusable pool of Buffer objects. Another way could have been that you use a different FlatbufferBuilder object to construct each character and then use the technique we used above in the Insert() call. Remember we created the Buffer by specifying the deleter function pointer as nullptr. The approach that will work best for you depends on your application but all of these could be a viable solution depending on your needs.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h2 class="bold">Querying data</h2>
+                    <p>JonoonDB supports quering the documents using SQL. Consider the following example:
+                    </p>
+                    <pre style="background:#0c1021;color:#f8f8f8"><span style="color:#d8fa3c">auto</span> <span style="color:#d8fa3c">rs</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">db</span>.ExecuteSelect(<span style="color:#61ce3c">"SELECT name, house, age "</span>
+                           <span style="color:#61ce3c">"FROM character;"</span>);
+<span style="color:#ff6400">while</span> (<span style="color:#d8fa3c">rs</span>.Next()) {
+  <span style="color:#d8fa3c">auto</span> <span style="color:#d8fa3c">name</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">rs</span>.GetString(<span style="color:#d8fa3c">rs</span>.GetColumnIndex(<span style="color:#61ce3c">"name"</span>));
+  <span style="color:#d8fa3c">auto</span> <span style="color:#d8fa3c">house</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">rs</span>.GetString(<span style="color:#d8fa3c">rs</span>.GetColumnIndex(<span style="color:#61ce3c">"house"</span>));
+  <span style="color:#d8fa3c">auto</span> <span style="color:#d8fa3c">age</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">rs</span>.GetInteger(<span style="color:#d8fa3c">rs</span>.GetColumnIndex(<span style="color:#61ce3c">"age"</span>));
+}
+</pre>
+                    <p>ExecuteSelect() function can be used to issue SELECT statements. The functions returns a Resultset object. The rs.Next() moves to the next document in the resultset and will keep returning true until there are more documents avaiable in the resultset.</p>
+                    <p>Here is another example where we are using the some query constraints:
+                    </p>
+                    <pre style="background:#0c1021;color:#f8f8f8"><span style="color:#d8fa3c">rs</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">db</span>.ExecuteSelect(<span style="color:#61ce3c">"SELECT name, house, age "</span>
+                      <span style="color:#61ce3c">"FROM character "</span>
+                      <span style="color:#61ce3c">"WHERE age > 10 AND house = 'Stark';"</span>);
+<span style="color:#ff6400">while</span> (<span style="color:#d8fa3c">rs</span>.Next()) {
+  <span style="color:#d8fa3c">auto</span> <span style="color:#d8fa3c">name</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">rs</span>.GetString(<span style="color:#d8fa3c">rs</span>.GetColumnIndex(<span style="color:#61ce3c">"name"</span>));
+  <span style="color:#d8fa3c">auto</span> <span style="color:#d8fa3c">house</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">rs</span>.GetString(<span style="color:#d8fa3c">rs</span>.GetColumnIndex(<span style="color:#61ce3c">"house"</span>));
+  <span style="color:#d8fa3c">auto</span> <span style="color:#d8fa3c">age</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">rs</span>.GetInteger(<span style="color:#d8fa3c">rs</span>.GetColumnIndex(<span style="color:#61ce3c">"age"</span>));
+}
+</pre>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Getting The Raw Documents</h5>
+                    <p>The queries written above gives you the data as structured resultset. What if you want to get back the raw document blob that you inserted? Each collection has a virtual hidden column named <strong>_document</strong>. When used in a query this evalutes to the raw document blob that was originally inserted. For example:
+                    </p>
+                    <pre style="background:#0c1021;color:#f8f8f8"><span style="color:#d8fa3c">rs</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">db</span>.ExecuteSelect(<span style="color:#61ce3c">"SELECT _document FROM character;"</span>);
+<span style="color:#ff6400">while</span> (<span style="color:#d8fa3c">rs</span>.Next()) {
+  <span style="color:#d8fa3c">auto</span> <span style="color:#d8fa3c">doc</span> <span style="color:#fbde2d">=</span> <span style="color:#d8fa3c">rs</span>.GetBlob(<span style="color:#d8fa3c">rs</span>.GetColumnIndex(<span style="color:#61ce3c">"_document"</span>));      
+}
+</pre>
+                    <p>This will return the original document that we inserted.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Content Ends here -->
+    </div>
+    <!-- Container Ends here -->
+    <!-- Footer of the page -->
+    <!-- Make sure for footer there is no spaces in id, style or class tags at start or end of quotes-->
+    <div id="footer">
+        <ul>
+            <li style="font-size:13px;color:#F0ECEB; margin-left:-31px">© 2016-2017 JonoonDB</li>
+            <li style="font-size:13px;color:#F0ECEB; float:right; margin-right:16px"> Contact : <a style="color:white" href="https://www.linkedin.com/in/omar-waheed-5937a361" target="_blank"><i style="background-color:#155799; font-size:14px" class="fa fa-linkedin"></i></a> </li>
+            <li style="font-size:13px;color:#F0ECEB; float :right; margin-right:10px">Designed By : Omar Waheed</li>
+        </ul>
+    </div>
+    <!--  Footer ends here -->
+</body>
+
+</html>

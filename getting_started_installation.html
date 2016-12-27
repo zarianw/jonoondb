@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<!--
+     Author/Designer : Omar Waheed
+     LinkedIn : https://www.linkedin.com/in/omar-waheed-5937a361
+ -->
+
+<head>
+    <!-- meta with name viewport is needed to determine device
+        props
+     -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <!--CSS include-->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/custom_sidebar.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <!--JS include-->
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/custom_sidebar.js"></script>
+</head>
+<!-- 
+    To Add programming language code to html use :-
+    http://markup.su/highlighter/
+ -->
+
+<body>
+    <!--Top header-->
+    <section class="page-header col-md-12" id="logo-background">
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <h1 id="logo-text">JonoonDB</h1>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="row col-md-12">
+            <div class="col-md-4"></div>
+            <div class="col-md-4" id="heading-text">JonoonDB - It's a row store...It's a column store...NO! It's JonoonDB</div>
+            <div class="col-md-4"></div>
+        </div>
+        <div class="row col-md-12">
+            <div class="col-lg-3"></div>
+            <div class="col-lg-2 btn btn-primary social-media-btn outline">
+                <a class="social-media" target="_blank" href="https://github.com/zarianw/jonoondb">
+                    <i class="fa fa-github red header-icon"></i> Github
+                </a>
+            </div>
+            <div class="col-lg-2 btn social-media-btn btn-primary outline">
+                <a class="social-media" href="https://github.com/zarianw/jonoondb/zipball/master">
+                    <i class="fa fa-download red header-icon"></i> Download ZIP
+                </a>
+            </div>
+            <div class="col-lg-2 btn social-media-btn btn-primary outline">
+                <a class="social-media" href="https://groups.google.com/forum/#!forum/jonoondb" target="_blank">
+                    <i class="fa fa-google red header-icon"></i> Discuss
+                </a>
+            </div>
+            <div class="col-lg-3"></div>
+        </div>
+    </section>
+    <!-- Sidebar menu begins here -->
+    <!-- Fixed version of sidebar menu -> display:none when floating menu version in action and vice versa -->
+    <div id="sb" class="col-sm-2 menu-sidebar absolute title-font">
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="index.html">Introduction  </a>
+            <i id="intro_btn" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <ul id="intro-submenu-absolute" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="getting_started_installation.html">Getting Started</a>
+            <i id="getting_started_btn_1" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <ul id="getting_started_submenu_absolute" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="tutorial.html">Tutorial</a>
+            <i id="tutorial_btn" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <!-- The unordered list below is created dynamically -->
+            <ul id="tutorial-submenu-absolute" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="green-hover">
+            <a class="cover-div" href="dummy.html">Contact</a>
+            <i id="contact_btn" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+        </div>
+    </div>
+    <div id="sb" class="col-sm-2 menu-sidebar fixed title-font">
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="index.html">Introduction  </a>
+            <i id="intro_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <!-- The unordered list below is created dynamically -->
+            <ul id="intro-submenu-fixed" class="menu-sub-item">
+            </ul>
+        </div>
+        <!-- The floating version of sidebar menu -->
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="getting_started_installation.html">Getting Started</a>
+            <i id="getting_started_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <ul id="getting_started_submenu_fixed" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="menu-item green-hover">
+            <a class="cover-div" href="tutorial.html">Tutorial</a>
+            <i id="tutorial_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+            <ul id="tutorial-submenu-fixed" class="menu-sub-item">
+            </ul>
+        </div>
+        <div class="green-hover">
+            <a class="cover-div" href="dummy.html">Contact</a>
+            <i id="contact_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
+        </div>
+    </div>
+    <!-- Sidebar menu ends here -->
+    <!-- To add content use below template
+     as follows:
+     create in following order :- 
+///////////////////////////////////
+        div row
+            div col
+                div content
+                        (heading or para or any element that holds your content)
+                div /content
+            div /col
+        div /row   
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    //your content goes here
+                </div>
+            </div>
+        </div>
+////////////////////////////////////
+        Repeat the same pattern if you want to add more content
+
+    See below for an example         
+ -->
+    <!-- Container hold all of the content -->
+    <div class="container">
+        <!--content begins Here-->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h2 class="bold">Installation</h2>
+                    <p>JonoonDB has to be built from source and then installed. Before building JonoonDB, you have to build/install its 3rd party dependencies. </p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Build/Install 3rd party dependencies</h5>
+                    <ol>
+                        <li>
+                            Download and install cmake version 3.5 or higher from <a href="https://cmake.org/download/">cmake's website</a>.
+                        </li>
+                        <li>
+                            Download Boost version 1.60.0 from <a href="https://cmake.org/download/">Boost's website</a>. Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Next execute the following commands to build boost in 64bit.
+                            <pre style="background:#0c1021;color:#f8f8f8">(On Windows)
+bootstrap.bat
+b2 install address-model=64 --prefix=64bit
+(On Linux and Mac OS X)
+./bootstrap.sh
+./b2 install address-model=64 cxxflags=<span style="color:#61ce3c">"-fPIC"</span> cflags=<span style="color:#61ce3c">"-fPIC"</span> --prefix=64bit
+</pre>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Clone and build JonoonDB</h5>
+                    <p>Assuming your install directories for 3rd Parties are as follows:</p>
+                    <p>Boost = D:/software/boost_1_60_0/64bit</p>
+                    <p>You are all set to clone and build JonoonDB. Using cmake you can generate project files for Visual Studio, Eclipse CDT and other IDEs. After that you can build using your IDE of choice. You can also generate makefile if you don't want to use IDEs.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Building from IDE</h5>
+                    <p>Execute the commands given below to clone and generate the solution file for VS 2015:</p>
+                    <pre style="background:#0c1021;color:#f8f8f8">git clone https://github.com/zarianw/jonoondb.git
+<span style="color:#8da6ce">cd</span> jonoondb/
+mkdir build
+<span style="color:#8da6ce">cd</span> build
+cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/software/boost_1_60_0/64bit
+</pre>
+                    <p>Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. Inorder to generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">Building from terminal on Linux</h5>
+                    <pre style="background:#0c1021;color:#f8f8f8">git clone https://github.com/zarianw/jonoondb.git
+<span style="color:#8da6ce">cd</span> jonoondb/
+mkdir build
+<span style="color:#8da6ce">cd</span> build
+cmake .. -G <span style="color:#61ce3c">"Unix Makefiles"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=/path/to/boost
+make
+</pre>
+                    <p>If you want to run unittests from terminal then you can type "ctest -V" from inside the build directory.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Content Ends here -->
+    </div>
+    <!-- Container Ends here -->
+    <!-- Footer of the page -->
+    <!-- Make sure for footer there is no spaces in id, style or class tags at start or end of quotes-->
+    <div id="footer">
+        <ul>
+            <li style="font-size:13px;color:#F0ECEB; margin-left:-31px">© 2016-2017 JonoonDB</li>
+            <li style="font-size:13px;color:#F0ECEB; float:right; margin-right:16px"> Contact : <a style="color:white" href="https://www.linkedin.com/in/omar-waheed-5937a361" target="_blank"><i style="background-color:#155799; font-size:14px" class="fa fa-linkedin"></i></a> </li>
+            <li style="font-size:13px;color:#F0ECEB; float :right; margin-right:10px">Designed By : Omar Waheed</li>
+        </ul>
+    </div>
+    <!--  Footer ends here -->
+</body>
+</html>
