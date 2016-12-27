@@ -1,0 +1,4 @@
+general:
+  branches:
+    ignore:
+      - website # Disbale circleci build for website branch, it does not have disable build option like travis and appveyor

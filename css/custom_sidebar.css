@@ -1,0 +1,276 @@
+@import url(http://pablogarciafernandez.com/css/reset.css);
+
+/* Typography
+------------------------------------- */
+
+@charset "UTF-8";
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300,400,700);
+body {
+    font-family: 'Open Sans', sans-serif;
+    /*font-weight: 400;*/
+    line-height: 1.8em;
+    color: #4D4D4D;
+}
+
+
+/* End Navigation */
+
+
+/* Structure
+------------------------------------- */
+
+body {
+    background: #f1f1f1;
+}
+
+
+/*This is to show sub menu items as bullet points*/
+
+.menu-sidebar ul>li {
+    display: list-item;
+    margin-left: -10px;
+    margin-top: -5px;
+    text-align: left;
+}
+
+.navbar-offset {
+    top: 300px;
+    /*Offsets the top navbar 37px from the top of the viewport*/
+}
+
+
+/* End Navigation */
+
+
+/* Sections */
+
+section {
+    padding: 2em 0 0 14em;
+}
+
+
+/* End sections */
+
+.menu-sidebar {}
+
+.menu-sidebar ul {
+    width: 100%;
+    color: white;
+}
+
+.menu-sidebar a {
+    display: inline-block;
+    color: red;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition-delay: 0s;
+    transition-duration: 0.30s;
+    transition-property: all;
+    transition-timing-function: line;
+    vertical-align: top;
+}
+
+.menu-sidebar a {
+    display: inline-block;
+    color: white;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition-delay: 0s;
+    transition-duration: 0.30s;
+    transition-property: all;
+    transition-timing-function: line;
+    vertical-align: top;
+}
+
+.social-media-btn a {
+    display: inline-block;
+    color: white;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition-delay: 0s;
+    transition-duration: 0.30s;
+    transition-property: all;
+    transition-timing-function: line;
+    vertical-align: top;
+}
+
+a:hover {
+    color: gray;
+}
+
+.menu-sidebar li {
+    width: 116%;
+    margin-left: -60px;
+    text-align: center;
+    margin-top: 2px;
+    transition: 0.30s all ease;
+}
+
+.menu-sidebar a {
+    margin-left: 10px;
+}
+
+.menu-sidebar div {
+    background: linear-gradient(125deg, #373737 90%, #155799 10%);
+    border: 1px solid black;
+    width: 116%;
+    margin-left: -40px;
+    border-radius: 5px;
+    text-align: left;
+    margin-top: 2px;
+    transition: 0.30s all ease;
+}
+
+.menu-sidebar i {
+
+    text-align:right;
+}
+
+
+.menu-sidebar li:hover {
+    transition: 0.30s all ease;
+}
+
+.cover-div {
+    display: inline-block;
+    width: 60%;
+    height: 100%;
+}
+
+.title-font {
+    font-family: 'Open Sans', sans-serif;
+    transition: 0.01s all ease;
+}
+
+.title-font:hover {
+    font-family: 'Open Sans', sans-serif;
+    transition: 0.01s all ease;
+}
+
+.menu-sidebar {
+    padding: 14px 9px 6px 8px;
+    font-weight: bold;
+    margin-left: 3%;
+}
+
+.green-hover:hover {
+    background: linear-gradient(125deg, #373737 90%, #159957 10%);
+    transition: 0.04s all ease;
+}
+
+
+/*All the media rules below handle the
+  sidebar menu's size across different
+  browser sizes
+*/
+
+@media (max-width: 1920px) {
+    .menu-sidebar {
+        width: 216px;
+        font-size: 16px;
+    }
+    .menu-sidebar li {
+        width: 128px;
+        font-size: 12px;
+        font-weight: 200;
+    }
+}
+
+@media (max-width: 1530px) {
+    .menu-sidebar {
+        width: 128px;
+        font-size: 10px;
+        font-weight: 500;
+    }
+    .menu-sidebar li {
+        width: 128px;
+        font-size: 8px;
+        font-weight: 200;
+    }
+}
+
+@media (max-width: 1420) {
+    .menu-sidebar {
+        width: 70px;
+        font-size: 10px;
+        font-weight: 500;
+    }
+    .menu-sidebar li {
+        width: 128px;
+        font-size: 8px;
+        font-weight: 200;
+    }
+}
+
+@media (max-width: 767px) {
+    .menu-sidebar {
+        width: 110px;
+        margin-left: 40px;
+        font-size: 8px;
+        font-weight: 500;
+    }
+    .menu-sidebar li {
+        width: 128px;
+        font-size: 8px;
+        font-weight: 200;
+    }
+    #sb {
+        position: absolute;
+    }
+}
+
+@media (max-width: 575px) {
+    .menu-sidebar {
+        width: 100%;
+        font-size: 16px;
+        width: 90%;
+    }
+    .menu-sidebar li {
+        width: 128px;
+        font-size: 12px;
+        font-weight: 200;
+    }
+    #sb {
+        position: static;
+    }
+}
+
+.absolute {
+    display: block;
+    position: absolute;
+}
+
+.fixed {
+    display: none;
+    position: fixed;
+}
+
+
+/*IE compatible version CSS for position*/
+
+@media all and (-ms-high-contrast: none),
+(-ms-high-contrast: active) {
+    /* IE10+ CSS styles go here */
+    .fixed {
+        display: none;
+        position: fixed;
+    }
+    .absolute {
+        display: block;
+        position: absolute;
+    }
+}
+
+.menu-expand-icon {
+    margin-left: 11px;
+}
+
+.menu-sub-item,
+#intro-submenu-absolute {
+    display: none;
+    transition: 0.04s all ease;
+}
+
+.menu-expand-icon:hover {
+    color: lime;
+}

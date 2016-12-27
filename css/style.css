@@ -1,0 +1,238 @@
+body{
+	background-color:#F0ECEB ;
+}
+
+/*Important : I am creating a rule for
+  all <pre> tags. This is to make code
+  look better visually by adding padding
+  to it. However, I am assuming that we
+  will never ever use <pre> tags for anything
+  other than code. If we do then just add a 
+  class="code" for pre tags conttaining programming
+  language code
+
+  change this in @media tag as well
+*/
+
+pre{
+    padding:11px;
+}
+
+/*creating some color classes*/
+.white{
+	color:white;
+}
+
+.black{
+	color:black;
+}
+
+.red{
+	color:red;
+}
+
+/*custom green also used in sidebar menu*/
+.custom-green{
+	color:#159957;
+}
+
+/*custom blue, also use din sidebar menu*/
+.custom-blue{
+	color:#155799;
+}
+
+.content p,ul {
+	font-weight:400px;
+}
+
+/* Sections */
+
+h1 {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 3em;
+    font-weight: 300;
+    color: #000;
+    line-height: 1.8em;
+}
+
+h2 {
+    font-weight: 300;
+}
+
+h2 a {
+    font-weight: 700;
+}
+
+
+/* End Sections */
+
+a {
+    display: inline-block;
+    color: darkgoldenrod;
+    text-decoration: none;
+    transition-delay: 0s;
+    transition-duration: 0.30s;
+    transition-property: all;
+    transition-timing-function: line;
+    vertical-align: top;
+}
+
+#logo-background {
+    min-height: 326px;
+    max-height: 450px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 90px color: #fff;
+    background: #1D976C;
+    /* fallback for old browsers */
+    background: -webkit-linear-gradient(125deg , #155799 , #159957);
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(125deg , #155799 , #159957);
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    /*keep z index greater than that of sidebar menu*/
+    z-index: 3;
+    margin-bottom: 117px;
+}
+
+#logo-text {
+    font-size: 50pt;
+    text-rendering: optimizeLegibility;
+    display:inline-block;
+    color:white;
+}
+
+.header-icon{
+	font-size:24px;
+}
+.content {}
+
+.container {
+	margin:0 auto;
+    min-height: 100%
+}
+
+.centered {
+    text-align: center;
+}
+
+
+.btn.outline {
+	padding: 12px 22px;
+	min-width: 184px;
+}
+
+.btn-primary.outline {
+	border: 2px solid black;
+	border-color: #155799 ;
+	border-radius: 16px;
+	color: black;
+	margin-left: 15px;
+	min-width : 184px;
+}
+
+.btn-primary.outline:hover, .btn-primary.outline:focus, .btn-primary.outline:active, .btn-primary.outline.active, .open > .dropdown-toggle.btn-primary {
+    background: linear-gradient(125deg, #2c484c 90%, #2c484c 10%);
+
+	color: white;
+	border-color: #159957;
+}
+.btn-primary.outline:active, .btn-primary.outline.active {
+	border-color: #155799;
+	color: #155799;
+	box-shadow: none;
+}
+
+.social-media{
+	height:100%;
+	width:100%;
+	text-align:center;
+}
+
+#heading-text{
+	font-size:1.15em;
+	color:white;
+	margin-bottom: 10px;
+}
+
+.bold{
+	font-weight:bold;
+}
+
+.code{
+	background-color:#f1edda;
+}
+
+.social-media-btn{
+opacity: 0.7;
+    background: linear-gradient(125deg, #373737 90%, #373737 10%);
+    transition: 0.15s all ease;
+
+}
+
+.social-media-btn:hover {
+	opacity: 1;
+    /*background: linear-gradient(125deg, #155799 90%, #155799 10%);*/
+    transition: 0.15s all ease;
+
+}
+
+/*All the media rules below handle the
+  sidebar menu's size across different
+  browser sizes
+*/
+@media (max-width: 1530px) {
+    .container{
+        padding:7em;
+    }
+}
+
+@media (max-width: 1420) {
+    .container{
+        padding:7em;
+    }
+}
+
+
+@media (max-width: 767px) {
+    .container{
+        padding:7em;
+    }
+
+    pre{
+    padding:11px;
+    font-size:12px;
+    }
+}
+
+
+@media (max-width: 575px) {
+    .container{
+        padding:1em;
+    }
+
+    pre{
+    padding:11px;
+    font-size:12px;
+    }
+
+}
+
+#footer {
+    width:100%;
+    height:31px;
+    position: static;
+    left: 0;
+    bottom: 0; 
+    background-color:#373737;
+
+}
+
+#footer ul li{
+    display:inline;
+    margin-left:12px;
+    margin-bottom:0px;
+}
+
+#footer ul{
+    margin-bottom:0px;
+}
