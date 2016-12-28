@@ -130,14 +130,6 @@
                 div /content
             div /col
         div /row   
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="content">
-                    //your content goes here
-                </div>
-            </div>
-        </div>
 ////////////////////////////////////
         Repeat the same pattern if you want to add more content
 
@@ -149,87 +141,41 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="content">
-                    <h2 class="bold">Installation</h2>
-                    <p>JonoonDB has to be built from source and then installed. Before building JonoonDB, you have to build/install its 3rd party dependencies. </p>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="content">
-                    <h5 class="bold">Build/Install 3rd party dependencies</h5>
-                    <ol>
-                        <li>
-                            Download and install cmake version 3.5 or higher from <a href="https://cmake.org/download/">cmake's website</a>.
-                        </li>
-                        <li>
-                            Download Boost version 1.60.0 from <a href="https://cmake.org/download/">Boost's website</a>. Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Next execute the following commands to build boost in 64bit.
-                            <pre style="background:#0c1021;color:#f8f8f8">(On Windows)
-bootstrap.bat
-b2 install address-model=64 --prefix=64bit
-(On Linux and Mac OS X)
-./bootstrap.sh
-./b2 install address-model=64 cxxflags=<span style="color:#61ce3c">"-fPIC"</span> cflags=<span style="color:#61ce3c">"-fPIC"</span> --prefix=64bit
-</pre>
-                        </li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="content">
-                    <h5 class="bold">Clone and build JonoonDB</h5>
-                    <p>Assuming your install directories for 3rd Parties are as follows:</p>
-                    <p>Boost = D:/software/boost_1_60_0/64bit</p>
-                    <p>You are all set to clone and build JonoonDB. Using cmake you can generate project files for Visual Studio, Eclipse CDT and other IDEs. After that you can build using your IDE of choice. You can also generate makefile if you don't want to use IDEs.</p>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="content">
-                    <h5 class="bold">Building from IDE</h5>
-                    <p>Execute the commands given below to clone and generate the solution file for VS 2015:</p>
-                    <pre style="background:#0c1021;color:#f8f8f8">git clone https://github.com/zarianw/jonoondb.git
-<span style="color:#8da6ce">cd</span> jonoondb/
-mkdir build
-<span style="color:#8da6ce">cd</span> build
-cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/software/boost_1_60_0/64bit -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
-</pre>
-                    <p>CMAKE_INSTALL_PREFIX sets the install directory where JonoonDB will be installed. If you don't specify it then this variable defaults to /usr/local on Linux/MacOS X and C:/Program Files on Windows. Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. In order to generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="content">
-                    <h5 class="bold">Building from terminal on Linux</h5>
-                    <pre style="background:#0c1021;color:#f8f8f8">git clone https://github.com/zarianw/jonoondb.git
-<span style="color:#8da6ce">cd</span> jonoondb/
-mkdir build
-<span style="color:#8da6ce">cd</span> build
-cmake .. -G <span style="color:#61ce3c">"Unix Makefiles"</span> -DBOOST_ROOT=/path/to/boost -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
-make
-</pre>
-                    <p>If you want to run unittests from terminal then you can type "ctest -V" from inside the build directory.</p>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="content">
-                    <h5 class="bold">Install JonoonDB</h5>
-                    <p>Its time to install JonoonDB library and headers in the location specified by CMAKE_INSTALL_PREFIX above.</p>
-                    <p>On windows, just build the INSTALL project from within Visual Studio.</p>
-                    <p>On Linux/MacOS X, just execute the command "sudo make install". </p> 
-                    <p>That's it folks. You should see the JonoonDB library, tools and headers in the install directory.</p>        
-                </div>
-            </div>
-        </div>
+                    <h2 class="bold">Indexing</h2>
+                    <p>Indexing is the mechanism that enables JonoonDB to do efficient lookups, aggregations and sorting. Without indexes JonoonDB must do a full collection scan i.e scan each and every document in the collection. JonoonDB's approach to indexing is very different to traditional databases. This is what sets it apart from the pack as well.
+                    </p>
+                    <p>In traditional databases the practical number of indexes that can be created on a table is very low. The reason is simple, as you create more that few indexes the insert performance becomes so slow that the whole database comes to a halt. In JonoonDB all indexes are maintained in memory using really fast in-memory data structures. This enables JonoonDB to maintain fast insert performance even with dozens of indexes. This of-course means that your indexes should fit in memory for good performance but that is a requirement that you will find in all leading databases.
+                    </p>
+                    <p>The second big difference is how JonoonDB query planner can use multiple indexes in a single query plan. A number of leading databases can only use 1 index in a given query plan. JonoonDB can use multiple indexes in a single query plan.
+                    </p>
+                    <p>The third difference is the extensible indexing design in JonoonDB. JonoonDB is designed from the grounds up where different type of indexes can be developed and added. This means that more and more index implementations will be added in future. This gives a tremendous amount of flexibility and you as a user can write your own index implementation if you want. You will never be locked in to what a given database provides. This is one of the important features that enables JonoonDB to be a one size fits all database.
+                    </p>
+                    <p>The following index implementations exist in JonoonDB. 1. InvertedCompressedBitmap: In this data structure. The values are mapped to the document ids in which they exist. For example if you have a field State then value such as CA will be mapped to the document ids which have field State = CA. Hence the word inverted. The document ids are stored as compressed bitmap which enables huge space saving if used on the right field. Further all values are stored in a sorted tree data structure which enables efficient range based lookups. For example if you have a column Age and you want to do a query like Age > 10 and Age < 20. You should almost always use this index type for low cardinality (less than 50K distinct values but do your own testing) columns but even with high cardinality columns they can yield superior performance. Here is a link to an article that talks about bitmap indexes and offers good advice and benchmarks. 2. Vector: This index data structure is a simple vector (array) of values as they exist in the documents. The index of the vector is the document id and content at that index location is the actual value. This is a good default if you want to arrange your data as a column store. The column oriented data results in really fast scans and aggregations. Its also much faster to insert data in this data structure.
+                    </p>
+                    <p>The following code snippet builds on top of the tutorial (add link) example and shows how to create an index.
+                    </p>
+                   <pre style="background:#0c1021;color:#f8f8f8">vector&lt;IndexInfo> indexes;
+indexes.push_back(IndexInfo(<span style="color:#61ce3c">"idx_name"</span>,        <span style="color:#aeaeae">// Name</span>
+                            IndexType::VECTOR, <span style="color:#aeaeae">// Type</span>
+                            <span style="color:#61ce3c">"age"</span>,             <span style="color:#aeaeae">// Indexed Field</span>
+                            <span style="color:#d8fa3c">true</span>)              <span style="color:#aeaeae">// IsAscending</span>
+);
+indexes.push_back(IndexInfo(<span style="color:#61ce3c">"idx_age"</span>,    <span style="color:#aeaeae">// Name</span>
+                            IndexType::INVERTED_COMPRESSED_BITMAP, <span style="color:#aeaeae">// Type</span>
+                            <span style="color:#61ce3c">"age"</span>,        <span style="color:#aeaeae">// Indexed Field</span>
+                            <span style="color:#d8fa3c">true</span>)         <span style="color:#aeaeae">// IsAscending</span>
+);
 
-
-
+db.CreateCollection(<span style="color:#61ce3c">"character"</span>,                  <span style="color:#aeaeae">// collection name   </span>
+                    SchemaType::FLAT_BUFFERS,     <span style="color:#aeaeae">// collection schema type</span>
+                    schema,                       <span style="color:#aeaeae">// collection schema</span>
+                    indexes                       <span style="color:#aeaeae">// indexes to create</span>
+);
+</pre>
+                </div>
+            </div>
+        </div>
+        
         <!-- Content Ends here -->
     </div>
     <!-- Container Ends here -->
@@ -244,4 +190,5 @@ make
     </div>
     <!--  Footer ends here -->
 </body>
+
 </html>

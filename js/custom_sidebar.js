@@ -15,11 +15,12 @@ link array show links that the name points to.
 
 If you add or delete a menu element then
 
-(1) add/remove its array
+(1) add/remove its name and link array
 (2) object array
-(3) button reference from here
+(3) Store plus button id in a plus button var 
 (4) Add entry in show_or_hide_menu_expand_btn()
 (5) Add/remove the toggle() functionality  
+(6) Add entry in build_sub_menu_tree()
 
 Note : there are two menu's (fixed and absolute) 
         so do this for both of the menu
@@ -34,9 +35,9 @@ var tutorial_submenu_links = ['index.html', 'tutorial.html', 'https://www.google
 //About (no sub menu items)
 var getting_started_submenu_name = ['Installation', 'Tutorial'];
 var getting_started_submenu_links = ['getting_started_installation.html', 'getting_started_tutorial.html'];
-//Contact
-var contact_submenu_name;
-var contact_submenu_links;
+//Documentation
+var documentation_submenu_name = ['Indexing'];
+var documentation_submenu_links = ['documentation_indexing.html'];
 
 //plus buttons that expands the sub-menu section
 var intro_plus_btn;
@@ -45,8 +46,8 @@ var getting_started_plus_btn;
 var getting_started_plus_btn_2;
 var tutorial_plus_btn;
 var tutorial_plus_btn_2;
-var contact_plus_btn;
-var contact_plus_btn_2;
+var documentation_plus_btn;
+var documentation_plus_btn_2;
 
 
 /*  Creates an object if submenu item
@@ -76,7 +77,7 @@ function create_menu_objs(names, links) {
 var intro_sub_menu_objs_array = create_menu_objs(intro_submenu_name, intro_submenu_links)
 var tutorial_sub_menu_objs_array = create_menu_objs(tutorial_submenu_name, tutorial_submenu_links)
 var getting_started_sub_menu_objs_array = create_menu_objs(getting_started_submenu_name, getting_started_submenu_links)
-var contact_sub_menu_objs_array = create_menu_objs(contact_submenu_name, contact_submenu_links)
+var documentation_sub_menu_objs_array = create_menu_objs(documentation_submenu_name, documentation_submenu_links)
 
 /*
   function addSubMenuItems
@@ -138,9 +139,9 @@ function show_or_hide_menu_expand_btn() {
         getting_started_plus_btn.css("visibility", "hidden");
         getting_started_plus_btn_2.css("visibility", "hidden");
     }
-    if (!contact_sub_menu_objs_array || contact_sub_menu_objs_array.length <= 0) {
-        contact_plus_btn.css("visibility", "hidden");
-        contact_plus_btn_2.css("visibility", "hidden");
+    if (!documentation_sub_menu_objs_array || documentation_sub_menu_objs_array.length <= 0) {
+        documentation_plus_btn.css("visibility", "hidden");
+        documentation_plus_btn_2.css("visibility", "hidden");
     }
 }
 
@@ -161,6 +162,9 @@ function build_sub_menu_tree() {
     var tutorial_ul_element_fixed = $('#getting_started_submenu_fixed');
     var tutorial_ul_element_abs = $('#tutorial-submenu-absolute');
     var tutorial_ul_element_fixed = $('#tutorial-submenu-fixed');
+    var documentation_ul_element_abs = $('#documentation_submenu_absolute');
+    var documentation_ul_element_fixed = $('#documentation_submenu_fixed');
+
 
     show_or_hide_menu_expand_btn()
     addSubMenuItems(intro_ul_element_abs, intro_sub_menu_objs_array);
@@ -169,6 +173,9 @@ function build_sub_menu_tree() {
     addSubMenuItems(getting_started_ul_element_fixed, getting_started_sub_menu_objs_array);
     addSubMenuItems(tutorial_ul_element_abs, tutorial_sub_menu_objs_array);
     addSubMenuItems(tutorial_ul_element_fixed, tutorial_sub_menu_objs_array);
+    addSubMenuItems(documentation_ul_element_abs, documentation_sub_menu_objs_array);
+    addSubMenuItems(documentation_ul_element_fixed, documentation_sub_menu_objs_array);
+
 }
 
 //All funcs here are executed when document is ready,
@@ -184,8 +191,8 @@ $(document).ready(function() {
     getting_started_plus_btn_2 = $('#getting_started_btn_2')
     tutorial_plus_btn = $("#tutorial_btn");
     tutorial_plus_btn_2 = $("#tutorial_btn_2");
-    contact_plus_btn = $('#contact_btn');
-    contact_plus_btn_2 = $('#contact_btn_2');
+    documentation_plus_btn = $('#documentation_btn_1');
+    documentation_plus_btn_2 = $('#documentation_btn_2');
 
     //build the sidebar menu's sub menu item
     build_sub_menu_tree()
@@ -206,6 +213,14 @@ $(document).ready(function() {
 
     getting_started_plus_btn_2.on("click", function() {
         $('#getting_started_submenu_fixed').toggle();
+    });
+
+    documentation_plus_btn.on("click", function() {
+        $('#documentation_submenu_absolute').toggle();
+    });
+
+    documentation_plus_btn_2.on("click", function() {
+        $('#documentation_submenu_fixed').toggle();
     });
 
     tutorial_plus_btn.on("click", function() {
