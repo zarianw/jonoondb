@@ -27,7 +27,7 @@ body {
 /*This is to show sub menu items as bullet points*/
 
 .menu-sidebar ul>li {
-    display: list-item;
+    /*display: list-item;*/
     margin-left: -10px;
     margin-top: -5px;
     text-align: left;
@@ -166,7 +166,7 @@ a:hover {
 
 @media (max-width: 1920px) {
     .menu-sidebar {
-        width: 216px;
+        width: 250px;
         font-size: 16px;
     }
     .menu-sidebar li {
@@ -176,7 +176,7 @@ a:hover {
     }
 }
 
-@media (max-width: 1530px) {
+@media (max-width: 1693px) {
     .menu-sidebar {
         width: 150px;
         font-size: 10px;

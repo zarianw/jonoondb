@@ -13,8 +13,16 @@ Setup variables to add submenu items.
 name array contains the name that will show on the menu.
 link array show links that the name points to.
 
-If you add or delete a menu element then add/remove its
-array, object array, and button reference from here 
+If you add or delete a menu element then
+
+(1) add/remove its array
+(2) object array
+(3) button reference from here
+(4) Add entry in show_or_hide_menu_expand_btn()
+(5) Add/remove the toggle() functionality  
+
+Note : there are two menu's (fixed and absolute) 
+        so do this for both of the menu
 */
 
 //introduction
