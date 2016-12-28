@@ -241,8 +241,10 @@ a:hover {
 }
 
 .fixed {
-    display: none;
-    position: fixed;
+        display: block;
+
+        /*display: none;*/
+        position: fixed;
 }
 
 

@@ -2,234 +2,159 @@
     Author : Omar waheed
 
     Description: This file contains all the javascript for sidebar menu
+                 To add something to sidebar you just need to make changes
+                 in side_menu_json
 */
 
 // position at which we change from fixed to floating menu or vice versa
 var changePosition;
 var sidebar_menu;
+var main_div_classes = "menu-item green-hover";
+var a_tag_classes = "cover-div"
+var i_tag_classes = "btn-sm menu-expand-icon custom-green fa fa-plus"
+var ul_tag_class = "menu-sub-item";
+var main_sidebar_menu_div_reference;
+var sidebar_menu;
+var changePosition;
 
-/*
-Setup variables to add submenu items.
-name array contains the name that will show on the menu.
-link array show links that the name points to.
-
-If you add or delete a menu element then
-
-(1) add/remove its name and link array
-(2) object array
-(3) Store plus button id in a plus button var 
-(4) Add entry in show_or_hide_menu_expand_btn()
-(5) Add/remove the toggle() functionality  
-(6) Add entry in build_sub_menu_tree()
-
-Note : there are two menu's (fixed and absolute) 
-        so do this for both of the menu
-*/
-
-//introduction
-var intro_submenu_name = ['test1', 'test2', 'Another link'];
-var intro_submenu_links = ['index.html', 'tutorial.html', 'https://www.google.com'];
-//tutorial
-var tutorial_submenu_name = ['test3', 'test4', 'Another link'];
-var tutorial_submenu_links = ['index.html', 'tutorial.html', 'https://www.google.com'];
-//About (no sub menu items)
-var getting_started_submenu_name = ['Installation', 'Tutorial'];
-var getting_started_submenu_links = ['getting_started_installation.html', 'getting_started_tutorial.html'];
-//Documentation
-var documentation_submenu_name = ['Indexing'];
-var documentation_submenu_links = ['documentation_indexing.html'];
-
-//plus buttons that expands the sub-menu section
-var intro_plus_btn;
-var intro_plus_btn_2;
-var getting_started_plus_btn;
-var getting_started_plus_btn_2;
-var tutorial_plus_btn;
-var tutorial_plus_btn_2;
-var documentation_plus_btn;
-var documentation_plus_btn_2;
-
-
-/*  Creates an object if submenu item
-    contains two properties
-    Args:-
-        name : name of the sub menu item
-        link : link of the sub menu item
-*/
-var submenu_item = function(name, link) {
-    this.name = name
-    this.link = link
-}
-
-//creates an array of submenu_items
-function create_menu_objs(names, links) {
-    if (!names || !links) {
-        return undefined;
+//create and returns a guid  guid
+function guid() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
     }
-    var result_array = []
-    for (var i = 0; i < names.length; i++) {
-        console.log("name is : " + names[i])
-        result_array[i] = new submenu_item(names[i], links[i])
-    }
-    return result_array;
-}
-
-var intro_sub_menu_objs_array = create_menu_objs(intro_submenu_name, intro_submenu_links)
-var tutorial_sub_menu_objs_array = create_menu_objs(tutorial_submenu_name, tutorial_submenu_links)
-var getting_started_sub_menu_objs_array = create_menu_objs(getting_started_submenu_name, getting_started_submenu_links)
-var documentation_sub_menu_objs_array = create_menu_objs(documentation_submenu_name, documentation_submenu_links)
-
-/*
-  function addSubMenuItems
-
-
-  Description: 
-  This function takes in the menu element (e.g. introduction section)
-  and an array of it's sub menu objects created using create_menu_objs() func.
-  It then populates the unordered list <ul> in the html with the specified
-  sub menu elements
-
-  e.g.
-  obj1 = {
-    name: "test1",
-    link: "www.google.com"
-  }
-
-  obj2 = {
-    name: "test2",
-    link: "www.jonoondb.org"
-  }
-
-  introduction_div = some div that points to the menu's "introduction" element
-  then calling:-
-
-  addSubMenuItems(introduction_div, [obj1,obj2])
-
-  will do the following:-
-
-  Introduction
-    |_obj1
-    |_obj2
-
-    clicking test1 will open www.google.com
-*/
-function addSubMenuItems(element, sub_menu_objs) {
-
-    for (var i = 0; i < sub_menu_objs.length; i++) {
-        element.append('<li><a href="' + sub_menu_objs[i].link + '">' + sub_menu_objs[i].name + '</a></li>');
-    }
-}
-
-// check for each menu and if any of them
-// has an empty submenu item array, then
-// hide the plus button from that element
-// else do nothing as by default plus is
-// visible
-function show_or_hide_menu_expand_btn() {
-    if (!intro_sub_menu_objs_array || intro_sub_menu_objs_array.length <= 0) {
-        intro_plus_btn.css("visibility", "hidden");
-        intro_plus_btn_2.css("visibility", "hidden");
-
-    }
-    if (!tutorial_sub_menu_objs_array || tutorial_sub_menu_objs_array.length <= 0) {
-        tutorial_plus_btn.css("visibility", "hidden");
-        tutorial_plus_btn_2.css("visibility", "hidden");
-    }
-    if (!getting_started_sub_menu_objs_array || getting_started_sub_menu_objs_array.length <= 0) {
-        getting_started_plus_btn.css("visibility", "hidden");
-        getting_started_plus_btn_2.css("visibility", "hidden");
-    }
-    if (!documentation_sub_menu_objs_array || documentation_sub_menu_objs_array.length <= 0) {
-        documentation_plus_btn.css("visibility", "hidden");
-        documentation_plus_btn_2.css("visibility", "hidden");
-    }
+    return "guid_" + s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
 }
 
 /*
-function build_sub_menu_tree
-  description: builds the sub menu tree in the 
-  sidemenu bar
+       Access like sidemenu_menu_items[0].title and so on
+
+        description:
+        A JSON object that hold all the info for sidebar menu
+    
+        Structure:-
+
+        num_of_tabs (int) : number of total tabs in the menu
+        title (string) : the title of the main tab
+        parent_href (html link) : href of the main tav
+        submenu_items (array) : name of items in the submenu (order matters)
+        submenu_links (array) : links of the items in the submenu
+                        (order of links should be same as in submenu_items)
 */
-function build_sub_menu_tree() {
+var side_menu_json = {
+    num_of_tabs: 3,
 
-    //if these variables are needed at more than one place
-    // make these global, instead of calling jquery func again
-    // it's much faster that way
-    var intro_ul_element_abs = $('#intro-submenu-absolute');
-    var intro_ul_element_fixed = $('#intro-submenu-fixed');
-    var getting_started_ul_element_abs = $('#getting_started_submenu_absolute');
-    var getting_started_ul_element_fixed = $('#getting_started_submenu_fixed');
-    var tutorial_ul_element_fixed = $('#getting_started_submenu_fixed');
-    var tutorial_ul_element_abs = $('#tutorial-submenu-absolute');
-    var tutorial_ul_element_fixed = $('#tutorial-submenu-fixed');
-    var documentation_ul_element_abs = $('#documentation_submenu_absolute');
-    var documentation_ul_element_fixed = $('#documentation_submenu_fixed');
+    0: {
+        title: "Introduction",
+        parent_href: "index.html",
+        submenu_items: [],
+        submenu_links: []
+
+    },
+    1: {
+        title: "Getting Started",
+        parent_href: "getting_started_installation.html",
+        submenu_items: ["Installation", "Tutorial"],
+        submenu_links: ["getting_started_installation.html", "getting_started_tutorial.html"]
+    },
+
+    2: {
+        title: "Documentation",
+        parent_href: "documentation_indexing.html",
+        submenu_items: ["Indexing"],
+        submenu_links: ["documentation_indexing.html"]
+    }
 
 
-    show_or_hide_menu_expand_btn()
-    addSubMenuItems(intro_ul_element_abs, intro_sub_menu_objs_array);
-    addSubMenuItems(intro_ul_element_fixed, intro_sub_menu_objs_array);
-    addSubMenuItems(getting_started_ul_element_abs, getting_started_sub_menu_objs_array);
-    addSubMenuItems(getting_started_ul_element_fixed, getting_started_sub_menu_objs_array);
-    addSubMenuItems(tutorial_ul_element_abs, tutorial_sub_menu_objs_array);
-    addSubMenuItems(tutorial_ul_element_fixed, tutorial_sub_menu_objs_array);
-    addSubMenuItems(documentation_ul_element_abs, documentation_sub_menu_objs_array);
-    addSubMenuItems(documentation_ul_element_fixed, documentation_sub_menu_objs_array);
 
 }
+
+function add_toggle_functionality(button_id, to_be_opened_list_id) {
+    var button_id_with_hash = "#" + button_id;
+    var list_id_with_hash = "#" + to_be_opened_list_id
+
+    $(button_id_with_hash).on("click", function() {
+        $(list_id_with_hash).toggle();
+    });
+}
+
+/*
+check if submenu_items length > 0
+if no
+     then continue
+otherwise
+    create main div fragment
+    create anchor tag div
+    create icon fragment
+    create ul and then populate it with a tags containing the sub links
+
+*/
+
+function create_sidebar_menu(sidebar_menu_items_json, append_to_element_id) {
+
+    var num_of_tabs = sidebar_menu_items_json.num_of_tabs;
+    var main_div_frag;
+    var anchor_tag_frag;
+    var icon_tag_frag;
+    var icon_tag_guid_id;
+    var ul_tag_frag;
+    var submenu_item;
+    var submenu_link;
+    for (var i = 0; i < num_of_tabs; i++) {
+         main_div_frag = document.createElement('div');
+        main_div_frag.className = main_div_classes;
+        anchor_tag_frag = document.createElement('a');
+        anchor_tag_frag.className = a_tag_classes
+        anchor_tag_frag.href = sidebar_menu_items_json[i].parent_href
+        anchor_tag_frag.innerHTML = sidebar_menu_items_json[i].title
+        if (sidebar_menu_items_json[i].submenu_items.length <= 0) {
+            //append current frags and continue
+            main_div_frag.append(anchor_tag_frag);
+            main_sidebar_menu_div_reference.append(main_div_frag);
+            continue;
+        }
+        icon_tag_frag = document.createElement('i');
+        icon_tag_frag.className = i_tag_classes;
+        //generate a GUID for icon tag so that we can add a 
+        // toggle function to it by id reference TO-DO
+        icon_tag_frag.id = guid()
+        ul_tag_frag = document.createElement('ul');
+        ul_tag_frag.className = ul_tag_class;
+        ul_tag_frag.id = guid()
+
+        // main_sidebar_menu_div_reference
+        //add submenu item for current tab
+        for (var j = 0; j < sidebar_menu_items_json[i].submenu_items.length; j++) {
+            list_element_frag = document.createElement('li');
+            list_element_anchor_frag = document.createElement('a');
+            submenu_item = sidebar_menu_items_json[i].submenu_items[j];
+            submenu_link = sidebar_menu_items_json[i].submenu_links[j];
+            list_element_anchor_frag.innerHTML = submenu_item;
+            list_element_anchor_frag.href = submenu_link;
+            list_element_frag.appendChild(list_element_anchor_frag)
+            ul_tag_frag.appendChild(list_element_frag);
+        }
+
+        //append all the current frags to main
+        main_div_frag.appendChild(anchor_tag_frag);
+        main_div_frag.appendChild(icon_tag_frag);
+        main_div_frag.appendChild(ul_tag_frag);
+        main_sidebar_menu_div_reference.append(main_div_frag);
+        add_toggle_functionality(icon_tag_frag.id, ul_tag_frag.id)
+    }
+}
+
+
+
 
 //All funcs here are executed when document is ready,
 //making sure we don't reference anything that is
 //undefined due to document not fully loaded
 $(document).ready(function() {
-    //all the plus buttons on sidebar menu
-    //add the buttons for new menu element's here and at other
-    //places in the code so that the expandable menu works fine
-    intro_plus_btn = $("#intro_btn");
-    intro_plus_btn_2 = $("#intro_btn_2");
-    getting_started_plus_btn = $('#getting_started_btn_1');
-    getting_started_plus_btn_2 = $('#getting_started_btn_2')
-    tutorial_plus_btn = $("#tutorial_btn");
-    tutorial_plus_btn_2 = $("#tutorial_btn_2");
-    documentation_plus_btn = $('#documentation_btn_1');
-    documentation_plus_btn_2 = $('#documentation_btn_2');
-
-    //build the sidebar menu's sub menu item
-    build_sub_menu_tree()
-
-    //The button binds below expand the sidebar menu's
-    //sub-menu section (the one that we open by pressing the plus sign)
-    intro_plus_btn.on("click", function() {
-        $('#intro-submenu-absolute').toggle();
-    });
-
-    intro_plus_btn_2.on("click", function() {
-        $('#intro-submenu-fixed').toggle();
-    });
-
-    getting_started_plus_btn.on("click", function() {
-        $('#getting_started_submenu_absolute').toggle();
-    });
-
-    getting_started_plus_btn_2.on("click", function() {
-        $('#getting_started_submenu_fixed').toggle();
-    });
-
-    documentation_plus_btn.on("click", function() {
-        $('#documentation_submenu_absolute').toggle();
-    });
-
-    documentation_plus_btn_2.on("click", function() {
-        $('#documentation_submenu_fixed').toggle();
-    });
-
-    tutorial_plus_btn.on("click", function() {
-        $('#tutorial-submenu-absolute').toggle();
-    });
-
-    tutorial_plus_btn_2.on("click", function() {
-        $('#tutorial-submenu-fixed').toggle();
-    });
+    main_sidebar_menu_div_reference = $("#sb");
+    create_sidebar_menu(side_menu_json, main_sidebar_menu_div_reference);
 
     sidebar_menu = $(".menu-sidebar")[0];
 
@@ -260,9 +185,12 @@ $(document).ready(function() {
             if (window.getComputedStyle(sidebar_menu).getPropertyValue('position') != "fixed" &&
                 $(window).width() > 575 &&
                 window.pageYOffset >= changePosition) {
-                $(".menu-sidebar")[1].style.display = "block"
-                sidebar_menu.style.display = "none"
-                sidebar_menu = $(".menu-sidebar")[1];
+                // $(".menu-sidebar")[0].style.display = "block"
+                document.getElementsByClassName("menu-sidebar")[0].className = "menu-sidebar " + "fixed"
+                document.getElementsByClassName("menu-sidebar")[0].style.top = "0px";
+
+                // sidebar_menu.style.display = "none"
+                // sidebar_menu = $(".menu-sidebar")[1];
             }
 
             // Activate the floating menu if the logo section 
@@ -270,13 +198,14 @@ $(document).ready(function() {
             if ($(window).width() > 575 &&
                 window.getComputedStyle(sidebar_menu).getPropertyValue('position') != "absolute" &&
                 $(".page-header")[0].getBoundingClientRect().bottom >= 0) {
-                $(".menu-sidebar")[0].style.display = "block";
-                sidebar_menu.style.display = "none"
-                sidebar_menu = $(".menu-sidebar")[0];
+                // $(".menu-sidebar")[0].style.display = "block";
+                document.getElementsByClassName("menu-sidebar")[0].className = "menu-sidebar " + "absolute"
+                document.getElementsByClassName("menu-sidebar")[0].style.top = changePosition + "px";
+
+                // sidebar_menu.style.display = "none"
+                // sidebar_menu = $(".menu-sidebar")[0];
             }
 
         }
     });
-
-
 });
