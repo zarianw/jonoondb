@@ -191,7 +191,7 @@ a:hover {
 
 @media (max-width: 1420px) {
     .menu-sidebar {
-        width: 70px;
+        width: 150px;
         font-size: 10px;
         font-weight: 500;
     }
