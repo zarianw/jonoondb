@@ -24,8 +24,8 @@ var intro_submenu_links = ['index.html', 'tutorial.html', 'https://www.google.co
 var tutorial_submenu_name = ['test3', 'test4', 'Another link'];
 var tutorial_submenu_links = ['index.html', 'tutorial.html', 'https://www.google.com'];
 //About (no sub menu items)
-var about_submenu_name;
-var about_submenu_links;
+var getting_started_submenu_name = ['Installation', 'Tutorial'];
+var getting_started_submenu_links = ['getting_started_installation.html', 'getting_started_tutorial.html'];
 //Contact
 var contact_submenu_name;
 var contact_submenu_links;
@@ -33,8 +33,8 @@ var contact_submenu_links;
 //plus buttons that expands the sub-menu section
 var intro_plus_btn;
 var intro_plus_btn_2;
-var about_plus_btn;
-var about_plus_btn_2;
+var getting_started_plus_btn;
+var getting_started_plus_btn_2;
 var tutorial_plus_btn;
 var tutorial_plus_btn_2;
 var contact_plus_btn;
@@ -67,7 +67,7 @@ function create_menu_objs(names, links) {
 
 var intro_sub_menu_objs_array = create_menu_objs(intro_submenu_name, intro_submenu_links)
 var tutorial_sub_menu_objs_array = create_menu_objs(tutorial_submenu_name, tutorial_submenu_links)
-var about_sub_menu_objs_array = create_menu_objs(about_submenu_name, about_submenu_links)
+var getting_started_sub_menu_objs_array = create_menu_objs(getting_started_submenu_name, getting_started_submenu_links)
 var contact_sub_menu_objs_array = create_menu_objs(contact_submenu_name, contact_submenu_links)
 
 /*
@@ -126,9 +126,9 @@ function show_or_hide_menu_expand_btn() {
         tutorial_plus_btn.css("visibility", "hidden");
         tutorial_plus_btn_2.css("visibility", "hidden");
     }
-    if (!about_sub_menu_objs_array || about_sub_menu_objs_array.length <= 0) {
-        about_plus_btn.css("visibility", "hidden");
-        about_plus_btn_2.css("visibility", "hidden");
+    if (!getting_started_sub_menu_objs_array || getting_started_sub_menu_objs_array.length <= 0) {
+        getting_started_plus_btn.css("visibility", "hidden");
+        getting_started_plus_btn_2.css("visibility", "hidden");
     }
     if (!contact_sub_menu_objs_array || contact_sub_menu_objs_array.length <= 0) {
         contact_plus_btn.css("visibility", "hidden");
@@ -148,12 +148,17 @@ function build_sub_menu_tree() {
     // it's much faster that way
     var intro_ul_element_abs = $('#intro-submenu-absolute');
     var intro_ul_element_fixed = $('#intro-submenu-fixed');
+    var getting_started_ul_element_abs = $('#getting_started_submenu_absolute');
+    var getting_started_ul_element_fixed = $('#getting_started_submenu_fixed');
+    var tutorial_ul_element_fixed = $('#getting_started_submenu_fixed');
     var tutorial_ul_element_abs = $('#tutorial-submenu-absolute');
     var tutorial_ul_element_fixed = $('#tutorial-submenu-fixed');
 
     show_or_hide_menu_expand_btn()
     addSubMenuItems(intro_ul_element_abs, intro_sub_menu_objs_array);
     addSubMenuItems(intro_ul_element_fixed, intro_sub_menu_objs_array);
+    addSubMenuItems(getting_started_ul_element_abs, getting_started_sub_menu_objs_array);
+    addSubMenuItems(getting_started_ul_element_fixed, getting_started_sub_menu_objs_array);
     addSubMenuItems(tutorial_ul_element_abs, tutorial_sub_menu_objs_array);
     addSubMenuItems(tutorial_ul_element_fixed, tutorial_sub_menu_objs_array);
 }
@@ -167,8 +172,8 @@ $(document).ready(function() {
     //places in the code so that the expandable menu works fine
     intro_plus_btn = $("#intro_btn");
     intro_plus_btn_2 = $("#intro_btn_2");
-    about_plus_btn = $('#about_btn_1');
-    about_plus_btn_2 = $('#about_btn_2')
+    getting_started_plus_btn = $('#getting_started_btn_1');
+    getting_started_plus_btn_2 = $('#getting_started_btn_2')
     tutorial_plus_btn = $("#tutorial_btn");
     tutorial_plus_btn_2 = $("#tutorial_btn_2");
     contact_plus_btn = $('#contact_btn');
@@ -185,6 +190,14 @@ $(document).ready(function() {
 
     intro_plus_btn_2.on("click", function() {
         $('#intro-submenu-fixed').toggle();
+    });
+
+    getting_started_plus_btn.on("click", function() {
+        $('#getting_started_submenu_absolute').toggle();
+    });
+
+    getting_started_plus_btn_2.on("click", function() {
+        $('#getting_started_submenu_fixed').toggle();
     });
 
     tutorial_plus_btn.on("click", function() {
