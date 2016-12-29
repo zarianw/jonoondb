@@ -4,6 +4,11 @@
     Description: This file contains all the javascript for sidebar menu
                  To add something to sidebar you just need to make changes
                  in side_menu_json
+
+                 Note : There is an assumption that the following exists in
+                 the .html file at the appropriate position: 
+                 <div id="sb" class="col-sm-2 menu-sidebar absolute title-font">
+                 </div> 
 */
 
 // position at which we change from fixed to floating menu or vice versa
@@ -16,8 +21,9 @@ var ul_tag_class = "menu-sub-item";
 var main_sidebar_menu_div_reference;
 var sidebar_menu;
 var changePosition;
+var current_selceted_menu;
 
-//create and returns a guid  guid
+//create and returns a guid 
 function guid() {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
@@ -38,17 +44,19 @@ function guid() {
 
         num_of_tabs (int) : number of total tabs in the menu
         title (string) : the title of the main tab
-        parent_href (html link) : href of the main tav
+        parent_href (html link) : href of the main tavpage
+        recognizer: Uswed to recognize which page a sub meny belongs to and if available, expands that sybmenu when on that page or sub 
         submenu_items (array) : name of items in the submenu (order matters)
         submenu_links (array) : links of the items in the submenu
                         (order of links should be same as in submenu_items)
 */
 var side_menu_json = {
-    num_of_tabs: 3,
+    num_of_tabs: 4,
 
     0: {
         title: "Introduction",
         parent_href: "index.html",
+        recognizer : "introduction",
         submenu_items: [],
         submenu_links: []
 
@@ -56,6 +64,7 @@ var side_menu_json = {
     1: {
         title: "Getting Started",
         parent_href: "getting_started_installation.html",
+        recognizer : "getting_started",
         submenu_items: ["Installation", "Tutorial"],
         submenu_links: ["getting_started_installation.html", "getting_started_tutorial.html"]
     },
@@ -63,14 +72,25 @@ var side_menu_json = {
     2: {
         title: "Documentation",
         parent_href: "documentation_indexing.html",
+        recognizer : "documentation",
         submenu_items: ["Indexing"],
         submenu_links: ["documentation_indexing.html"]
+    },
+
+    3: {
+        title: "Road Map",
+        parent_href: "roadmap.html",
+        recognizer : "roadmap",
+        submenu_items: [],
+        submenu_links: []
     }
-
-
-
 }
 
+/*
+    Adds toggle functionality to the button with button_id
+    which will open-up/close (toggle) a list or any other
+    element given in  to_be_opened_list_id
+*/
 function add_toggle_functionality(button_id, to_be_opened_list_id) {
     var button_id_with_hash = "#" + button_id;
     var list_id_with_hash = "#" + to_be_opened_list_id
@@ -81,15 +101,27 @@ function add_toggle_functionality(button_id, to_be_opened_list_id) {
 }
 
 /*
+create_sidebar_menu(sidebar_menu_items_json, append_to_element_id) {
+
+Input:-
+sidebar_menu_items_json: The json which contains the struture of 
+                         all the menu tabs and their sub menu's
+
+append_to_element_id: The element (div) to which we have to append
+                      our to be built sidebar menu content
+
+Description:-
 check if submenu_items length > 0
 if no
-     then continue
+     then build and append the current frag to our sidebar
+     continue
 otherwise
     create main div fragment
     create anchor tag div
     create icon fragment
     create ul and then populate it with a tags containing the sub links
-
+    Finally append it to the sidebar div
+    Bind the toggle functionality to the button that open up the sub menu
 */
 
 function create_sidebar_menu(sidebar_menu_items_json, append_to_element_id) {
@@ -103,7 +135,7 @@ function create_sidebar_menu(sidebar_menu_items_json, append_to_element_id) {
     var submenu_item;
     var submenu_link;
     for (var i = 0; i < num_of_tabs; i++) {
-         main_div_frag = document.createElement('div');
+        main_div_frag = document.createElement('div');
         main_div_frag.className = main_div_classes;
         anchor_tag_frag = document.createElement('a');
         anchor_tag_frag.className = a_tag_classes
@@ -111,7 +143,7 @@ function create_sidebar_menu(sidebar_menu_items_json, append_to_element_id) {
         anchor_tag_frag.innerHTML = sidebar_menu_items_json[i].title
         if (sidebar_menu_items_json[i].submenu_items.length <= 0) {
             //append current frags and continue
-            main_div_frag.append(anchor_tag_frag);
+            main_div_frag.appendChild(anchor_tag_frag);
             main_sidebar_menu_div_reference.append(main_div_frag);
             continue;
         }
@@ -143,15 +175,24 @@ function create_sidebar_menu(sidebar_menu_items_json, append_to_element_id) {
         main_div_frag.appendChild(ul_tag_frag);
         main_sidebar_menu_div_reference.append(main_div_frag);
         add_toggle_functionality(icon_tag_frag.id, ul_tag_frag.id)
+        //click and open the sub-menu if href contains a substring that matches the submenu recoginer
+        if(location.href.indexOf(sidebar_menu_items_json[i].recognizer) >= 0){
+            click_button(icon_tag_frag.id)
+        }
     }
 }
 
+//clicks a button that 
+function click_button(button_id){
+    var id_with_hash = "#" + button_id;
+    $( id_with_hash ).click();
+}
 
-
-
-//All funcs here are executed when document is ready,
-//making sure we don't reference anything that is
-//undefined due to document not fully loaded
+/*
+  All funcs here are executed when document is ready,
+  making sure we don't reference anything that is
+  undefined due to document not fully loaded
+*/
 $(document).ready(function() {
     main_sidebar_menu_div_reference = $("#sb");
     create_sidebar_menu(side_menu_json, main_sidebar_menu_div_reference);
@@ -188,22 +229,13 @@ $(document).ready(function() {
                 // $(".menu-sidebar")[0].style.display = "block"
                 document.getElementsByClassName("menu-sidebar")[0].className = "menu-sidebar " + "fixed"
                 document.getElementsByClassName("menu-sidebar")[0].style.top = "0px";
-
-                // sidebar_menu.style.display = "none"
-                // sidebar_menu = $(".menu-sidebar")[1];
             }
 
-            // Activate the floating menu if the logo section 
-            // is past the visible page area
             if ($(window).width() > 575 &&
                 window.getComputedStyle(sidebar_menu).getPropertyValue('position') != "absolute" &&
                 $(".page-header")[0].getBoundingClientRect().bottom >= 0) {
-                // $(".menu-sidebar")[0].style.display = "block";
                 document.getElementsByClassName("menu-sidebar")[0].className = "menu-sidebar " + "absolute"
                 document.getElementsByClassName("menu-sidebar")[0].style.top = changePosition + "px";
-
-                // sidebar_menu.style.display = "none"
-                // sidebar_menu = $(".menu-sidebar")[0];
             }
 
         }
