@@ -228,13 +228,13 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
                 boost::trim(tok);
               }
 
-              if (idxTokens[1] == "EWAH_COMPRESSED_BITMAP") {
+              if (idxTokens[1] == "INVERTED_COMPRESSED_BITMAP") {
                 bool isAscending = false;
                 if (boost::iequals("ASC", idxTokens[3])) {
                   isAscending = true;
                 }
                 indexes.push_back(IndexInfoImpl(idxTokens[0],
-                                            IndexType::EWAH_COMPRESSED_BITMAP,
+                                            IndexType::INVERTED_COMPRESSED_BITMAP,
                                             idxTokens[2],
                                             isAscending));
               } else if (idxTokens[1] == "VECTOR") {

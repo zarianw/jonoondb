@@ -148,6 +148,8 @@ SqlType ResultSetImpl::GetColumnType(std::int32_t columnIndex) {
       return SqlType::DOUBLE;
     case SQLITE_TEXT:
       return SqlType::TEXT;
+    case SQLITE_BLOB:
+      return SqlType::BLOB;
     case SQLITE_NULL:
       return SqlType::DB_NULL;
     default: {

@@ -19,7 +19,7 @@ Indexer* IndexerFactory::CreateIndexer(
     const IndexInfoImpl& indexInfo,
     const FieldType& fieldType) {
   switch (indexInfo.GetType()) {
-    case IndexType::EWAH_COMPRESSED_BITMAP: {
+    case IndexType::INVERTED_COMPRESSED_BITMAP: {
       if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
           fieldType == FieldType::BASE_TYPE_FLOAT32) {
         EWAHCompressedBitmapIndexerDouble* ewahIndexer;

@@ -17,7 +17,7 @@ namespace jonoondb_api {
 class BufferImpl;
 class IndexInfoImpl;
 class ResultSetImpl;
-class WriteOptionsImpl;
+struct WriteOptionsImpl;
 enum class SchemaType
     : std::int32_t;
 

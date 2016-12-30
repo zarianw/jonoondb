@@ -47,11 +47,11 @@ TEST(FileNameManager, GetNextDataFileInfo) {
   FileNameManager fileNameManager(dbPath, dbName, collectionName, true);
 
   FileInfo fileInfo;
-  string fileNamePattern = "FileNameManager_GetNextDataFileInfo_Collection.%d";
+  string fileNamePattern = "FileNameManager_GetNextDataFileInfo_Collection.";
   string fileNameWithPathPattern =
       (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
-  char fileName[200];
-  char fileNameWithPath[1024];
+  string fileName;
+  string fileNameWithPath;
 
   //Add the first FileInfo record
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
@@ -64,11 +64,11 @@ TEST(FileNameManager, GetNextDataFileInfo) {
 
     ASSERT_EQ(fileInfo.fileKey, i);
 
-    sprintf(fileName, fileNamePattern.c_str(), i);
-    sprintf(fileNameWithPath, fileNameWithPathPattern.c_str(), i);
+    fileName = fileNamePattern + std::to_string(i);
+    fileNameWithPath = fileNameWithPathPattern + std::to_string(i);
 
-    ASSERT_STREQ(fileInfo.fileName.c_str(), fileName);
-    ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileNameWithPath);
+    ASSERT_STREQ(fileInfo.fileName.c_str(), fileName.c_str());
+    ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileNameWithPath.c_str());
   }
 }
 
@@ -99,23 +99,21 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined) {
                fileInfo2.fileNameWithPath.c_str());
 
   string fileNamePattern =
-      "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.%d";
+      "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.";
   string fileNameWithPathPattern =
       (completePath.parent_path() / fileNamePattern).generic_string();
-  char fileName[200];
-  char fileNameWithPath[1024];
-
+  string fileName;
+  string fileNameWithPath;
   //Get next file in a loop
   for (int i = 1; i < 11; i++) {
     fileNameManager.GetNextDataFileInfo(fileInfo);
 
     ASSERT_EQ(fileInfo.fileKey, i);
-
-    sprintf(fileName, fileNamePattern.c_str(), i);
-    sprintf(fileNameWithPath, fileNameWithPathPattern.c_str(), i);
-
-    ASSERT_STREQ(fileInfo.fileName.c_str(), fileName);
-    ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileNameWithPath);
+    fileName = fileNamePattern + std::to_string(i);
+    fileNameWithPath = fileNameWithPathPattern + std::to_string(i);
+    
+    ASSERT_STREQ(fileInfo.fileName.c_str(), fileName.c_str());
+    ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileNameWithPath.c_str());
   }
 }
 
@@ -155,11 +153,11 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_Slash) {
                fileInfo2.fileNameWithPath.c_str());
 
   string fileNamePattern =
-      "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.%d";
+      "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.";
   string fileNameWithPathPattern =
       (completePath.parent_path() / fileNamePattern).generic_string();
-  char fileName[200];
-  char fileNameWithPath[1024];
+  string fileName;
+  string fileNameWithPath;
 
   //Get next file in a loop
   for (int i = 1; i < 11; i++) {
@@ -167,11 +165,11 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_Slash) {
 
     ASSERT_EQ(fileInfo.fileKey, i);
 
-    sprintf(fileName, fileNamePattern.c_str(), i);
-    sprintf(fileNameWithPath, fileNameWithPathPattern.c_str(), i);
+    fileName = fileNamePattern + std::to_string(i);
+    fileNameWithPath = fileNameWithPathPattern + std::to_string(i);
 
-    ASSERT_STREQ(fileInfo.fileName.c_str(), fileName);
-    ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileNameWithPath);
+    ASSERT_STREQ(fileInfo.fileName.c_str(), fileName.c_str());
+    ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileNameWithPath.c_str());
   }
 }
 
@@ -182,11 +180,11 @@ TEST(FileNameManager, GetDataFileInfo) {
   FileNameManager fileNameManager(dbPath, dbName, collectionName, true);
 
   FileInfo fileInfo;
-  string fileNamePattern = "FileNameManager_GetDataFileInfo_Collection.%d";
+  string fileNamePattern = "FileNameManager_GetDataFileInfo_Collection.";
   string fileNameWithPathPattern =
       (boost::filesystem::path(dbPath) / fileNamePattern).generic_string();
-  char fileName[200];
-  char fileNameWithPath[1024];
+  string fileName;
+  string fileNameWithPath;
 
   //Add the first FileInfo record
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
@@ -205,10 +203,10 @@ TEST(FileNameManager, GetDataFileInfo) {
 
     ASSERT_EQ(fileInfoOut->fileKey, i);
 
-    sprintf(fileName, fileNamePattern.c_str(), i);
-    sprintf(fileNameWithPath, fileNameWithPathPattern.c_str(), i);
+    fileName = fileNamePattern + std::to_string(i);
+    fileNameWithPath = fileNameWithPathPattern + std::to_string(i);
 
-    ASSERT_STREQ(fileInfoOut->fileName.c_str(), fileName);
-    ASSERT_STREQ(fileInfoOut->fileNameWithPath.c_str(), fileNameWithPath);
+    ASSERT_STREQ(fileInfoOut->fileName.c_str(), fileName.c_str());
+    ASSERT_STREQ(fileInfoOut->fileNameWithPath.c_str(), fileNameWithPath.c_str());
   }
 }

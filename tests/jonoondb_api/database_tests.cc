@@ -134,11 +134,11 @@ TEST(Database, CreateCollection_DuplicateIndex) {
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes;
   indexes.push_back(IndexInfo("index1",
-                              IndexType::EWAH_COMPRESSED_BITMAP,
+                              IndexType::INVERTED_COMPRESSED_BITMAP,
                               "id",
                               true));
   indexes.push_back(IndexInfo("index1",
-                              IndexType::EWAH_COMPRESSED_BITMAP,
+                              IndexType::INVERTED_COMPRESSED_BITMAP,
                               "user.name",
                               true));
   ASSERT_THROW(db.CreateCollection(collectionName,
@@ -185,7 +185,7 @@ TEST(Database, Insert_SingleIndex) {
   string schema = File::Read(filePath);
   IndexInfo index;
   index.SetIndexName("IndexName1");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(IndexType::INVERTED_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("user.name");
   std::vector<IndexInfo> indexes;
@@ -250,7 +250,7 @@ void Execute_Insert_AllIndexTypes_Test(const std::string& dbName,
 
 TEST(Database, Insert_AllIndexTypes_EWAHCB) {
   string dbName = "Database_Insert_AllIndexTypes_EWAHCB";
-  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP, false);
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::INVERTED_COMPRESSED_BITMAP, false);
 }
 
 TEST(Database, Insert_AllIndexTypes_Vector) {
@@ -260,7 +260,7 @@ TEST(Database, Insert_AllIndexTypes_Vector) {
 
 TEST(Database, Insert_AllIndexTypes_EWAHCB_NestedNull) {
   string dbName = "Insert_AllIndexTypes_EWAHCB_NestedNull";
-  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::EWAH_COMPRESSED_BITMAP, true);
+  Execute_Insert_AllIndexTypes_Test(dbName, IndexType::INVERTED_COMPRESSED_BITMAP, true);
 }
 
 TEST(Database, ExecuteSelect_MissingCollection) {
@@ -309,7 +309,7 @@ TEST(Database, ExecuteSelect_NonEmptyDB_SingleIndex) {
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes{IndexInfo("IndexName1",
-                                           IndexType::EWAH_COMPRESSED_BITMAP,
+                                           IndexType::INVERTED_COMPRESSED_BITMAP,
                                            "user.name",
                                            true)};
   db.CreateCollection(collectionName,
@@ -345,19 +345,19 @@ TEST(Database, ExecuteSelect_Testing) {
 
   IndexInfo index;
   index.SetIndexName("IndexName1");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(IndexType::INVERTED_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("user.name");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName2");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(IndexType::INVERTED_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("text");
   indexes.push_back(index);
 
   index.SetIndexName("IndexName3");
-  index.SetType(IndexType::EWAH_COMPRESSED_BITMAP);
+  index.SetType(IndexType::INVERTED_COMPRESSED_BITMAP);
   index.SetIsAscending(true);
   index.SetColumnName("id");
   indexes.push_back(index);
@@ -493,12 +493,12 @@ void ExecuteMultiInsertTest(std::string& dbName, bool enableCompression,
 
 TEST(Database, MultiInsert) {
   string dbName = "Database_MultiInsert";
-  ExecuteMultiInsertTest(dbName, false, IndexType::EWAH_COMPRESSED_BITMAP);
+  ExecuteMultiInsertTest(dbName, false, IndexType::INVERTED_COMPRESSED_BITMAP);
 }
 
 TEST(Database, MultiInsert_Compressed) {
   string dbName = "Database_MultiInsert_Compressed";
-  ExecuteMultiInsertTest(dbName, true, IndexType::EWAH_COMPRESSED_BITMAP);
+  ExecuteMultiInsertTest(dbName, true, IndexType::INVERTED_COMPRESSED_BITMAP);
 }
 
 TEST(Database, MultiInsert_Vector) {
@@ -602,12 +602,12 @@ void ExecuteCtor_ReopenTest(std::string& dbName, bool enableCompression,
 
 TEST(Database, Ctor_ReOpen) {
   string dbName = "Database_Ctor_ReOpen";
-  ExecuteCtor_ReopenTest(dbName, false, IndexType::EWAH_COMPRESSED_BITMAP);
+  ExecuteCtor_ReopenTest(dbName, false, IndexType::INVERTED_COMPRESSED_BITMAP);
 }
 
 TEST(Database, Ctor_ReOpen_Compressed) {
   string dbName = "Ctor_ReOpen_Compressed";
-  ExecuteCtor_ReopenTest(dbName, true, IndexType::EWAH_COMPRESSED_BITMAP);
+  ExecuteCtor_ReopenTest(dbName, true, IndexType::INVERTED_COMPRESSED_BITMAP);
 }
 
 TEST(Database, Ctor_ReOpen_Vector) {
@@ -622,7 +622,7 @@ TEST(Database, ExecuteSelect_Indexed_LessThanInteger) {
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes
-      {IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true)};
+      {IndexInfo("IndexName1", IndexType::INVERTED_COMPRESSED_BITMAP, "id", true)};
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
@@ -859,7 +859,7 @@ TEST(Database, ExecuteSelect_LT_LTE) {
 TEST(Database, ExecuteSelect_LT_LTE_EWAHIndexed) {
   Database db(g_TestRootDirectory, "ExecuteSelect_LT_LTE_EWAHIndexed",
               TestUtils::GetDefaultDBOptions());
-  auto indexes = CreateAllTypeIndexes(IndexType::EWAH_COMPRESSED_BITMAP); 
+  auto indexes = CreateAllTypeIndexes(IndexType::INVERTED_COMPRESSED_BITMAP); 
   Execute_ExecuteSelect_LT_LTE_Test(db, indexes); 
 }
 
@@ -1002,7 +1002,7 @@ TEST(Database, ExecuteSelect_GT_GTE) {
 TEST(Database, ExecuteSelect_GT_GTE_EWAHIndexes) {
   Database db(g_TestRootDirectory, "ExecuteSelect_GT_GTE_EWAHIndexes",
               TestUtils::GetDefaultDBOptions());
-  auto indexes = CreateAllTypeIndexes(IndexType::EWAH_COMPRESSED_BITMAP);
+  auto indexes = CreateAllTypeIndexes(IndexType::INVERTED_COMPRESSED_BITMAP);
   Execute_ExecuteSelect_GT_GTE_Test(db, indexes);
 }
 
@@ -1092,7 +1092,7 @@ TEST(Database, ExecuteSelect_EWAHIndexed_String_GTE) {
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes{IndexInfo("IndexName1",
-                                           IndexType::EWAH_COMPRESSED_BITMAP,
+                                           IndexType::INVERTED_COMPRESSED_BITMAP,
                                            "user.name",
                                            true)};
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
@@ -1157,10 +1157,10 @@ TEST(Database, ExecuteSelect_EWAHIndexed_Range) {
               TestUtils::GetDefaultDBOptions());
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
-  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "id", true),
-    IndexInfo("IndexName2", IndexType::EWAH_COMPRESSED_BITMAP, "rating", true),
-    IndexInfo("IndexName3", IndexType::EWAH_COMPRESSED_BITMAP, "user.id", true),
-    IndexInfo("IndexName4", IndexType::EWAH_COMPRESSED_BITMAP, "user.name", true) };
+  std::vector<IndexInfo> indexes{ IndexInfo("IndexName1", IndexType::INVERTED_COMPRESSED_BITMAP, "id", true),
+    IndexInfo("IndexName2", IndexType::INVERTED_COMPRESSED_BITMAP, "rating", true),
+    IndexInfo("IndexName3", IndexType::INVERTED_COMPRESSED_BITMAP, "user.id", true),
+    IndexInfo("IndexName4", IndexType::INVERTED_COMPRESSED_BITMAP, "user.name", true) };
   db.CreateCollection("tweet", SchemaType::FLAT_BUFFERS, schema, indexes);
 
   std::vector<Buffer> documents;
@@ -1599,9 +1599,9 @@ TEST(Database, ExecuteSelect_NullStrFields_EWAHIndexed) {
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes
-      {IndexInfo("IndexName1", IndexType::EWAH_COMPRESSED_BITMAP, "text", true),
+      {IndexInfo("IndexName1", IndexType::INVERTED_COMPRESSED_BITMAP, "text", true),
        IndexInfo("IndexName4",
-                 IndexType::EWAH_COMPRESSED_BITMAP,
+                 IndexType::INVERTED_COMPRESSED_BITMAP,
                  "user.name",
                  true)};
 

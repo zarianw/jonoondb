@@ -26,7 +26,7 @@ struct Constraint;
 class MamaJenniesBitmap;
 class BlobManager;
 struct FileInfo;
-class WriteOptionsImpl;
+struct WriteOptionsImpl;
 
 class DocumentCollection final {
  public:

@@ -29,15 +29,14 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
   static void Construct(const IndexInfoImpl& indexInfo,
                         const FieldType& fieldType,
                         EWAHCompressedBitmapIndexerBlob*& obj) {
-    // TODO: Add index name in the error message as well
     std::string errorMsg;
     if (indexInfo.GetIndexName().size() == 0) {
       errorMsg = "Argument indexInfo has empty name.";
     } else if (indexInfo.GetColumnName().size() == 0) {
       errorMsg = "Argument indexInfo has empty column name.";
-    } else if (indexInfo.GetType() != IndexType::EWAH_COMPRESSED_BITMAP) {
+    } else if (indexInfo.GetType() != IndexType::INVERTED_COMPRESSED_BITMAP) {
       errorMsg =
-          "Argument indexInfo can only have IndexType EWAH_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
+          "Argument indexInfo can only have IndexType INVERTED_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
@@ -221,7 +220,7 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-  std::int64_t m_lastInsertedDocId;
+  std::uint64_t m_lastInsertedDocId;
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
   std::map<BufferImpl, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;

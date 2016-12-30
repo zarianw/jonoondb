@@ -20,7 +20,6 @@ class VectorDoubleIndexer final: public Indexer {
  public:
   VectorDoubleIndexer(const IndexInfoImpl& indexInfo,
                       const FieldType& fieldType) {
-    // TODO: Add index name in the error message as well
     std::string errorMsg;
     if (indexInfo.GetIndexName().size() == 0) {
       errorMsg = "Argument indexInfo has empty name.";

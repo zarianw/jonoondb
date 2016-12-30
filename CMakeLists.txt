@@ -210,6 +210,7 @@ add_executable(
  ${TEST_PATH}/jonoondb_api/options_tests.cc
  ${TEST_PATH}/jonoondb_api/index_info_tests.cc
  ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
+ ${TEST_PATH}/jonoondb_api/resultset_tests.cc
  ${TEST_PATH}/jonoondb_api/test_utils.h
  ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.cc)
 target_link_libraries(${JONOONDB_API_LIBRARY}_test gtest gtest_main ${JONOONDB_API_LIBRARY} ${Boost_LIBRARIES})
