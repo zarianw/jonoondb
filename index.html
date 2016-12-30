@@ -6,6 +6,10 @@
  -->
 
 <head>
+    <!-- Meta tags for search engine optimize-->
+    <title>Introduction-JonoonDB</title>
+    <meta name="description" content="JonoonDB - JonoonDB is a multi-model database. Its aim is to do what specialized databases (row stores, column stores, nosql stores etc.) do at equal or better performance.">
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8">
     <!-- meta with name viewport is needed to determine device
         props
      -->
@@ -18,8 +22,25 @@
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <!--JS include-->
     <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/custom_sidebar.js"></script>
+    <script async type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script async type="text/javascript" src="js/custom_sidebar.js"></script>
+    <!-- Google Analytics tracking -->
+    <script>
+    (function(i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function() {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+    ga('create', 'UA-89574840-1', 'auto');
+    ga('send', 'pageview');
+    </script>
 </head>
 <!-- 
     To Add programming language code to html use :-
@@ -65,32 +86,6 @@
     <!-- Fixed version of sidebar menu -> display:none when floating menu version in action and vice versa -->
     <div id="sb" class="col-sm-2 menu-sidebar absolute title-font">
     </div>
-    <!-- The floating version of sidebar menu -->
-    <!-- <div id="sb" class="col-sm-2 menu-sidebar fixed title-font">
-        <div class="menu-item green-hover">
-            <a class="cover-div" href="index.html">Introduction  </a>
-            <i id="intro_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
-            <!-- The unordered list below is created dynamically
-            <ul id="intro-submenu-fixed" class="menu-sub-item">
-            </ul>
-        </div>
-        <div class="menu-item green-hover">
-            <a class="cover-div" href="getting_started_installation.html">Getting Started</a>
-            <i id="getting_started_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
-            <ul id="getting_started_submenu_fixed" class="menu-sub-item">
-            </ul>
-        </div>
-        <div class="menu-item green-hover">
-            <a class="cover-div" href="tutorial.html">Tutorial</a>
-            <i id="tutorial_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
-            <ul id="tutorial-submenu-fixed" class="menu-sub-item">
-            </ul>
-        </div>
-        <div class="green-hover">
-            <a class="cover-div" href="dummy.html">Contact</a>
-            <i id="contact_btn_2" class="btn-sm menu-expand-icon custom-green fa fa-plus" aria-hidden="true"></i>
-        </div>
-    </div> -->
     <!-- Sidebar menu ends here -->
     <!-- To add content use below template
      as follows:
@@ -213,11 +208,11 @@
     <!-- Footer of the page -->
 
     <!-- Make sure for footer there is no spaces in id, style or class tags at start or end of quotes-->
-    <div id="footer">
+    <div id="footer ">
         <ul>
-            <li style="font-size:13px;color:#F0ECEB; margin-left:-31px">© 2016-2017 JonoonDB</li>
-            <li style="font-size:13px;color:#F0ECEB; float:right; margin-right:16px"> Contact : <a style="color:white" href="https://www.linkedin.com/in/omar-waheed-5937a361" target="_blank"><i style="background-color:#155799; font-size:14px" class="fa fa-linkedin"></i></a> </li>
-            <li style="font-size:13px;color:#F0ECEB; float :right; margin-right:10px">Designed By : Omar Waheed</li>
+            <li style="font-size:13px;color:#F0ECEB; margin-left:-31px ">© 2016-2017 JonoonDB</li>
+            <li style="font-size:13px;color:#F0ECEB; float:right; margin-right:16px "> Contact : <a style="color:white " href="https://www.linkedin.com/in/omar-waheed-5937a361 " target="_blank "><i style="background-color:#155799; font-size:14px " class="fa fa-linkedin "></i></a> </li>
+            <li style="font-size:13px;color:#F0ECEB; float :right; margin-right:10px ">Designed By : Omar Waheed</li>
         </ul>
     </div>
     <!--  Footer ends here -->
