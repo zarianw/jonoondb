@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<!--
+     Author/Designer : Omar Waheed
+     LinkedIn : https://www.linkedin.com/in/omar-waheed-5937a361
+ -->
+
+<head>
+    <!-- meta with name viewport is needed to determine device
+        props
+     -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <!--CSS include-->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/custom_sidebar.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <!--JS include-->
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/custom_sidebar.js"></script>
+</head>
+<!-- 
+    To Add programming language code to html use :-
+    http://markup.su/highlighter/
+ -->
+
+<body>
+    <!--Top header-->
+    <section class="page-header col-md-12" id="logo-background">
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <h1 id="logo-text">JonoonDB</h1>
+            </div>
+            <div class="col-md-2"></div>
+        </div>
+        <div class="row col-md-12">
+            <div class="col-md-4"></div>
+            <div class="col-md-4" id="heading-text">JonoonDB - It's a row store...It's a column store...NO! It's JonoonDB</div>
+            <div class="col-md-4"></div>
+        </div>
+        <div class="row col-md-12">
+            <div class="col-lg-3"></div>
+            <div class="col-lg-2 btn btn-primary social-media-btn outline">
+                <a class="social-media" target="_blank" href="https://github.com/zarianw/jonoondb">
+                    <i class="fa fa-github red header-icon"></i> Github
+                </a>
+            </div>
+            <div class="col-lg-2 btn social-media-btn btn-primary outline">
+                <a class="social-media" href="https://github.com/zarianw/jonoondb/zipball/master">
+                    <i class="fa fa-download red header-icon"></i> Download ZIP
+                </a>
+            </div>
+            <div class="col-lg-2 btn social-media-btn btn-primary outline">
+                <a class="social-media" href="https://groups.google.com/forum/#!forum/jonoondb" target="_blank">
+                    <i class="fa fa-google red header-icon"></i> Discuss
+                </a>
+            </div>
+            <div class="col-lg-3"></div>
+        </div>
+    </section>
+    <!-- Sidebar menu begins here -->
+    <!-- Fixed version of sidebar menu -> display:none when floating menu version in action and vice versa -->
+    <div id="sb" class="col-sm-2 menu-sidebar absolute title-font">
+    </div>
+    <!-- Sidebar menu ends here -->
+    <!-- To add content use below template
+     as follows:
+     create in following order :- 
+///////////////////////////////////
+        div row
+            div col
+                div content
+                        (heading or para or any element that holds your content)
+                div /content
+            div /col
+        div /row   
+////////////////////////////////////
+        Repeat the same pattern if you want to add more content
+
+    See below for an example         
+ -->
+    <!-- Container hold all of the content -->
+    <div class="container">
+        <!--content begins Here-->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h2 class="bold">Road Map</h2>
+                    <p>Here is a high level road map for JonoonDB. As we go ahead with our implementation, it may be changed or tweaked.
+                    </p>               
+                </div>
+            </div>
+        </div>
+         <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">End of April 2017</h5>
+                    <ul>
+                        <li><strong>Delete document support:</strong> Delete documents based on a where condition.</li>
+                        <li><strong>Update document support:</strong> Update entire document.</li>
+                        <li><strong>Concurrency support:</strong> Allow multiple threads to access (Read/Write) JonoonDB simultaneously.</li>
+                    </ul>
+                    <hr>
+                </div>
+            </div>
+        </div> 
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">End of August 2017</h5>
+                    <ul>
+                        <li><strong>Extensive SQL testing:</strong> Run and compare SQL results between JonoonDB and other popular databases for correctness.</li>
+                        <li><strong>Performance enhancements:</strong> Perform a detailed performance review and make improvements.</li>
+                        <li><strong>Benchmarks:</strong> Write code to benchmark JonoonDB and publish the results.</li>
+                    </ul>
+                    <hr>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">End of December 2017 - V1 Release</h5>
+                    <ul>
+                        <li><strong>Security review:</strong> Perform a detailed security review of JonoonDB.</li>
+                        <li><strong>Documentation:</strong> Write detailed documentation about API, classes, tutorials and architecture.</li>
+                        <li><strong>Testing:</strong> Testing, testing and more testing.</li>
+                    </ul>
+                    <hr>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h5 class="bold">2018 and beyond</h5>
+                    <ul>
+                        <li><strong>Vectorized query processor:</strong> Generate and execute vectorized query plan.</li>
+                        <li><strong>Support protobuf:</strong> Support protobuf as a native JonoonDB storage format.</li>
+                        <li><strong>Support JSON:</strong> Support JSON as either a native format or through an adapter.</li>
+                        <li><strong>Support Cap'n Proto:</strong> Support Cap'n Proto as a native JonoonDB storage format.</li>
+                        <li><strong>New index types:</strong> Develop new index types e.g. spatial.</li>                    
+                        <li><strong>JonoonDB server:</strong> Develop database server that exposes JonoonDB functionality over network.</li>
+                        <li><strong>GUI based admin tool:</strong> Develop GUI based admin tools (e.g. pgadmin) for JonoonDB.</li>
+                        <li><strong>Security Features:</strong> User authentication and authorization.</li>
+                        <li><strong>JonoonDB cluster:</strong> Develop JonoonDB cluster with sharding and replication support.</li>
+                    </ul>
+                    <hr>
+                </div>
+            </div>
+        </div>                 
+        <!-- Content Ends here -->
+    </div>
+    <!-- Container Ends here -->
+    <!-- Footer of the page -->
+    <!-- Make sure for footer there is no spaces in id, style or class tags at start or end of quotes-->
+    <div id="footer">
+        <ul>
+            <li style="font-size:13px;color:#F0ECEB; margin-left:-31px">© 2016-2017 JonoonDB</li>
+            <li style="font-size:13px;color:#F0ECEB; float:right; margin-right:16px"> Contact : <a style="color:white" href="https://www.linkedin.com/in/omar-waheed-5937a361" target="_blank"><i style="background-color:#155799; font-size:14px" class="fa fa-linkedin"></i></a> </li>
+            <li style="font-size:13px;color:#F0ECEB; float :right; margin-right:10px">Designed By : Omar Waheed</li>
+        </ul>
+    </div>
+    <!--  Footer ends here -->
+</body>
+
+</html>
