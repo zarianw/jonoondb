@@ -193,6 +193,7 @@ a:hover {
     .menu-sidebar {
         width: 150px;
         font-size: 10px;
+        margin-left: 40px;
         font-weight: 500;
     }
     .menu-sidebar li {
@@ -202,7 +203,7 @@ a:hover {
     }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 800px) {
     .menu-sidebar {
         width: 150px;
         margin-left: 40px;
@@ -211,6 +212,24 @@ a:hover {
     }
     .menu-sidebar li {
         width: 128px;
+        font-size: 8px;
+        font-weight: 200;
+    }
+    #sb {
+        position: absolute;
+    }
+}
+
+/*for Ipad*/
+@media (max-width: 780px) {
+    .menu-sidebar {
+        width: 120px;
+        margin-left: 40px;
+        font-size: 8px;
+        font-weight: 500;
+    }
+    .menu-sidebar li {
+        width: 120px;
         font-size: 8px;
         font-weight: 200;
     }

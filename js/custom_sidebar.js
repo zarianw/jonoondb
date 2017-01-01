@@ -22,6 +22,7 @@ var main_sidebar_menu_div_reference;
 var sidebar_menu;
 var changePosition;
 var current_selceted_menu;
+var MENU_TOP_OFFSET = 27; // gap between top header and menu bar
 
 //create and returns a guid 
 function guid() {
@@ -201,7 +202,7 @@ $(document).ready(function() {
 
     // change position is the bottom y-coordinate at which sidebar menu
     // changes from fixed to floating
-    changePosition = $(".page-header")[0].getBoundingClientRect().bottom;
+    changePosition = $(".page-header")[0].getBoundingClientRect().bottom + MENU_TOP_OFFSET;
 
     //If page reloads always go to the top
     //of the page, otherwise sidebar menu
@@ -210,7 +211,7 @@ $(document).ready(function() {
         $(window).scrollTop(0);
     });
     //set the initial top margin of sidebar menu to bottom of our logo section
-    sidebar_menu.style.top = $(".page-header")[0].getBoundingClientRect().bottom + "px";
+    sidebar_menu.style.top = ($(".page-header")[0].getBoundingClientRect().bottom + MENU_TOP_OFFSET) + "px";
 
     //scroll function is executed at every scroll 
     $(window).scroll(function() {
@@ -233,7 +234,7 @@ $(document).ready(function() {
 
             if ($(window).width() > 575 &&
                 window.getComputedStyle(sidebar_menu).getPropertyValue('position') != "absolute" &&
-                $(".page-header")[0].getBoundingClientRect().bottom >= 0) {
+                $(".page-header")[0].getBoundingClientRect().bottom + MENU_TOP_OFFSET >= 0) {
                 document.getElementsByClassName("menu-sidebar")[0].className = "menu-sidebar " + "absolute"
                 document.getElementsByClassName("menu-sidebar")[0].style.top = changePosition + "px";
             }
