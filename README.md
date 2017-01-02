@@ -1,7 +1,7 @@
 ## JonoonDB
 It's a row store...It's a column store...NO! It's JonoonDB.
 
-Please visit [JonoonDB's Project Page](http://www.jonoondb.org) for more information.
+Please visit [JonoonDB's Website](http://www.jonoondb.com) for more information.
 
 ## Supported Operating Systems
 JonoonDB is available and supported only as a 64bit library. JonoonDB is supported on the following operating systems:
