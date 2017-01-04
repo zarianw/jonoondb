@@ -218,7 +218,7 @@ void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName,
   if (fieldDef->type()->base_type() == reflection::BaseType::Vector &&
      (fieldDef->type()->element() == reflection::BaseType::Byte ||
      fieldDef->type()->element() == reflection::BaseType::UByte)) {
-    actualType = FieldType::BASE_TYPE_BLOB;
+    actualType = FieldType::BLOB;
   } else {
     actualType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
       fieldDef->type()->base_type());

@@ -1,9 +1,8 @@
 #include "index_stat.h"
-#include "enums.h"
 
 using namespace jonoondb_api;
 
-IndexStat::IndexStat() : m_fieldType(FieldType::BASE_TYPE_INT32) {
+IndexStat::IndexStat() : m_fieldType(FieldType::INT32) {
 }
 
 IndexStat::IndexStat(const IndexInfoImpl& indexInfo, FieldType fieldType) :

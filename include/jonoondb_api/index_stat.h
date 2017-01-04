@@ -1,7 +1,7 @@
 #pragma once
 
-#include "index_info_impl.h"
-#include "enums.h"
+#include "jonoondb_api/index_info_impl.h"
+#include "jonoondb_api/field.h"
 
 namespace jonoondb_api {
 class IndexStat {

@@ -47,10 +47,10 @@ class VectorIntegerIndexer final: public Indexer {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::BASE_TYPE_INT8
-        || fieldType == FieldType::BASE_TYPE_INT16
-        || fieldType == FieldType::BASE_TYPE_INT32
-        || fieldType == FieldType::BASE_TYPE_INT64);
+    return (fieldType == FieldType::INT8
+        || fieldType == FieldType::INT16
+        || fieldType == FieldType::INT32
+        || fieldType == FieldType::INT64);
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {

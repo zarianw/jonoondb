@@ -16,7 +16,7 @@ FieldType FlatbuffersField::GetType() const {
   if (m_fieldDef->type()->base_type() == reflection::BaseType::Vector && 
       (m_fieldDef->type()->element() == reflection::BaseType::Byte || 
        m_fieldDef->type()->element() == reflection::BaseType::UByte)) {
-    return FieldType::BASE_TYPE_BLOB;
+    return FieldType::BLOB;
   }
 
   return FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(

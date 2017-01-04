@@ -4,9 +4,9 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "enums.h"
-#include "null_helpers.h"
-#include "buffer_impl.h"
+#include "jonoondb_api/null_helpers.h"
+#include "jonoondb_api/buffer_impl.h"
+#include "jonoondb_api/field.h"
 
 namespace jonoondb_api {
 class Document {

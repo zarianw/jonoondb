@@ -54,8 +54,8 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::BASE_TYPE_FLOAT32
-        || fieldType == FieldType::BASE_TYPE_DOUBLE);
+    return (fieldType == FieldType::FLOAT
+        || fieldType == FieldType::DOUBLE);
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {

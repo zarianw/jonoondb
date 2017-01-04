@@ -12,6 +12,7 @@
 #include "jonoondb_api/document_id_generator.h"
 #include "jonoondb_api/buffer_impl.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
+#include "jonoondb_api/enums.h"
 
 using namespace std;
 using namespace jonoondb_api;

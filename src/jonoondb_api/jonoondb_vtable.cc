@@ -85,18 +85,18 @@ static IndexConstraintOperator MapSQLiteToJonoonDBOperator(unsigned char op) {
 
 int GetSQLiteType(FieldType fieldType) {
   switch (fieldType) {
-    case jonoondb_api::FieldType::BASE_TYPE_INT8:
-    case jonoondb_api::FieldType::BASE_TYPE_INT16:
-    case jonoondb_api::FieldType::BASE_TYPE_INT32:
-    case jonoondb_api::FieldType::BASE_TYPE_INT64:
+    case jonoondb_api::FieldType::INT8:
+    case jonoondb_api::FieldType::INT16:
+    case jonoondb_api::FieldType::INT32:
+    case jonoondb_api::FieldType::INT64:
       return SQLITE_INTEGER;
-    case jonoondb_api::FieldType::BASE_TYPE_FLOAT32:
-    case jonoondb_api::FieldType::BASE_TYPE_DOUBLE:
+    case jonoondb_api::FieldType::FLOAT:
+    case jonoondb_api::FieldType::DOUBLE:
       return SQLITE_FLOAT;
-    case jonoondb_api::FieldType::BASE_TYPE_STRING:
+    case jonoondb_api::FieldType::STRING:
       return SQLITE_TEXT;
-    case jonoondb_api::FieldType::BASE_TYPE_VECTOR:
-    case jonoondb_api::FieldType::BASE_TYPE_COMPLEX:
+    case jonoondb_api::FieldType::VECTOR:
+    case jonoondb_api::FieldType::COMPLEX:
     default: {
       std::ostringstream ss;
       ss << "Argument fieldType has a value " << static_cast<int32_t>(fieldType)
@@ -398,7 +398,7 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
                            int cidx) {
   try {
     static ColumnInfo documentColumnInfo("_document",
-                                         FieldType::BASE_TYPE_BLOB,
+                                         FieldType::BLOB,
                                          std::vector<std::string>{"_document"});
     jonoondb_cursor* jdbCursor = (jonoondb_cursor*) cur;
     ColumnInfo* columnInfo = &documentColumnInfo;
@@ -407,7 +407,7 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
     }
     
     auto currentDocID = jdbCursor->idSeq->Current()[jdbCursor->idSeq_index];
-    if (columnInfo->columnType == FieldType::BASE_TYPE_STRING) {
+    if (columnInfo->columnType == FieldType::STRING) {
       // Get the string value      
       std::string val;
       // First check if we have the current document already cached on our side
@@ -434,10 +434,10 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
         // SQLITE_TRANSIENT causes SQLite to copy the string on its side
         sqlite3_result_text(ctx, val.c_str(), val.size(), SQLITE_TRANSIENT);
       }
-    } else if (columnInfo->columnType == FieldType::BASE_TYPE_INT64 ||
-        columnInfo->columnType == FieldType::BASE_TYPE_INT32 ||
-        columnInfo->columnType == FieldType::BASE_TYPE_INT16 ||
-        columnInfo->columnType == FieldType::BASE_TYPE_INT8) {
+    } else if (columnInfo->columnType == FieldType::INT64 ||
+        columnInfo->columnType == FieldType::INT32 ||
+        columnInfo->columnType == FieldType::INT16 ||
+        columnInfo->columnType == FieldType::INT8) {
       // Get the integer value      
       std::int64_t val;
       // First check if we have the current document already cached on our side
@@ -462,7 +462,7 @@ static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
       } else {
         sqlite3_result_int64(ctx, val);
       }
-    } else if (columnInfo->columnType == FieldType::BASE_TYPE_BLOB) {
+    } else if (columnInfo->columnType == FieldType::BLOB) {
       // Get the blob value      
       std::size_t size = 0;
       if (jdbCursor->document && jdbCursor->documentID == currentDocID) {        
@@ -536,13 +536,13 @@ static int jonoondb_column_vec(sqlite3_vtab_cursor* cur,
     jonoondb_cursor* jdbCursor = (jonoondb_cursor*) cur;
     auto& columnInfo = jdbCursor->collectionInfo->columnsInfo[cidx];
 
-    if (columnInfo.columnType == FieldType::BASE_TYPE_STRING) {
+    if (columnInfo.columnType == FieldType::STRING) {
       // Get the string value      
 
-    } else if (columnInfo.columnType == FieldType::BASE_TYPE_INT64 ||
-        columnInfo.columnType == FieldType::BASE_TYPE_INT32 ||
-        columnInfo.columnType == FieldType::BASE_TYPE_INT16 ||
-        columnInfo.columnType == FieldType::BASE_TYPE_INT8) {
+    } else if (columnInfo.columnType == FieldType::INT64 ||
+        columnInfo.columnType == FieldType::INT32 ||
+        columnInfo.columnType == FieldType::INT16 ||
+        columnInfo.columnType == FieldType::INT8) {
       // Get the integer vector
       // Todo: Try to get values vector from object pool (optimization)
       // Then we can use SQLITE_STATIC instead of SQLITE_TRANSIENT
