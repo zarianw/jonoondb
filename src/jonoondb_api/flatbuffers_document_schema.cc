@@ -3,13 +3,13 @@
 #include <boost/tokenizer.hpp>
 #include "flatbuffers/idl.h"
 #include "flatbuffers/reflection.h"
-#include "flatbuffers_document_schema.h"
 #include "jonoondb_api/flatbuffers_document_schema.h"
-#include "enums.h"
-#include "string_utils.h"
-#include "exception_utils.h"
-#include "flatbuffers_field.h"
-#include "field.h"
+#include "jonoondb_api/enums.h"
+#include "jonoondb_api/string_utils.h"
+#include "jonoondb_api/exception_utils.h"
+#include "jonoondb_api/flatbuffers_field.h"
+#include "jonoondb_api/field.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 using namespace std;
 using namespace jonoondb_api;

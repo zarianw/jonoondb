@@ -1,5 +1,6 @@
-#include "flatbuffers_field.h"
-#include "flatbuffers_document_schema.h"
+#include "jonoondb_api/flatbuffers_field.h"
+#include "jonoondb_api/flatbuffers_document_schema.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 using namespace flatbuffers;
 using namespace jonoondb_api;

@@ -5,8 +5,20 @@
 #include "buffer_impl.h"
 
 namespace jonoondb_api {
+enum class IndexConstraintOperator
+  : std::int8_t {
+  EQUAL,
+  LESS_THAN,
+  LESS_THAN_EQUAL,
+  GREATER_THAN,
+  GREATER_THAN_EQUAL,
+  MATCH,
+  LIKE,
+  GLOB,
+  REGEX
+};
+
 // Forward declarations
-enum class IndexConstraintOperator: std::int8_t;
 enum class FieldType: std::int8_t;
 
 union Operand {

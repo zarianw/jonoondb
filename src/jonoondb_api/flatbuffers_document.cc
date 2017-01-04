@@ -6,6 +6,7 @@
 #include "flatbuffers_document_schema.h"
 #include "buffer_impl.h"
 #include "null_helpers.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 using namespace std;
 using namespace jonoondb_api;

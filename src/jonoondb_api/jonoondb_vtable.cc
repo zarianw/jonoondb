@@ -8,19 +8,20 @@
 #include <assert.h>
 #include <tuple>
 #include "sqlite3ext.h"
-#include "document_collection_dictionary.h"
-#include "document_collection.h"
-#include "field.h"
-#include "guard_funcs.h"
-#include "enums.h"
-#include "document_schema.h"
-#include "index_stat.h"
-#include "constraint.h"
-#include "mama_jennies_bitmap.h"
-#include "buffer_impl.h"
-#include "document.h"
-#include "id_seq.h"
-#include "null_helpers.h"
+#include "jonoondb_api/document_collection_dictionary.h"
+#include "jonoondb_api/document_collection.h"
+#include "jonoondb_api/field.h"
+#include "jonoondb_api/guard_funcs.h"
+#include "jonoondb_api/enums.h"
+#include "jonoondb_api/document_schema.h"
+#include "jonoondb_api/index_stat.h"
+#include "jonoondb_api/constraint.h"
+#include "jonoondb_api/mama_jennies_bitmap.h"
+#include "jonoondb_api/buffer_impl.h"
+#include "jonoondb_api/document.h"
+#include "jonoondb_api/id_seq.h"
+#include "jonoondb_api/null_helpers.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 using namespace jonoondb_api;
 

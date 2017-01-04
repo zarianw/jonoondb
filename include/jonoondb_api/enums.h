@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include "jonoondb_exceptions.h"
 #include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
@@ -52,19 +51,6 @@ static const char* FieldTypeStrings[] = {
 static const char* GetFieldString(FieldType fieldType) {
   return FieldTypeStrings[static_cast<int32_t>(fieldType)];
 }
-
-enum class IndexConstraintOperator
-    : std::int8_t {
-  EQUAL,
-  LESS_THAN,
-  LESS_THAN_EQUAL,
-  GREATER_THAN,
-  GREATER_THAN_EQUAL,
-  MATCH,
-  LIKE,
-  GLOB,
-  REGEX
-};
 
 enum class SqlType : std::int32_t {
   INTEGER = 1,
