@@ -189,9 +189,14 @@ make
                 <div class="content">
                     <h5 class="bold">Install JonoonDB</h5>
                     <p>Its time to install JonoonDB library and headers in the location specified by CMAKE_INSTALL_PREFIX above.</p>
-                    <p>On windows, just build the INSTALL project from within Visual Studio.</p>
-                    <p>On Linux/MacOS X, just execute the command "sudo make install". </p> 
-                    <p>That's it folks. You should see the JonoonDB library, tools and headers in the install directory.</p>        
+                    <p>On windows, just build the <strong>INSTALL</strong> project from within Visual Studio.</p>
+                    <p>On Linux/MacOS X, just execute the command <strong>sudo make install</strong>. </p> 
+                    <p>That's it folks. You should see the JonoonDB library, tools and headers in the install directory.</p>
+                    <ul>
+                        <li><strong>include: </strong>This directory will have all the headers. database.h being the most important one.</li>
+                        <li><strong>lib: </strong>This directory will have the jonoondb shared library. This is the library that you would link against.</li>
+                        <li><strong>bin: </strong>This directory will have the jonoondb_cli command-line tool. Its a tool to create or view databases.</li>
+                    </ul>        
                 </div>
             </div>
         </div>
