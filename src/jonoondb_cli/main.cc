@@ -173,8 +173,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
         if (tokens[0] == ".help") {
           cout << ".cc COLLECTION_NAME SCHEMA_FILE [INDEX_FILE]      Create collection with name COLLECTION_NAME\n";
           cout << "                                                  and schema defined in file SCHEMA_FILE. If\n";
-          cout << "                                                  INDEX_FILE is specified then indexes inside\n";
-          cout << "                                                  this file are created as well.\n";
+          cout << "                                                  INDEX_FILE is specified then indexes specified\n";
+          cout << "                                                  in the file are created as well.\n";
 
           cout << ".i COLLECTION_NAME DATA_FILE [be]                 Import data into COLLECTION_NAME from DATA_FILE.\n";
           cout << "                                                  If \"be\" is specified then object sizes in the\n";
@@ -391,52 +391,57 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
 }
 
 int main(int argc, char** argv) {
-  // Declare the supported options.
-  po::options_description desc("Usage: jonoondb_cli DBNAME [DBPATH] [OPTIONS]\n"
-                                   "DBNAME is the name of the database.\n"
-                                   "DBPATH is the path where database file exists. A new database is created\n"
-                                   "if the file does not previously exist. Default is current directory.\n\n"
-                                   "Allowed options");
+  try {
+    // Declare the supported options.
+    po::options_description desc("Usage: jonoondb_cli DBNAME [DBPATH] [OPTIONS]\n"
+                                 "DBNAME is the name of the database.\n"
+                                 "DBPATH is the path where database file exists. A new database is created\n"
+                                 "if the file does not previously exist. Default is current directory.\n\n"
+                                 "Allowed options");
 
-  desc.add_options()
+    desc.add_options()
       ("help", "produce help message")
       ("db_name", po::value<string>(), "Name of the database. ")
       ("db_path", po::value<string>(), "Path where database file exists. "
-          "A new database is created if the file does not previously exist. "
-          "Default is current directory.");
+       "A new database is created if the file does not previously exist. "
+       "Default is current directory.");
 
-  po::positional_options_description p;
-  p.add("db_name", 1);
-  p.add("db_path", 1);
+    po::positional_options_description p;
+    p.add("db_name", 1);
+    p.add("db_path", 1);
 
-  po::variables_map vm_positional;
-  po::store(po::command_line_parser(argc, argv).
-      options(desc).positional(p).run(), vm_positional);
+    po::variables_map vm_positional;
+    po::store(po::command_line_parser(argc, argv).
+              options(desc).positional(p).run(), vm_positional);
 
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
 
-  if (vm.count("help")) {
-    cout << desc << endl;
+    if (vm.count("help")) {
+      cout << desc << endl;
+      return 1;
+    }
+
+    if (vm_positional["db_name"].empty()) {
+      cout << "db_name not specified." << endl;
+      cout << desc << endl;
+      return 1;
+    }
+    string dbName = vm_positional["db_name"].as<string>();
+    string dbPath;
+
+    if (!vm_positional["db_path"].empty()) {
+      dbPath = vm_positional["db_path"].as<string>();
+    } else {
+      dbPath = current_path().generic_string();
+    }
+
+    // ok at this point we have all our options  
+    return StartJonoonDBCLI(dbName, dbPath);
+  } catch (exception& ex) {
+    cout << "Exception: " << ex.what() << endl;
     return 1;
   }
-
-  if (vm_positional["db_name"].empty()) {
-    cout << "db_name not specified." << endl;
-    cout << desc << endl;
-    return 1;
-  }
-  string dbName = vm_positional["db_name"].as<string>();
-  string dbPath;
-
-  if (!vm_positional["db_path"].empty()) {
-    dbPath = vm_positional["db_path"].as<string>();
-  } else {
-    dbPath = current_path().generic_string();
-  }
-
-  // ok at this point we have all our options  
-  return StartJonoonDBCLI(dbName, dbPath);
 }
 
