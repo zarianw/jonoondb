@@ -47,7 +47,7 @@ TEST(Resultset, GetColumnType) {
     ASSERT_EQ(rs.GetColumnType(rs.GetColumnIndex("field8")), SqlType::DOUBLE);
     ASSERT_EQ(rs.GetColumnType(rs.GetColumnIndex("field9")), SqlType::INTEGER);
     ASSERT_EQ(rs.GetColumnType(rs.GetColumnIndex("field10")), SqlType::DOUBLE);
-    ASSERT_EQ(rs.GetColumnType(rs.GetColumnIndex("field11")), SqlType::TEXT);
+    ASSERT_EQ(rs.GetColumnType(rs.GetColumnIndex("field11")), SqlType::STRING);
     ASSERT_EQ(rs.GetColumnType(rs.GetColumnIndex("field12")), SqlType::BLOB);
     ASSERT_EQ(rs.GetColumnType(rs.GetColumnIndex("field13")), SqlType::BLOB);   
     ASSERT_EQ(rs.GetColumnType(rs.GetColumnIndex("field15.field1")), SqlType::INTEGER);
