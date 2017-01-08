@@ -125,6 +125,18 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="content">
+                    <h5 class="bold">Supported Compilers</h5>
+                    <ul>
+                        <li>MSVC VS2015 SP3 and above.</li>
+                        <li>GCC 5.2.1 and above.</li>
+                        <li>Clang 3.4 and above.</li>
+                    </ul>                    
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
                     <h5 class="bold">Build/Install 3rd party dependencies</h5>
                     <ol>
                         <li>
@@ -136,11 +148,12 @@
 bootstrap.bat
 b2 install address-model=64 --prefix=64bit
 (On Linux and Mac OS X)
-./bootstrap.sh
+./bootstrap.sh --without-icu
 ./b2 install address-model=64 cxxflags=<span style="color:#61ce3c">"-fPIC"</span> cflags=<span style="color:#61ce3c">"-fPIC"</span> --prefix=64bit
 </pre>
+                            The JonoonDB build does not search for Boost in system paths in order to avoid conflicts with other Boost versions installed. You need to specify <strong>BOOST_ROOT</strong> when you are invoking cmake as shown later. Its important to note that <strong>BOOST_ROOT</strong> needs to point to the path where Boost was installed and not where it was extracted. If you used the prefix 64bit while building boost then the path will be something like <strong>path/to/boost/64bit</strong>.                            
                         </li>
-                    </ol>
+                    </ol>                    
                 </div>
             </div>
         </div>
@@ -148,36 +161,37 @@ b2 install address-model=64 --prefix=64bit
             <div class="col-md-12">
                 <div class="content">
                     <h5 class="bold">Clone and build JonoonDB</h5>
-                    <p>Assuming your install directories for 3rd Parties are as follows:</p>
-                    <p>Boost = D:/software/boost_1_60_0/64bit</p>
-                    <p>You are all set to clone and build JonoonDB. Using cmake you can generate project files for Visual Studio, Eclipse CDT and other IDEs. After that you can build using your IDE of choice. You can also generate makefile if you don't want to use IDEs.</p>
+                    <p>Using cmake you can generate project files for Visual Studio, Eclipse CDT and other IDEs. After that you can build using your IDE of choice. On Linux you can also generate makefile if you don't want to use IDEs.
+                    </p>
+                    <p>CMAKE_INSTALL_PREFIX sets the install directory where JonoonDB will be installed. If you don't specify it then this variable defaults to <strong>/usr/local</strong> on Linux/MacOS X and <strong>C:/Program Files</strong> on Windows.
+                    </p>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="content">
-                    <h5 class="bold">Building from IDE</h5>
+                    <h6 class="bold">Building from IDE</h6>
                     <p>Execute the commands given below to clone and generate the solution file for VS 2015:</p>
                     <pre style="background:#0c1021;color:#f8f8f8">git clone https://github.com/zarianw/jonoondb.git
 <span style="color:#8da6ce">cd</span> jonoondb/
 mkdir build
 <span style="color:#8da6ce">cd</span> build
-cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=D:/software/boost_1_60_0/64bit -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
+cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=/path/to/boost/64bit -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
 </pre>
-                    <p>CMAKE_INSTALL_PREFIX sets the install directory where JonoonDB will be installed. If you don't specify it then this variable defaults to /usr/local on Linux/MacOS X and C:/Program Files on Windows. Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. In order to generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
+                    <p>Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. In order to generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="content">
-                    <h5 class="bold">Building from terminal on Linux</h5>
+                    <h6 class="bold">Building from terminal on Linux</h6>
                     <pre style="background:#0c1021;color:#f8f8f8">git clone https://github.com/zarianw/jonoondb.git
 <span style="color:#8da6ce">cd</span> jonoondb/
 mkdir build
 <span style="color:#8da6ce">cd</span> build
-cmake .. -G <span style="color:#61ce3c">"Unix Makefiles"</span> -DBOOST_ROOT=/path/to/boost -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
+cmake .. -G <span style="color:#61ce3c">"Unix Makefiles"</span> -DBOOST_ROOT=/path/to/boost/64bit -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
 make
 </pre>
                     <p>If you want to run unittests from terminal then you can type "ctest -V" from inside the build directory.</p>
