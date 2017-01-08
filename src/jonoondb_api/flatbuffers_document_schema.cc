@@ -3,13 +3,13 @@
 #include <boost/tokenizer.hpp>
 #include "flatbuffers/idl.h"
 #include "flatbuffers/reflection.h"
-#include "flatbuffers_document_schema.h"
 #include "jonoondb_api/flatbuffers_document_schema.h"
-#include "enums.h"
-#include "string_utils.h"
-#include "exception_utils.h"
-#include "flatbuffers_field.h"
-#include "field.h"
+#include "jonoondb_api/enums.h"
+#include "jonoondb_api/string_utils.h"
+#include "jonoondb_api/exception_utils.h"
+#include "jonoondb_api/flatbuffers_field.h"
+#include "jonoondb_api/field.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -129,10 +129,10 @@ FieldType FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
     case reflection::Short:
     case reflection::UShort:
     case reflection::Int:
-      return FieldType::BASE_TYPE_INT32;
+      return FieldType::INT32;
     case reflection::UInt:
     case reflection::Long:
-      return FieldType::BASE_TYPE_INT64;
+      return FieldType::INT64;
       break;
     case reflection::ULong:
       throw JonoonDBException(
@@ -141,17 +141,17 @@ FieldType FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
           __func__,
           __LINE__);
     case reflection::Float:
-      return FieldType::BASE_TYPE_FLOAT32;
+      return FieldType::FLOAT;
     case reflection::Double:
-      return FieldType::BASE_TYPE_DOUBLE;
+      return FieldType::DOUBLE;
     case reflection::String:
-      return FieldType::BASE_TYPE_STRING;
+      return FieldType::STRING;
     case reflection::Vector:
-      return FieldType::BASE_TYPE_VECTOR;
+      return FieldType::VECTOR;
     case reflection::Obj:
-      return FieldType::BASE_TYPE_COMPLEX;
+      return FieldType::COMPLEX;
     case reflection::Union:
-      return FieldType::BASE_TYPE_UNION;
+      return FieldType::UNION;
     default: {
       std::ostringstream ss;
       ss << "Cannot map flatbuffers field type to JonoonDB field type. "

@@ -75,20 +75,20 @@ const char* GetSQLiteTypeString(FieldType fieldType) {
   static std::string text = "TEXT";
   static std::string blob = "BLOB";
   switch (fieldType) {
-    case jonoondb_api::FieldType::BASE_TYPE_INT8:
-    case jonoondb_api::FieldType::BASE_TYPE_INT16:
-    case jonoondb_api::FieldType::BASE_TYPE_INT32:
-    case jonoondb_api::FieldType::BASE_TYPE_INT64:
+    case jonoondb_api::FieldType::INT8:
+    case jonoondb_api::FieldType::INT16:
+    case jonoondb_api::FieldType::INT32:
+    case jonoondb_api::FieldType::INT64:
       return integer.c_str();
-    case jonoondb_api::FieldType::BASE_TYPE_FLOAT32:
-    case jonoondb_api::FieldType::BASE_TYPE_DOUBLE:
+    case jonoondb_api::FieldType::FLOAT:
+    case jonoondb_api::FieldType::DOUBLE:
       return real.c_str();
-    case jonoondb_api::FieldType::BASE_TYPE_STRING:
+    case jonoondb_api::FieldType::STRING:
       return text.c_str();
-    case jonoondb_api::FieldType::BASE_TYPE_BLOB:
+    case jonoondb_api::FieldType::BLOB:
       return blob.c_str();
-    case jonoondb_api::FieldType::BASE_TYPE_VECTOR:
-    case jonoondb_api::FieldType::BASE_TYPE_COMPLEX:
+    case jonoondb_api::FieldType::VECTOR:
+    case jonoondb_api::FieldType::COMPLEX:
     default: {
       std::ostringstream ss;
       ss << "Argument fieldType has a value " << static_cast<int32_t>(fieldType)
@@ -102,7 +102,7 @@ void BuildCreateTableStatement(const Field* complexField,
                                std::list<std::string>& prefixes,
                                std::ostringstream& stringStream,
                                std::vector<ColumnInfo>& columnNames) {
-  assert(complexField->GetType() == FieldType::BASE_TYPE_COMPLEX);
+  assert(complexField->GetType() == FieldType::COMPLEX);
   Field* field = complexField->AllocateField();
   std::unique_ptr<Field, void (*)(Field*)>
       fieldGuard(field, GuardFuncs::DisposeField);
@@ -110,11 +110,11 @@ void BuildCreateTableStatement(const Field* complexField,
   for (size_t i = 0; i < complexField->GetSubFieldCount(); i++) {
     complexField->GetSubField(i, field);
 
-    if (field->GetType() == FieldType::BASE_TYPE_COMPLEX) {
+    if (field->GetType() == FieldType::COMPLEX) {
       prefixes.push_back(field->GetName());
       BuildCreateTableStatement(field, prefixes, stringStream, columnNames);
-    } else if (field->GetType() == FieldType::BASE_TYPE_UNION ||
-               field->GetType() == FieldType::BASE_TYPE_VECTOR) {
+    } else if (field->GetType() == FieldType::UNION ||
+               field->GetType() == FieldType::VECTOR) {
       // We don't support these types yet for querying
       continue;
     } else {
@@ -149,12 +149,12 @@ void GenerateCreateTableStatementForCollection(
   auto count = collection->GetDocumentSchema()->GetRootFieldCount();
   for (size_t i = 0; i < count; i++) {
     collection->GetDocumentSchema()->GetRootField(i, field);
-    if (field->GetType() == FieldType::BASE_TYPE_COMPLEX) {
+    if (field->GetType() == FieldType::COMPLEX) {
       std::list<std::string> prefixes;
       prefixes.push_back(field->GetName());      
       BuildCreateTableStatement(field, prefixes, stringStream, columnNames);
-    } else if (field->GetType() == FieldType::BASE_TYPE_UNION ||
-               field->GetType() == FieldType::BASE_TYPE_VECTOR) {
+    } else if (field->GetType() == FieldType::UNION ||
+               field->GetType() == FieldType::VECTOR) {
       // We don't support these types yet for querying
       continue;
     } else {

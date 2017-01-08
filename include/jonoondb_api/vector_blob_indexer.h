@@ -45,7 +45,7 @@ class VectorBlobIndexer final: public Indexer {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::BASE_TYPE_BLOB);
+    return (fieldType == FieldType::BLOB);
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {

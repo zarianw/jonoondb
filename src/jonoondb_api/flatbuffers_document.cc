@@ -6,6 +6,7 @@
 #include "flatbuffers_document_schema.h"
 #include "buffer_impl.h"
 #include "null_helpers.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -217,7 +218,7 @@ void FlatbuffersDocument::VerifyFieldForRead(const std::string& fieldName,
   if (fieldDef->type()->base_type() == reflection::BaseType::Vector &&
      (fieldDef->type()->element() == reflection::BaseType::Byte ||
      fieldDef->type()->element() == reflection::BaseType::UByte)) {
-    actualType = FieldType::BASE_TYPE_BLOB;
+    actualType = FieldType::BLOB;
   } else {
     actualType = FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
       fieldDef->type()->base_type());

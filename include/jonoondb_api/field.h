@@ -4,9 +4,39 @@
 #include <string>
 
 namespace jonoondb_api {
-// Forward Declarations
 enum class FieldType
-    : std::int8_t;
+  : std::int8_t {
+  INT8,
+  INT16,
+  INT32,
+  INT64,
+  FLOAT,
+  DOUBLE,
+  STRING,
+  VECTOR,
+  COMPLEX,
+  UNION,
+  BLOB
+};
+
+// TODO: Come up with better management of enum to string functionality
+static const char* FieldTypeStrings[] = {
+  "INT8",
+  "INT16",
+  "INT32",
+  "INT64",
+  "FLOAT",
+  "DOUBLE",
+  "STRING",
+  "VECTOR",
+  "COMPLEX",
+  "UNION",
+  "BLOB" };
+
+static const char* GetFieldString(FieldType fieldType) {
+  return FieldTypeStrings[static_cast<int32_t>(fieldType)];
+}
+
 class Field {
  public:
   virtual ~Field() {

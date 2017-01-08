@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <vector>
-#include "enums.h"
+#include "jonoondb_api/field.h"
 
 namespace jonoondb_api {
 // Forward Declarations

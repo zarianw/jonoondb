@@ -1,7 +1,8 @@
 #include <string>
 #include <sstream>
-#include "document_schema_factory.h"
-#include "flatbuffers_document_schema.h"
+#include "jonoondb_api/document_schema_factory.h"
+#include "jonoondb_api/flatbuffers_document_schema.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 using namespace jonoondb_api;
 

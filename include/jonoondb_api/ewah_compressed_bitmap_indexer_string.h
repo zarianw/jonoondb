@@ -7,17 +7,18 @@
 #include <vector>
 #include <string>
 #include <cmath>
-#include "indexer.h"
-#include "index_info_impl.h"
-#include "status_impl.h"
-#include "string_utils.h"
-#include "document.h"
-#include "mama_jennies_bitmap.h"
-#include "exception_utils.h"
-#include "index_stat.h"
-#include "constraint.h"
-#include "enums.h"
+#include "jonoondb_api/indexer.h"
+#include "jonoondb_api/index_info_impl.h"
+#include "jonoondb_api/status_impl.h"
+#include "jonoondb_api/string_utils.h"
+#include "jonoondb_api/document.h"
+#include "jonoondb_api/mama_jennies_bitmap.h"
+#include "jonoondb_api/exception_utils.h"
+#include "jonoondb_api/index_stat.h"
+#include "jonoondb_api/constraint.h"
+#include "jonoondb_api/enums.h"
 #include "jonoondb_api/null_helpers.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 namespace jonoondb_api {
 
@@ -56,7 +57,7 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::BASE_TYPE_STRING);
+    return (fieldType == FieldType::STRING);
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {

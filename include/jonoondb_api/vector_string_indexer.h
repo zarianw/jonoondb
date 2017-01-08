@@ -44,7 +44,7 @@ class VectorStringIndexer final: public Indexer {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::BASE_TYPE_STRING);
+    return (fieldType == FieldType::STRING);
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {

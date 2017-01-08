@@ -20,20 +20,20 @@ Indexer* IndexerFactory::CreateIndexer(
     const FieldType& fieldType) {
   switch (indexInfo.GetType()) {
     case IndexType::INVERTED_COMPRESSED_BITMAP: {
-      if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
-          fieldType == FieldType::BASE_TYPE_FLOAT32) {
+      if (fieldType == FieldType::DOUBLE ||
+          fieldType == FieldType::FLOAT) {
         EWAHCompressedBitmapIndexerDouble* ewahIndexer;
         EWAHCompressedBitmapIndexerDouble::Construct(indexInfo,
                                                      fieldType,
                                                      ewahIndexer);
         return static_cast<Indexer*>(ewahIndexer);
-      } else if (fieldType == FieldType::BASE_TYPE_STRING) {
+      } else if (fieldType == FieldType::STRING) {
         EWAHCompressedBitmapIndexerString* ewahIndexer;
         EWAHCompressedBitmapIndexerString::Construct(indexInfo,
                                                      fieldType,
                                                      ewahIndexer);
         return static_cast<Indexer*>(ewahIndexer);
-      } else if (fieldType == FieldType::BASE_TYPE_BLOB) {
+      } else if (fieldType == FieldType::BLOB) {
         EWAHCompressedBitmapIndexerBlob* ewahIndexer;
         EWAHCompressedBitmapIndexerBlob::Construct(indexInfo,
                                                    fieldType,
@@ -49,14 +49,14 @@ Indexer* IndexerFactory::CreateIndexer(
       }
     }
     case IndexType::VECTOR: {
-      if (fieldType == FieldType::BASE_TYPE_STRING) {
+      if (fieldType == FieldType::STRING) {
         return new VectorStringIndexer(indexInfo, fieldType);
-      } else if (fieldType == FieldType::BASE_TYPE_DOUBLE ||
-          fieldType == FieldType::BASE_TYPE_FLOAT32) {
+      } else if (fieldType == FieldType::DOUBLE ||
+          fieldType == FieldType::FLOAT) {
         return new VectorDoubleIndexer(indexInfo, fieldType);
-      } else if (fieldType == FieldType::BASE_TYPE_INT64) {
+      } else if (fieldType == FieldType::INT64) {
         return new VectorIntegerIndexer<std::int64_t>(indexInfo, fieldType);
-      } else if (fieldType == FieldType::BASE_TYPE_BLOB) {
+      } else if (fieldType == FieldType::BLOB) {
         return new VectorBlobIndexer(indexInfo, fieldType);
       } else {
         return new VectorIntegerIndexer<std::int32_t>(indexInfo, fieldType);
