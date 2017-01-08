@@ -77,10 +77,10 @@ struct BlobHeader {
     header.compressed = (verAndFlags & 1) == 1;
 
     auto varIntSize =
-      Varint::DecodeVarint((std::uint8_t*) *&offsetAddress, &header.blobSize);
+        Varint::DecodeVarint((std::uint8_t*) *&offsetAddress, &header.blobSize);
     if (varIntSize == -1) {
       std::string msg =
-        "Failed to read the blob header. Varint blobSize is greater than 10 bytes.";
+          "Failed to read the blob header. Varint blobSize is greater than 10 bytes.";
       throw JonoonDBException(msg, __FILE__, __func__, __LINE__);
     }
     offsetAddress += varIntSize;
@@ -90,7 +90,7 @@ struct BlobHeader {
                                         &header.compSize);
       if (varIntSize == -1) {
         std::string msg =
-          "Failed to read the blob header. Varint compBlobSize is greater than 10 bytes.";
+            "Failed to read the blob header. Varint compBlobSize is greater than 10 bytes.";
         throw JonoonDBException(msg, __FILE__, __func__, __LINE__);
       }
       offsetAddress += varIntSize;
@@ -129,8 +129,8 @@ int GetCompressedSize(std::uint64_t size) {
   if (size > (std::uint64_t) LZ4_MAX_INPUT_SIZE) {
     std::ostringstream ss;
     ss << "Unable to compress data of size " << size
-      << ". Its greater than LZ4_MAX_INPUT_SIZE i.e. "
-      << LZ4_MAX_INPUT_SIZE << ".";
+       << ". Its greater than LZ4_MAX_INPUT_SIZE i.e. "
+       << LZ4_MAX_INPUT_SIZE << ".";
     throw JonoonDBException(ss.str(), __FILE__,
                             __func__, __LINE__);
   }
@@ -141,10 +141,10 @@ int GetCompressedSize(std::uint64_t size) {
 BlobManager::BlobManager(unique_ptr<FileNameManager> fileNameManager,
                          size_t maxDataFileSize,
                          bool synchronous)
-  : m_fileNameManager(move(fileNameManager)),
-  m_maxDataFileSize(maxDataFileSize), m_currentBlobFile(nullptr),
-  m_synchronous(synchronous),
-  m_readerFiles(DEFAULT_MEM_MAP_LRU_CACHE_SIZE) {
+    : m_fileNameManager(move(fileNameManager)),
+      m_maxDataFileSize(maxDataFileSize), m_currentBlobFile(nullptr),
+      m_synchronous(synchronous),
+      m_readerFiles(DEFAULT_MEM_MAP_LRU_CACHE_SIZE) {
   m_fileNameManager->GetCurrentDataFileInfo(true, m_currentBlobFileInfo);
   path pathObj(m_currentBlobFileInfo.fileNameWithPath);
   //Check if the file exist or do we have to create it
@@ -177,7 +177,7 @@ void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata,
   int compSize = compress ? GetCompressedSize(blob.GetLength()) : -1;
   int headerSize = BlobHeader::GetHeaderSize(blob.GetLength(), compSize);
   auto estimatedBytesToWrite = headerSize +
-    (compress ? compSize : blob.GetLength());
+      (compress ? compSize : blob.GetLength());
 
   if (estimatedBytesToWrite + currentOffsetInFile > m_maxDataFileSize) {
     SwitchToNewDataFile();
@@ -210,10 +210,10 @@ void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs,
   for (int i = 0; i < blobs.size(); i++) {
     size_t currentOffset = m_currentBlobFile->GetCurrentWriteOffset();
     int compSize =
-      compress ? GetCompressedSize(blobs[i]->GetLength()) : -1;
+        compress ? GetCompressedSize(blobs[i]->GetLength()) : -1;
     int headerSize = BlobHeader::GetHeaderSize(blobs[i]->GetLength(), compSize);
     auto estimatedBytesToWrite = headerSize +
-      (compress ? compSize : blobs[i]->GetLength());
+        (compress ? compSize : blobs[i]->GetLength());
     if (estimatedBytesToWrite + currentOffset > m_maxDataFileSize) {
       // The file size will exceed the m_maxDataFileSize if blob is written in the current file
       // First flush the contents if required
@@ -273,7 +273,7 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
 
   // Read the data from the file
   char* offsetAddress =
-    memMapFile->GetOffsetAddressAsCharPtr(blobMetaData.offset);
+      memMapFile->GetOffsetAddressAsCharPtr(blobMetaData.offset);
 
   // Now read the header. 
   BlobHeader header;
@@ -292,8 +292,8 @@ void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
     if (val < 0) {
       std::ostringstream ss;
       ss << "Decompression failed while reading blob from file "
-        << memMapFile->GetFileName() << " at offset " << blobMetaData.offset
-        << ". Error code returned by compression lib " << val << ".";
+         << memMapFile->GetFileName() << " at offset " << blobMetaData.offset
+         << ". Error code returned by compression lib " << val << ".";
     }
     blob.SetLength(header.blobSize);
   } else {
@@ -306,12 +306,12 @@ void BlobManager::UnmapLRUDataFiles() {
 }
 
 BlobIterator::BlobIterator(FileInfo fileInfo) :
-  m_fileInfo(std::move(fileInfo)),
-  m_memMapFile(m_fileInfo.fileNameWithPath,
-               MemoryMappedFileMode::ReadOnly,
-               0,
-               true),
-  m_currentOffsetAddress(m_memMapFile.GetOffsetAddressAsCharPtr(0)) {
+    m_fileInfo(std::move(fileInfo)),
+    m_memMapFile(m_fileInfo.fileNameWithPath,
+                 MemoryMappedFileMode::ReadOnly,
+                 0,
+                 true),
+    m_currentOffsetAddress(m_memMapFile.GetOffsetAddressAsCharPtr(0)) {
 }
 
 std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
@@ -323,7 +323,7 @@ std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
 
   for (size_t i = 0; i < blobs.size(); i++) {
     auto position = m_currentOffsetAddress
-      - static_cast<char*>(m_memMapFile.GetBaseAddress());
+        - static_cast<char*>(m_memMapFile.GetBaseAddress());
     if (position >= m_fileInfo.dataLength) {
       // We are at the end of file
       break;
@@ -347,8 +347,8 @@ std::size_t BlobIterator::GetNextBatch(std::vector<BufferImpl>& blobs,
       if (val < 0) {
         std::ostringstream ss;
         ss << "Decompression failed while reading blob from file "
-          << m_fileInfo.fileNameWithPath << " at offset " << position
-          << ". Error code returned by compression lib " << val << ".";
+           << m_fileInfo.fileNameWithPath << " at offset " << position
+           << ". Error code returned by compression lib " << val << ".";
       }
       blobs[i].SetLength(header.blobSize);
       m_currentOffsetAddress += header.compSize;
@@ -409,8 +409,8 @@ size_t BlobManager::PutInternal(const BufferImpl& blob,
       m_compBuffer.Resize(maxCompSize);
     }
     auto compSize = LZ4_compress_default(
-      blob.GetData(), m_compBuffer.GetDataForWrite(),
-      blob.GetLength(), m_compBuffer.GetCapacity());
+        blob.GetData(), m_compBuffer.GetDataForWrite(),
+        blob.GetLength(), m_compBuffer.GetCapacity());
     if (compSize == 0) {
       // throw
     }
