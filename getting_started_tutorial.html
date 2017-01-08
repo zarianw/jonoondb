@@ -120,8 +120,15 @@
                     <h5 class="bold">Prerequisite</h5>
                     <ul>
                         <li>You would need the flatbuffers compiler flatc and its header files. You can build it from sources by following directions at this <a href="http://google.github.io/flatbuffers/flatbuffers_guide_building.html">link</a>.</li>
-                        <li>You would need the <a href="https://github.com/zarianw/jonoondb">JonoonDB library</a>.</li>
+                        <li>You would need the <a href="getting_started_installation.html">JonoonDB library</a>.</li>
                     </ul>
+                    <h5 class="bold">Limitations related to flatbuffers</h5>
+                    <p>There are some limitations with regards to using flatbuffers in JonoonDB. Most of these limitations will be removed in future releases of JonoonDB. These limitations are:
+                    <ul>
+                        <li>Currently you cannot query union and vector fields using SQL. They can be part of your schema and JonoonDB will store your data fine but you won't be able to use any of the union or vector fields in your SQL.</li>
+                        <li>Currently unsigned 64 bit integer (ulong) is not supported for storage or sql queries. Internally JonoonDB has a signed 64 bit integer type and no unsigned 64 bit integer. If this is important for you then let us know and we may start supporting it. Until then the recommendation is to use long type instead.</li>
+                    </ul>
+                    </p>
                     <h5 class="bold">Open a database</h5>
                     <p>
                         A JonoonDB database has a name which corresponds to a file system directory. All of the contents of database are stored in this directory. The following example shows how to open a database, creating it if necessary:
