@@ -49,7 +49,7 @@ BufferImpl::BufferImpl(const char* buffer, size_t bufferLengthInBytes,
         __LINE__);
   } else {
     m_buffer.reset(new char[bufferCapacityInBytes]);
-    memcpy(m_buffer.get(), buffer, bufferCapacityInBytes);
+    memcpy(m_buffer.get(), buffer, bufferLengthInBytes);
     m_length = bufferLengthInBytes;
     m_capacity = bufferCapacityInBytes;
   }
@@ -98,7 +98,7 @@ BufferImpl::BufferImpl(char* buffer,
   }
 }
 
-BufferImpl::BufferImpl(BufferImpl&& other) : 
+BufferImpl::BufferImpl(BufferImpl &&other) noexcept :
     m_buffer(std::move(other.m_buffer)),
     m_length(other.GetLength()),
     m_capacity(other.GetCapacity()) {
@@ -140,7 +140,7 @@ BufferImpl& BufferImpl::operator=(const BufferImpl& other) {
   return *this;
 }
 
-BufferImpl& BufferImpl::operator=(BufferImpl&& other) {
+BufferImpl &BufferImpl::operator=(BufferImpl &&other) noexcept {
   if (this != &other) {    
     this->m_buffer = std::move(other.m_buffer);
     this->m_length = other.GetLength();

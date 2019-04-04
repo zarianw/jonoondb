@@ -24,37 +24,16 @@ class NullHelpers {
     return false;
   }
 
-  static bool ContainsJustNullChars(const std::string& str) {
-    int zero = 0;
-    if (std::memcmp(str.data(), &zero, str.size()) == 0) {
-      return true;
-    }
-
-    return false;
-  }
-
   static bool IsNull(std::int32_t val) {
-    if (val == JONOONDB_NULL_INT32) {
-      return true;
-    }
-
-    return false;
+    return val == JONOONDB_NULL_INT32;
   }
 
   static bool IsNull(std::int64_t val) {
-    if (val == JONOONDB_NULL_INT64) {
-      return true;
-    }
-
-    return false;
+    return val == JONOONDB_NULL_INT64;
   }
 
   static bool IsNull(double val) {
-    if (val == JONOONDB_NULL_DOUBLE) {
-      return true;
-    }
-
-    return false;
+    return val == JONOONDB_NULL_DOUBLE;
   }
 };
 
