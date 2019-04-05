@@ -37,6 +37,13 @@ script:
 - cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=OFF && make -j${JOBS}
 - ctest -V
 
+matrix:
+  exclude:
+  - os: osx
+    compiler: gcc
+  - os: linux
+    compiler: clang
+
 #matrix:
 #  include:
 #  - language: cpp
