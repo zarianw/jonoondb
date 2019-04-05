@@ -16,6 +16,9 @@
 test_config_generated.h
 jonoondb_api_version_generated.h
 
+# clion
+.idea/
+
 #cmake
 CMakeCache.txt
 CMakeFiles

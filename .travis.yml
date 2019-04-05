@@ -17,6 +17,8 @@ env:
   matrix:
     - BUILD_TYPE=Debug
     - BUILD_TYPE=Release
+    - ASAN_FLAG=ON
+    - ASAN_FLAG=OFF
   global:
     - GCC_VERSION="5"
   # Travis machines have 2 cores
@@ -34,7 +36,7 @@ install:
 - bash ./scripts/install_boost_1.60.0.sh
 
 script:
-- cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=OFF && make -j${JOBS}
+- cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=$ASAN_FLAG && make -j${JOBS}
 - ctest -V
 
 matrix:
@@ -43,6 +45,9 @@ matrix:
     compiler: gcc
   - os: linux
     compiler: clang
+  - os: linux
+    compiler: gcc
+    env: ASAN_FLAG=ON
 
 #matrix:
 #  include:
