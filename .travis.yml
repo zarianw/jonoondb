@@ -4,21 +4,23 @@ dist: trusty
 language: cpp
 
 os:
-#- linux
+- linux
 - osx
 
 osx_image: xcode7.3
 
 compiler:
-#- gcc
+- gcc
 - clang
 
 env:
   matrix:
     - BUILD_TYPE=Debug
-    - BUILD_TYPE=Release    
+    - BUILD_TYPE=Release
   global:
     - GCC_VERSION="5"
+  # Travis machines have 2 cores
+    - JOBS=2
 
 before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
@@ -32,9 +34,36 @@ install:
 - bash ./scripts/install_boost_1.60.0.sh
 
 script:
-- cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=ON && make -j2
+- cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=OFF && make -j${JOBS}
 - ctest -V
 
-cache:
-  directories:
-  - boost_1_60_0
+#matrix:
+#  include:
+#  - language: cpp
+#    os: linux
+#    compiler:
+#      - gcc
+#      - clang
+#    env:
+#      matrix:
+#        - BUILD_TYPE=Debug
+#        - BUILD_TYPE=Release
+#    script:
+#    - cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=OFF && make -j${JOBS}
+#    - ctest -V
+#  - os:
+#      - osx
+#    osx_image:
+#      - xcode7.3
+#    compiler: clang
+#    env:
+#      matrix:
+#      - BUILD_TYPE=Debug
+#      - BUILD_TYPE=Release
+#    script:
+#    - cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=ON && make -j${JOBS}
+#    - ctest -V
+
+#cache:
+#  directories:
+#  - boost_1_60_0
