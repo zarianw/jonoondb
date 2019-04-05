@@ -9,5 +9,5 @@ JonoonDB is supported on the following operating systems:
 | OS | Status |
 |---|---|
 | Windows | [![Build status](https://ci.appveyor.com/api/projects/status/utd5fhm86epjxdg7/branch/master?svg=true)](https://ci.appveyor.com/project/zarianw/jonoondb/branch/master) |
-| Linux | [![CircleCI](https://circleci.com/gh/zarianw/jonoondb/tree/master.svg?style=svg)](https://circleci.com/gh/zarianw/jonoondb/tree/master) |
+| Linux | [![Build Status](https://travis-ci.org/zarianw/jonoondb.svg?branch=master)](https://travis-ci.org/zarianw/jonoondb) |
 | MacOS X | [![Build Status](https://travis-ci.org/zarianw/jonoondb.svg?branch=master)](https://travis-ci.org/zarianw/jonoondb) |
