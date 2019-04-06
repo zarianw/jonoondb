@@ -11,10 +11,10 @@ class BufferImpl {
              size_t bufferCapacityInBytes);
   BufferImpl(char* buffer, size_t bufferLengthInBytes,
              size_t bufferCapacityInBytes, void(* customDeleterFunc)(char*));
-  BufferImpl(BufferImpl &&other) noexcept;
+  BufferImpl(BufferImpl&& other) noexcept;
   BufferImpl(const BufferImpl& other);
   BufferImpl& operator=(const BufferImpl& other);
-  BufferImpl &operator=(BufferImpl &&other) noexcept;
+  BufferImpl& operator=(BufferImpl&& other) noexcept;
   bool operator<(const BufferImpl& other) const;
   bool operator<=(const BufferImpl& other) const;
   bool operator>(const BufferImpl& other) const;

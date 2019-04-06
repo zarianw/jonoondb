@@ -98,7 +98,7 @@ BufferImpl::BufferImpl(char* buffer,
   }
 }
 
-BufferImpl::BufferImpl(BufferImpl &&other) noexcept :
+BufferImpl::BufferImpl(BufferImpl&& other) noexcept :
     m_buffer(std::move(other.m_buffer)),
     m_length(other.GetLength()),
     m_capacity(other.GetCapacity()) {
@@ -140,8 +140,8 @@ BufferImpl& BufferImpl::operator=(const BufferImpl& other) {
   return *this;
 }
 
-BufferImpl &BufferImpl::operator=(BufferImpl &&other) noexcept {
-  if (this != &other) {    
+BufferImpl& BufferImpl::operator=(BufferImpl&& other) noexcept {
+  if (this != &other) {
     this->m_buffer = std::move(other.m_buffer);
     this->m_length = other.GetLength();
     this->m_capacity = other.GetCapacity();
