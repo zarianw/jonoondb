@@ -20,6 +20,11 @@ elseif(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     "${CMAKE_CXX_FLAGS} -std=c++14 -m64")
 endif()
 
+option(ASAN "Address sanitizer to detect memory issues." OFF)
+if(ASAN)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+endif()
+
 #gsl
 include_directories(${THIRDPARTY_PATH}/gsl/include)
 

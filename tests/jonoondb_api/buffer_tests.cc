@@ -149,7 +149,7 @@ TEST(Buffer, Buffer_ManualCopyCtor_InvalidArguments) {
   ASSERT_EQ(buffer2.GetLength(), str.length());
 
   ASSERT_TRUE(
-      memcmp(buffer2.GetData(), str.data(), buffer2.GetCapacity()) == 0);
+      memcmp(buffer2.GetData(), str.data(), buffer2.GetLength()) == 0);
 
   //3. This is an error condition because we are specifying length < capacity
   ASSERT_THROW(Buffer buffer3(const_cast<char*>(str.data()), 20, 10),
@@ -179,7 +179,7 @@ TEST(Buffer, Buffer_CopyCtor) {
   ASSERT_TRUE(buffer1.GetLength() == str.length());
 
   ASSERT_TRUE(
-      memcmp(buffer1.GetData(), str.data(), buffer1.GetCapacity()) == 0);
+      memcmp(buffer1.GetData(), str.data(), buffer1.GetLength()) == 0);
 }
 
 TEST(Buffer, Buffer_Copy) {

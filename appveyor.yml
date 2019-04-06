@@ -11,7 +11,7 @@ configuration:
 
 # scripts to run before build
 before_build:
-  - cmake -G "Visual Studio 14 Win64" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=C:\Libraries\boost_1_60_0 -DBOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
+- cmake . -G "Visual Studio 14 Win64" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=C:\Libraries\boost_1_60_0 -DBOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
   
 build:
   parallel: true             # enable MSBuild parallel builds

@@ -28,9 +28,9 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
                         const FieldType& fieldType,
                         EWAHCompressedBitmapIndexerString*& obj) {
     std::string errorMsg;
-    if (indexInfo.GetIndexName().size() == 0) {
+    if (indexInfo.GetIndexName().empty()) {
       errorMsg = "Argument indexInfo has empty name.";
-    } else if (indexInfo.GetColumnName().size() == 0) {
+    } else if (indexInfo.GetColumnName().empty()) {
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::INVERTED_COMPRESSED_BITMAP) {
       errorMsg =
@@ -116,27 +116,17 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
         startIter = m_compressedBitmaps.upper_bound(lowerConstraint.strVal);
       }
 
-      bool nullChkRequired = true;
       while (startIter != m_compressedBitmaps.end()) {
-        if (nullChkRequired) {
-          if (NullHelpers::IsNull(startIter->first)) {
-            continue;
+        if (not NullHelpers::IsNull(startIter->first)) {
+          if (startIter->first < upperConstraint.strVal) {
+            bitmaps.push_back(startIter->second);
+          } else if (
+              upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL
+                  && startIter->first == upperConstraint.strVal) {
+            bitmaps.push_back(startIter->second);
+          } else {
+            break;
           }
-
-          if (!NullHelpers::ContainsJustNullChars(startIter->first) &&
-              !NullHelpers::IsNull(startIter->first)) {
-            nullChkRequired = false;
-          }
-        }
-
-        if (startIter->first < upperConstraint.strVal) {
-          bitmaps.push_back(startIter->second);
-        } else if (
-            upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL
-                && startIter->first == upperConstraint.strVal) {
-          bitmaps.push_back(startIter->second);
-        } else {
-          break;
         }
 
         startIter++;
@@ -169,27 +159,17 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
   std::shared_ptr<MamaJenniesBitmap> GetBitmapLT(const Constraint& constraint,
                                                  bool orEqual) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
-    bool nullChkRequired = true;
     if (constraint.operandType == OperandType::STRING) {
       for (auto& item : m_compressedBitmaps) {
-        if (nullChkRequired) {
-          if (NullHelpers::IsNull(item.first)) {
-            continue;
-          }
-
-          if (!NullHelpers::ContainsJustNullChars(item.first) &&
-              !NullHelpers::IsNull(item.first)) {
-            nullChkRequired = false;
-          }
-        }
-
-        if (item.first.compare(constraint.strVal) < 0) {
-          bitmaps.push_back(item.second);
-        } else {
-          if (orEqual && item.first.compare(constraint.strVal) == 0) {
+        if (not NullHelpers::IsNull(item.first)) {
+          if (item.first.compare(constraint.strVal) < 0) {
             bitmaps.push_back(item.second);
+          } else {
+            if (orEqual && item.first == constraint.strVal) {
+              bitmaps.push_back(item.second);
+            }
+            break;
           }
-          break;
         }
       }
     }
@@ -209,20 +189,10 @@ class EWAHCompressedBitmapIndexerString final: public Indexer {
         iter = m_compressedBitmaps.upper_bound(constraint.strVal);
       }
 
-      bool nullChkRequired = true;
       while (iter != m_compressedBitmaps.end()) {
-        if (nullChkRequired) {
-          if (NullHelpers::IsNull(iter->first)) {
-            continue;
-          }
-
-          if (!NullHelpers::ContainsJustNullChars(iter->first) &&
-              !NullHelpers::IsNull(iter->first)) {
-            nullChkRequired = false;
-          }
+        if (not NullHelpers::IsNull(iter->first)) {
+          bitmaps.push_back(iter->second);
         }
-
-        bitmaps.push_back(iter->second);
         iter++;
       }
     }
