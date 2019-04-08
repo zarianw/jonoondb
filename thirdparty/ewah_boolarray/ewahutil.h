@@ -24,6 +24,9 @@
 #include <cstddef>
 #include <algorithm>
 #include <sstream>
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+#include <intrin.h>
+#endif
 
 // taken from stackoverflow
 #ifndef NDEBUG
