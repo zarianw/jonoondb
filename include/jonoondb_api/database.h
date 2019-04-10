@@ -697,6 +697,14 @@ class Database {
     return ResultSet(rs);
   }
 
+  int64_t Delete(const std::string& deleteStatement) {
+    auto deletedCnt = jonoondb_database_delete(m_opaque,
+                                               deleteStatement.c_str(),
+                                               deleteStatement.size(),
+                                               ThrowOnError{});
+    return deletedCnt;
+  }
+
  private:
   database_ptr m_opaque;
 };

@@ -23,10 +23,12 @@ class QueryProcessor final {
   void AddExistingCollection
       (const std::shared_ptr<DocumentCollection>& collection);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
+  std::int64_t Delete(const std::string& deleteStatement);
 
  private:
   sqlite3* OpenConnection();
   std::unique_ptr<sqlite3, void (*)(sqlite3*)> m_readWriteDBConnection;
+  std::unique_ptr<sqlite3, void (*)(sqlite3*)> m_deleteStmtConnection;
   std::unique_ptr<ObjectPool<sqlite3>> m_dbConnectionPool;
   std::string m_fullDBpath;
   std::string m_dbName;

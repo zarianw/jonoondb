@@ -737,4 +737,18 @@ resultset_ptr jonoondb_database_executeselect(database_ptr db,
   return val;
 }
 
+JONOONDB_API_EXPORT int64_t jonoondb_database_delete(database_ptr db,
+                                                     const char* deleteStmt,
+                                                     uint64_t deleteStmtLength,
+                                                     status_ptr* sts) {
+  int64_t val;
+  // Todo: Use string_view for performance improvement
+  TranslateExceptions([&] {
+    std::string deleteStatement(deleteStmt, deleteStmtLength);
+    val = db->impl.Delete(deleteStatement);
+  }, *sts);
+
+  return val;
+}
+
 } // extern "C"

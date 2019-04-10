@@ -193,6 +193,10 @@ ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {
   return m_queryProcessor->ExecuteSelect(selectStatement);
 }
 
+std::int64_t DatabaseImpl::Delete(const std::string& deleteStatement) {
+  return m_queryProcessor->Delete(deleteStatement);
+}
+
 std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
     const std::string& name,
     SchemaType schemaType,

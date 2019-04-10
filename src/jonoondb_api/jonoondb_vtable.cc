@@ -383,6 +383,12 @@ static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64* rowid) {
   return SQLITE_OK;
 }
 
+static int jonoondb_update(sqlite3_vtab* vtab,
+                           int argc, sqlite3_value** argv,
+                           sqlite_int64* rowid) {
+  return SQLITE_ERROR;
+}
+
 void Sqlite3ResultBlob(sqlite3_context* ctx, const char* val,
                        std::size_t size) {
   if (val == nullptr || size == 0) {
@@ -392,7 +398,6 @@ void Sqlite3ResultBlob(sqlite3_context* ctx, const char* val,
     sqlite3_result_blob64(ctx, val, size, SQLITE_TRANSIENT);
   }
 }
-
 
 static int jonoondb_column(sqlite3_vtab_cursor* cur, sqlite3_context* ctx,
                            int cidx) {
@@ -591,11 +596,6 @@ static int jonoondb_rename(sqlite3_vtab* vtab, const char* newname) {
   return SQLITE_ERROR;
 }
 
-static int jonoondb_update(sqlite3_vtab* vtab, int argc, sqlite3_value** argv,
-                           sqlite_int64* rowid) {
-  return SQLITE_ERROR;
-}
-
 static int jonoondb_begin(sqlite3_vtab* vtab) {
   return SQLITE_ERROR;
 }
@@ -636,7 +636,7 @@ static sqlite3_module jonoondb_mod = {
     jonoondb_eof,           /* xEof()          */
     jonoondb_column,        /* xColumn()       */
     jonoondb_rowid,         /* xRowid()        */
-    NULL,                   /* xUpdate()       */
+    jonoondb_update,        /* xUpdate()       */
     NULL,                   /* xBegin()        */
     NULL,                   /* xSync()         */
     NULL,                   /* xCommit()       */

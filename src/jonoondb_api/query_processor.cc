@@ -25,6 +25,7 @@ int jonoondb_vtable_init(sqlite3* db, char** error,
 QueryProcessor::QueryProcessor(const std::string& dbPath,
                                const std::string& dbName) :
     m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close),
+    m_deleteStmtConnection(nullptr, GuardFuncs::SQLite3Close),
     m_dbConnectionPool(nullptr), m_dbName(dbName) {
   std::string normalizedDBPath = PathUtils::NormalizePath(dbPath);
   path pathObj(normalizedDBPath);
@@ -57,6 +58,13 @@ QueryProcessor::QueryProcessor(const std::string& dbPath,
   sqlite3* db = nullptr;
   code = sqlite3_open(m_fullDBpath.c_str(), &db);
   m_readWriteDBConnection.reset(db);
+  if (code != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+  }
+
+  db = nullptr;
+  code = sqlite3_open(m_fullDBpath.c_str(), &db);
+  m_deleteStmtConnection.reset(db);
   if (code != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
@@ -258,6 +266,26 @@ ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) 
   return ResultSetImpl(ObjectPoolGuard<sqlite3>(m_dbConnectionPool.get(),
                                                 m_dbConnectionPool->Take()),
                        selectStatement);
+}
+
+std::int64_t QueryProcessor::Delete(const std::string& deleteStatement) {
+  char* errMsg;
+  int code = sqlite3_exec(m_readWriteDBConnection.get(),
+                          deleteStatement.c_str(),
+                          nullptr,
+                          nullptr,
+                          &errMsg);
+  if (code != SQLITE_OK) {
+    if (errMsg != nullptr) {
+      std::string sqliteErrorMsg = errMsg;
+      sqlite3_free(errMsg);
+      throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
+    }
+
+    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+  }
+
+  return sqlite3_changes(m_deleteStmtConnection.get());
 }
 
 sqlite3* QueryProcessor::OpenConnection() {
