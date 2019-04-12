@@ -51,6 +51,21 @@ class DatabaseDeleteTestSuite : public ::testing::Test, public ::testing::WithPa
     InsertDocuments(COLLECTION_WITH_VEC_INDEXED_DOCS);
   }
 
+  Buffer GetAllFieldObject(size_t i) {
+    std::string str = std::to_string(i);
+    return TestUtils::GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i),
+                                                  static_cast<uint8_t>(i),
+                                                  true,
+                                                  static_cast<int16_t>(i),
+                                                  static_cast<uint16_t>(i),
+                                                  static_cast<int32_t>(i),
+                                                  static_cast<uint32_t>(i),
+                                                  (float) i,
+                                                  static_cast<int64_t>(i),
+                                                  (double) i,
+                                                  str, str, str);
+  }
+
  private:
   void SanitizeDBName(string& testName) {
     boost::replace_all(testName, "/", "_");
@@ -60,24 +75,14 @@ class DatabaseDeleteTestSuite : public ::testing::Test, public ::testing::WithPa
     std::vector<Buffer> documents;
     for (size_t i = 0; i < m_docCnt; i++) {
       std::string str = std::to_string(i);
-      documents.push_back(TestUtils::GetAllFieldTypeObjectBuffer(static_cast<int8_t>(i),
-                                                                 static_cast<uint8_t>(i),
-                                                                 true,
-                                                                 static_cast<int16_t>(i),
-                                                                 static_cast<uint16_t>(i),
-                                                                 static_cast<int32_t>(i),
-                                                                 static_cast<uint32_t>(i),
-                                                                 (float) i,
-                                                                 static_cast<int64_t>(i),
-                                                                 (double) i,
-                                                                 str, str, str));
+      documents.push_back(GetAllFieldObject(i));
     }
 
     m_db->MultiInsert(collectionName, documents);
   }
 };
 
-INSTANTIATE_TEST_CASE_P(InstantiationName, DatabaseDeleteTestSuite,
+INSTANTIATE_TEST_CASE_P(CollectionsWithDocsGroup, DatabaseDeleteTestSuite,
                         ::testing::Values(
                             COLLECTION_WITH_DOCS.c_str(),
                             COLLECTION_WITH_EWAH_INDEXED_DOCS.c_str(),
@@ -140,6 +145,34 @@ TEST_P(DatabaseDeleteTestSuite, DeleteAllDocuments) {
     cnt++;
   }
   ASSERT_EQ(cnt, 0);
+}
+
+TEST_P(DatabaseDeleteTestSuite, DeleteAndReinsertDocument) {
+  cout << GetParam() << endl;
+  // given: document is deleted and reinserted
+  auto deletedCnt = m_db->Delete(string("DELETE FROM ") + string(GetParam()) + string(" where field1 = 5"));
+  ASSERT_EQ(deletedCnt, 1);
+  Buffer obj = GetAllFieldObject(5);
+  m_db->Insert(string(GetParam()), obj);
+
+  // when: trying to get the deleted/reinserted document
+  ResultSet rs = m_db->ExecuteSelect(string("SELECT * from ") + string(GetParam()) + string(" where field1 = 5"));
+  // then: we should get it back
+  int cnt = 0;
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("field1")), 5);
+    cnt++;
+  }
+  ASSERT_EQ(cnt, 1);
+
+  // when: trying to get all the documents
+  rs = m_db->ExecuteSelect("SELECT * from " + string(GetParam()));
+  // then: we should get back the same number of documents as originally inserted
+  cnt = 0;
+  while (rs.Next()) {
+    cnt++;
+  }
+  ASSERT_EQ(cnt, m_docCnt);
 }
 
 TEST_F(DatabaseDeleteTestSuite, DeleteDocumentInEmptyCollection) {
