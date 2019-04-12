@@ -1,7 +1,7 @@
 #include <memory>
 #include <sstream>
-#include "mama_jennies_bitmap.h"
-#include "jonoondb_exceptions.h"
+#include "jonoondb_api/mama_jennies_bitmap.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 using namespace jonoondb_api;
 
@@ -114,6 +114,11 @@ void MamaJenniesBitmap::LogicalOR(const MamaJenniesBitmap& other,
   m_ewahBoolArray->logicalor(*other.m_ewahBoolArray, *output.m_ewahBoolArray);
 }
 
+void MamaJenniesBitmap::LogicalXOR(const MamaJenniesBitmap& other,
+                                   MamaJenniesBitmap& output) {
+  m_ewahBoolArray->logicalxor(*other.m_ewahBoolArray, *output.m_ewahBoolArray);
+}
+
 std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalAND(std::vector<std::shared_ptr<
     MamaJenniesBitmap>>& bitmaps) {
   if (bitmaps.size() == 0) {
@@ -169,6 +174,14 @@ std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalOR(
   return flipper ? b1 : b2;
 }
 
+void MamaJenniesBitmap::LogicalNOT(MamaJenniesBitmap& output) {
+  m_ewahBoolArray->logicalnot(*output.m_ewahBoolArray);
+}
+
+void MamaJenniesBitmap::InPlaceLogicalNOT() {
+  m_ewahBoolArray->inplace_logicalnot();
+}
+
 MamaJenniesBitmap::const_iterator MamaJenniesBitmap::begin() {
   auto iter = m_ewahBoolArray->begin();
   return MamaJenniesBitmapConstIterator(iter);
@@ -192,3 +205,7 @@ std::unique_ptr<MamaJenniesBitmap::const_iterator> MamaJenniesBitmap::end_pointe
 MamaJenniesBitmap::MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray)
     : m_ewahBoolArray(std::move(ewahBoolArray)) {
 }
+void MamaJenniesBitmap::Reset() {
+  m_ewahBoolArray->reset();
+}
+

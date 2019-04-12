@@ -270,7 +270,7 @@ ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) 
 
 std::int64_t QueryProcessor::Delete(const std::string& deleteStatement) {
   char* errMsg;
-  int code = sqlite3_exec(m_readWriteDBConnection.get(),
+  int code = sqlite3_exec(m_deleteStmtConnection.get(),
                           deleteStatement.c_str(),
                           nullptr,
                           nullptr,

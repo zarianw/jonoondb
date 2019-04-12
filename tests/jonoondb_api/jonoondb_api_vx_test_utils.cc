@@ -142,3 +142,26 @@ Buffer TestUtils::GetAllFieldTypeObjectBuffer(char field1,
 
   return Buffer((char*)fbb.GetBufferPointer(), fbb.GetSize(), fbb.GetSize());
 }
+
+std::vector<IndexInfo> TestUtils::CreateAllTypeIndexes(IndexType indexType) {
+  std::vector<IndexInfo> indexes;
+  const int indexLength = 26;
+  IndexInfo index;
+  for (auto i = 1; i <= indexLength; i++) {
+    auto indexName = "IndexName_" + std::to_string(i);
+    index.SetIndexName(indexName);
+    index.SetType(indexType);
+    index.SetIsAscending(true);
+    std::string fieldName;
+    if (i < 14) {
+      fieldName = "field" + std::to_string(i);
+    } else {
+      fieldName = "nestedField.field" + std::to_string(i - 13);
+    }
+    index.SetColumnName(fieldName.c_str());
+
+    indexes.push_back(index);
+  }
+
+  return indexes;
+}

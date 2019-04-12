@@ -8,6 +8,7 @@
 #include "index_manager.h"
 #include "document_id_generator.h"
 #include "blob_metadata.h"
+#include "delete_vector.h"
 
 // Forward declaration
 struct sqlite3;
@@ -23,7 +24,6 @@ enum class FieldType
 enum class SchemaType
     : std::int32_t;
 struct Constraint;
-class MamaJenniesBitmap;
 class BlobManager;
 struct FileInfo;
 struct WriteOptionsImpl;
@@ -74,6 +74,8 @@ class DocumentCollection final {
       const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
       const std::vector<std::string>& tokens, std::vector<double>& values) const;
   void UnmapLRUDataFiles();
+  void AddToDeleteVector(std::uint64_t id);
+  uint64_t GetDocumentCount() const;
 
  private:
   void PopulateColumnTypes(
@@ -87,6 +89,7 @@ class DocumentCollection final {
   std::vector<BlobMetadata> m_documentIDMap;
   std::string m_name;
   std::unique_ptr<BlobManager> m_blobManager;
+  DeleteVector m_deleteVector;
 };
 }  // namespace jonoondb_api
 

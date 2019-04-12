@@ -32,6 +32,7 @@ class MamaJenniesBitmap {
   void Add(std::uint64_t x);
   void LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
   void LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
+  void LogicalXOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
 
 
   static std::shared_ptr<MamaJenniesBitmap>
@@ -39,11 +40,16 @@ class MamaJenniesBitmap {
   static std::shared_ptr<MamaJenniesBitmap>
       LogicalOR(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
 
+  void LogicalNOT(MamaJenniesBitmap& output);
+  void InPlaceLogicalNOT();
+
   typedef MamaJenniesBitmapConstIterator const_iterator;
   const_iterator begin();
   const_iterator end();
   std::unique_ptr<const_iterator> begin_pointer();
   std::unique_ptr<const_iterator> end_pointer();
+
+  void Reset();
 
  private:
   bool IsEmpty();

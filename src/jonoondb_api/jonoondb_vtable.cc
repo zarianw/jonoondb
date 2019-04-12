@@ -386,7 +386,26 @@ static int jonoondb_rowid(sqlite3_vtab_cursor* cur, sqlite3_int64* rowid) {
 static int jonoondb_update(sqlite3_vtab* vtab,
                            int argc, sqlite3_value** argv,
                            sqlite_int64* rowid) {
-  return SQLITE_ERROR;
+  try {
+    if (argc == 1) {
+      // its a delete
+      if (sqlite3_value_type(*argv) == SQLITE_INTEGER) {
+        jonoondb_vtab* v = (jonoondb_vtab*) vtab;
+        int64_t rowIdToDelete = sqlite3_value_int64(*argv);
+        v->collectionInfo->collection->AddToDeleteVector(rowIdToDelete);
+      } else {
+        // This should never happen
+        return SQLITE_ERROR;
+      }
+    } else {
+      // Insert and update statements are not allowed
+      return SQLITE_ERROR;
+    }
+  } catch (std::exception& ex) {
+    return SQLITE_ERROR;
+  }
+
+  return SQLITE_OK;
 }
 
 void Sqlite3ResultBlob(sqlite3_context* ctx, const char* val,

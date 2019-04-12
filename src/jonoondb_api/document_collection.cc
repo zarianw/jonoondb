@@ -35,7 +35,8 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
                                        const std::vector<FileInfo>& dataFilesToLoad)
     :
     m_blobManager(move(blobManager)),
-    m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
+    m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection),
+    m_deleteVector(*this) {
   // Validate function arguments
   if (databaseMetadataFilePath.size() == 0) {
     throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.",
@@ -159,17 +160,23 @@ bool DocumentCollection::TryGetBestIndex(const std::string& columnName,
 
 std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
     Constraint>& constraints) {
+  auto bitmap = std::make_shared<MamaJenniesBitmap>();
   if (constraints.size() > 0) {
-    return m_indexManager->Filter(constraints);
+    bitmap = m_indexManager->Filter(constraints);
   } else {
     // Return all the ids
     auto lastID = m_documentIDMap.size();
-    auto bm = std::make_shared<MamaJenniesBitmap>();
     for (std::size_t i = 0; i < lastID; i++) {
-      bm->Add(i);
+      bitmap->Add(i);
     }
+  }
 
-    return bm;
+  if (m_deleteVector.Empty()) {
+    return bitmap;
+  } else {
+    auto resultWithDelVector = std::make_shared<MamaJenniesBitmap>();
+    bitmap->LogicalAND(m_deleteVector.GetDeleteVectorBitmap(), *resultWithDelVector.get());
+    return resultWithDelVector;
   }
 }
 
@@ -316,7 +323,7 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
     if (docIDs[i] >= m_documentIDMap.size()) {
       ostringstream ss;
       ss << "Document with ID '" << docIDs[i]
-          << "' does exist in collection " << m_name << ".";
+         << "' does not exist in collection " << m_name << ".";
       throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
@@ -332,6 +339,14 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
 
 void DocumentCollection::UnmapLRUDataFiles() {
   m_blobManager->UnmapLRUDataFiles();
+}
+
+void DocumentCollection::AddToDeleteVector(std::uint64_t docId) {
+  m_deleteVector.Add(docId);
+}
+
+uint64_t DocumentCollection::GetDocumentCount() const {
+  return m_documentIDMap.size();
 }
 
 void DocumentCollection::PopulateColumnTypes(

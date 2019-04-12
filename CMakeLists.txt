@@ -125,7 +125,8 @@ add_library(
  ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_PATH}/jonoondb_api/resultset_impl.h
  ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_PATH}/jonoondb_api/index_stat.h
  ${SRC_PATH}/jonoondb_api/blob_manager.cc ${INCLUDE_PATH}/jonoondb_api/blob_manager.h
- ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_PATH}/jonoondb_api/id_seq.h) 
+        ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_PATH}/jonoondb_api/id_seq.h
+        ${SRC_PATH}/jonoondb_api/delete_vector.cc ${INCLUDE_PATH}/jonoondb_api/delete_vector.h)
  
 target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
 
@@ -183,7 +184,7 @@ configure_file (
   "${INCLUDE_PATH}/test/test_config.h.in"
   "${INCLUDE_PATH}/test/test_config_generated.h")
 
-add_subdirectory(${THIRDPARTY_PATH}/googletest-release-1.7.0)
+add_subdirectory(${THIRDPARTY_PATH}/googletest-release-1.8.1)
 enable_testing(true)
 include_directories(${gtest_SOURCE_DIR}/include)
 
