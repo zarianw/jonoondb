@@ -17,6 +17,7 @@ class DeleteVector final {
   void Add(uint64_t);
   const MamaJenniesBitmap& GetDeleteVectorBitmap();
   bool Empty();
+  void UpdateNextDocumentId(std::uint64_t docId);
  private:
   void MaybeReconstructBitmap();
   std::set<std::uint64_t> m_deletedDocIds;
@@ -26,5 +27,7 @@ class DeleteVector final {
   // parent collection. DeleteVector should not be used in other way where
   // the life of m_parentCollection reference is less than DeleteVector
   const DocumentCollection& m_parentCollection;
+  // m_nextDocumentId is equal to next id that will be assigned to a new document inserted into collection
+  std::uint64_t m_nextDocumentId;
 };
 } // namespace jonoondb_api

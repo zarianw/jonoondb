@@ -21,6 +21,12 @@ bool DeleteVector::Empty() {
   return m_deletedDocIds.empty();
 }
 
+void DeleteVector::UpdateNextDocumentId(std::uint64_t docId) {
+  m_nextDocumentId = docId;
+  m_isDirty = true;
+}
+
+
 void DeleteVector::MaybeReconstructBitmap() {
   if (m_isDirty) {
     m_deleteVecBitmap.Reset();
@@ -29,7 +35,7 @@ void DeleteVector::MaybeReconstructBitmap() {
     }
     // Its important to add a id that is last_doc_id + 1 at the end of the bitmap
     // so that the size of the total length of bitmap is correct
-    m_deleteVecBitmap.Add(m_parentCollection.GetDocumentCount());
+    m_deleteVecBitmap.Add(m_nextDocumentId);
     m_deleteVecBitmap.InPlaceLogicalNOT();
     m_isDirty = false;
   }

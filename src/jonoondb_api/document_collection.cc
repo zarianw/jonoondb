@@ -131,17 +131,19 @@ void jonoondb_api::DocumentCollection::MultiInsert(
   try {
     auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
     assert(startID == m_documentIDMap.size());
+
     m_blobManager->MultiPut(documents, blobMetadataVec, wo.compress);
+    m_documentIDMap.insert(m_documentIDMap.end(),
+                           blobMetadataVec.begin(),
+                           blobMetadataVec.end());
+
+    m_deleteVector.UpdateNextDocumentId(startID + docs.size());
   } catch (...) {
-    // This is a serious error. Exception at this point will leave DB in a invalid state.
-    // Only thing we can do here is to log the error and terminate the process.
+    // This is a serious error. Handling the exception at this point will leave DB in a invalid state.
+    // Only sane thing we can do here is to log the error and terminate the process.
     // Todo: log and terminate the process
     throw;
   }
-
-  m_documentIDMap.insert(m_documentIDMap.end(),
-                         blobMetadataVec.begin(),
-                         blobMetadataVec.end());
 }
 
 const std::string& DocumentCollection::GetName() {

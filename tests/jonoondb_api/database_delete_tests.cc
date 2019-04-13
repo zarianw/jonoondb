@@ -27,12 +27,13 @@ class DatabaseDeleteTestSuite : public ::testing::Test, public ::testing::WithPa
  protected:
   std::unique_ptr<Database> m_db;
   int m_docCnt = 10;
+  string m_dbName;
 
   void SetUp() override {
-    string name(::testing::UnitTest::GetInstance()->current_test_info()->name());
-    SanitizeDBName(name);
+    m_dbName = ::testing::UnitTest::GetInstance()->current_test_info()->name();
+    SanitizeDBName(m_dbName);
     m_db.reset(new Database(g_TestRootDirectory,
-                            name,
+                            m_dbName,
                             TestUtils::GetDefaultDBOptions()));
 
     string filePath = GetSchemaFilePath("all_field_type.bfbs");
@@ -66,6 +67,14 @@ class DatabaseDeleteTestSuite : public ::testing::Test, public ::testing::WithPa
                                                   str, str, str);
   }
 
+  void CloseAndReopenDB() {
+    m_db.reset(nullptr);
+
+    m_db.reset(new Database(g_TestRootDirectory,
+                            m_dbName,
+                            TestUtils::GetDefaultDBOptions()));
+  }
+
  private:
   void SanitizeDBName(string& testName) {
     boost::replace_all(testName, "/", "_");
@@ -93,6 +102,42 @@ TEST_P(DatabaseDeleteTestSuite, DeleteDocument) {
   // given: document is deleted
   auto deletedCnt = m_db->Delete(string("DELETE FROM ") + string(GetParam()) + string(" where field1 = 5"));
   ASSERT_EQ(deletedCnt, 1);
+
+  // when: trying to get the deleted document
+  ResultSet rs = m_db->ExecuteSelect(string("SELECT * from ") + string(GetParam()) + string(" where field1 = 5"));
+  // then: we should not get anything back
+  int cnt = 0;
+  while (rs.Next()) {
+    cnt++;
+  }
+  ASSERT_EQ(cnt, 0);
+
+  // when: trying to get all the documents
+  rs = m_db->ExecuteSelect("SELECT * from " + string(GetParam()));
+  // then: we should not get anything that was deleted
+  cnt = 0;
+  while (rs.Next()) {
+    cnt++;
+  }
+  ASSERT_EQ(cnt, m_docCnt - 1);
+
+  // when: trying to get a non deleted document
+  rs = m_db->ExecuteSelect(string("SELECT * from ") + string(GetParam() + string(" where field1 = 3")));
+  // then: we should not get that document back
+  cnt = 0;
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("field1")), 3);
+    cnt++;
+  }
+  ASSERT_EQ(cnt, 1);
+}
+
+TEST_P(DatabaseDeleteTestSuite, DeleteDocumentAndReopenDB) {
+  cout << GetParam() << endl;
+  // given: document is deleted and db is closed and reopened
+  auto deletedCnt = m_db->Delete(string("DELETE FROM ") + string(GetParam()) + string(" where field1 = 5"));
+  ASSERT_EQ(deletedCnt, 1);
+  CloseAndReopenDB();
 
   // when: trying to get the deleted document
   ResultSet rs = m_db->ExecuteSelect(string("SELECT * from ") + string(GetParam()) + string(" where field1 = 5"));
@@ -173,6 +218,26 @@ TEST_P(DatabaseDeleteTestSuite, DeleteAndReinsertDocument) {
     cnt++;
   }
   ASSERT_EQ(cnt, m_docCnt);
+
+  // when: a new document is inserted and retrieved
+  obj = GetAllFieldObject(11);
+  m_db->Insert(string(GetParam()), obj);
+  // then: we should get the document
+  rs = m_db->ExecuteSelect("SELECT * from " + string(GetParam() + string(" where field1 = 11")));
+  cnt = 0;
+  while (rs.Next()) {
+    cnt++;
+  }
+  ASSERT_EQ(cnt, 1);
+
+  // when: trying to get all the documents
+  rs = m_db->ExecuteSelect("SELECT * from " + string(GetParam()));
+  // then: we should get back the same number of documents as originally inserted + 1
+  cnt = 0;
+  while (rs.Next()) {
+    cnt++;
+  }
+  ASSERT_EQ(cnt, m_docCnt + 1);
 }
 
 TEST_F(DatabaseDeleteTestSuite, DeleteDocumentInEmptyCollection) {
