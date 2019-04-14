@@ -125,8 +125,9 @@ add_library(
  ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_PATH}/jonoondb_api/resultset_impl.h
  ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_PATH}/jonoondb_api/index_stat.h
  ${SRC_PATH}/jonoondb_api/blob_manager.cc ${INCLUDE_PATH}/jonoondb_api/blob_manager.h
-        ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_PATH}/jonoondb_api/id_seq.h
-        ${SRC_PATH}/jonoondb_api/delete_vector.cc ${INCLUDE_PATH}/jonoondb_api/delete_vector.h)
+ ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_PATH}/jonoondb_api/id_seq.h
+ ${SRC_PATH}/jonoondb_api/delete_vector.cc ${INCLUDE_PATH}/jonoondb_api/delete_vector.h
+ ${SRC_PATH}/jonoondb_api/endian_utils.cc ${INCLUDE_PATH}/jonoondb_api/endian_utils.h)
  
 target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
 

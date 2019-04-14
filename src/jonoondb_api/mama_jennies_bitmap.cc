@@ -2,6 +2,8 @@
 #include <sstream>
 #include "jonoondb_api/mama_jennies_bitmap.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
+#include "jonoondb_api/buffer_impl.h"
+#include "jonoondb_api/endian_utils.h"
 
 using namespace jonoondb_api;
 
@@ -206,6 +208,36 @@ MamaJenniesBitmap::MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<std::uint64_t
     : m_ewahBoolArray(std::move(ewahBoolArray)) {
 }
 void MamaJenniesBitmap::Reset() {
-  m_ewahBoolArray->reset();
+  m_ewahBoolArray->reset(); }
+
+void MamaJenniesBitmap::Serialize(BufferImpl& buffer) {
+  uint64_t sb = m_ewahBoolArray->sizeInBits();
+  uint64_t bs = m_ewahBoolArray->bufferSize();
+  uint64_t serializedBufferSize = sizeof(sb) + sizeof(bs) + (bs * sizeof(std::uint64_t));
+  if (buffer.GetCapacity() < serializedBufferSize)
+    buffer.Resize(serializedBufferSize);
+
+  char* curr = buffer.GetDataForWrite();
+
+	EndianUtils::MakeLittleEndianInPlace(sb);
+  memcpy(curr, &sb, sizeof(sb));
+  curr += sizeof(sb);
+  
+	EndianUtils::MakeLittleEndianInPlace(bs);
+	memcpy(curr, &bs, sizeof(bs));
+  curr += sizeof(bs);
+  
+	uint64_t bitmapBufferSize =
+      m_ewahBoolArray->getBuffer().size() * sizeof(std::uint64_t);
+  memcpy(curr, m_ewahBoolArray->getBuffer().data(), bitmapBufferSize);
+  
+	curr += bitmapBufferSize;
+  assert(curr - buffer.GetDataForWrite() == serializedBufferSize);
+  
+	buffer.SetLength(serializedBufferSize);
 }
+
+void MamaJenniesBitmap::Deserialize(const BufferImpl& buffer) {}
+
+BitmapType MamaJenniesBitmap::GetType() { return BitmapType::EWAH_COMPRESSED_BITMAP; }
 

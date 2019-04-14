@@ -23,20 +23,20 @@
 #include "file_info.h"
 #include "filename_manager.h"
 #include "jonoondb_api/write_options_impl.h"
+#include "jonoondb_api/delete_vector.h"
 
 using namespace jonoondb_api;
 
-DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePath,
-                                       const std::string& name,
-                                       SchemaType schemaType,
-                                       const std::string& schema,
-                                       const std::vector<IndexInfoImpl*>& indexes,
-                                       std::unique_ptr<BlobManager> blobManager,
-                                       const std::vector<FileInfo>& dataFilesToLoad)
-    :
-    m_blobManager(move(blobManager)),
-    m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection),
-    m_deleteVector(*this) {
+DocumentCollection::DocumentCollection(
+    const std::string& databaseMetadataFilePath, const std::string& name,
+    SchemaType schemaType, const std::string& schema,
+    const std::vector<IndexInfoImpl*>& indexes,
+    std::unique_ptr<BlobManager> blobManager,
+    const std::vector<FileInfo>& dataFilesToLoad,
+    std::unique_ptr<DeleteVector> deleteVector)
+    : m_blobManager(move(blobManager)),
+      m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection),
+      m_deleteVector(std::move(deleteVector)) {
   // Validate function arguments
   if (databaseMetadataFilePath.size() == 0) {
     throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.",
@@ -137,7 +137,7 @@ void jonoondb_api::DocumentCollection::MultiInsert(
                            blobMetadataVec.begin(),
                            blobMetadataVec.end());
 
-    m_deleteVector.UpdateNextDocumentId(startID + docs.size());
+    m_deleteVector->UpdateNextDocumentId(startID + docs.size());
   } catch (...) {
     // This is a serious error. Handling the exception at this point will leave DB in a invalid state.
     // Only sane thing we can do here is to log the error and terminate the process.
@@ -173,11 +173,11 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
     }
   }
 
-  if (m_deleteVector.Empty()) {
+  if (m_deleteVector->Empty()) {
     return bitmap;
   } else {
     auto resultWithDelVector = std::make_shared<MamaJenniesBitmap>();
-    bitmap->LogicalAND(m_deleteVector.GetDeleteVectorBitmap(), *resultWithDelVector.get());
+    bitmap->LogicalAND(m_deleteVector->GetDeleteVectorBitmap(), *resultWithDelVector.get());
     return resultWithDelVector;
   }
 }
@@ -344,7 +344,7 @@ void DocumentCollection::UnmapLRUDataFiles() {
 }
 
 void DocumentCollection::AddToDeleteVector(std::uint64_t docId) {
-  m_deleteVector.Add(docId);
+  m_deleteVector->Add(docId);
 }
 
 uint64_t DocumentCollection::GetDocumentCount() const {

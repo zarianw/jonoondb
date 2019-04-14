@@ -8,7 +8,6 @@
 #include "index_manager.h"
 #include "document_id_generator.h"
 #include "blob_metadata.h"
-#include "delete_vector.h"
 
 // Forward declaration
 struct sqlite3;
@@ -27,16 +26,17 @@ struct Constraint;
 class BlobManager;
 struct FileInfo;
 struct WriteOptionsImpl;
+class DeleteVector;
 
 class DocumentCollection final {
  public:
   DocumentCollection(const std::string& databaseMetadataFilePath,
-                     const std::string& name,
-                     SchemaType schemaType,
+                     const std::string& name, SchemaType schemaType,
                      const std::string& schema,
                      const std::vector<IndexInfoImpl*>& indexes,
                      std::unique_ptr<BlobManager> blobManager,
-                     const std::vector<FileInfo>& dataFilesToLoad);
+                     const std::vector<FileInfo>& dataFilesToLoad,
+                     std::unique_ptr<DeleteVector> deleteVector);
 
   void Insert(const BufferImpl& documentData, const WriteOptionsImpl& wo);
   void MultiInsert(gsl::span<const BufferImpl*>& documents,
@@ -89,7 +89,7 @@ class DocumentCollection final {
   std::vector<BlobMetadata> m_documentIDMap;
   std::string m_name;
   std::unique_ptr<BlobManager> m_blobManager;
-  DeleteVector m_deleteVector;
+  std::unique_ptr<DeleteVector> m_deleteVector;
 };
 }  // namespace jonoondb_api
 

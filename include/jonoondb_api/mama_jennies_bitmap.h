@@ -5,6 +5,12 @@
 #include "ewah_boolarray/ewah.h"
 
 namespace jonoondb_api {
+// forward declarations
+class BufferImpl;
+
+enum class BitmapType : std::int32_t {
+	EWAH_COMPRESSED_BITMAP = 1
+};
 
 class MamaJenniesBitmapConstIterator {
  public:
@@ -21,6 +27,8 @@ class MamaJenniesBitmapConstIterator {
  private:
   EWAHBoolArray<std::uint64_t>::const_iterator m_iter;
 };
+
+typedef std::uint64_t mama_jennies_bitmap_uword;
 
 class MamaJenniesBitmap {
  public:
@@ -50,6 +58,11 @@ class MamaJenniesBitmap {
   std::unique_ptr<const_iterator> end_pointer();
 
   void Reset();
+
+	void Serialize(BufferImpl& buffer);
+  void Deserialize(const BufferImpl& buffer);
+
+	BitmapType GetType();
 
  private:
   bool IsEmpty();

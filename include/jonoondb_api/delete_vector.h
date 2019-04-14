@@ -2,14 +2,21 @@
 
 #include <set>
 #include <cstdint>
-#include "mama_jennies_bitmap.h"
+#include "jonoondb_api/mama_jennies_bitmap.h"
+#include "jonoondb_api/buffer_impl.h"
+#include "jonoondb_api/guard_funcs.h"
+
+// Forward declarations
+struct sqlite3;
+struct sqlite3_stmt;
 
 namespace jonoondb_api {
 class DocumentCollection;
 
 class DeleteVector final {
  public:
-  DeleteVector(const DocumentCollection& parentCollection);
+  DeleteVector(const std::string& dbPath, const std::string& dbName,
+               const std::string& collectionName, bool createDBIfMissing);
   DeleteVector(const DeleteVector&) = delete;
   DeleteVector(DeleteVector&&) = delete;
   DeleteVector& operator=(const DeleteVector&) = delete;
@@ -20,14 +27,17 @@ class DeleteVector final {
   void UpdateNextDocumentId(std::uint64_t docId);
  private:
   void MaybeReconstructBitmap();
+  void StoreBitmap();
   std::set<std::uint64_t> m_deletedDocIds;
   MamaJenniesBitmap m_deleteVecBitmap;
+	MamaJenniesBitmap m_deleteVecSerializationBitmap;
   bool m_isDirty;
-  // m_parentCollection reference is ok because DeleteVector is a child of
-  // parent collection. DeleteVector should not be used in other way where
-  // the life of m_parentCollection reference is less than DeleteVector
-  const DocumentCollection& m_parentCollection;
   // m_nextDocumentId is equal to next id that will be assigned to a new document inserted into collection
   std::uint64_t m_nextDocumentId;
+  std::unique_ptr<sqlite3, void (*)(sqlite3*)> m_dbConnection;
+  std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> m_insertStmt;
+  std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> m_selectStmt;
+  std::string m_collectionName;
+  BufferImpl m_bitmapBuffer;
 };
 } // namespace jonoondb_api

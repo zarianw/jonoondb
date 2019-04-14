@@ -18,6 +18,7 @@
 #include "index_info_impl.h"
 #include "proc_utils.h"
 #include "jonoondb_api/write_options_impl.h"
+#include "jonoondb_api/delete_vector.h"
 
 using namespace jonoondb_api;
 
@@ -198,26 +199,22 @@ std::int64_t DatabaseImpl::Delete(const std::string& deleteStatement) {
 }
 
 std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
-    const std::string& name,
-    SchemaType schemaType,
-    const std::string& schema,
+    const std::string& name, SchemaType schemaType, const std::string& schema,
     const std::vector<IndexInfoImpl*>& indexes,
     const std::vector<FileInfo>& dataFilesToLoad) {
-
-  //First create FileNameManager and BlobManager
+  // First create FileNameManager and BlobManager
   auto fnm = std::make_unique<FileNameManager>(m_dbMetadataMgrImpl->GetDBPath(),
                                                m_dbMetadataMgrImpl->GetDBName(),
                                                name, false);
 
   auto bm = std::make_unique<BlobManager>(move(fnm),
-                                          m_options.GetMaxDataFileSize(),
-                                          true);
+                                          m_options.GetMaxDataFileSize(), true);
 
-  return std::make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(),
-                                              name,
-                                              schemaType,
-                                              schema,
-                                              indexes,
-                                              move(bm),
-                                              dataFilesToLoad);
+  auto deleteVector = std::make_unique<DeleteVector>(
+      m_dbMetadataMgrImpl->GetDBPath(), m_dbMetadataMgrImpl->GetDBName(), name,
+      false);
+
+  return std::make_shared<DocumentCollection>(
+      m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes,
+      move(bm), dataFilesToLoad, move(deleteVector));
 }

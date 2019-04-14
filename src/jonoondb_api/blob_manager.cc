@@ -18,7 +18,6 @@ using namespace jonoondb_api;
 using namespace jonoondb_utils;
 
 #define DEFAULT_MEM_MAP_LRU_CACHE_SIZE 3
-bool LittleEndianMachine = Varint::OnLittleEndianMachine();
 
 namespace jonoondb_api {
 const uint8_t kBlobHeaderVersion = 1;
