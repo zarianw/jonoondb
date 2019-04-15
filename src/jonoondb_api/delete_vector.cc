@@ -1,8 +1,8 @@
-#include "sqlite3.h"
 #include "jonoondb_api/delete_vector.h"
 #include "jonoondb_api/document_collection.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
 #include "jonoondb_api/sqlite_utils.h"
+#include "sqlite3.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -12,7 +12,7 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
                            const string& collectionName, bool createDBIfMissing)
     : m_collectionName(collectionName),
       m_dbConnection(nullptr, GuardFuncs::SQLite3Close),
-      m_insertStmt(nullptr, GuardFuncs::SQLite3Finalize),
+      m_updateStmt(nullptr, GuardFuncs::SQLite3Finalize),
       m_selectStmt(nullptr, GuardFuncs::SQLite3Finalize) {
   path normalizedPath;
   m_dbConnection = SQLiteUtils::NormalizePathAndCreateDBConnection(
@@ -23,25 +23,43 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
       "CREATE TABLE IF NOT EXISTS CollectionDeleteVector ("
       "CollectionName TEXT PRIMARY KEY,"
       "DeleteVectorType INT,"
-      "DeleteVector BLOB)";
+      "Version INT,"
+      "DeleteVectorData BLOB)";
 
   int sqliteCode = sqlite3_exec(m_dbConnection.get(), sql.c_str(), nullptr,
                                 nullptr, nullptr);
-  if (sqliteCode != SQLITE_OK)
+  if (sqliteCode != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
                        __LINE__);
+  }
+
+  ostringstream ss;
+  ss << "INSERT INTO CollectionDeleteVector (CollectionName, "
+        "DeleteVectorType, Version, DeleteVectorData) VALUES ("
+     << m_collectionName << ", "
+     << static_cast<int32_t>(m_deleteVecSerializationBitmap.GetType())
+     << ", 1, NULL)";
+  sql = ss.str();
+
+  sqliteCode = sqlite3_exec(m_dbConnection.get(), sql.c_str(), nullptr, nullptr,
+                            nullptr);
+  if (sqliteCode != SQLITE_OK) {
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
+                       __LINE__);
+  }
 
   sqlite3_stmt* stmt = nullptr;
-  sqliteCode = sqlite3_prepare_v2(
-      m_dbConnection.get(),
-      "INSERT INTO CollectionDeleteVector (CollectionName, "
-      "DeleteVectorType, DeleteVector) VALUES (?, ?, ?)",  // stmt
-      -1,     // If greater than zero, then stmt is read up to
-              // the first null terminator
-      &stmt,  // Statement that is to be prepared
-      0       // Pointer to unused portion of stmt
+  sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
+                                  "UPDATE CollectionDeleteVector "
+                                  "SET DeleteVectorType = ?, "
+                                  "DeleteVectorData = ? "
+                                  "WHERE CollectionName = ?",  // stmt
+                                  -1,  // If greater than zero, then stmt is
+                                       // read up to the first null terminator
+                                  &stmt,  // Statement that is to be prepared
+                                  0       // Pointer to unused portion of stmt
   );
-  m_insertStmt.reset(stmt);
+  m_updateStmt.reset(stmt);
 
   if (sqliteCode != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
@@ -49,14 +67,14 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
   }
 
   stmt = nullptr;
-  sqliteCode = sqlite3_prepare_v2(
-      m_dbConnection.get(),
-      "SELECT DeleteVectorType, DeleteVectorType FROM CollectionDeleteVector "
-      "WHERE CollectionName = ?",  // stmt
-      -1,     // If greater than zero, then stmt is read up to
-              // the first null terminator
-      &stmt,  // Statement that is to be prepared
-      0       // Pointer to unused portion of stmt
+  sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
+                                  "SELECT DeleteVectorData "
+                                  "FROM CollectionDeleteVector "
+                                  "WHERE CollectionName = ?",  // stmt
+                                  -1,  // If greater than zero, then stmt is
+                                       // read up to the first null terminator
+                                  &stmt,  // Statement that is to be prepared
+                                  0       // Pointer to unused portion of stmt
   );
   m_selectStmt.reset(stmt);
 
@@ -67,18 +85,24 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
 }
 
 void DeleteVector::Add(uint64_t docId) {
-	assert(m_deletedDocIds.find(docId) == m_deletedDocIds.end());
-	m_deletedDocIds.insert(docId);
-	if (*m_deletedDocIds.rbegin() == docId) {
-		m_deleteVecSerializationBitmap.Add(docId);
-	} else {
-		m_deleteVecSerializationBitmap.Reset();
-		for (auto id : m_deletedDocIds) {
-			m_deleteVecSerializationBitmap.Add(id);
-		}
-	}
-	StoreBitmap();
-	m_isDirty = true;
+  if (m_deletedDocIds.find(docId) != m_deletedDocIds.end()) {
+    ostringstream ss;
+    ss << "DocumentId " << docId << "is already marked deleted.";
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+  }
+
+  if (*m_deletedDocIds.rbegin() == docId) {
+    m_deleteVecSerializationBitmap.Add(docId);
+  } else {
+    m_deleteVecSerializationBitmap.Reset();
+    for (auto id : m_deletedDocIds) {
+      m_deleteVecSerializationBitmap.Add(id);
+    }
+  }
+  StoreBitmap();
+
+  m_deletedDocIds.insert(docId);
+  m_isDirty = true;
 }
 
 const MamaJenniesBitmap& DeleteVector::GetDeleteVectorBitmap() {
@@ -102,68 +126,52 @@ void DeleteVector::MaybeReconstructBitmap() {
     // Its important to add a id that is last_doc_id + 1 at the end of the
     // bitmap so that the size of the total length of bitmap is correct
     m_deleteVecBitmap.Add(m_nextDocumentId);
-		m_deleteVecBitmap.InPlaceLogicalNOT();
+    m_deleteVecBitmap.InPlaceLogicalNOT();
     m_isDirty = false;
   }
 }
 
 void DeleteVector::StoreBitmap() {
-	m_deleteVecSerializationBitmap.Serialize(m_bitmapBuffer);
-	// store this buffer persistently
-  // statement guard will make sure that the statement is cleared and reset when
-  // statementGuard object goes out of scope
+  // store this buffer persistently
+  m_deleteVecSerializationBitmap.Serialize(m_bitmapBuffer);
   std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> statementGuard(
-      m_insertStmt.get(), SQLiteUtils::ClearAndResetStatement);
+      m_updateStmt.get(), SQLiteUtils::ClearAndResetStatement);
 
-  /*int sqliteCode = sqlite3_bind_text(m_putStatement,
-                                     1,  // Index of wildcard
-                                     m_collectionName.c_str(),
-                                     -1,  // -1 means go until NULL char
-                                     SQLITE_STATIC);
+  int sqliteCode = sqlite3_bind_int(
+      m_updateStmt.get(),
+      1,  // Index of wildcard
+      static_cast<int32_t>(m_deleteVecSerializationBitmap.GetType()));
 
-  if (sqliteCode != SQLITE_OK)
+  if (sqliteCode != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
                        __LINE__);
+  }
 
-  sqliteCode = sqlite3_bind_int(m_putStatement,
-                                2,  // Index of wildcard
-                                fileKey);
+  sqliteCode = sqlite3_bind_blob64(m_updateStmt.get(),
+                                   2,  // Index of wildcard
+                                   m_bitmapBuffer.GetData(),
+                                   m_bitmapBuffer.GetLength(), SQLITE_STATIC);
 
-  if (sqliteCode != SQLITE_OK)
+  if (sqliteCode != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
                        __LINE__);
+  }
 
-  sqliteCode = sqlite3_bind_text(m_putStatement,
+  sqliteCode = sqlite3_bind_text(m_updateStmt.get(),
                                  3,  // Index of wildcard
-                                 fileName.c_str(),
+                                 m_collectionName.c_str(),
                                  -1,  // -1 means go until NULL char
                                  SQLITE_STATIC);
 
-  if (sqliteCode != SQLITE_OK)
+  if (sqliteCode != SQLITE_OK) {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
                        __LINE__);
+  }
 
-  sqliteCode = sqlite3_bind_int64(
-      m_putStatement,
-      4,    // Index of wildcard
-      -1);  // Default value, -1 represents that the length has not been set
-
-  if (sqliteCode != SQLITE_OK)
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                       __LINE__);
-
-  // Now insert the record
-  sqliteCode = sqlite3_step(m_putStatement);
+  // Now update the record
+  sqliteCode = sqlite3_step(m_updateStmt.get());
   if (sqliteCode != SQLITE_DONE) {
-    if (sqliteCode == SQLITE_CONSTRAINT) {
-      // Key already exists
-      std::ostringstream ss;
-      ss << "The specified file key '" << fileKey
-         << "' already exists for collection '" << m_collectionName << "'.";
-      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
-    } else {
-      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                         __LINE__);
-    }
-  }*/
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
+                       __LINE__);
+  }
 }

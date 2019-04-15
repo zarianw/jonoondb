@@ -35,7 +35,7 @@ class DeleteVector final {
   // m_nextDocumentId is equal to next id that will be assigned to a new document inserted into collection
   std::uint64_t m_nextDocumentId;
   std::unique_ptr<sqlite3, void (*)(sqlite3*)> m_dbConnection;
-  std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> m_insertStmt;
+  std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> m_updateStmt;
   std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> m_selectStmt;
   std::string m_collectionName;
   BufferImpl m_bitmapBuffer;
