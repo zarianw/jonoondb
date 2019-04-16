@@ -24,6 +24,13 @@ std::string GetSchemaFilePath(const std::string& fileName) {
   return g_ResourcesFolderPath + "/jonoondb_api_test/" + fileName;
 }
 
+std::string GetUniqueDBName() {
+  string name = ::testing::UnitTest::GetInstance()->current_test_case()->name();
+  name.append("_").append(::testing::UnitTest::GetInstance()->current_test_info()->name());
+
+  return name;
+}
+
 void RemoveAndCreateFile(const char* path, size_t fileSize) {
   std::remove(path);
   std::unique_ptr<FILE, int (*)(FILE*)> file(std::fopen(path, "wb"),

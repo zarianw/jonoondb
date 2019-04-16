@@ -17,13 +17,15 @@ const int SQLiteBusyHandlerRetryCount = 20;
 class SQLiteUtils {
  public:
   static void ClearAndResetStatement(sqlite3_stmt* statement) {
-    // Reset all params back to null
-    auto code = sqlite3_clear_bindings(statement);
-    // Reset the statement so that it can be re-executed
-    sqlite3_reset(statement);
+    if (statement != nullptr) {
+      // Reset all params back to null
+      auto code = sqlite3_clear_bindings(statement);
+      // Reset the statement so that it can be re-executed
+      sqlite3_reset(statement);
 
-    if (code != SQLITE_OK)
-      throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+      if (code != SQLITE_OK)
+        throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+    }
   }
 
   static int SQLiteGenericBusyHandler(void* input, int retryCount) {
@@ -43,6 +45,18 @@ class SQLiteUtils {
         // Todo: Handle SQLITE_BUSY response here
       }
       dbConnection = nullptr;
+    }
+  }
+
+  static void HandleSQLiteCode(int sqliteCode, char* errMsg = nullptr) {
+    if (sqliteCode != SQLITE_OK) {
+      if (errMsg != nullptr) {
+        std::string sqliteErrorMsg = errMsg;
+        sqlite3_free(errMsg);
+        throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
+      }
+
+      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
     }
   }
 

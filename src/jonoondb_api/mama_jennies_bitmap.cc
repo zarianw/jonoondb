@@ -184,12 +184,12 @@ void MamaJenniesBitmap::InPlaceLogicalNOT() {
   m_ewahBoolArray->inplace_logicalnot();
 }
 
-MamaJenniesBitmap::const_iterator MamaJenniesBitmap::begin() {
+MamaJenniesBitmap::const_iterator MamaJenniesBitmap::begin() const {
   auto iter = m_ewahBoolArray->begin();
   return MamaJenniesBitmapConstIterator(iter);
 }
 
-MamaJenniesBitmap::const_iterator MamaJenniesBitmap::end() {
+MamaJenniesBitmap::const_iterator MamaJenniesBitmap::end() const {
   auto iter = m_ewahBoolArray->end();
   return MamaJenniesBitmapConstIterator(iter);
 }

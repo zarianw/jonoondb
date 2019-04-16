@@ -18,73 +18,27 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
   m_dbConnection = SQLiteUtils::NormalizePathAndCreateDBConnection(
       dbPath, dbName, createDBIfMissing, normalizedPath);
 
-  // create the necessary table if it does not exist
-  string sql =
-      "CREATE TABLE IF NOT EXISTS CollectionDeleteVector ("
-      "CollectionName TEXT PRIMARY KEY,"
-      "DeleteVectorType INT,"
-      "Version INT,"
-      "DeleteVectorData BLOB)";
+  InitializeTableAndStatements();
 
-  int sqliteCode = sqlite3_exec(m_dbConnection.get(), sql.c_str(), nullptr,
-                                nullptr, nullptr);
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                       __LINE__);
-  }
+  auto count = GetRowCount();
 
-  ostringstream ss;
-  ss << "INSERT INTO CollectionDeleteVector (CollectionName, "
-        "DeleteVectorType, Version, DeleteVectorData) VALUES ("
-     << m_collectionName << ", "
-     << static_cast<int32_t>(m_deleteVecSerializationBitmap.GetType())
-     << ", 1, NULL)";
-  sql = ss.str();
+  if (count == 0) {
+    // Todo: change to prepared stmt
+    ostringstream ss;
+    ss << "INSERT INTO CollectionDeleteVector (CollectionName, "
+          "DeleteVectorType, Version, DeleteVectorData) VALUES ("
+       << "'" << m_collectionName << "'" << ", "
+       << static_cast<int32_t>(m_deleteVecSerializationBitmap.GetType())
+       << ", 1, NULL)";
+    string sql = ss.str();
 
-  sqliteCode = sqlite3_exec(m_dbConnection.get(), sql.c_str(), nullptr, nullptr,
-                            nullptr);
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                       __LINE__);
-  }
-
-  sqlite3_stmt* stmt = nullptr;
-  sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
-                                  "UPDATE CollectionDeleteVector "
-                                  "SET DeleteVectorType = ?, "
-                                  "DeleteVectorData = ? "
-                                  "WHERE CollectionName = ?",  // stmt
-                                  -1,  // If greater than zero, then stmt is
-                                       // read up to the first null terminator
-                                  &stmt,  // Statement that is to be prepared
-                                  0       // Pointer to unused portion of stmt
-  );
-  m_updateStmt.reset(stmt);
-
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                       __LINE__);
-  }
-
-  stmt = nullptr;
-  sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
-                                  "SELECT DeleteVectorData "
-                                  "FROM CollectionDeleteVector "
-                                  "WHERE CollectionName = ?",  // stmt
-                                  -1,  // If greater than zero, then stmt is
-                                       // read up to the first null terminator
-                                  &stmt,  // Statement that is to be prepared
-                                  0       // Pointer to unused portion of stmt
-  );
-  m_selectStmt.reset(stmt);
-
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                       __LINE__);
+    int sqliteCode = sqlite3_exec(m_dbConnection.get(), sql.c_str(), nullptr, nullptr,
+                                  nullptr);
+    SQLiteUtils::HandleSQLiteCode(sqliteCode);
   }
 }
 
-void DeleteVector::Add(uint64_t docId) {
+void DeleteVector::OnDocumentDeleted(uint64_t docId) {
   if (m_deletedDocIds.find(docId) != m_deletedDocIds.end()) {
     ostringstream ss;
     ss << "DocumentId " << docId << "is already marked deleted.";
@@ -112,7 +66,7 @@ const MamaJenniesBitmap& DeleteVector::GetDeleteVectorBitmap() {
 
 bool DeleteVector::Empty() { return m_deletedDocIds.empty(); }
 
-void DeleteVector::UpdateNextDocumentId(std::uint64_t docId) {
+void DeleteVector::OnDocumentsInserted(std::uint64_t docId) {
   m_nextDocumentId = docId;
   m_isDirty = true;
 }
@@ -141,32 +95,20 @@ void DeleteVector::StoreBitmap() {
       m_updateStmt.get(),
       1,  // Index of wildcard
       static_cast<int32_t>(m_deleteVecSerializationBitmap.GetType()));
-
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                       __LINE__);
-  }
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
 
   sqliteCode = sqlite3_bind_blob64(m_updateStmt.get(),
                                    2,  // Index of wildcard
                                    m_bitmapBuffer.GetData(),
                                    m_bitmapBuffer.GetLength(), SQLITE_STATIC);
-
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                       __LINE__);
-  }
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
 
   sqliteCode = sqlite3_bind_text(m_updateStmt.get(),
                                  3,  // Index of wildcard
                                  m_collectionName.c_str(),
                                  -1,  // -1 means go until NULL char
                                  SQLITE_STATIC);
-
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                       __LINE__);
-  }
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
 
   // Now update the record
   sqliteCode = sqlite3_step(m_updateStmt.get());
@@ -175,3 +117,71 @@ void DeleteVector::StoreBitmap() {
                        __LINE__);
   }
 }
+
+void DeleteVector::InitializeTableAndStatements() {
+  // create the necessary table if it does not exist
+  string sql =
+      "CREATE TABLE IF NOT EXISTS CollectionDeleteVector ("
+      "CollectionName TEXT PRIMARY KEY,"
+      "DeleteVectorType INT,"
+      "Version INT,"
+      "DeleteVectorData BLOB)";
+
+  int sqliteCode = sqlite3_exec(m_dbConnection.get(), sql.c_str(), nullptr,
+                                nullptr, nullptr);
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
+
+  sqlite3_stmt* stmt = nullptr;
+  sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
+                                  "UPDATE CollectionDeleteVector "
+                                  "SET DeleteVectorType = ?, "
+                                  "DeleteVectorData = ? "
+                                  "WHERE CollectionName = ?",  // stmt
+                                  -1,  // If greater than zero, then stmt is
+      // read up to the first null terminator
+                                  &stmt,  // Statement that is to be prepared
+                                  0       // Pointer to unused portion of stmt
+  );
+  m_updateStmt.reset(stmt);
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
+
+  stmt = nullptr;
+  sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
+                                  "SELECT DeleteVectorType, Version, DeleteVectorData "
+                                  "FROM CollectionDeleteVector "
+                                  "WHERE CollectionName = ?",  // stmt
+                                  -1,  // If greater than zero, then stmt is
+      // read up to the first null terminator
+                                  &stmt,  // Statement that is to be prepared
+                                  0       // Pointer to unused portion of stmt
+  );
+  m_selectStmt.reset(stmt);
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
+}
+
+int64_t DeleteVector::GetRowCount() {
+  sqlite3_stmt* stmt = nullptr;
+  int sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
+                                      "SELECT COUNT(*) FROM CollectionDeleteVector "
+                                      "WHERE CollectionName = ?",  // stmt
+                                      -1,  // If greater than zero, then stmt is
+      // read up to the first null terminator
+                                      &stmt,  // Statement that is to be prepared
+                                      0       // Pointer to unused portion of stmt
+  );
+  std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> statementGuard(
+      stmt, GuardFuncs::SQLite3Finalize);
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
+
+  sqliteCode = sqlite3_bind_text(stmt, 1, m_collectionName.c_str(), -1, SQLITE_STATIC);
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
+
+  sqliteCode = sqlite3_step(stmt);
+  if (sqliteCode != SQLITE_ROW) {
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
+                       __LINE__);
+  }
+
+  return sqlite3_column_int64(stmt, 0);
+}
+

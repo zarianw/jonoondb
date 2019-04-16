@@ -52,8 +52,8 @@ class MamaJenniesBitmap {
   void InPlaceLogicalNOT();
 
   typedef MamaJenniesBitmapConstIterator const_iterator;
-  const_iterator begin();
-  const_iterator end();
+  const_iterator begin() const;
+  const_iterator end() const;
   std::unique_ptr<const_iterator> begin_pointer();
   std::unique_ptr<const_iterator> end_pointer();
 
