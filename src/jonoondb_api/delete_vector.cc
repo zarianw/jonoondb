@@ -10,7 +10,7 @@ using namespace boost::filesystem;
 
 DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
                            const string& collectionName, bool createDBIfMissing)
-    : m_collectionName(collectionName),
+    : m_collectionName(collectionName), m_nextDocumentId(0), m_isDirty(false),
       m_dbConnection(nullptr, GuardFuncs::SQLite3Close),
       m_updateStmt(nullptr, GuardFuncs::SQLite3Finalize),
       m_selectStmt(nullptr, GuardFuncs::SQLite3Finalize) {
@@ -39,6 +39,7 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
 }
 
 void DeleteVector::OnDocumentDeleted(uint64_t docId) {
+  assert(docId < m_nextDocumentId);
   if (m_deletedDocIds.find(docId) != m_deletedDocIds.end()) {
     ostringstream ss;
     ss << "DocumentId " << docId << "is already marked deleted.";
@@ -64,10 +65,9 @@ const MamaJenniesBitmap& DeleteVector::GetDeleteVectorBitmap() {
   return m_deleteVecBitmap;
 }
 
-bool DeleteVector::Empty() { return m_deletedDocIds.empty(); }
-
-void DeleteVector::OnDocumentsInserted(std::uint64_t docId) {
-  m_nextDocumentId = docId;
+void DeleteVector::OnDocumentsInserted(std::uint64_t nextDocId) {
+  assert(nextDocId > m_nextDocumentId);
+  m_nextDocumentId = nextDocId;
   m_isDirty = true;
 }
 

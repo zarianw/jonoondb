@@ -23,8 +23,7 @@ class DeleteVector final {
   DeleteVector& operator=(DeleteVector&&) = delete;
   void OnDocumentDeleted(std::uint64_t docId);
   const MamaJenniesBitmap& GetDeleteVectorBitmap();
-  bool Empty();
-  void OnDocumentsInserted(std::uint64_t docId);
+  void OnDocumentsInserted(std::uint64_t nextDocId);
  private:
   void MaybeReconstructBitmap();
   void StoreBitmap();

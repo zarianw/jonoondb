@@ -14,34 +14,16 @@ TEST(DeleteVector, DatabaseFileIsMissing) {
   ASSERT_THROW(DeleteVector delVector(dbPath, dbName, collectionName, false), MissingDatabaseFileException);
 }
 
-TEST(DeleteVector, EmptyCheckOnEmptyDeleteVector) {
+TEST(DeleteVector, EmptyCheckOnDeleteVector) {
   DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
-  ASSERT_TRUE(delVector.Empty());
+  ASSERT_TRUE(delVector.GetDeleteVectorBitmap().Empty());
 
   // when documents are inserted the delete vector should remain empty
   delVector.OnDocumentsInserted(1);
-  ASSERT_TRUE(delVector.Empty());
-  delVector.OnDocumentsInserted(2);
-  ASSERT_TRUE(delVector.Empty());
-}
+  ASSERT_FALSE(delVector.GetDeleteVectorBitmap().Empty());
 
-TEST(DeleteVector, CheckBitmapOnEmptyDeleteVector) {
-  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
-  int cnt = 0;
-  for (uint64_t item : delVector.GetDeleteVectorBitmap()) {
-    cnt++;
-  }
-  ASSERT_EQ(cnt, 0);
-
-  delVector.OnDocumentsInserted(1);
-  delVector.OnDocumentsInserted(2);
-
-  cnt = 0;
-  for (uint64_t item : delVector.GetDeleteVectorBitmap()) {
-    cnt++;
-  }
-  ASSERT_EQ(cnt, 0);
-
+  delVector.OnDocumentDeleted(0);
+  ASSERT_FALSE(delVector.GetDeleteVectorBitmap().Empty());
 }
 
 void AssertEqual(const vector<int>& expectedValues, const MamaJenniesBitmap& actualValues) {
@@ -54,10 +36,54 @@ void AssertEqual(const vector<int>& expectedValues, const MamaJenniesBitmap& act
   ASSERT_EQ(index, expectedValues.size());
 }
 
+TEST(DeleteVector, CheckBitmapOnEmptyDeleteVector) {
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
+  vector<int> expectedValues;
+  AssertEqual(expectedValues, delVector.GetDeleteVectorBitmap());
+}
+
 TEST(DeleteVector, CheckBitmapOnNonEmptyDeleteVector) {
   DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
   delVector.OnDocumentsInserted(5);
   delVector.OnDocumentDeleted(2);
   vector<int> expectedValues{0, 1, 3, 4};
+  AssertEqual(expectedValues, delVector.GetDeleteVectorBitmap());
+}
+
+TEST(DeleteVector, OnDocumentInsertedIncreasingOrder) {
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
+
+  vector<int> expectedValues;
+  for (uint64_t i = 0; i < 5; ++i) {
+    delVector.OnDocumentsInserted(i + 1);
+    expectedValues.push_back(i);
+    AssertEqual(expectedValues, delVector.GetDeleteVectorBitmap());
+  }
+}
+
+TEST(DeleteVector, FullDelete) {
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
+  delVector.OnDocumentsInserted(5);
+
+  for (uint64_t i = 0; i < 5; ++i) {
+    delVector.OnDocumentDeleted(i);
+  }
+  vector<int> expectedValues;
+  AssertEqual(expectedValues, delVector.GetDeleteVectorBitmap());
+}
+
+TEST(DeleteVector, ZigZagDelete) {
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
+  delVector.OnDocumentsInserted(5);
+
+  vector<int> expectedValues;
+  for (uint64_t i = 0; i < 5; i++) {
+    if (i % 2 == 0) {
+      delVector.OnDocumentDeleted(i);
+    } else {
+      expectedValues.push_back(i);
+    }
+  }
+
   AssertEqual(expectedValues, delVector.GetDeleteVectorBitmap());
 }

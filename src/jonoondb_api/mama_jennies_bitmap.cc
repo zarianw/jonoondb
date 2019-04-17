@@ -239,5 +239,11 @@ void MamaJenniesBitmap::Serialize(BufferImpl& buffer) {
 
 void MamaJenniesBitmap::Deserialize(const BufferImpl& buffer) {}
 
-BitmapType MamaJenniesBitmap::GetType() { return BitmapType::EWAH_COMPRESSED_BITMAP; }
+BitmapType MamaJenniesBitmap::GetType() {
+  return BitmapType::EWAH_COMPRESSED_BITMAP;
+}
+
+bool MamaJenniesBitmap::Empty() const {
+  return m_ewahBoolArray->sizeInBits() == 0;
+}
 

@@ -9,7 +9,7 @@ namespace jonoondb_api {
 class BufferImpl;
 
 enum class BitmapType : std::int32_t {
-	EWAH_COMPRESSED_BITMAP = 1
+  EWAH_COMPRESSED_BITMAP = 1
 };
 
 class MamaJenniesBitmapConstIterator {
@@ -42,11 +42,10 @@ class MamaJenniesBitmap {
   void LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
   void LogicalXOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
 
-
   static std::shared_ptr<MamaJenniesBitmap>
-      LogicalAND(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
+  LogicalAND(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
   static std::shared_ptr<MamaJenniesBitmap>
-      LogicalOR(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
+  LogicalOR(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
 
   void LogicalNOT(MamaJenniesBitmap& output);
   void InPlaceLogicalNOT();
@@ -59,10 +58,10 @@ class MamaJenniesBitmap {
 
   void Reset();
 
-	void Serialize(BufferImpl& buffer);
+  void Serialize(BufferImpl& buffer);
   void Deserialize(const BufferImpl& buffer);
-
-	BitmapType GetType();
+  BitmapType GetType();
+  bool Empty() const;
 
  private:
   bool IsEmpty();

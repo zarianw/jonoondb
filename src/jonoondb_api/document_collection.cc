@@ -173,7 +173,7 @@ std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
     }
   }
 
-  if (m_deleteVector->Empty()) {
+  if (m_deleteVector->GetDeleteVectorBitmap().Empty()) {
     return bitmap;
   } else {
     auto resultWithDelVector = std::make_shared<MamaJenniesBitmap>();
