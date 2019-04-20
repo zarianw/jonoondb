@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <cstdint>
+#include "gsl/span.h"
 #include "ewah_boolarray/ewah.h"
 
 namespace jonoondb_api {
@@ -59,7 +60,7 @@ class MamaJenniesBitmap {
   void Reset();
 
   void Serialize(BufferImpl& buffer);
-  void Deserialize(const BufferImpl& buffer);
+  void Deserialize(BitmapType type, int version, gsl::span<const char> buffer);
   BitmapType GetType();
   bool Empty() const;
 

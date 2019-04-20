@@ -103,6 +103,9 @@ DocumentCollection::DocumentCollection(
                              blobMetadataVec.begin() + actualBatchSize);
     }
   }
+  if (m_documentIDMap.size() > 0) {
+    m_deleteVector->OnDocumentsInserted(m_documentIDMap.size());
+  }
 }
 
 void DocumentCollection::Insert(const BufferImpl& documentData,
@@ -114,6 +117,9 @@ void DocumentCollection::Insert(const BufferImpl& documentData,
 
 void jonoondb_api::DocumentCollection::MultiInsert(
     gsl::span<const BufferImpl*>& documents, const WriteOptionsImpl& wo) {
+  if (documents.empty())
+    return;
+
   std::vector<std::unique_ptr<Document>> docs;
 
   for (size_t i = 0; i < documents.size(); i++) {

@@ -1,11 +1,15 @@
 #include <memory>
 #include <sstream>
+#include <streambuf>
+#include <iostream>
 #include "jonoondb_api/mama_jennies_bitmap.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
 #include "jonoondb_api/buffer_impl.h"
 #include "jonoondb_api/endian_utils.h"
 
 using namespace jonoondb_api;
+using namespace gsl;
+using namespace std;
 
 MamaJenniesBitmapConstIterator::MamaJenniesBitmapConstIterator(EWAHBoolArray<std::uint64_t>::const_iterator& iter)
     : m_iter(iter) {
@@ -219,25 +223,54 @@ void MamaJenniesBitmap::Serialize(BufferImpl& buffer) {
 
   char* curr = buffer.GetDataForWrite();
 
-	EndianUtils::MakeLittleEndianInPlace(sb);
+  EndianUtils::MakeLittleEndianInPlace(sb);
   memcpy(curr, &sb, sizeof(sb));
   curr += sizeof(sb);
-  
-	EndianUtils::MakeLittleEndianInPlace(bs);
-	memcpy(curr, &bs, sizeof(bs));
+
+  EndianUtils::MakeLittleEndianInPlace(bs);
+  memcpy(curr, &bs, sizeof(bs));
   curr += sizeof(bs);
-  
-	uint64_t bitmapBufferSize =
+
+  uint64_t bitmapBufferSize =
       m_ewahBoolArray->getBuffer().size() * sizeof(std::uint64_t);
   memcpy(curr, m_ewahBoolArray->getBuffer().data(), bitmapBufferSize);
-  
-	curr += bitmapBufferSize;
+
+  curr += bitmapBufferSize;
   assert(curr - buffer.GetDataForWrite() == serializedBufferSize);
-  
-	buffer.SetLength(serializedBufferSize);
+
+  buffer.SetLength(serializedBufferSize);
 }
 
-void MamaJenniesBitmap::Deserialize(const BufferImpl& buffer) {}
+class StreamBuffer : public std::streambuf {
+ public:
+  StreamBuffer(span<const char> s) {
+    char* start = const_cast<char*>(s.data());
+    setg(start, start, start + s.size());
+  }
+};
+
+// type can be used in the future when we want to support different kinds of bitmap
+// version can be used to evolve the serialized structure overtime
+void MamaJenniesBitmap::Deserialize(BitmapType /*type*/, int /*version*/, span<const char> buffer) {
+  int index = 0;
+
+  assert(index + sizeof(uint64_t) < buffer.size());
+  uint64_t sizeInBits = *reinterpret_cast<const uint64_t*>(&buffer[index]);
+  EndianUtils::MakeLittleEndianInPlace(sizeInBits);
+  index += sizeof(sizeInBits);
+
+  assert(index + sizeof(uint64_t) < buffer.size());
+  uint64_t bufferSize = *reinterpret_cast<const uint64_t*>(&buffer[index]);
+  EndianUtils::MakeLittleEndianInPlace(bufferSize);
+  index += sizeof(bufferSize);
+
+  assert(index + (bufferSize * sizeof(uint64_t)) == buffer.size());
+  StreamBuffer streamBuffer(buffer.subspan(index));
+  std::istream is(&streamBuffer);
+
+  m_ewahBoolArray->readBuffer(is, bufferSize);
+  m_ewahBoolArray->setSizeInBits(sizeInBits);
+}
 
 BitmapType MamaJenniesBitmap::GetType() {
   return BitmapType::EWAH_COMPRESSED_BITMAP;

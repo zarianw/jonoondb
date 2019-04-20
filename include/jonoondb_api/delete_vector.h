@@ -21,12 +21,14 @@ class DeleteVector final {
   DeleteVector(DeleteVector&&) = delete;
   DeleteVector& operator=(const DeleteVector&) = delete;
   DeleteVector& operator=(DeleteVector&&) = delete;
+
   void OnDocumentDeleted(std::uint64_t docId);
   const MamaJenniesBitmap& GetDeleteVectorBitmap();
   void OnDocumentsInserted(std::uint64_t nextDocId);
  private:
   void MaybeReconstructBitmap();
   void StoreBitmap();
+  void LoadBitmap();
   void InitializeTableAndStatements();
   std::int64_t GetRowCount();
 
