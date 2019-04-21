@@ -100,7 +100,7 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
                                                        indexes,
                                                        colInfo.dataFiles);
 
-    m_queryProcessor->AddExistingCollection(documentCollection);
+    m_queryProcessor->AddCollection(documentCollection);
 
     m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
