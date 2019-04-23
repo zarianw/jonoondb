@@ -2,6 +2,7 @@
 #include "jonoondb_api/document_collection.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
 #include "jonoondb_api/sqlite_utils.h"
+#include "jonoondb_api/guard_funcs.h"
 #include "sqlite3.h"
 
 using namespace std;
@@ -24,18 +25,7 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
   auto count = GetRowCount();
 
   if (count == 0) {
-    // Todo: change to prepared stmt
-    ostringstream ss;
-    ss << "INSERT INTO CollectionDeleteVector (CollectionName, "
-          "DeleteVectorType, Version, DeleteVectorData) VALUES ("
-       << "'" << m_collectionName << "'" << ", "
-       << static_cast<int32_t>(m_deleteVecSerializationBitmap.GetType())
-       << ", 1, NULL)";
-    string sql = ss.str();
-
-    int sqliteCode = sqlite3_exec(m_dbConnection.get(), sql.c_str(), nullptr, nullptr,
-                                  nullptr);
-    SQLiteUtils::HandleSQLiteCode(sqliteCode);
+    InsertEmptyDeleteVector();
   } else {
     LoadBitmap();
   }
@@ -92,6 +82,39 @@ void DeleteVector::MaybeReconstructBitmap() {
     m_deleteVecBitmap.Add(m_nextDocumentId);
     m_deleteVecBitmap.InPlaceLogicalNOT();
     m_isDirty = false;
+  }
+}
+
+void DeleteVector::InsertEmptyDeleteVector() {
+  sqlite3_stmt* stmt = nullptr;
+  int sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
+                                      "INSERT INTO CollectionDeleteVector (CollectionName, "
+                                      "DeleteVectorType, Version, DeleteVectorData) VALUES (?, ?, 1, NULL)",  // stmt
+                                      -1,
+                                      &stmt,
+                                      0);
+  std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> statementGuard(
+      stmt, GuardFuncs::SQLite3Finalize);
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
+
+  sqliteCode = sqlite3_bind_text(stmt,
+                                 1,  // Index of wildcard
+                                 m_collectionName.c_str(),
+                                 -1,  // -1 means go until NULL char
+                                 SQLITE_STATIC);
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
+
+  sqliteCode = sqlite3_bind_int(
+      stmt,
+      2,  // Index of wildcard
+      static_cast<int32_t>(m_deleteVecSerializationBitmap.GetType()));
+  SQLiteUtils::HandleSQLiteCode(sqliteCode);
+
+  // Now insert the record
+  sqliteCode = sqlite3_step(stmt);
+  if (sqliteCode != SQLITE_DONE) {
+    throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
+                       __LINE__);
   }
 }
 

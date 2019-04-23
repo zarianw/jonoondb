@@ -27,6 +27,7 @@ class DeleteVector final {
   void OnDocumentsInserted(std::uint64_t nextDocId);
  private:
   void MaybeReconstructBitmap();
+  void InsertEmptyDeleteVector();
   void StoreBitmap();
   void LoadBitmap();
   void InitializeTableAndStatements();
@@ -36,7 +37,7 @@ class DeleteVector final {
   std::unique_ptr<sqlite3, void (*)(sqlite3*)> m_dbConnection;
   std::set<std::uint64_t> m_deletedDocIds;
   MamaJenniesBitmap m_deleteVecBitmap;
-	MamaJenniesBitmap m_deleteVecSerializationBitmap;
+  MamaJenniesBitmap m_deleteVecSerializationBitmap;
   bool m_isDirty;
   // m_nextDocumentId is equal to next id that will be assigned to a new document inserted into collection
   std::uint64_t m_nextDocumentId;
