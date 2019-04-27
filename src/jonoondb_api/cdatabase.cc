@@ -136,6 +136,12 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
                      ex.GetSourceFileName(),
                      ex.GetFunctionName(),
                      ex.GetLineNumber());
+  } catch (const ApiMisuseException& ex) {
+    sts = new status(jonoondb_status_codes::status_apimisusecode,
+                     ex.what(),
+                     ex.GetSourceFileName(),
+                     ex.GetFunctionName(),
+                     ex.GetLineNumber());
   } catch (const JonoonDBException& ex) {
     sts = new status(jonoondb_status_codes::status_genericerrorcode,
                      ex.what(),

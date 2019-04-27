@@ -153,6 +153,52 @@ TEST_P(DatabaseDeleteTestSuite, DeleteDocument) {
   ASSERT_EQ(cnt, 1);
 }
 
+TEST_P(DatabaseDeleteTestSuite, DeleteDocumentWithNestedSelect) {
+  // given: document is deleted
+  auto deletedCnt =
+      m_db->Delete(string("DELETE FROM ") + GetParam().collectionName +
+          string(" WHERE field1 = (SELECT field1 FROM " +
+              GetParam().collectionName + " WHERE field1 = 5)"));
+  ASSERT_EQ(deletedCnt, 1);
+
+  if (GetParam().reopenDB) {
+    // when: the db is closed and reopened the state should be maintained
+    CloseAndReopenDB();
+  }
+
+  // when: trying to get the deleted document
+  ResultSet rs =
+      m_db->ExecuteSelect(string("SELECT * from ") + GetParam().collectionName +
+          string(" where field1 = 5"));
+  // then: we should not get anything back
+  int cnt = 0;
+  while (rs.Next()) {
+    cnt++;
+  }
+  ASSERT_EQ(cnt, 0);
+
+  // when: trying to get all the documents
+  rs = m_db->ExecuteSelect("SELECT * from " + GetParam().collectionName);
+  // then: we should not get anything that was deleted
+  cnt = 0;
+  while (rs.Next()) {
+    cnt++;
+  }
+  ASSERT_EQ(cnt, m_docCnt - 1);
+
+  // when: trying to get a non deleted document
+  rs =
+      m_db->ExecuteSelect(string("SELECT * from ") + GetParam().collectionName +
+          string(" where field1 = 3"));
+  // then: we should not get that document back
+  cnt = 0;
+  while (rs.Next()) {
+    ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("field1")), 3);
+    cnt++;
+  }
+  ASSERT_EQ(cnt, 1);
+}
+
 TEST_P(DatabaseDeleteTestSuite, DeleteAllDocuments) {
   // given: all documents are deleted
   auto deletedCnt =
@@ -271,3 +317,21 @@ TEST_F(DatabaseDeleteTestSuite, DeleteDocumentInEmptyCollection) {
   }
   ASSERT_EQ(cnt, 0);
 }
+
+TEST_F(DatabaseDeleteTestSuite, InternalJonoondbDataShouldNotBeDelatableThroughDeleteAPI) {
+  // when: trying to delete internal jonoondb collection
+  ASSERT_ANY_THROW(m_db->Delete("DELETE FROM Collection"));
+  ASSERT_ANY_THROW(m_db->Delete("DELETE FROM CollectionIndex"));
+  ASSERT_ANY_THROW(m_db->Delete("DELETE FROM CollectionDataFile"));
+  ASSERT_ANY_THROW(m_db->Delete("DELETE FROM CollectionDeleteVector"));
+}
+
+TEST_F(DatabaseDeleteTestSuite, ApiMisuseTestForDeleteApi) {
+  // when: trying to perform non delete sql stmts then ApiMisuseException should be thrown
+  ASSERT_THROW(m_db->Delete("DROP table " + COLLECTION_WITH_DOCS), ApiMisuseException);
+  ASSERT_THROW(m_db->Delete("INSERT INTO " + COLLECTION_WITH_DOCS + " VALUES (1, 2, 3)"), ApiMisuseException);
+  ASSERT_THROW(m_db->Delete("UPDATE " + COLLECTION_WITH_DOCS + " SET col1 = 1"), ApiMisuseException);
+  ASSERT_THROW(m_db->Delete("CREATE TABLE tab (c1 INT, c2 INT)"), ApiMisuseException);
+}
+
+

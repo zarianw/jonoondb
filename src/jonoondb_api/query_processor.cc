@@ -19,10 +19,30 @@
 
 using namespace jonoondb_api;
 using namespace boost::filesystem;
+using namespace std;
 
 struct sqlite3_api_routines;
 int jonoondb_vtable_init(sqlite3* db, char** error,
                          const sqlite3_api_routines* api);
+
+static bool IsMasterTableOperation(int ac, const char* param1) {
+  if (ac == SQLITE_UPDATE && (param1 && strcmp(param1, "sqlite_master") == 0)) {
+    return true;
+  }
+
+  return false;
+}
+
+static int jonoondb_delete_auth_callback(void* /*userData*/, int actionCode,
+                                         const char* param1, const char* /*param2*/,
+                                         const char* /*dbName*/, const char* /*triggerName*/) {
+  if (actionCode == SQLITE_DELETE || actionCode == SQLITE_READ || actionCode == SQLITE_SELECT) {
+    return SQLITE_OK;
+  } else if (IsMasterTableOperation(actionCode, param1)) {
+    return SQLITE_OK;
+  }
+  return SQLITE_DENY;
+}
 
 QueryProcessor::QueryProcessor(const std::string& dbPath,
                                const std::string& dbName) :
@@ -54,6 +74,8 @@ QueryProcessor::QueryProcessor(const std::string& dbPath,
       m_dbConnStr.c_str(), &db,
       SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI, nullptr);
   m_deleteStmtConnection.reset(db);
+  SQLiteUtils::HandleSQLiteCode(code);
+  code = sqlite3_set_authorizer(db, jonoondb_delete_auth_callback, nullptr);
   SQLiteUtils::HandleSQLiteCode(code);
 
   //Initialize the connection pool
@@ -231,6 +253,16 @@ std::int64_t QueryProcessor::Delete(const std::string& deleteStatement) {
                           nullptr,
                           nullptr,
                           &errMsg);
+  if (code == SQLITE_DENY || code == SQLITE_AUTH) {
+    ostringstream ss;
+    ss << "Only delete and select statement is allowed on delete API.";
+    if (errMsg) {
+      ss << " Additional info: ";
+      ss << errMsg;
+    }
+    throw ApiMisuseException(ss.str(),
+                             __FILE__, __func__, __LINE__);
+  }
   SQLiteUtils::HandleSQLiteCode(code, errMsg);
 
   return sqlite3_changes(m_deleteStmtConnection.get());

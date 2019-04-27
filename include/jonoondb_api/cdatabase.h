@@ -25,7 +25,8 @@ typedef enum jonoondb_status_codes {
   status_invalidschemaerrorcode = 10,
   status_indexoutofbounderrorcode = 11,
   status_sqlerrorcode = 12,
-  status_fileioerrorcode = 13
+  status_fileioerrorcode = 13,
+  status_apimisusecode = 14
 } jonoondb_status_codes;
 
 typedef struct status* status_ptr;

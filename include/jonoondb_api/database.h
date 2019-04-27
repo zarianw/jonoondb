@@ -139,6 +139,12 @@ class ThrowOnError {
                                 jonoondb_status_function(m_status.opaque),
                                 jonoondb_status_line(m_status.opaque));
           break;
+        case status_apimisusecode:
+          throw ApiMisuseException(jonoondb_status_message(m_status.opaque),
+                                   jonoondb_status_file(m_status.opaque),
+                                   jonoondb_status_function(m_status.opaque),
+                                   jonoondb_status_line(m_status.opaque));
+          break;
         default:
           throw std::runtime_error(jonoondb_status_message(m_status.opaque));
           break;
