@@ -161,7 +161,6 @@ void DeleteVector::LoadBitmap() {
   // Now read the record
   sqliteCode = sqlite3_step(m_selectStmt.get());
   if (sqliteCode == SQLITE_ROW) {
-    // "SELECT DeleteVectorType, Version, DeleteVectorData "
     BitmapType type = static_cast<BitmapType>(sqlite3_column_int(m_selectStmt.get(), 0));
     int version = sqlite3_column_int(m_selectStmt.get(), 1);
 

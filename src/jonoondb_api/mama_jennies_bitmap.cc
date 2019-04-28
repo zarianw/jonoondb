@@ -92,7 +92,7 @@ void MamaJenniesBitmap::Add(std::uint64_t x) {
   }
 }
 
-bool MamaJenniesBitmap::IsEmpty() {
+bool MamaJenniesBitmap::IsEmpty() const {
   // Todo: Need to find a faster way to check for empty bitmap
   bool isEmpty = true;
   if (m_ewahBoolArray->sizeInBits() > 0) {
@@ -106,22 +106,22 @@ bool MamaJenniesBitmap::IsEmpty() {
   return isEmpty;
 }
 
-std::uint64_t MamaJenniesBitmap::GetSizeInBits() {
+std::uint64_t MamaJenniesBitmap::GetSizeInBits() const {
   return m_ewahBoolArray->sizeInBits();
 }
 
 void MamaJenniesBitmap::LogicalAND(const MamaJenniesBitmap& other,
-                                   MamaJenniesBitmap& output) {
+                                   MamaJenniesBitmap& output) const {
   m_ewahBoolArray->logicaland(*other.m_ewahBoolArray, *output.m_ewahBoolArray);
 }
 
 void MamaJenniesBitmap::LogicalOR(const MamaJenniesBitmap& other,
-                                  MamaJenniesBitmap& output) {
+                                  MamaJenniesBitmap& output) const {
   m_ewahBoolArray->logicalor(*other.m_ewahBoolArray, *output.m_ewahBoolArray);
 }
 
 void MamaJenniesBitmap::LogicalXOR(const MamaJenniesBitmap& other,
-                                   MamaJenniesBitmap& output) {
+                                   MamaJenniesBitmap& output) const {
   m_ewahBoolArray->logicalxor(*other.m_ewahBoolArray, *output.m_ewahBoolArray);
 }
 
@@ -180,7 +180,7 @@ std::shared_ptr<MamaJenniesBitmap> MamaJenniesBitmap::LogicalOR(
   return flipper ? b1 : b2;
 }
 
-void MamaJenniesBitmap::LogicalNOT(MamaJenniesBitmap& output) {
+void MamaJenniesBitmap::LogicalNOT(MamaJenniesBitmap& output) const {
   m_ewahBoolArray->logicalnot(*output.m_ewahBoolArray);
 }
 
@@ -214,7 +214,7 @@ MamaJenniesBitmap::MamaJenniesBitmap(std::unique_ptr<EWAHBoolArray<std::uint64_t
 void MamaJenniesBitmap::Reset() {
   m_ewahBoolArray->reset(); }
 
-void MamaJenniesBitmap::Serialize(BufferImpl& buffer) {
+void MamaJenniesBitmap::Serialize(BufferImpl& buffer) const {
   uint64_t sb = m_ewahBoolArray->sizeInBits();
   uint64_t bs = m_ewahBoolArray->bufferSize();
   uint64_t serializedBufferSize = sizeof(sb) + sizeof(bs) + (bs * sizeof(std::uint64_t));
@@ -272,11 +272,11 @@ void MamaJenniesBitmap::Deserialize(BitmapType /*type*/, int /*version*/, span<c
   m_ewahBoolArray->setSizeInBits(sizeInBits);
 }
 
-BitmapType MamaJenniesBitmap::GetType() {
+BitmapType MamaJenniesBitmap::GetType() const {
   return BitmapType::EWAH_COMPRESSED_BITMAP;
 }
 
-bool MamaJenniesBitmap::Empty() const {
+bool MamaJenniesBitmap::Empty() const const {
   return m_ewahBoolArray->sizeInBits() == 0;
 }
 

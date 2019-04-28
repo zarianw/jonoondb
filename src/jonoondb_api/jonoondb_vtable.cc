@@ -387,7 +387,7 @@ static int jonoondb_update(sqlite3_vtab* vtab,
                            int argc, sqlite3_value** argv,
                            sqlite_int64* rowid) {
   try {
-    if (argc == 1) {
+    if (argc == 1 && argv) {
       // its a delete
       if (sqlite3_value_type(*argv) == SQLITE_INTEGER) {
         jonoondb_vtab* v = (jonoondb_vtab*) vtab;
@@ -398,7 +398,7 @@ static int jonoondb_update(sqlite3_vtab* vtab,
         return SQLITE_ERROR;
       }
     } else {
-      // Insert and update statements are not allowed
+      // Insert and update statements are not allowed through sql
       return SQLITE_ERROR;
     }
   } catch (std::exception& ex) {

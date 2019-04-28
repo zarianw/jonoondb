@@ -39,16 +39,16 @@ class MamaJenniesBitmap {
   MamaJenniesBitmap& operator=(const MamaJenniesBitmap& other);
   MamaJenniesBitmap& operator=(MamaJenniesBitmap&& other);
   void Add(std::uint64_t x);
-  void LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
-  void LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
-  void LogicalXOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
+  void LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
+  void LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
+  void LogicalXOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
 
   static std::shared_ptr<MamaJenniesBitmap>
   LogicalAND(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
   static std::shared_ptr<MamaJenniesBitmap>
   LogicalOR(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
 
-  void LogicalNOT(MamaJenniesBitmap& output);
+  void LogicalNOT(MamaJenniesBitmap& output) const;
   void InPlaceLogicalNOT();
 
   typedef MamaJenniesBitmapConstIterator const_iterator;
@@ -59,14 +59,14 @@ class MamaJenniesBitmap {
 
   void Reset();
 
-  void Serialize(BufferImpl& buffer);
+  void Serialize(BufferImpl& buffer) const;
   void Deserialize(BitmapType type, int version, gsl::span<const char> buffer);
-  BitmapType GetType();
+  BitmapType GetType() const;
   bool Empty() const;
 
  private:
-  bool IsEmpty();
-  std::uint64_t GetSizeInBits();
+  bool IsEmpty() const;
+  std::uint64_t GetSizeInBits() const;
   MamaJenniesBitmap
       (std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray);
   std::unique_ptr<EWAHBoolArray<std::uint64_t>> m_ewahBoolArray;
