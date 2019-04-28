@@ -92,20 +92,6 @@ void MamaJenniesBitmap::Add(std::uint64_t x) {
   }
 }
 
-bool MamaJenniesBitmap::IsEmpty() const {
-  // Todo: Need to find a faster way to check for empty bitmap
-  bool isEmpty = true;
-  if (m_ewahBoolArray->sizeInBits() > 0) {
-    for (auto iter = m_ewahBoolArray->begin(); iter != m_ewahBoolArray->end();
-         iter++) {
-      isEmpty = false;
-      break;
-    }
-  }
-
-  return isEmpty;
-}
-
 std::uint64_t MamaJenniesBitmap::GetSizeInBits() const {
   return m_ewahBoolArray->sizeInBits();
 }
@@ -276,7 +262,7 @@ BitmapType MamaJenniesBitmap::GetType() const {
   return BitmapType::EWAH_COMPRESSED_BITMAP;
 }
 
-bool MamaJenniesBitmap::Empty() const const {
+bool MamaJenniesBitmap::Empty() const {
   return m_ewahBoolArray->sizeInBits() == 0;
 }
 

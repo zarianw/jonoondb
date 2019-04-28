@@ -65,7 +65,6 @@ class MamaJenniesBitmap {
   bool Empty() const;
 
  private:
-  bool IsEmpty() const;
   std::uint64_t GetSizeInBits() const;
   MamaJenniesBitmap
       (std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray);

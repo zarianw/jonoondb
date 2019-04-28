@@ -107,11 +107,7 @@ class SQLiteUtils {
 
     std::unique_ptr<sqlite3, void (*)(sqlite3*)> dbPtr(
         db, GuardFuncs::SQLite3Close);
-
-    if (sqliteCode != SQLITE_OK) {
-      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
-                         __LINE__);
-    }
+    HandleSQLiteCode(sqliteCode);
 
     return dbPtr;
   }
