@@ -16,7 +16,8 @@ class DocumentCollection;
 class DeleteVector final {
  public:
   DeleteVector(const std::string& dbPath, const std::string& dbName,
-               const std::string& collectionName, bool createDBIfMissing);
+               const std::string& collectionName, bool createDBIfMissing,
+               std::uint64_t nextDocId);
   DeleteVector(const DeleteVector&) = delete;
   DeleteVector(DeleteVector&&) = delete;
   DeleteVector& operator=(const DeleteVector&) = delete;

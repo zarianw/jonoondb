@@ -210,11 +210,8 @@ std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
   auto bm = std::make_unique<BlobManager>(move(fnm),
                                           m_options.GetMaxDataFileSize(), true);
 
-  auto deleteVector = std::make_unique<DeleteVector>(
-      m_dbMetadataMgrImpl->GetDBPath(), m_dbMetadataMgrImpl->GetDBName(), name,
-      false);
-
   return std::make_shared<DocumentCollection>(
-      m_dbMetadataMgrImpl->GetFullDBPath(), name, schemaType, schema, indexes,
-      move(bm), dataFilesToLoad, move(deleteVector));
+      m_dbMetadataMgrImpl->GetDBPath(),
+      m_dbMetadataMgrImpl->GetDBName(), name, schemaType, schema, indexes,
+      move(bm), dataFilesToLoad);
 }

@@ -30,13 +30,12 @@ class DeleteVector;
 
 class DocumentCollection final {
  public:
-  DocumentCollection(const std::string& databaseMetadataFilePath,
+  DocumentCollection(const std::string& dbPath, const std::string& dbName,
                      const std::string& name, SchemaType schemaType,
                      const std::string& schema,
                      const std::vector<IndexInfoImpl*>& indexes,
                      std::unique_ptr<BlobManager> blobManager,
-                     const std::vector<FileInfo>& dataFilesToLoad,
-                     std::unique_ptr<DeleteVector> deleteVector);
+                     const std::vector<FileInfo>& dataFilesToLoad);
 
   void Insert(const BufferImpl& documentData, const WriteOptionsImpl& wo);
   void MultiInsert(gsl::span<const BufferImpl*>& documents,

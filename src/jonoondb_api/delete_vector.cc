@@ -11,8 +11,9 @@ using namespace gsl;
 using namespace jonoondb_api;
 
 DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
-                           const string& collectionName, bool createDBIfMissing)
-    : m_collectionName(collectionName), m_nextDocumentId(0), m_isDirty(false),
+                           const string& collectionName, bool
+                           createDBIfMissing, uint64_t nextDocId)
+    : m_collectionName(collectionName), m_nextDocumentId(nextDocId),
       m_dbConnection(nullptr, GuardFuncs::SQLite3Close),
       m_updateStmt(nullptr, GuardFuncs::SQLite3Finalize),
       m_selectStmt(nullptr, GuardFuncs::SQLite3Finalize) {
@@ -29,6 +30,8 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
   } else {
     LoadBitmap();
   }
+
+  m_isDirty = m_nextDocumentId > 0;
 }
 
 void DeleteVector::OnDocumentDeleted(uint64_t docId) {
@@ -78,7 +81,7 @@ void DeleteVector::MaybeReconstructBitmap() {
       m_deleteVecBitmap.Add(id);
     }
     // Its important to add a id that is last_doc_id + 1 at the end of the
-    // bitmap so that the size of the total length of bitmap is correct
+    // bitmap so that the length of bitmap is correct
     m_deleteVecBitmap.Add(m_nextDocumentId);
     m_deleteVecBitmap.InPlaceLogicalNOT();
     m_isDirty = false;

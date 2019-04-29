@@ -11,18 +11,29 @@ TEST(DeleteVector, DatabaseFileIsMissing) {
   string dbName = GetUniqueDBName();
   string dbPath = g_TestRootDirectory;
   string collectionName = "Collection";
-  ASSERT_THROW(DeleteVector delVector(dbPath, dbName, collectionName, false), MissingDatabaseFileException);
+  ASSERT_THROW(DeleteVector
+                   delVector(dbPath, dbName, collectionName, false, 0),
+               MissingDatabaseFileException);
 }
 
-TEST(DeleteVector, EmptyCheckOnDeleteVector) {
-  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
+TEST(DeleteVector, EmptyCheckOnDeleteVectorOnDocInsert) {
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(),
+                         "Collection", true, 0);
   ASSERT_TRUE(delVector.GetDeleteVectorBitmap().Empty());
 
-  // when documents are inserted the delete vector should remain empty
+  // when documents are inserted
   delVector.OnDocumentsInserted(1);
+  // then: the delete vector should not be empty
   ASSERT_FALSE(delVector.GetDeleteVectorBitmap().Empty());
+}
 
+TEST(DeleteVector, EmptyCheckOnDeleteVectorOnDocDelete) {
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(),
+                         "Collection", true, 1);
+
+  // when documents are delete
   delVector.OnDocumentDeleted(0);
+  // then: the delete vector should not be empty
   ASSERT_FALSE(delVector.GetDeleteVectorBitmap().Empty());
 }
 
@@ -37,13 +48,15 @@ static void AssertEqual(const vector<int>& expectedValues, const MamaJenniesBitm
 }
 
 TEST(DeleteVector, CheckBitmapOnEmptyDeleteVector) {
-  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(),
+                         "Collection", true, 0);
   vector<int> expectedValues;
   AssertEqual(expectedValues, delVector.GetDeleteVectorBitmap());
 }
 
 TEST(DeleteVector, CheckBitmapOnNonEmptyDeleteVector) {
-  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(),
+                         "Collection", true, 0);
   delVector.OnDocumentsInserted(5);
   delVector.OnDocumentDeleted(2);
   vector<int> expectedValues{0, 1, 3, 4};
@@ -51,7 +64,8 @@ TEST(DeleteVector, CheckBitmapOnNonEmptyDeleteVector) {
 }
 
 TEST(DeleteVector, CheckBitmapWhenDocumentsAreInserted) {
-  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(), "Collection", true);
+  DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(),
+                         "Collection", true, 0);
 
   vector<int> expectedValues;
   for (uint64_t i = 0; i < 5; ++i) {
@@ -65,7 +79,7 @@ TEST(DeleteVector, FullDelete) {
   string dbName = GetUniqueDBName();
   {
     // given: a delete vector with 5 documents with ids 0 to 4
-    DeleteVector delVector(g_TestRootDirectory, dbName, "Collection", true);
+    DeleteVector delVector(g_TestRootDirectory, dbName, "Collection", true, 0);
     delVector.OnDocumentsInserted(5);
 
     // when: all documents are deleted
@@ -79,7 +93,7 @@ TEST(DeleteVector, FullDelete) {
 
   {
     // when: the deleteVector/db is reopened
-    DeleteVector delVector(g_TestRootDirectory, dbName, "Collection", false);
+    DeleteVector delVector(g_TestRootDirectory, dbName, "Collection", false, 5);
     // then: the last state of delete vector should be maintained
     vector<int> expectedValues;
     AssertEqual(expectedValues, delVector.GetDeleteVectorBitmap());
@@ -92,7 +106,7 @@ TEST(DeleteVector, ZigZagDelete) {
 
   {
     // given: a delete vector with 5 documents with ids 0 to 4
-    DeleteVector delVector(g_TestRootDirectory, dbName, "Collection", true);
+    DeleteVector delVector(g_TestRootDirectory, dbName, "Collection", true, 0);
     delVector.OnDocumentsInserted(5);
     // when: documentIds are deleted in zigzag order
     for (uint64_t i = 0; i < 5; i++) {
@@ -108,11 +122,7 @@ TEST(DeleteVector, ZigZagDelete) {
 
   {
     // when: the deleteVector/db is reopened
-    DeleteVector delVector(g_TestRootDirectory, dbName, "Collection", false);
-    // delVector does not persist nextDocumentId in order to optimize inserts
-    // in db, this has to be provided by the caller after construction to
-    // complete the delVector initialization
-    delVector.OnDocumentsInserted(5);
+    DeleteVector delVector(g_TestRootDirectory, dbName, "Collection", false, 5);
     // then: the last state of delete vector should be maintained
     AssertEqual(expectedValues, delVector.GetDeleteVectorBitmap());
   }

@@ -26,52 +26,25 @@
 #include "jonoondb_api/delete_vector.h"
 
 using namespace jonoondb_api;
+using namespace boost::filesystem;
 
-DocumentCollection::DocumentCollection(
-    const std::string& databaseMetadataFilePath, const std::string& name,
-    SchemaType schemaType, const std::string& schema,
-    const std::vector<IndexInfoImpl*>& indexes,
-    std::unique_ptr<BlobManager> blobManager,
-    const std::vector<FileInfo>& dataFilesToLoad,
-    std::unique_ptr<DeleteVector> deleteVector)
+DocumentCollection::DocumentCollection(const std::string& dbPath,
+                                       const std::string& dbName,
+                                       const std::string& name,
+                                       SchemaType schemaType,
+                                       const std::string& schema,
+                                       const std::vector<IndexInfoImpl*>& indexes,
+                                       std::unique_ptr<BlobManager> blobManager,
+                                       const std::vector<FileInfo>& dataFilesToLoad)
     : m_blobManager(move(blobManager)),
-      m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection),
-      m_deleteVector(std::move(deleteVector)) {
-  // Validate function arguments
-  if (databaseMetadataFilePath.size() == 0) {
-    throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.",
-                                   __FILE__,
-                                   __func__,
-                                   __LINE__);
-  }
+      m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
+  path normalizedPath;
+  m_dbConnection = SQLiteUtils::NormalizePathAndCreateDBConnection(dbPath,
+                                                                   dbName,
+                                                                   false,
+                                                                   normalizedPath);
 
-  if (name.size() == 0) {
-    throw InvalidArgumentException("Argument name is empty.",
-                                   __FILE__,
-                                   __func__,
-                                   __LINE__);
-  }
   m_name = name;
-
-  // databaseMetadataFile should exist and all the tables should exist in it
-  if (!boost::filesystem::exists(databaseMetadataFilePath)) {
-    std::ostringstream ss;
-    ss << "Database file " << databaseMetadataFilePath << " does not exist.";
-    throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
-  }
-
-  sqlite3* dbConnection = nullptr;
-  int sqliteCode = sqlite3_open(databaseMetadataFilePath.c_str(),
-                                &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
-  m_dbConnection.reset(dbConnection);
-
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode),
-                       __FILE__,
-                       __func__,
-                       __LINE__);
-  }
-
   m_documentSchema.reset(DocumentSchemaFactory::CreateDocumentSchema(schema,
                                                                      schemaType));
 
@@ -103,9 +76,9 @@ DocumentCollection::DocumentCollection(
                              blobMetadataVec.begin() + actualBatchSize);
     }
   }
-  if (m_documentIDMap.size() > 0) {
-    m_deleteVector->OnDocumentsInserted(m_documentIDMap.size());
-  }
+
+  m_deleteVector.reset(new DeleteVector(dbPath, dbName, m_name, false,
+                                        m_documentIDMap.size()));
 }
 
 void DocumentCollection::Insert(const BufferImpl& documentData,
