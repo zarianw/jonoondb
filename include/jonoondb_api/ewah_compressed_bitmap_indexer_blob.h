@@ -80,8 +80,8 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
       compressedBitmap->second->Add(documentID);
     }
 
-		assert(documentID == m_lastInsertedDocId + 1);
-		m_lastInsertedDocId = documentID;
+    assert(documentID == m_lastInsertedDocId + 1);
+    m_lastInsertedDocId = documentID;
   }
 
   const IndexStat& GetIndexStats() override {

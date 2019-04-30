@@ -206,10 +206,6 @@ void DatabaseMetadataManager::AddCollection(const std::string& name,
   }
 }
 
-const std::string& DatabaseMetadataManager::GetFullDBPath() const {
-  return m_fullDbPath;
-}
-
 const std::string& DatabaseMetadataManager::GetDBPath() const {
   return m_dbPath;
 }

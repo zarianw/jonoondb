@@ -74,7 +74,6 @@ class DocumentCollection final {
       const std::vector<std::string>& tokens, std::vector<double>& values) const;
   void UnmapLRUDataFiles();
   void AddToDeleteVector(std::uint64_t id);
-  uint64_t GetDocumentCount() const;
 
  private:
   void PopulateColumnTypes(

@@ -110,13 +110,12 @@ void jonoondb_api::DocumentCollection::MultiInsert(
   try {
     auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
     assert(startID == m_documentIDMap.size());
-
-    m_blobManager->MultiPut(documents, blobMetadataVec, wo.compress);
     m_documentIDMap.insert(m_documentIDMap.end(),
                            blobMetadataVec.begin(),
                            blobMetadataVec.end());
-
     m_deleteVector->OnDocumentsInserted(startID + docs.size());
+
+    m_blobManager->MultiPut(documents, blobMetadataVec, wo.compress);
   } catch (...) {
     // This is a serious error. Handling the exception at this point will leave DB in a invalid state.
     // Only sane thing we can do here is to log the error and terminate the process.
@@ -324,10 +323,6 @@ void DocumentCollection::UnmapLRUDataFiles() {
 
 void DocumentCollection::AddToDeleteVector(std::uint64_t docId) {
   m_deleteVector->OnDocumentDeleted(docId);
-}
-
-uint64_t DocumentCollection::GetDocumentCount() const {
-  return m_documentIDMap.size();
 }
 
 void DocumentCollection::PopulateColumnTypes(
