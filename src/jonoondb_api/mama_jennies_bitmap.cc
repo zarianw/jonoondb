@@ -209,11 +209,11 @@ void MamaJenniesBitmap::Serialize(BufferImpl& buffer) const {
 
   char* curr = buffer.GetDataForWrite();
 
-  EndianUtils::MakeLittleEndianInPlace(sb);
+  EndianUtils::HostToLittleEndian(sb);
   memcpy(curr, &sb, sizeof(sb));
   curr += sizeof(sb);
 
-  EndianUtils::MakeLittleEndianInPlace(bs);
+  EndianUtils::HostToLittleEndian(bs);
   memcpy(curr, &bs, sizeof(bs));
   curr += sizeof(bs);
 
@@ -242,12 +242,12 @@ void MamaJenniesBitmap::Deserialize(BitmapType /*type*/, int /*version*/, span<c
 
   assert(index + sizeof(uint64_t) < buffer.size());
   uint64_t sizeInBits = *reinterpret_cast<const uint64_t*>(&buffer[index]);
-  EndianUtils::MakeLittleEndianInPlace(sizeInBits);
+  EndianUtils::LittleEndianToHost(sizeInBits);
   index += sizeof(sizeInBits);
 
   assert(index + sizeof(uint64_t) < buffer.size());
   uint64_t bufferSize = *reinterpret_cast<const uint64_t*>(&buffer[index]);
-  EndianUtils::MakeLittleEndianInPlace(bufferSize);
+  EndianUtils::LittleEndianToHost(bufferSize);
   index += sizeof(bufferSize);
 
   assert(index + (bufferSize * sizeof(uint64_t)) == buffer.size());

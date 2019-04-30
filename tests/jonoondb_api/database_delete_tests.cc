@@ -71,8 +71,8 @@ class DatabaseDeleteTestSuite
     return TestUtils::GetAllFieldTypeObjectBuffer(
         static_cast<int8_t>(i), static_cast<uint8_t>(i), true,
         static_cast<int16_t>(i), static_cast<uint16_t>(i),
-        static_cast<int32_t>(i), static_cast<uint32_t>(i), (float)i,
-        static_cast<int64_t>(i), (double)i, str, str, str);
+        static_cast<int32_t>(i), static_cast<uint32_t>(i), (float) i,
+        static_cast<int64_t>(i), (double) i, str, str, str);
   }
 
   void CloseAndReopenDB() {
@@ -112,18 +112,18 @@ TEST_P(DatabaseDeleteTestSuite, DeleteDocument) {
   // given: document is deleted
   auto deletedCnt =
       m_db->Delete(string("DELETE FROM ") + GetParam().collectionName +
-                   string(" where field1 = 5"));
+          string(" where field1 = 5"));
   ASSERT_EQ(deletedCnt, 1);
 
-	if (GetParam().reopenDB) {
+  if (GetParam().reopenDB) {
     // when: the db is closed and reopened the state should be maintained
-		CloseAndReopenDB();  
-	}
+    CloseAndReopenDB();
+  }
 
   // when: trying to get the deleted document
   ResultSet rs =
       m_db->ExecuteSelect(string("SELECT * from ") + GetParam().collectionName +
-                          string(" where field1 = 5"));
+          string(" where field1 = 5"));
   // then: we should not get anything back
   int cnt = 0;
   while (rs.Next()) {
@@ -143,8 +143,8 @@ TEST_P(DatabaseDeleteTestSuite, DeleteDocument) {
   // when: trying to get a non deleted document
   rs =
       m_db->ExecuteSelect(string("SELECT * from ") + GetParam().collectionName +
-                          string(" where field1 = 3"));
-  // then: we should not get that document back
+          string(" where field1 = 3"));
+  // then: we should get that document back
   cnt = 0;
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("field1")), 3);
@@ -190,7 +190,7 @@ TEST_P(DatabaseDeleteTestSuite, DeleteDocumentWithNestedSelect) {
   rs =
       m_db->ExecuteSelect(string("SELECT * from ") + GetParam().collectionName +
           string(" where field1 = 3"));
-  // then: we should not get that document back
+  // then: we should get that document back
   cnt = 0;
   while (rs.Next()) {
     ASSERT_EQ(rs.GetInteger(rs.GetColumnIndex("field1")), 3);
@@ -205,7 +205,7 @@ TEST_P(DatabaseDeleteTestSuite, DeleteAllDocuments) {
       m_db->Delete(string("DELETE FROM ") + GetParam().collectionName);
   ASSERT_EQ(deletedCnt, m_docCnt);
 
-	if (GetParam().reopenDB) {
+  if (GetParam().reopenDB) {
     // when: the db is closed and reopened the state should be maintained
     CloseAndReopenDB();
   }
@@ -213,7 +213,7 @@ TEST_P(DatabaseDeleteTestSuite, DeleteAllDocuments) {
   // when: trying to get the deleted document
   ResultSet rs =
       m_db->ExecuteSelect(string("SELECT * from ") + GetParam().collectionName +
-                          string(" where field1 = 5"));
+          string(" where field1 = 5"));
   // then: we should not get anything back
   int cnt = 0;
   while (rs.Next()) {
@@ -236,12 +236,12 @@ TEST_P(DatabaseDeleteTestSuite, DeleteAndReinsertDocument) {
   // given: document is deleted and reinserted
   auto deletedCnt =
       m_db->Delete(string("DELETE FROM ") + GetParam().collectionName +
-                   string(" where field1 = 5"));
+          string(" where field1 = 5"));
   ASSERT_EQ(deletedCnt, 1);
   Buffer obj = GetAllFieldObject(5);
   m_db->Insert(GetParam().collectionName, obj);
 
-	if (GetParam().reopenDB) {
+  if (GetParam().reopenDB) {
     // when: the db is closed and reopened the state should be maintained
     CloseAndReopenDB();
   }
@@ -249,7 +249,7 @@ TEST_P(DatabaseDeleteTestSuite, DeleteAndReinsertDocument) {
   // when: trying to get the deleted/reinserted document
   ResultSet rs =
       m_db->ExecuteSelect(string("SELECT * from ") + GetParam().collectionName +
-                          string(" where field1 = 5"));
+          string(" where field1 = 5"));
   // then: we should get it back
   int cnt = 0;
   while (rs.Next()) {
@@ -273,7 +273,7 @@ TEST_P(DatabaseDeleteTestSuite, DeleteAndReinsertDocument) {
   m_db->Insert(GetParam().collectionName, obj);
   // then: we should get the document
   rs = m_db->ExecuteSelect("SELECT * from " + GetParam().collectionName +
-                           string(" where field1 = 11"));
+      string(" where field1 = 11"));
   cnt = 0;
   while (rs.Next()) {
     cnt++;
@@ -294,13 +294,13 @@ TEST_P(DatabaseDeleteTestSuite, DeleteAndReinsertDocument) {
 TEST_F(DatabaseDeleteTestSuite, DeleteDocumentInEmptyCollection) {
   // given: document is deleted in empty collection
   auto deletedCnt = m_db->Delete("DELETE FROM " + COLLECTION_WITH_NO_DOCS +
-                                 " where field1 = 5");
+      " where field1 = 5");
   ASSERT_EQ(deletedCnt, 0);
 
   // when: trying to get the deleted document
   ResultSet rs =
       m_db->ExecuteSelect(string("SELECT * FROM ") + COLLECTION_WITH_NO_DOCS +
-                          string(" where field1 = 5"));
+          string(" where field1 = 5"));
   // then: we should not get anything back
   int cnt = 0;
   while (rs.Next()) {
@@ -318,7 +318,8 @@ TEST_F(DatabaseDeleteTestSuite, DeleteDocumentInEmptyCollection) {
   ASSERT_EQ(cnt, 0);
 }
 
-TEST_F(DatabaseDeleteTestSuite, InternalJonoondbDataShouldNotBeDelatableThroughDeleteAPI) {
+TEST_F(DatabaseDeleteTestSuite,
+       InternalJonoondbDataShouldNotBeDelatableThroughDeleteAPI) {
   // when: trying to delete internal jonoondb collection
   ASSERT_ANY_THROW(m_db->Delete("DELETE FROM Collection"));
   ASSERT_ANY_THROW(m_db->Delete("DELETE FROM CollectionIndex"));
@@ -328,10 +329,15 @@ TEST_F(DatabaseDeleteTestSuite, InternalJonoondbDataShouldNotBeDelatableThroughD
 
 TEST_F(DatabaseDeleteTestSuite, ApiMisuseTestForDeleteApi) {
   // when: trying to perform non delete sql stmts then ApiMisuseException should be thrown
-  ASSERT_THROW(m_db->Delete("DROP table " + COLLECTION_WITH_DOCS), ApiMisuseException);
-  ASSERT_THROW(m_db->Delete("INSERT INTO " + COLLECTION_WITH_DOCS + " VALUES (1, 2, 3)"), ApiMisuseException);
-  ASSERT_THROW(m_db->Delete("UPDATE " + COLLECTION_WITH_DOCS + " SET col1 = 1"), ApiMisuseException);
-  ASSERT_THROW(m_db->Delete("CREATE TABLE tab (c1 INT, c2 INT)"), ApiMisuseException);
+  ASSERT_THROW(m_db->Delete("DROP table " + COLLECTION_WITH_DOCS),
+               ApiMisuseException);
+  ASSERT_THROW(m_db->Delete(
+      "INSERT INTO " + COLLECTION_WITH_DOCS + " VALUES (1, 2, 3)"),
+               ApiMisuseException);
+  ASSERT_THROW(m_db->Delete("UPDATE " + COLLECTION_WITH_DOCS + " SET col1 = 1"),
+               ApiMisuseException);
+  ASSERT_THROW(m_db->Delete("CREATE TABLE tab (c1 INT, c2 INT)"),
+               ApiMisuseException);
 }
 
 

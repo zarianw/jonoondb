@@ -105,17 +105,18 @@ void jonoondb_api::DocumentCollection::MultiInsert(
     }
   }  
 
-  std::vector<BlobMetadata> blobMetadataVec(documents.size());
   // Indexing should not fail after we have called ValidateForIndexing
   try {
     auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
     assert(startID == m_documentIDMap.size());
+
+    std::vector<BlobMetadata> blobMetadataVec(documents.size());
+    m_blobManager->MultiPut(documents, blobMetadataVec, wo.compress);
     m_documentIDMap.insert(m_documentIDMap.end(),
                            blobMetadataVec.begin(),
                            blobMetadataVec.end());
-    m_deleteVector->OnDocumentsInserted(startID + docs.size());
 
-    m_blobManager->MultiPut(documents, blobMetadataVec, wo.compress);
+    m_deleteVector->OnDocumentsInserted(startID + docs.size());
   } catch (...) {
     // This is a serious error. Handling the exception at this point will leave DB in a invalid state.
     // Only sane thing we can do here is to log the error and terminate the process.

@@ -11,7 +11,12 @@ static bool OnLittleEndianMachine() {
 bool jonoondb_api::EndianUtils::IsLittleEndianMachine =
     OnLittleEndianMachine();
 
-void EndianUtils::MakeLittleEndianInPlace(uint64_t& x) {
+void EndianUtils::HostToLittleEndian(uint64_t& x) {
   if (!IsLittleEndianMachine)
 		boost::endian::endian_reverse_inplace(x);
+}
+
+void EndianUtils::LittleEndianToHost(uint64_t& x) {
+  if (!IsLittleEndianMachine)
+    boost::endian::endian_reverse_inplace(x);
 }

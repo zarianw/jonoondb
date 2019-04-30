@@ -31,7 +31,7 @@ TEST(DeleteVector, EmptyCheckOnDeleteVectorOnDocDelete) {
   DeleteVector delVector(g_TestRootDirectory, GetUniqueDBName(),
                          "Collection", true, 1);
 
-  // when documents are delete
+  // when documents are deleted
   delVector.OnDocumentDeleted(0);
   // then: the delete vector should not be empty
   ASSERT_FALSE(delVector.GetDeleteVectorBitmap().Empty());

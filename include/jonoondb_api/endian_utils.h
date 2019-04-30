@@ -8,7 +8,9 @@ class EndianUtils {
  public:
   static bool IsLittleEndianMachine;
 
-  static void MakeLittleEndianInPlace(uint64_t& x);
+  static void HostToLittleEndian(uint64_t& x);
+
+  static void LittleEndianToHost(uint64_t& x);
 };
 
 }  // namespace jonoondb_api
