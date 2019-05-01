@@ -23,54 +23,28 @@
 #include "file_info.h"
 #include "filename_manager.h"
 #include "jonoondb_api/write_options_impl.h"
+#include "jonoondb_api/delete_vector.h"
 
 using namespace jonoondb_api;
+using namespace boost::filesystem;
 
-DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePath,
+DocumentCollection::DocumentCollection(const std::string& dbPath,
+                                       const std::string& dbName,
                                        const std::string& name,
                                        SchemaType schemaType,
                                        const std::string& schema,
                                        const std::vector<IndexInfoImpl*>& indexes,
                                        std::unique_ptr<BlobManager> blobManager,
                                        const std::vector<FileInfo>& dataFilesToLoad)
-    :
-    m_blobManager(move(blobManager)),
-    m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
-  // Validate function arguments
-  if (databaseMetadataFilePath.size() == 0) {
-    throw InvalidArgumentException("Argument databaseMetadataFilePath is empty.",
-                                   __FILE__,
-                                   __func__,
-                                   __LINE__);
-  }
+    : m_blobManager(move(blobManager)),
+      m_dbConnection(nullptr, SQLiteUtils::CloseSQLiteConnection) {
+  path normalizedPath;
+  m_dbConnection = SQLiteUtils::NormalizePathAndCreateDBConnection(dbPath,
+                                                                   dbName,
+                                                                   false,
+                                                                   normalizedPath);
 
-  if (name.size() == 0) {
-    throw InvalidArgumentException("Argument name is empty.",
-                                   __FILE__,
-                                   __func__,
-                                   __LINE__);
-  }
   m_name = name;
-
-  // databaseMetadataFile should exist and all the tables should exist in it
-  if (!boost::filesystem::exists(databaseMetadataFilePath)) {
-    std::ostringstream ss;
-    ss << "Database file " << databaseMetadataFilePath << " does not exist.";
-    throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
-  }
-
-  sqlite3* dbConnection = nullptr;
-  int sqliteCode = sqlite3_open(databaseMetadataFilePath.c_str(),
-                                &dbConnection);  //, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr);
-  m_dbConnection.reset(dbConnection);
-
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode),
-                       __FILE__,
-                       __func__,
-                       __LINE__);
-  }
-
   m_documentSchema.reset(DocumentSchemaFactory::CreateDocumentSchema(schema,
                                                                      schemaType));
 
@@ -102,6 +76,9 @@ DocumentCollection::DocumentCollection(const std::string& databaseMetadataFilePa
                              blobMetadataVec.begin() + actualBatchSize);
     }
   }
+
+  m_deleteVector.reset(new DeleteVector(dbPath, dbName, m_name, false,
+                                        m_documentIDMap.size()));
 }
 
 void DocumentCollection::Insert(const BufferImpl& documentData,
@@ -113,6 +90,9 @@ void DocumentCollection::Insert(const BufferImpl& documentData,
 
 void jonoondb_api::DocumentCollection::MultiInsert(
     gsl::span<const BufferImpl*>& documents, const WriteOptionsImpl& wo) {
+  if (documents.empty())
+    return;
+
   std::vector<std::unique_ptr<Document>> docs;
 
   for (size_t i = 0; i < documents.size(); i++) {
@@ -125,22 +105,24 @@ void jonoondb_api::DocumentCollection::MultiInsert(
     }
   }  
 
-  std::vector<BlobMetadata> blobMetadataVec(documents.size());
   // Indexing should not fail after we have called ValidateForIndexing
   try {
     auto startID = m_indexManager->IndexDocuments(m_documentIDGenerator, docs);
     assert(startID == m_documentIDMap.size());
+
+    std::vector<BlobMetadata> blobMetadataVec(documents.size());
     m_blobManager->MultiPut(documents, blobMetadataVec, wo.compress);
+    m_documentIDMap.insert(m_documentIDMap.end(),
+                           blobMetadataVec.begin(),
+                           blobMetadataVec.end());
+
+    m_deleteVector->OnDocumentsInserted(startID + docs.size());
   } catch (...) {
-    // This is a serious error. Exception at this point will leave DB in a invalid state.
-    // Only thing we can do here is to log the error and terminate the process.
+    // This is a serious error. Handling the exception at this point will leave DB in a invalid state.
+    // Only sane thing we can do here is to log the error and terminate the process.
     // Todo: log and terminate the process
     throw;
   }
-
-  m_documentIDMap.insert(m_documentIDMap.end(),
-                         blobMetadataVec.begin(),
-                         blobMetadataVec.end());
 }
 
 const std::string& DocumentCollection::GetName() {
@@ -159,17 +141,23 @@ bool DocumentCollection::TryGetBestIndex(const std::string& columnName,
 
 std::shared_ptr<MamaJenniesBitmap> DocumentCollection::Filter(const std::vector<
     Constraint>& constraints) {
+  auto bitmap = std::make_shared<MamaJenniesBitmap>();
   if (constraints.size() > 0) {
-    return m_indexManager->Filter(constraints);
+    bitmap = m_indexManager->Filter(constraints);
   } else {
     // Return all the ids
     auto lastID = m_documentIDMap.size();
-    auto bm = std::make_shared<MamaJenniesBitmap>();
     for (std::size_t i = 0; i < lastID; i++) {
-      bm->Add(i);
+      bitmap->Add(i);
     }
+  }
 
-    return bm;
+  if (m_deleteVector->GetDeleteVectorBitmap().Empty()) {
+    return bitmap;
+  } else {
+    auto resultWithDelVector = std::make_shared<MamaJenniesBitmap>();
+    bitmap->LogicalAND(m_deleteVector->GetDeleteVectorBitmap(), *resultWithDelVector.get());
+    return resultWithDelVector;
   }
 }
 
@@ -316,7 +304,7 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
     if (docIDs[i] >= m_documentIDMap.size()) {
       ostringstream ss;
       ss << "Document with ID '" << docIDs[i]
-          << "' does exist in collection " << m_name << ".";
+         << "' does not exist in collection " << m_name << ".";
       throw MissingDocumentException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
@@ -332,6 +320,10 @@ void DocumentCollection::GetDocumentFieldsAsDoubleVector(
 
 void DocumentCollection::UnmapLRUDataFiles() {
   m_blobManager->UnmapLRUDataFiles();
+}
+
+void DocumentCollection::AddToDeleteVector(std::uint64_t docId) {
+  m_deleteVector->OnDocumentDeleted(docId);
 }
 
 void DocumentCollection::PopulateColumnTypes(

@@ -74,13 +74,14 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
     auto compressedBitmap = m_compressedBitmaps.find(buffer);
     if (compressedBitmap == m_compressedBitmaps.end()) {
       auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
-      assert(documentID == m_lastInsertedDocId + 1);
       bm->Add(documentID);
       m_compressedBitmaps[buffer] = bm;
-      m_lastInsertedDocId = documentID;
     } else {
       compressedBitmap->second->Add(documentID);
     }
+
+    assert(documentID == m_lastInsertedDocId + 1);
+    m_lastInsertedDocId = documentID;
   }
 
   const IndexStat& GetIndexStats() override {

@@ -25,51 +25,18 @@ DatabaseMetadataManager::DatabaseMetadataManager(const std::string& dbPath,
                                                  const std::string& dbName,
                                                  bool createDBIfMissing) :
     m_metadataDBConnection(nullptr, GuardFuncs::SQLite3Close) {
-  // Validate arguments
-  if (dbPath.size() == 0) {
-    throw InvalidArgumentException("Argument dbPath is empty.",
-                                   __FILE__, __func__, __LINE__);
-  }
+  path normalizedPath;
+  m_metadataDBConnection = SQLiteUtils::NormalizePathAndCreateDBConnection
+      (dbPath, dbName, createDBIfMissing, normalizedPath);
 
-  if (dbName.size() == 0) {
-    throw InvalidArgumentException("Argument dbName is empty.",
-                                   __FILE__, __func__, __LINE__);
-  }
-
-  m_dbPath = PathUtils::NormalizePath(dbPath);
+  m_dbPath = normalizedPath.generic_string();
   m_dbName = dbName;
 
-  path pathObj(m_dbPath);
-
-  // check if the db folder exists
-  if (!boost::filesystem::exists(pathObj)) {
-    std::ostringstream ss;
-    ss << "Database folder " << pathObj.string() << " does not exist.";
-    throw MissingDatabaseFolderException(ss.str(),
-                                         __FILE__,
-                                         __func__,
-                                         __LINE__);
-  }
+  path pathObj(normalizedPath);
 
   pathObj += m_dbName;
   pathObj += ".dat";
   m_fullDbPath = pathObj.generic_string();
-
-  if (!boost::filesystem::exists(pathObj) && !createDBIfMissing) {
-    std::ostringstream ss;
-    ss << "Database file " << m_fullDbPath << " does not exist.";
-    throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
-  }
-
-  sqlite3* db;
-  int sqliteCode = sqlite3_open(m_fullDbPath.c_str(), &db);
-  m_metadataDBConnection.reset(db);
-  if (sqliteCode != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(sqliteCode),
-                       __FILE__,
-                       __func__,
-                       __LINE__);
-  }
 
   CreateTables();
   PrepareStatements();
@@ -237,10 +204,6 @@ void DatabaseMetadataManager::AddCollection(const std::string& name,
     sqlite3_exec(m_metadataDBConnection.get(), "ROLLBACK", 0, 0, 0);
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
   }
-}
-
-const std::string& DatabaseMetadataManager::GetFullDBPath() const {
-  return m_fullDbPath;
 }
 
 const std::string& DatabaseMetadataManager::GetDBPath() const {

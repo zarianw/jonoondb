@@ -40,6 +40,7 @@ class DatabaseImpl final {
                    gsl::span<const BufferImpl*>& documents,
                    const WriteOptionsImpl& wo);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
+  std::int64_t Delete(const std::string& deleteStatement);
 
  private:
   std::shared_ptr<DocumentCollection> CreateCollectionInternal(

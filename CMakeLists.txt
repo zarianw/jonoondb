@@ -125,7 +125,9 @@ add_library(
  ${SRC_PATH}/jonoondb_api/resultset_impl.cc ${INCLUDE_PATH}/jonoondb_api/resultset_impl.h
  ${SRC_PATH}/jonoondb_api/index_stat.cc ${INCLUDE_PATH}/jonoondb_api/index_stat.h
  ${SRC_PATH}/jonoondb_api/blob_manager.cc ${INCLUDE_PATH}/jonoondb_api/blob_manager.h
- ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_PATH}/jonoondb_api/id_seq.h) 
+ ${SRC_PATH}/jonoondb_api/id_seq.cc ${INCLUDE_PATH}/jonoondb_api/id_seq.h
+ ${SRC_PATH}/jonoondb_api/delete_vector.cc ${INCLUDE_PATH}/jonoondb_api/delete_vector.h
+ ${SRC_PATH}/jonoondb_api/endian_utils.cc ${INCLUDE_PATH}/jonoondb_api/endian_utils.h)
  
 target_link_libraries(jonoondb_api sqlite flatbuffers liblz4 ${Boost_LIBRARIES})
 
@@ -183,7 +185,7 @@ configure_file (
   "${INCLUDE_PATH}/test/test_config.h.in"
   "${INCLUDE_PATH}/test/test_config_generated.h")
 
-add_subdirectory(${THIRDPARTY_PATH}/googletest-release-1.7.0)
+add_subdirectory(${THIRDPARTY_PATH}/googletest-release-1.8.1)
 enable_testing(true)
 include_directories(${gtest_SOURCE_DIR}/include)
 
@@ -203,6 +205,7 @@ add_executable(
  ${TEST_PATH}/jonoondb_api/object_pool_tests.cc
  ${TEST_PATH}/jonoondb_api/proc_utils_tests.cc
  ${TEST_PATH}/jonoondb_utils/varint_tests.cc
+ ${TEST_PATH}/jonoondb_api/delete_vector_tests.cc
  ${TEST_PATH}/jonoondb_api/test_utils.h
  ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_test_utils.cc)
 target_link_libraries(jonoondb_api_test gtest gtest_main jonoondb_api ${Boost_LIBRARIES})
@@ -217,7 +220,9 @@ add_executable(
  ${TEST_PATH}/jonoondb_api/database_sql_tests.cc
  ${TEST_PATH}/jonoondb_api/resultset_tests.cc
  ${TEST_PATH}/jonoondb_api/test_utils.h
- ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.h ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.cc)
+ ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.h
+ ${TEST_PATH}/jonoondb_api/jonoondb_api_vx_test_utils.cc
+ ${TEST_PATH}/jonoondb_api/database_delete_tests.cc)
 target_link_libraries(${JONOONDB_API_LIBRARY}_test gtest gtest_main ${JONOONDB_API_LIBRARY} ${Boost_LIBRARIES})
 
 include(CTest)

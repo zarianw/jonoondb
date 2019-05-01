@@ -18,6 +18,7 @@
 #include "index_info_impl.h"
 #include "proc_utils.h"
 #include "jonoondb_api/write_options_impl.h"
+#include "jonoondb_api/delete_vector.h"
 
 using namespace jonoondb_api;
 
@@ -99,7 +100,7 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
                                                        indexes,
                                                        colInfo.dataFiles);
 
-    m_queryProcessor->AddExistingCollection(documentCollection);
+    m_queryProcessor->AddCollection(documentCollection);
 
     m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
@@ -193,27 +194,24 @@ ResultSetImpl DatabaseImpl::ExecuteSelect(const std::string& selectStatement) {
   return m_queryProcessor->ExecuteSelect(selectStatement);
 }
 
+std::int64_t DatabaseImpl::Delete(const std::string& deleteStatement) {
+  return m_queryProcessor->Delete(deleteStatement);
+}
+
 std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
-    const std::string& name,
-    SchemaType schemaType,
-    const std::string& schema,
+    const std::string& name, SchemaType schemaType, const std::string& schema,
     const std::vector<IndexInfoImpl*>& indexes,
     const std::vector<FileInfo>& dataFilesToLoad) {
-
-  //First create FileNameManager and BlobManager
+  // First create FileNameManager and BlobManager
   auto fnm = std::make_unique<FileNameManager>(m_dbMetadataMgrImpl->GetDBPath(),
                                                m_dbMetadataMgrImpl->GetDBName(),
                                                name, false);
 
   auto bm = std::make_unique<BlobManager>(move(fnm),
-                                          m_options.GetMaxDataFileSize(),
-                                          true);
+                                          m_options.GetMaxDataFileSize(), true);
 
-  return std::make_shared<DocumentCollection>(m_dbMetadataMgrImpl->GetFullDBPath(),
-                                              name,
-                                              schemaType,
-                                              schema,
-                                              indexes,
-                                              move(bm),
-                                              dataFilesToLoad);
+  return std::make_shared<DocumentCollection>(
+      m_dbMetadataMgrImpl->GetDBPath(),
+      m_dbMetadataMgrImpl->GetDBName(), name, schemaType, schema, indexes,
+      move(bm), dataFilesToLoad);
 }

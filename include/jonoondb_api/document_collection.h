@@ -23,16 +23,15 @@ enum class FieldType
 enum class SchemaType
     : std::int32_t;
 struct Constraint;
-class MamaJenniesBitmap;
 class BlobManager;
 struct FileInfo;
 struct WriteOptionsImpl;
+class DeleteVector;
 
 class DocumentCollection final {
  public:
-  DocumentCollection(const std::string& databaseMetadataFilePath,
-                     const std::string& name,
-                     SchemaType schemaType,
+  DocumentCollection(const std::string& dbPath, const std::string& dbName,
+                     const std::string& name, SchemaType schemaType,
                      const std::string& schema,
                      const std::vector<IndexInfoImpl*>& indexes,
                      std::unique_ptr<BlobManager> blobManager,
@@ -74,6 +73,7 @@ class DocumentCollection final {
       const gsl::span<std::uint64_t>& docIDs, const std::string& columnName,
       const std::vector<std::string>& tokens, std::vector<double>& values) const;
   void UnmapLRUDataFiles();
+  void AddToDeleteVector(std::uint64_t id);
 
  private:
   void PopulateColumnTypes(
@@ -87,6 +87,7 @@ class DocumentCollection final {
   std::vector<BlobMetadata> m_documentIDMap;
   std::string m_name;
   std::unique_ptr<BlobManager> m_blobManager;
+  std::unique_ptr<DeleteVector> m_deleteVector;
 };
 }  // namespace jonoondb_api
 

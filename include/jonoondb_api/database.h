@@ -65,83 +65,76 @@ class ThrowOnError {
                                   jonoondb_status_file(m_status.opaque),
                                   jonoondb_status_function(m_status.opaque),
                                   jonoondb_status_line(m_status.opaque));
-          break;
         case status_invalidargumentcode:
           throw InvalidArgumentException(jonoondb_status_message(m_status.opaque),
                                          jonoondb_status_file(m_status.opaque),
                                          jonoondb_status_function(m_status.opaque),
                                          jonoondb_status_line(m_status.opaque));
-          break;
         case status_missingdatabasefilecode:
           throw MissingDatabaseFileException(jonoondb_status_message(m_status.opaque),
                                              jonoondb_status_file(m_status.opaque),
                                              jonoondb_status_function(m_status.opaque),
                                              jonoondb_status_line(m_status.opaque));
-          break;
         case status_missingdatabasefoldercode:
           throw MissingDatabaseFolderException(jonoondb_status_message(m_status.opaque),
                                                jonoondb_status_file(m_status.opaque),
                                                jonoondb_status_function(m_status.opaque),
                                                jonoondb_status_line(m_status.opaque));
-          break;
         case status_outofmemoryerrorcode:
           throw OutOfMemoryException(jonoondb_status_message(m_status.opaque),
                                      jonoondb_status_file(m_status.opaque),
                                      jonoondb_status_function(m_status.opaque),
                                      jonoondb_status_line(m_status.opaque));
-          break;
         case status_duplicatekeyerrorcode:
           throw DuplicateKeyException(jonoondb_status_message(m_status.opaque),
                                       jonoondb_status_file(m_status.opaque),
                                       jonoondb_status_function(m_status.opaque),
                                       jonoondb_status_line(m_status.opaque));
-          break;
         case status_collectionalreadyexistcode:
           throw CollectionAlreadyExistException(jonoondb_status_message(m_status.opaque),
                                                 jonoondb_status_file(m_status.opaque),
                                                 jonoondb_status_function(
                                                     m_status.opaque),
                                                 jonoondb_status_line(m_status.opaque));
-          break;
         case status_indexalreadyexistcode:
           throw IndexAlreadyExistException(jonoondb_status_message(m_status.opaque),
                                            jonoondb_status_file(m_status.opaque),
                                            jonoondb_status_function(m_status.opaque),
                                            jonoondb_status_line(m_status.opaque));
-          break;
         case status_collectionnotfoundcode:
           throw CollectionNotFoundException(jonoondb_status_message(m_status.opaque),
                                             jonoondb_status_file(m_status.opaque),
                                             jonoondb_status_function(m_status.opaque),
                                             jonoondb_status_line(m_status.opaque));
-          break;
         case status_invalidschemaerrorcode:
           throw InvalidSchemaException(jonoondb_status_message(m_status.opaque),
                                        jonoondb_status_file(m_status.opaque),
                                        jonoondb_status_function(m_status.opaque),
                                        jonoondb_status_line(m_status.opaque));
-          break;
         case status_indexoutofbounderrorcode:
           throw IndexOutOfBoundException(jonoondb_status_message(m_status.opaque),
                                          jonoondb_status_file(m_status.opaque),
                                          jonoondb_status_function(m_status.opaque),
                                          jonoondb_status_line(m_status.opaque));
-          break;
         case status_sqlerrorcode:
           throw SQLException(jonoondb_status_message(m_status.opaque),
                              jonoondb_status_file(m_status.opaque),
                              jonoondb_status_function(m_status.opaque),
                              jonoondb_status_line(m_status.opaque));
-          break;
         case status_fileioerrorcode:
           throw FileIOException(jonoondb_status_message(m_status.opaque),
                                 jonoondb_status_file(m_status.opaque),
                                 jonoondb_status_function(m_status.opaque),
                                 jonoondb_status_line(m_status.opaque));
-          break;
+        case status_apimisusecode:
+          throw ApiMisuseException(jonoondb_status_message(m_status.opaque),
+                                   jonoondb_status_file(m_status.opaque),
+                                   jonoondb_status_function(m_status.opaque),
+                                   jonoondb_status_line(m_status.opaque));
         default:
+          // this should not happen
+          assert(false);
           throw std::runtime_error(jonoondb_status_message(m_status.opaque));
-          break;
       }
     }
   }
@@ -695,6 +688,14 @@ class Database {
                                               selectStatement.size(),
                                               ThrowOnError{});
     return ResultSet(rs);
+  }
+
+  int64_t Delete(const std::string& deleteStatement) {
+    auto deletedCnt = jonoondb_database_delete(m_opaque,
+                                               deleteStatement.c_str(),
+                                               deleteStatement.size(),
+                                               ThrowOnError{});
+    return deletedCnt;
   }
 
  private:

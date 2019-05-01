@@ -2,9 +2,16 @@
 
 #include <memory>
 #include <cstdint>
+#include "gsl/span.h"
 #include "ewah_boolarray/ewah.h"
 
 namespace jonoondb_api {
+// forward declarations
+class BufferImpl;
+
+enum class BitmapType : std::int32_t {
+  EWAH_COMPRESSED_BITMAP = 1
+};
 
 class MamaJenniesBitmapConstIterator {
  public:
@@ -22,6 +29,8 @@ class MamaJenniesBitmapConstIterator {
   EWAHBoolArray<std::uint64_t>::const_iterator m_iter;
 };
 
+typedef std::uint64_t mama_jennies_bitmap_uword;
+
 class MamaJenniesBitmap {
  public:
   MamaJenniesBitmap();
@@ -30,24 +39,33 @@ class MamaJenniesBitmap {
   MamaJenniesBitmap& operator=(const MamaJenniesBitmap& other);
   MamaJenniesBitmap& operator=(MamaJenniesBitmap&& other);
   void Add(std::uint64_t x);
-  void LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
-  void LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output);
-
+  void LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
+  void LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
+  void LogicalXOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
 
   static std::shared_ptr<MamaJenniesBitmap>
-      LogicalAND(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
+  LogicalAND(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
   static std::shared_ptr<MamaJenniesBitmap>
-      LogicalOR(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
+  LogicalOR(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
+
+  void LogicalNOT(MamaJenniesBitmap& output) const;
+  void InPlaceLogicalNOT();
 
   typedef MamaJenniesBitmapConstIterator const_iterator;
-  const_iterator begin();
-  const_iterator end();
+  const_iterator begin() const;
+  const_iterator end() const;
   std::unique_ptr<const_iterator> begin_pointer();
   std::unique_ptr<const_iterator> end_pointer();
 
+  void Reset();
+
+  void Serialize(BufferImpl& buffer) const;
+  void Deserialize(BitmapType type, int version, gsl::span<const char> buffer);
+  BitmapType GetType() const;
+  bool Empty() const;
+
  private:
-  bool IsEmpty();
-  std::uint64_t GetSizeInBits();
+  std::uint64_t GetSizeInBits() const;
   MamaJenniesBitmap
       (std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray);
   std::unique_ptr<EWAHBoolArray<std::uint64_t>> m_ewahBoolArray;

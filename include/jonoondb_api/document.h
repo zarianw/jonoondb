@@ -134,4 +134,4 @@ public:
     }
   }
 };
-}
+} // namespace jonoondb_api

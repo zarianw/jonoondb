@@ -36,7 +36,6 @@ class DatabaseMetadataManager final {
                      SchemaType schemaType,
                      const std::string& schema,
                      const std::vector<IndexInfoImpl*>& indexes);
-  const std::string& GetFullDBPath() const;
   const std::string& GetDBPath() const;
   const std::string& GetDBName() const;
   void GetExistingCollections(std::vector<CollectionMetadata>& collections);

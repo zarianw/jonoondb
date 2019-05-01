@@ -136,6 +136,12 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
                      ex.GetSourceFileName(),
                      ex.GetFunctionName(),
                      ex.GetLineNumber());
+  } catch (const ApiMisuseException& ex) {
+    sts = new status(jonoondb_status_codes::status_apimisusecode,
+                     ex.what(),
+                     ex.GetSourceFileName(),
+                     ex.GetFunctionName(),
+                     ex.GetLineNumber());
   } catch (const JonoonDBException& ex) {
     sts = new status(jonoondb_status_codes::status_genericerrorcode,
                      ex.what(),
@@ -732,6 +738,20 @@ resultset_ptr jonoondb_database_executeselect(database_ptr db,
   TranslateExceptions([&] {
     std::string selectStatement(selectStmt, selectStmtLength);
     val = new resultset(db->impl.ExecuteSelect(selectStatement));
+  }, *sts);
+
+  return val;
+}
+
+JONOONDB_API_EXPORT int64_t jonoondb_database_delete(database_ptr db,
+                                                     const char* deleteStmt,
+                                                     uint64_t deleteStmtLength,
+                                                     status_ptr* sts) {
+  int64_t val;
+  // Todo: Use string_view for performance improvement
+  TranslateExceptions([&] {
+    std::string deleteStatement(deleteStmt, deleteStmtLength);
+    val = db->impl.Delete(deleteStatement);
   }, *sts);
 
   return val;

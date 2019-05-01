@@ -1,6 +1,7 @@
 #include <string>
 #include <sstream>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 #include "sqlite3.h"
 #include "query_processor.h"
 #include "exception_utils.h"
@@ -14,52 +15,68 @@
 #include "jonoondb_exceptions.h"
 #include "path_utils.h"
 #include "string_utils.h"
+#include "jonoondb_api/sqlite_utils.h"
 
 using namespace jonoondb_api;
 using namespace boost::filesystem;
+using namespace std;
 
 struct sqlite3_api_routines;
 int jonoondb_vtable_init(sqlite3* db, char** error,
                          const sqlite3_api_routines* api);
 
+static bool IsMasterTableOperation(int ac, const char* param1) {
+  if (ac == SQLITE_UPDATE && (param1 && strcmp(param1, "sqlite_master") == 0)) {
+    return true;
+  }
+
+  return false;
+}
+
+static int jonoondb_delete_auth_callback(void* /*userData*/, int actionCode,
+                                         const char* param1, const char* /*param2*/,
+                                         const char* /*dbName*/, const char* /*triggerName*/) {
+  if (actionCode == SQLITE_DELETE || actionCode == SQLITE_READ || actionCode == SQLITE_SELECT) {
+    return SQLITE_OK;
+  } else if (IsMasterTableOperation(actionCode, param1)) {
+    return SQLITE_OK;
+  }
+  return SQLITE_DENY;
+}
+
 QueryProcessor::QueryProcessor(const std::string& dbPath,
                                const std::string& dbName) :
     m_readWriteDBConnection(nullptr, GuardFuncs::SQLite3Close),
+    m_deleteStmtConnection(nullptr, GuardFuncs::SQLite3Close),
     m_dbConnectionPool(nullptr), m_dbName(dbName) {
   std::string normalizedDBPath = PathUtils::NormalizePath(dbPath);
-  path pathObj(normalizedDBPath);
+  normalizedDBPath += dbName;
+  boost::replace_all(normalizedDBPath, "/", "_");
+  boost::replace_all(normalizedDBPath, ":", "_");
+  boost::replace_all(normalizedDBPath, ".", "_");
 
-  // check if the db folder exists
-  if (!boost::filesystem::exists(pathObj)) {
-    std::ostringstream ss;
-    ss << "Database folder " << pathObj.string() << " does not exist.";
-    throw MissingDatabaseFolderException(ss.str(),
-                                         __FILE__,
-                                         __func__,
-                                         __LINE__);
-  }
-
-  pathObj += dbName;
-  pathObj += ".dat";
-  m_fullDBpath = pathObj.generic_string();
-
-  if (!boost::filesystem::exists(pathObj)) {
-    std::ostringstream ss;
-    ss << "Database file " << m_fullDBpath << " does not exist.";
-    throw MissingDatabaseFileException(ss.str(), __FILE__, __func__, __LINE__);
-  }
+  m_dbConnStr = "file::";
+  m_dbConnStr += normalizedDBPath;
+  m_dbConnStr += "?mode=memory&cache=shared";
 
   int code = sqlite3_auto_extension((void (*)(void)) jonoondb_vtable_init);
-  if (code != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
-  }
+  SQLiteUtils::HandleSQLiteCode(code);
 
   sqlite3* db = nullptr;
-  code = sqlite3_open(m_fullDBpath.c_str(), &db);
+  code = sqlite3_open_v2(
+      m_dbConnStr.c_str(), &db,
+      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI, nullptr);
   m_readWriteDBConnection.reset(db);
-  if (code != SQLITE_OK) {
-    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
-  }
+  SQLiteUtils::HandleSQLiteCode(code);
+
+  db = nullptr;
+  code = sqlite3_open_v2(
+      m_dbConnStr.c_str(), &db,
+      SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI, nullptr);
+  m_deleteStmtConnection.reset(db);
+  SQLiteUtils::HandleSQLiteCode(code);
+  code = sqlite3_set_authorizer(db, jonoondb_delete_auth_callback, nullptr);
+  SQLiteUtils::HandleSQLiteCode(code);
 
   //Initialize the connection pool
   m_dbConnectionPool.reset(new ObjectPool<sqlite3>(5,
@@ -201,13 +218,7 @@ void QueryProcessor::AddCollection(const std::shared_ptr<DocumentCollection>& co
     // This is required when jonoondb_connect is called instead on jonoondb_create.
     // However if we fail to add the collection then it should be removed.    
     DocumentCollectionDictionary::Instance()->Remove(key);
-    if (errMsg != nullptr) {
-      std::string sqliteErrorMsg = errMsg;
-      sqlite3_free(errMsg);
-      throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
-    }
-
-    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
+    SQLiteUtils::HandleSQLiteCode(code, errMsg);
   }
 }
 
@@ -220,36 +231,11 @@ void jonoondb_api::QueryProcessor::RemoveCollection(const std::string& collectio
                           nullptr,
                           nullptr,
                           &errMsg);
-  if (code != SQLITE_OK) {
-    if (errMsg != nullptr) {
-      std::string sqliteErrorMsg = errMsg;
-      sqlite3_free(errMsg);
-      throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
-    }
-
-    throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);
-  }
+  SQLiteUtils::HandleSQLiteCode(code, errMsg);
 
   std::string key("'");
   key.append(m_dbName).append(">").append(collectionName).append("'");
   DocumentCollectionDictionary::Instance()->Remove(key);
-}
-
-void QueryProcessor::AddExistingCollection(const std::shared_ptr<
-    DocumentCollection>& collection) {
-  std::ostringstream ss;
-  auto docColInfo = std::make_shared<DocumentCollectionInfo>();
-  GenerateCreateTableStatementForCollection(collection,
-                                            ss,
-                                            docColInfo->columnsInfo);
-  docColInfo->createVTableStmt = ss.str();
-  docColInfo->collection = collection;
-
-  // Generate key and insert the collection in a singleton dictionary.
-  // vtable will use this key to get the collectionInfo  
-  std::string key("'");
-  key.append(m_dbName).append(">").append(collection->GetName()).append("'");
-  DocumentCollectionDictionary::Instance()->Insert(key, docColInfo);
 }
 
 ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) {
@@ -260,10 +246,32 @@ ResultSetImpl QueryProcessor::ExecuteSelect(const std::string& selectStatement) 
                        selectStatement);
 }
 
+std::int64_t QueryProcessor::Delete(const std::string& deleteStatement) {
+  char* errMsg;
+  int code = sqlite3_exec(m_deleteStmtConnection.get(),
+                          deleteStatement.c_str(),
+                          nullptr,
+                          nullptr,
+                          &errMsg);
+  if (code == SQLITE_DENY || code == SQLITE_AUTH) {
+    ostringstream ss;
+    ss << "Only delete and select statement is allowed on delete API.";
+    if (errMsg) {
+      ss << " Additional info: ";
+      ss << errMsg;
+    }
+    throw ApiMisuseException(ss.str(),
+                             __FILE__, __func__, __LINE__);
+  }
+  SQLiteUtils::HandleSQLiteCode(code, errMsg);
+
+  return sqlite3_changes(m_deleteStmtConnection.get());
+}
+
 sqlite3* QueryProcessor::OpenConnection() {
   sqlite3* db = nullptr;
   int code =
-      sqlite3_open_v2(m_fullDBpath.c_str(), &db, SQLITE_OPEN_READONLY, nullptr);
+      sqlite3_open_v2(m_dbConnStr.c_str(), &db, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, nullptr);
   if (code != SQLITE_OK) {
     sqlite3_close(db);
     throw SQLException(sqlite3_errstr(code), __FILE__, __func__, __LINE__);

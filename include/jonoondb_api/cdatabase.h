@@ -25,7 +25,8 @@ typedef enum jonoondb_status_codes {
   status_invalidschemaerrorcode = 10,
   status_indexoutofbounderrorcode = 11,
   status_sqlerrorcode = 12,
-  status_fileioerrorcode = 13
+  status_fileioerrorcode = 13,
+  status_apimisusecode = 14
 } jonoondb_status_codes;
 
 typedef struct status* status_ptr;
@@ -207,6 +208,10 @@ JONOONDB_API_EXPORT resultset_ptr jonoondb_database_executeselect(database_ptr d
                                                                   const char* selectStmt,
                                                                   uint64_t selectStmtLength,
                                                                   status_ptr* sts);
+JONOONDB_API_EXPORT int64_t jonoondb_database_delete(database_ptr db,
+                                                     const char* deleteStmt,
+                                                     uint64_t deleteStmtLength,
+                                                     status_ptr* sts);
 
 #ifdef __cplusplus
 } // extern "C"
