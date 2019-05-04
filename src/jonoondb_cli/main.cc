@@ -1,27 +1,27 @@
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/program_options/cmdline.hpp>
-#include <boost/program_options/parsers.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/endian/conversion.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/tokenizer.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/endian/conversion.hpp>
-#include "linenoise/linenoise.h"
-#include "jonoondb_api/database_impl.h"
+#include <boost/program_options/cmdline.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/tokenizer.hpp>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
 #include "jonoondb_api/buffer_impl.h"
-#include "jonoondb_api/options_impl.h"
-#include "jonoondb_api/index_info_impl.h"
-#include "jonoondb_api/resultset_impl.h"
-#include "jonoondb_utils/stopwatch.h"
+#include "jonoondb_api/database_impl.h"
 #include "jonoondb_api/file.h"
-#include "jonoondb_utils/varint.h"
+#include "jonoondb_api/index_info_impl.h"
+#include "jonoondb_api/options_impl.h"
+#include "jonoondb_api/resultset_impl.h"
 #include "jonoondb_api/write_options_impl.h"
+#include "jonoondb_utils/stopwatch.h"
+#include "jonoondb_utils/varint.h"
+#include "linenoise/linenoise.h"
 
 namespace po = boost::program_options;
 using namespace std;
@@ -124,19 +124,21 @@ void GetLine(std::string& line, const string& historyFilePath) {
 
 int StartJonoonDBCLI(string dbName, string dbPath) {
   try {
-    cout << "JonoonDB - Lets change things." << "\n";
+    cout << "JonoonDB - Lets change things."
+         << "\n";
     cout << "DBNAME: " << dbName << "\n";
     cout << "DBPATH: " << dbPath << "\n";
     cout << "Loading DB ..." << endl;
 
     OptionsImpl opt;
-    //opt.SetMaxDataFileSize(1024 * 1024 * 128);
-    //opt.SetMemoryCleanupThreshold(1024 * 1024 * 512);
+    // opt.SetMaxDataFileSize(1024 * 1024 * 128);
+    // opt.SetMemoryCleanupThreshold(1024 * 1024 * 512);
     Stopwatch loadSW(true);
     DatabaseImpl db(dbPath, dbName, opt);
     loadSW.Stop();
     cout << "Loading completed in " << loadSW.ElapsedMilliSeconds()
-         << " millisecs." << "\n";
+         << " millisecs."
+         << "\n";
     cout << "Enter \".help\" for usage hints." << endl;
     std::string cmd;
     boost::char_separator<char> sep(" ");
@@ -150,11 +152,11 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
         continue;
 
       try {
-        if (boost::starts_with(cmd, "select ")
-            || boost::starts_with(cmd, "SELECT ") ||
-            boost::starts_with(cmd, "explain select ")
-            || boost::starts_with(cmd, "EXPLAIN SELECT ")) {
-          //select command or explain select command
+        if (boost::starts_with(cmd, "select ") ||
+            boost::starts_with(cmd, "SELECT ") ||
+            boost::starts_with(cmd, "explain select ") ||
+            boost::starts_with(cmd, "EXPLAIN SELECT ")) {
+          // select command or explain select command
           Stopwatch sw(true);
           auto rs = db.ExecuteSelect(cmd);
           PrintResultSet(rs);
@@ -171,6 +173,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           continue;
 
         if (tokens[0] == ".help") {
+          // clang-format off
           cout << ".cc COLLECTION_NAME SCHEMA_FILE [INDEX_FILE]      Create collection with name COLLECTION_NAME\n";
           cout << "                                                  and schema defined in file SCHEMA_FILE. If\n";
           cout << "                                                  INDEX_FILE is specified then indexes specified\n";
@@ -184,13 +187,14 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
 
           cout << ".timer on|off                                     Turn timer on or off.\n";
           cout << ".exit                                             Exit this program.\n";
+          // clang-format on
         } else if (tokens[0] == ".cc") {
           // create collection command
           // make sure we have enough params
           if (tokens.size() < 3) {
-            cout
-                << "Not enough parameters. USAGE: .cc COLLECTION_NAME SCHEMA_FILE [INDEX_FILE]"
-                << endl;
+            cout << "Not enough parameters. USAGE: .cc COLLECTION_NAME "
+                    "SCHEMA_FILE [INDEX_FILE]"
+                 << endl;
             continue;
           }
 
@@ -208,10 +212,10 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             string line;
             boost::char_separator<char> csvSep(",");
             while (getline(file, line)) {
-              boost::tokenizer<boost::char_separator<char>>
-                  idxTokenizer(line, csvSep);
-              std::vector<std::string>
-                  idxTokens(idxTokenizer.begin(), idxTokenizer.end());
+              boost::tokenizer<boost::char_separator<char>> idxTokenizer(
+                  line, csvSep);
+              std::vector<std::string> idxTokens(idxTokenizer.begin(),
+                                                 idxTokenizer.end());
               if (idxTokens.size() == 0)
                 continue;
 
@@ -219,8 +223,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
               if (idxTokens.size() < 4) {
                 ostringstream ss;
                 ss << "Not enough values specified for index in INDEX_FILE "
-                   << indexFile << ". " <<
-                   "Line: " << line << "." << endl;
+                   << indexFile << ". "
+                   << "Line: " << line << "." << endl;
                 throw std::runtime_error(ss.str());
               }
 
@@ -234,10 +238,9 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
                 if (boost::iequals("ASC", idxTokens[3])) {
                   isAscending = true;
                 }
-                indexes.push_back(IndexInfoImpl(idxTokens[0],
-                                                IndexType::INVERTED_COMPRESSED_BITMAP,
-                                                idxTokens[2],
-                                                isAscending));
+                indexes.push_back(IndexInfoImpl(
+                    idxTokens[0], IndexType::INVERTED_COMPRESSED_BITMAP,
+                    idxTokens[2], isAscending));
               } else if (idxTokens[1] == "VECTOR") {
                 bool isAscending = false;
                 if (boost::iequals("ASC", idxTokens[3])) {
@@ -248,9 +251,9 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
               } else {
                 ostringstream ss;
                 ss << "Unknown index type \"" << idxTokens[1]
-                   << "\" specified in INDEX_FILE " <<
-                   indexFile << ". Line: " << line
-                   << ". Index types are case sensitive." << endl;
+                   << "\" specified in INDEX_FILE " << indexFile
+                   << ". Line: " << line << ". Index types are case sensitive."
+                   << endl;
                 throw std::runtime_error(ss.str());
               }
             }
@@ -261,18 +264,16 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           for (auto& item : indexes) {
             idxs.push_back(&item);
           }
-          db.CreateCollection(tokens[1],
-                              SchemaType::FLAT_BUFFERS,
-                              schema,
+          db.CreateCollection(tokens[1], SchemaType::FLAT_BUFFERS, schema,
                               idxs);
         } else if (tokens[0] == ".i") {
           // import command
           // make sure we have enough params
           Stopwatch sw(true);
           if (tokens.size() < 3) {
-            cout
-                << "Not enough parameters. USAGE: .i COLLECTION_NAME DATA_FILE [be]"
-                << endl;
+            cout << "Not enough parameters. USAGE: .i COLLECTION_NAME "
+                    "DATA_FILE [be]"
+                 << endl;
             continue;
           }
 
@@ -283,11 +284,10 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             }
           }
 
-          auto fileMapping =
-              boost::interprocess::file_mapping(tokens[2].c_str(),
-                                                boost::interprocess::read_only);
-          auto mappedRegion = boost::interprocess::mapped_region(fileMapping,
-                                                                 boost::interprocess::read_only);
+          auto fileMapping = boost::interprocess::file_mapping(
+              tokens[2].c_str(), boost::interprocess::read_only);
+          auto mappedRegion = boost::interprocess::mapped_region(
+              fileMapping, boost::interprocess::read_only);
           auto fileSize = mappedRegion.get_size();
           char* currentPostion =
               reinterpret_cast<char*>(mappedRegion.get_address());
@@ -295,8 +295,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
           std::size_t bytesRead = 0;
           std::int64_t bytesReadForCurrRegion = 0;
           std::uint32_t size = 0;
-          std::size_t
-              pageSize = boost::interprocess::mapped_region::get_page_size();
+          std::size_t pageSize =
+              boost::interprocess::mapped_region::get_page_size();
           bool swapEndianess = false;
           if ((Varint::OnLittleEndianMachine() && bigEndSize) ||
               (!Varint::OnLittleEndianMachine() && !bigEndSize)) {
@@ -311,7 +311,8 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
             }
 
             currentPostion += sizeof(std::uint32_t);
-            documents.push_back(BufferImpl(currentPostion, size, size, nullptr));
+            documents.push_back(
+                BufferImpl(currentPostion, size, size, nullptr));
             currentPostion += size;
             bytesReadForCurrRegion += sizeof(std::uint32_t) + size;
             bytesRead += sizeof(std::uint32_t) + size;
@@ -331,8 +332,7 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
               auto offset = pageSize * quotient;
 
               mappedRegion = boost::interprocess::mapped_region(
-                  fileMapping, boost::interprocess::read_only,
-                  offset);
+                  fileMapping, boost::interprocess::read_only, offset);
               currentPostion =
                   reinterpret_cast<char*>(mappedRegion.get_address());
               currentPostion += remainder;
@@ -393,26 +393,30 @@ int StartJonoonDBCLI(string dbName, string dbPath) {
 int main(int argc, char** argv) {
   try {
     // Declare the supported options.
-    po::options_description desc("Usage: jonoondb_cli DBNAME [DBPATH] [OPTIONS]\n"
-                                     "DBNAME is the name of the database.\n"
-                                     "DBPATH is the path where database file exists. A new database is created\n"
-                                     "if the file does not previously exist. Default is current directory.\n\n"
-                                     "Allowed options");
+    po::options_description desc(
+        "Usage: jonoondb_cli DBNAME [DBPATH] [OPTIONS]\n"
+        "DBNAME is the name of the database.\n"
+        "DBPATH is the path where database file exists. A new database is "
+        "created\n"
+        "if the file does not previously exist. Default is current "
+        "directory.\n\n"
+        "Allowed options");
 
-    desc.add_options()
-        ("help", "produce help message")
-        ("db_name", po::value<string>(), "Name of the database. ")
-        ("db_path", po::value<string>(), "Path where database file exists. "
-            "A new database is created if the file does not previously exist. "
-            "Default is current directory.");
+    desc.add_options()("help", "produce help message")(
+        "db_name", po::value<string>(), "Name of the database. ")(
+        "db_path", po::value<string>(),
+        "Path where database file exists. "
+        "A new database is created if the file does not previously exist. "
+        "Default is current directory.");
 
     po::positional_options_description p;
     p.add("db_name", 1);
     p.add("db_path", 1);
 
     po::variables_map vm_positional;
-    po::store(po::command_line_parser(argc, argv).
-        options(desc).positional(p).run(), vm_positional);
+    po::store(
+        po::command_line_parser(argc, argv).options(desc).positional(p).run(),
+        vm_positional);
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -437,11 +441,10 @@ int main(int argc, char** argv) {
       dbPath = current_path().generic_string();
     }
 
-    // ok at this point we have all our options  
+    // ok at this point we have all our options
     return StartJonoonDBCLI(dbName, dbPath);
   } catch (exception& ex) {
     cout << "Exception: " << ex.what() << endl;
     return 1;
   }
 }
-
