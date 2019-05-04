@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-
 // Forward declarations
 struct sqlite3;
 struct sqlite3_stmt;
