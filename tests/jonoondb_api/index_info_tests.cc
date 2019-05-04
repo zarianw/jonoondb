@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "database.h"
+#include "gtest/gtest.h"
 
 using namespace jonoondb_api;
 
@@ -11,4 +11,3 @@ TEST(IndexInfo, Ctor) {
   ASSERT_EQ(indexInfo.GetType(), IndexType::INVERTED_COMPRESSED_BITMAP);
   ASSERT_TRUE(indexInfo.GetIsAscending());
 }
-

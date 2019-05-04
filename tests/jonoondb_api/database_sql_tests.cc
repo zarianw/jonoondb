@@ -1,16 +1,16 @@
-#include <string>
-#include <fstream>
 #include <cstdio>
-#include "gtest/gtest.h"
-#include "flatbuffers/flatbuffers.h"
-#include "test_utils.h"
-#include "jonoondb_api_vx_test_utils.h"
+#include <fstream>
+#include <string>
+#include "all_field_type_generated.h"
+#include "buffer_impl.h"
 #include "database.h"
 #include "enums.h"
-#include "buffer_impl.h"
-#include "tweet_generated.h"
-#include "all_field_type_generated.h"
 #include "file.h"
+#include "flatbuffers/flatbuffers.h"
+#include "gtest/gtest.h"
+#include "jonoondb_api_vx_test_utils.h"
+#include "test_utils.h"
+#include "tweet_generated.h"
 
 using namespace std;
 using namespace flatbuffers;
@@ -31,9 +31,7 @@ TEST(Database, ExecuteSelect_Explain) {
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes;
-  db.CreateCollection(collectionName,
-                      SchemaType::FLAT_BUFFERS,
-                      schema,
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema,
                       indexes);
 
   auto rs = db.ExecuteSelect("explain SELECT SUM(rating) from tweet;");
@@ -56,20 +54,17 @@ TEST(Database, ExecuteSelect_GetDocument) {
   string filePath = GetSchemaFilePath("tweet.bfbs");
   string schema = File::Read(filePath);
   std::vector<IndexInfo> indexes;
-  
-  db.CreateCollection(collectionName,
-                      SchemaType::FLAT_BUFFERS,
-                      schema,
-                      indexes); 
-  
+
+  db.CreateCollection(collectionName, SchemaType::FLAT_BUFFERS, schema,
+                      indexes);
+
   std::vector<Buffer> documents;
   for (size_t i = 0; i < 10; i++) {
-
     std::string name = "zarian_" + std::to_string(i);
     std::string text = "hello_" + std::to_string(i);
     std::string binData = "some_data_" + std::to_string(i);
     documents.push_back(
-      TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
+        TestUtils::GetTweetObject(i, i, &name, &text, (double)i, &binData));
   }
 
   db.MultiInsert(collectionName, documents);
@@ -80,7 +75,9 @@ TEST(Database, ExecuteSelect_GetDocument) {
   while (rs.Next()) {
     auto blob = rs.GetBlob(rs.GetColumnIndex("_document"));
     ASSERT_EQ(blob.GetLength(), documents[rowCnt].GetLength());
-    ASSERT_EQ(memcmp(blob.GetData(), documents[rowCnt].GetData(), blob.GetLength()), 0);
+    ASSERT_EQ(
+        memcmp(blob.GetData(), documents[rowCnt].GetData(), blob.GetLength()),
+        0);
     rowCnt++;
   }
   ASSERT_EQ(rowCnt, 10);
