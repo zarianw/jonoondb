@@ -3,8 +3,8 @@
 using namespace jonoondb_api;
 using namespace gsl;
 
-IDSequence::IDSequence(std::shared_ptr<MamaJenniesBitmap> bitmap, int vecSize) :
-    m_bitmap(move(bitmap)) {
+IDSequence::IDSequence(std::shared_ptr<MamaJenniesBitmap> bitmap, int vecSize)
+    : m_bitmap(move(bitmap)) {
   m_currentVector.resize(vecSize);
   m_currentSpan = span<std::uint64_t>(m_currentVector.data(), 0);
   m_iter = m_bitmap->begin_pointer();

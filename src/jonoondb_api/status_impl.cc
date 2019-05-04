@@ -1,6 +1,6 @@
-#include <string>
-#include <cstring>
 #include "status_impl.h"
+#include <cstring>
+#include <string>
 
 using namespace std;
 
@@ -33,11 +33,13 @@ static const std::string OKStr = "OK";
 
 struct StatusData {
  public:
-  StatusData(size_t cd, const char* msg, const char* flName,
-             const char* fnName, size_t lNum) : code(cd), message(msg),
-                                                fileName(flName),
-                                                funcName(fnName),
-                                                lineNum(lNum) { }
+  StatusData(size_t cd, const char* msg, const char* flName, const char* fnName,
+             size_t lNum)
+      : code(cd),
+        message(msg),
+        fileName(flName),
+        funcName(fnName),
+        lineNum(lNum) {}
 
   std::size_t code;
   std::string message;
@@ -45,21 +47,18 @@ struct StatusData {
   std::string funcName;
   size_t lineNum;
 };
-}
+}  // namespace jonoondb_api
 
-StatusImpl::StatusImpl() : m_statusData(nullptr) {
-}
+StatusImpl::StatusImpl() : m_statusData(nullptr) {}
 
 StatusImpl::StatusImpl(const StatusImpl& other) {
   if (this != &other) {
     m_statusData = nullptr;
 
     if (other.m_statusData) {
-      m_statusData = new StatusData(other.GetCode(),
-                                    other.GetMessage(),
-                                    other.GetSourceFileName(),
-                                    other.GetFunctionName(),
-                                    other.GetLineNumber());
+      m_statusData = new StatusData(
+          other.GetCode(), other.GetMessage(), other.GetSourceFileName(),
+          other.GetFunctionName(), other.GetLineNumber());
     }
   }
 }
@@ -72,10 +71,8 @@ StatusImpl::StatusImpl(StatusImpl&& other) {
   }
 }
 
-StatusImpl::StatusImpl(std::size_t code,
-                       const char* message,
-                       const char* srcFileName,
-                       const char* funcName,
+StatusImpl::StatusImpl(std::size_t code, const char* message,
+                       const char* srcFileName, const char* funcName,
                        std::size_t lineNum) {
   m_statusData = new StatusData(code, message, srcFileName, funcName, lineNum);
 }
@@ -100,11 +97,9 @@ StatusImpl& StatusImpl::operator=(const StatusImpl& other) {
     m_statusData = nullptr;
 
     if (other.m_statusData) {
-      m_statusData = new StatusData(other.GetCode(),
-                                    other.GetMessage(),
-                                    other.GetSourceFileName(),
-                                    other.GetFunctionName(),
-                                    other.GetLineNumber());
+      m_statusData = new StatusData(
+          other.GetCode(), other.GetMessage(), other.GetSourceFileName(),
+          other.GetFunctionName(), other.GetLineNumber());
     }
   }
 
@@ -227,8 +222,7 @@ bool StatusImpl::GenericError() const {
 }
 
 bool StatusImpl::KeyNotFound() const {
-  if (m_statusData != nullptr &&
-      m_statusData->code == kStatusKeyNotFoundCode) {
+  if (m_statusData != nullptr && m_statusData->code == kStatusKeyNotFoundCode) {
     return true;
   }
 
@@ -236,8 +230,7 @@ bool StatusImpl::KeyNotFound() const {
 }
 
 bool StatusImpl::FileIOError() const {
-  if (m_statusData != nullptr &&
-      m_statusData->code == kStatusFileIOErrorCode) {
+  if (m_statusData != nullptr && m_statusData->code == kStatusFileIOErrorCode) {
     return true;
   }
 

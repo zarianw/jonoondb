@@ -32,15 +32,15 @@ int main(int argc, char** argv) {
   // - For each line (record) generate a corresponding flatbuffer object using
   // the generated headers.
   // - (Inside the loop) Write the size of the object (which is a int) in a
-  // output file
-  //    then write the object in the same file
+  // output file then write the object in the same file
   // Loop END
   {
     string filePath(directoryPath + "region.tbl");
     cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
-    if (!file.is_open()) return 1;
+    if (!file.is_open())
+      return 1;
 
     vector<string> tokens;
     string line;
@@ -49,7 +49,8 @@ int main(int argc, char** argv) {
     string destFilePath = outputDirectoryPath + "region.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
-    if (!outputFile.is_open()) return 1;
+    if (!outputFile.is_open())
+      return 1;
 
     while (getline(file, line)) {
       tokenizer<char_separator<char>> tok(line, sep);
@@ -76,7 +77,8 @@ int main(int argc, char** argv) {
     cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
-    if (!file.is_open()) return 1;
+    if (!file.is_open())
+      return 1;
 
     vector<string> tokens;
     string line;
@@ -85,7 +87,8 @@ int main(int argc, char** argv) {
     string destFilePath = outputDirectoryPath + "nation.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
-    if (!outputFile.is_open()) return 1;
+    if (!outputFile.is_open())
+      return 1;
 
     while (getline(file, line)) {
       tokenizer<char_separator<char>> tok(line, sep);
@@ -110,7 +113,8 @@ int main(int argc, char** argv) {
     cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
-    if (!file.is_open()) return 1;
+    if (!file.is_open())
+      return 1;
 
     vector<string> tokens;
     string line;
@@ -119,7 +123,8 @@ int main(int argc, char** argv) {
     string destFilePath = outputDirectoryPath + "lineitem.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
-    if (!outputFile.is_open()) return 1;
+    if (!outputFile.is_open())
+      return 1;
 
     while (getline(file, line)) {
       tokenizer<char_separator<char>> tok(line, sep);
@@ -162,7 +167,8 @@ int main(int argc, char** argv) {
     cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
-    if (!file.is_open()) return 1;
+    if (!file.is_open())
+      return 1;
 
     vector<string> tokens;
     string line;
@@ -171,7 +177,8 @@ int main(int argc, char** argv) {
     string destFilePath = outputDirectoryPath + "partsupp.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
-    if (!outputFile.is_open()) return 1;
+    if (!outputFile.is_open())
+      return 1;
 
     while (getline(file, line)) {
       tokenizer<char_separator<char>> tok(line, sep);
@@ -198,7 +205,8 @@ int main(int argc, char** argv) {
     cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
-    if (!file.is_open()) return 1;
+    if (!file.is_open())
+      return 1;
 
     vector<string> tokens;
     string line;
@@ -207,7 +215,8 @@ int main(int argc, char** argv) {
     string destFilePath = outputDirectoryPath + "part.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
-    if (!outputFile.is_open()) return 1;
+    if (!outputFile.is_open())
+      return 1;
 
     while (getline(file, line)) {
       tokenizer<char_separator<char>> tok(line, sep);
@@ -238,7 +247,8 @@ int main(int argc, char** argv) {
     cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
-    if (!file.is_open()) return 1;
+    if (!file.is_open())
+      return 1;
 
     vector<string> tokens;
     string line;
@@ -247,7 +257,8 @@ int main(int argc, char** argv) {
     string destFilePath = outputDirectoryPath + "orders.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
-    if (!outputFile.is_open()) return 1;
+    if (!outputFile.is_open())
+      return 1;
 
     while (getline(file, line)) {
       tokenizer<char_separator<char>> tok(line, sep);
@@ -281,7 +292,8 @@ int main(int argc, char** argv) {
     cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
-    if (!file.is_open()) return 1;
+    if (!file.is_open())
+      return 1;
 
     vector<string> tokens;
     string line;
@@ -290,7 +302,8 @@ int main(int argc, char** argv) {
     string destFilePath = outputDirectoryPath + "customer.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
-    if (!outputFile.is_open()) return 1;
+    if (!outputFile.is_open())
+      return 1;
 
     while (getline(file, line)) {
       tokenizer<char_separator<char>> tok(line, sep);
@@ -322,7 +335,8 @@ int main(int argc, char** argv) {
     cout << "Processing " << filePath << endl;
 
     ifstream file(filePath.c_str());
-    if (!file.is_open()) return 1;
+    if (!file.is_open())
+      return 1;
 
     vector<string> tokens;
     string line;
@@ -331,7 +345,8 @@ int main(int argc, char** argv) {
     string destFilePath = outputDirectoryPath + "supplier.fb";
     std::remove(destFilePath.c_str());
     ofstream outputFile(destFilePath, ios::binary);
-    if (!outputFile.is_open()) return 1;
+    if (!outputFile.is_open())
+      return 1;
 
     while (getline(file, line)) {
       tokenizer<char_separator<char>> tok(line, sep);

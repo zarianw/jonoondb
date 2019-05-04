@@ -1,24 +1,24 @@
-#include <string>
-#include <stdio.h>
-#include <sstream>
-#include <memory>
-#include <chrono>
 #include "database_impl.h"
+#include <stdio.h>
+#include <chrono>
+#include <memory>
+#include <sstream>
+#include <string>
+#include "blob_manager.h"
 #include "database_metadata_manager.h"
-#include "options_impl.h"
-#include "string_utils.h"
-#include "index_manager.h"
 #include "document_collection.h"
+#include "document_collection_dictionary.h"
 #include "enums.h"
+#include "filename_manager.h"
+#include "index_info_impl.h"
+#include "index_manager.h"
+#include "jonoondb_api/delete_vector.h"
+#include "jonoondb_api/write_options_impl.h"
+#include "options_impl.h"
+#include "proc_utils.h"
 #include "query_processor.h"
 #include "resultset_impl.h"
-#include "filename_manager.h"
-#include "blob_manager.h"
-#include "document_collection_dictionary.h"
-#include "index_info_impl.h"
-#include "proc_utils.h"
-#include "jonoondb_api/write_options_impl.h"
-#include "jonoondb_api/delete_vector.h"
+#include "string_utils.h"
 
 using namespace jonoondb_api;
 
@@ -76,7 +76,8 @@ void DatabaseImpl::MemoryWatcherFunc() {
 }
 
 DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
-                           const OptionsImpl& options) : m_options(options) {
+                           const OptionsImpl& options)
+    : m_options(options) {
   // Initialize DatabaseMetadataManager
   m_dbMetadataMgrImpl = std::make_unique<DatabaseMetadataManager>(
       dbPath, dbName, options.GetCreateDBIfMissing());
@@ -94,15 +95,14 @@ DatabaseImpl::DatabaseImpl(const std::string& dbPath, const std::string& dbName,
       indexes.push_back(&index);
     }
 
-    auto documentCollection = CreateCollectionInternal(colInfo.name,
-                                                       colInfo.schemaType,
-                                                       colInfo.schema,
-                                                       indexes,
-                                                       colInfo.dataFiles);
+    auto documentCollection =
+        CreateCollectionInternal(colInfo.name, colInfo.schemaType,
+                                 colInfo.schema, indexes, colInfo.dataFiles);
 
     m_queryProcessor->AddCollection(documentCollection);
 
-    m_collectionNameStore.push_back(std::make_unique<std::string>(colInfo.name));
+    m_collectionNameStore.push_back(
+        std::make_unique<std::string>(colInfo.name));
     m_collectionContainer[*m_collectionNameStore.back()] = documentCollection;
   }
 
@@ -124,23 +124,19 @@ DatabaseImpl::~DatabaseImpl() {
   }
 }
 
-void DatabaseImpl::CreateCollection(const std::string& name,
-                                    SchemaType schemaType,
-                                    const std::string& schema,
-                                    const std::vector<IndexInfoImpl*>& indexes) {
+void DatabaseImpl::CreateCollection(
+    const std::string& name, SchemaType schemaType, const std::string& schema,
+    const std::vector<IndexInfoImpl*>& indexes) {
   // check if collection already exists
   if (m_collectionContainer.find(name) != m_collectionContainer.end()) {
     std::ostringstream ss;
     ss << "Collection with name \"" << name << "\" already exists.";
-    throw CollectionAlreadyExistException(ss.str(),
-                                          __FILE__,
-                                          __func__,
+    throw CollectionAlreadyExistException(ss.str(), __FILE__, __func__,
                                           __LINE__);
   }
 
-  auto documentCollection =
-      CreateCollectionInternal(name, schemaType, schema, indexes,
-                               std::vector<FileInfo>());
+  auto documentCollection = CreateCollectionInternal(
+      name, schemaType, schema, indexes, std::vector<FileInfo>());
 
   m_queryProcessor->AddCollection(documentCollection);
 
@@ -151,7 +147,8 @@ void DatabaseImpl::CreateCollection(const std::string& name,
       m_queryProcessor->RemoveCollection(name);
     } catch (...) {
       // This is bad and we should log the error and terminate the program
-      // Todo: Log the std::current_exception(), also mark the collection for cleanup on startup
+      // Todo: Log the std::current_exception(), also mark the collection for
+      // cleanup on startup
       std::terminate();
     }
     throw;
@@ -164,7 +161,8 @@ void DatabaseImpl::CreateCollection(const std::string& name,
 void DatabaseImpl::Insert(const char* collectionName,
                           const BufferImpl& documentData,
                           const WriteOptionsImpl& wo) {
-  // Todo (zarian): Check what is a clean way to avoid the string copy from char * to string
+  // Todo (zarian): Check what is a clean way to avoid the string copy from char
+  // * to string
   auto item = m_collectionContainer.find(collectionName);
   if (item == m_collectionContainer.end()) {
     std::ostringstream ss;
@@ -211,7 +209,6 @@ std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
                                           m_options.GetMaxDataFileSize(), true);
 
   return std::make_shared<DocumentCollection>(
-      m_dbMetadataMgrImpl->GetDBPath(),
-      m_dbMetadataMgrImpl->GetDBName(), name, schemaType, schema, indexes,
-      move(bm), dataFilesToLoad);
+      m_dbMetadataMgrImpl->GetDBPath(), m_dbMetadataMgrImpl->GetDBName(), name,
+      schemaType, schema, indexes, move(bm), dataFilesToLoad);
 }

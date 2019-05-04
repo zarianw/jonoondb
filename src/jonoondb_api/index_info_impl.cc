@@ -1,10 +1,10 @@
-#include <string>
-#include <vector>
+#include "index_info_impl.h"
 #include <cstdint>
 #include <sstream>
-#include "index_info_impl.h"
-#include "string_utils.h"
+#include <string>
+#include <vector>
 #include "enums.h"
+#include "string_utils.h"
 
 using namespace jonoondb_api;
 
@@ -15,10 +15,8 @@ struct IndexInfoImpl::IndexInfoData {
   IndexType Type;
 };
 
-IndexInfoImpl::IndexInfoImpl(std::string name,
-                             IndexType type,
-                             std::string columnName,
-                             bool isAscending) {
+IndexInfoImpl::IndexInfoImpl(std::string name, IndexType type,
+                             std::string columnName, bool isAscending) {
   m_indexInfoData = new IndexInfoData();
   m_indexInfoData->Name = std::move(name);
   m_indexInfoData->IsAscending = isAscending;
@@ -26,9 +24,7 @@ IndexInfoImpl::IndexInfoImpl(std::string name,
   m_indexInfoData->ColumnName = std::move(columnName);
 }
 
-IndexInfoImpl::IndexInfoImpl()
-    : m_indexInfoData(new IndexInfoData()) {
-}
+IndexInfoImpl::IndexInfoImpl() : m_indexInfoData(new IndexInfoData()) {}
 
 IndexInfoImpl::IndexInfoImpl(const IndexInfoImpl& other) {
   if (this != &other) {

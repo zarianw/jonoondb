@@ -1,5 +1,5 @@
-#include <assert.h>
 #include "guard_funcs.h"
+#include <assert.h>
 #include "field.h"
 #include "sqlite3.h"
 
@@ -15,7 +15,7 @@ void GuardFuncs::SQLite3Close(sqlite3* db) {
     int code = sqlite3_close(db);
     assert(code == SQLITE_OK);
     if (code == SQLITE_BUSY) {
-      //Todo: Handle SQLITE_BUSY response here
+      // Todo: Handle SQLITE_BUSY response here
     }
   }
 }

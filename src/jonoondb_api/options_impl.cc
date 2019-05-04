@@ -4,15 +4,15 @@ using namespace jonoondb_api;
 
 OptionsImpl::OptionsImpl() {
   m_createDBIfMissing = true;
-  m_maxDataFileSize = 1024L * 1024L * 512L; // 512 MB
-  m_memCleanupThresholdInBytes = 1024LL * 1024LL * 1024LL * 4LL; // 4 GB
+  m_maxDataFileSize = 1024L * 1024L * 512L;                       // 512 MB
+  m_memCleanupThresholdInBytes = 1024LL * 1024LL * 1024LL * 4LL;  // 4 GB
 }
 
 OptionsImpl::OptionsImpl(bool createDBIfMissing, size_t maxDataFileSize,
-                         std::size_t memClenupThresholdInBytes) :
-    m_createDBIfMissing(createDBIfMissing), m_maxDataFileSize(maxDataFileSize),    
-    m_memCleanupThresholdInBytes(memClenupThresholdInBytes) {
-}
+                         std::size_t memClenupThresholdInBytes)
+    : m_createDBIfMissing(createDBIfMissing),
+      m_maxDataFileSize(maxDataFileSize),
+      m_memCleanupThresholdInBytes(memClenupThresholdInBytes) {}
 
 void OptionsImpl::SetCreateDBIfMissing(bool value) {
   m_createDBIfMissing = value;

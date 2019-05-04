@@ -1,13 +1,13 @@
-#include <sstream>
-#include <boost/utility/string_ref.hpp>
-#include "gsl/span.h"
 #include "cdatabase.h"
-#include "options_impl.h"
-#include "database_impl.h"
-#include "jonoondb_exceptions.h"
-#include "index_info_impl.h"
-#include "enums.h"
+#include <boost/utility/string_ref.hpp>
+#include <sstream>
 #include "buffer_impl.h"
+#include "database_impl.h"
+#include "enums.h"
+#include "gsl/span.h"
+#include "index_info_impl.h"
+#include "jonoondb_exceptions.h"
+#include "options_impl.h"
 #include "resultset_impl.h"
 #include "status_impl.h"
 #include "write_options_impl.h"
@@ -23,9 +23,8 @@ extern "C" {
 //
 struct status {
   status(std::size_t code, const char* message, const char* srcFileName,
-         const char* funcName, std::size_t lineNum) :
-      impl(code, message, srcFileName, funcName, lineNum) {
-  }
+         const char* funcName, std::size_t lineNum)
+      : impl(code, message, srcFileName, funcName, lineNum) {}
 
   StatusImpl impl;
 };
@@ -53,12 +52,12 @@ const char* jonoondb_status_function(status_ptr sts) {
 uint64_t jonoondb_status_line(status_ptr sts) {
   return sts->impl.GetLineNumber();
 }
-} // extern "C"
+}  // extern "C"
 
 namespace jonoondb_api {
 // Returns true if fn executed without throwing an error, false otherwise.
 // If calling fn threw an error, capture it in *out_error.
-template<typename Fn>
+template <typename Fn>
 bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
   bool retVal = false;
   try {
@@ -66,100 +65,66 @@ bool TranslateExceptions(Fn&& fn, status_ptr& sts) {
     retVal = true;
   } catch (const InvalidArgumentException& ex) {
     sts = new status(jonoondb_status_codes::status_invalidargumentcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const MissingDatabaseFileException& ex) {
     sts = new status(jonoondb_status_codes::status_missingdatabasefilecode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const MissingDatabaseFolderException& ex) {
     sts = new status(jonoondb_status_codes::status_missingdatabasefoldercode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const OutOfMemoryException& ex) {
     sts = new status(jonoondb_status_codes::status_outofmemoryerrorcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const DuplicateKeyException& ex) {
     sts = new status(jonoondb_status_codes::status_duplicatekeyerrorcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const CollectionAlreadyExistException& ex) {
     sts = new status(jonoondb_status_codes::status_collectionalreadyexistcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const IndexAlreadyExistException& ex) {
     sts = new status(jonoondb_status_codes::status_indexalreadyexistcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const CollectionNotFoundException& ex) {
     sts = new status(jonoondb_status_codes::status_collectionnotfoundcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const InvalidSchemaException& ex) {
     sts = new status(jonoondb_status_codes::status_invalidschemaerrorcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const IndexOutOfBoundException& ex) {
     sts = new status(jonoondb_status_codes::status_indexoutofbounderrorcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+                     ex.what(), ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const SQLException& ex) {
-    sts = new status(jonoondb_status_codes::status_sqlerrorcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+    sts = new status(jonoondb_status_codes::status_sqlerrorcode, ex.what(),
+                     ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const FileIOException& ex) {
-    sts = new status(jonoondb_status_codes::status_fileioerrorcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+    sts = new status(jonoondb_status_codes::status_fileioerrorcode, ex.what(),
+                     ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const ApiMisuseException& ex) {
-    sts = new status(jonoondb_status_codes::status_apimisusecode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+    sts = new status(jonoondb_status_codes::status_apimisusecode, ex.what(),
+                     ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const JonoonDBException& ex) {
-    sts = new status(jonoondb_status_codes::status_genericerrorcode,
-                     ex.what(),
-                     ex.GetSourceFileName(),
-                     ex.GetFunctionName(),
+    sts = new status(jonoondb_status_codes::status_genericerrorcode, ex.what(),
+                     ex.GetSourceFileName(), ex.GetFunctionName(),
                      ex.GetLineNumber());
   } catch (const std::exception& ex) {
-    sts = new status(jonoondb_status_codes::status_genericerrorcode,
-                     ex.what(),
-                     "",
-                     "",
-                     0);
+    sts = new status(jonoondb_status_codes::status_genericerrorcode, ex.what(),
+                     "", "", 0);
   } catch (...) {
     sts = new status(jonoondb_status_codes::status_genericerrorcode,
-                     "Unknown Error.",
-                     "",
-                     "",
-                     0);
+                     "Unknown Error.", "", "", 0);
   }
 
   return retVal;
@@ -175,10 +140,9 @@ IndexType ToIndexType(std::int32_t type) {
       return static_cast<IndexType>(type);
     default:
       throw InvalidArgumentException(
-          "Argument type is not valid. Allowed values are {INVERTED_COMPRESSED_BITMAP = 1, VECTOR = 2}.",
-          __FILE__,
-          __func__,
-          __LINE__);
+          "Argument type is not valid. Allowed values are "
+          "{INVERTED_COMPRESSED_BITMAP = 1, VECTOR = 2}.",
+          __FILE__, __func__, __LINE__);
   }
 }
 
@@ -189,27 +153,22 @@ SchemaType ToSchemaType(std::int32_t type) {
     default:
       throw InvalidArgumentException(
           "Argument type is not valid. Allowed values are {FLAT_BUFFERS = 1}.",
-          __FILE__,
-          __func__,
-          __LINE__);
+          __FILE__, __func__, __LINE__);
   }
 }
 
-} // jonoondb_api
+}  // namespace jonoondb_api
 
 extern "C" {
 //
 // Options
 //
 struct options {
-  options() : impl() { }
+  options() : impl() {}
 
   options(bool createDBIfMissing, uint64_t maxDataFileSize,
-          uint64_t memCleanupThresholdInBytes) :
-      impl(createDBIfMissing,
-           maxDataFileSize,
-           memCleanupThresholdInBytes) {
-  }
+          uint64_t memCleanupThresholdInBytes)
+      : impl(createDBIfMissing, maxDataFileSize, memCleanupThresholdInBytes) {}
 
   OptionsImpl impl;
 };
@@ -227,11 +186,12 @@ options_ptr jonoondb_options_construct2(bool createDBIfMissing,
                                         uint64_t memCleanupThresholdInBytes,
                                         status_ptr* sts) {
   options_ptr val = nullptr;
-  TranslateExceptions([&] {
-    val = new options(createDBIfMissing,
-                      maxDataFileSize,
-                      memCleanupThresholdInBytes);
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        val = new options(createDBIfMissing, maxDataFileSize,
+                          memCleanupThresholdInBytes);
+      },
+      *sts);
 
   return val;
 }
@@ -271,9 +231,8 @@ void jonoondb_options_setmemorycleanupthreshold(options_ptr opt,
 struct write_options {
   write_options() : impl() {}
 
-  write_options(bool compress, bool verifyDocuments) :
-    impl(compress, verifyDocuments) {
-  }
+  write_options(bool compress, bool verifyDocuments)
+      : impl(compress, verifyDocuments) {}
 
   WriteOptionsImpl impl;
 };
@@ -300,8 +259,7 @@ bool jonoondb_write_options_get_compress(write_options_ptr opt) {
   return opt->impl.compress;
 }
 
-void jonoondb_write_options_set_compress(write_options_ptr opt,
-                                         bool value) {
+void jonoondb_write_options_set_compress(write_options_ptr opt, bool value) {
   opt->impl.compress = value;
 }
 
@@ -318,15 +276,11 @@ void jonoondb_write_options_set_verify_documents(write_options_ptr opt,
 // IndexInfo
 //
 struct indexinfo {
-  indexinfo() : impl() {
-  }
+  indexinfo() : impl() {}
 
-  indexinfo(const char* indexName,
-            IndexType type,
-            const char* columnName,
-            bool isAscending) :
-      impl(indexName, type, columnName, isAscending) {
-  }
+  indexinfo(const char* indexName, IndexType type, const char* columnName,
+            bool isAscending)
+      : impl(indexName, type, columnName, isAscending) {}
 
   IndexInfoImpl impl;
 };
@@ -335,18 +289,16 @@ indexinfo_ptr jonoondb_indexinfo_construct() {
   return new indexinfo();
 }
 
-indexinfo_ptr jonoondb_indexinfo_construct2(const char* indexName,
-                                            int32_t type,
+indexinfo_ptr jonoondb_indexinfo_construct2(const char* indexName, int32_t type,
                                             const char* columnName,
-                                            bool isAscending,
-                                            status_ptr* sts) {
+                                            bool isAscending, status_ptr* sts) {
   indexinfo_ptr indexInfo = nullptr;
-  TranslateExceptions([&] {
-    indexInfo = new indexinfo(indexName,
-                              jonoondb_api::ToIndexType(type),
-                              columnName,
-                              isAscending);
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        indexInfo = new indexinfo(indexName, jonoondb_api::ToIndexType(type),
+                                  columnName, isAscending);
+      },
+      *sts);
 
   return indexInfo;
 }
@@ -393,24 +345,17 @@ bool jonoondb_indexinfo_getisascending(indexinfo_ptr indexInfo) {
 // BufferImpl
 //
 struct jonoondb_buffer {
-  jonoondb_buffer() { }
-  jonoondb_buffer(size_t bufferCapacityInBytes)
-      : impl(bufferCapacityInBytes) { }
-  jonoondb_buffer(const char* buffer,
-                  size_t bufferLengthInBytes,
-                  size_t bufferCapacityInBytes) :
-      impl(buffer, bufferLengthInBytes, bufferCapacityInBytes) {
-  }
-  jonoondb_buffer(char* buffer,
-                  size_t bufferLengthInBytes,
+  jonoondb_buffer() {}
+  jonoondb_buffer(size_t bufferCapacityInBytes) : impl(bufferCapacityInBytes) {}
+  jonoondb_buffer(const char* buffer, size_t bufferLengthInBytes,
+                  size_t bufferCapacityInBytes)
+      : impl(buffer, bufferLengthInBytes, bufferCapacityInBytes) {}
+  jonoondb_buffer(char* buffer, size_t bufferLengthInBytes,
                   size_t bufferCapacityInBytes,
-                  void(* customDeleterFunc)(char*)) :
-      impl(buffer,
-           bufferLengthInBytes,
-           bufferCapacityInBytes,
-           customDeleterFunc) {
-  }
-  jonoondb_buffer(const BufferImpl& other) : impl(other) { }
+                  void (*customDeleterFunc)(char*))
+      : impl(buffer, bufferLengthInBytes, bufferCapacityInBytes,
+             customDeleterFunc) {}
+  jonoondb_buffer(const BufferImpl& other) : impl(other) {}
 
   BufferImpl impl;
 };
@@ -422,9 +367,8 @@ jonoondb_buffer_ptr jonoondb_buffer_construct() {
 jonoondb_buffer_ptr jonoondb_buffer_construct2(uint64_t bufferCapacityInBytes,
                                                status_ptr* sts) {
   jonoondb_buffer_ptr retVal = nullptr;
-  TranslateExceptions([&] {
-    retVal = new jonoondb_buffer(bufferCapacityInBytes);
-  }, *sts);
+  TranslateExceptions(
+      [&] { retVal = new jonoondb_buffer(bufferCapacityInBytes); }, *sts);
 
   return retVal;
 }
@@ -434,10 +378,12 @@ jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
                                                uint64_t bufferCapacityInBytes,
                                                status_ptr* sts) {
   jonoondb_buffer_ptr retVal = nullptr;
-  TranslateExceptions([&] {
-    retVal = new jonoondb_buffer(buffer, bufferLengthInBytes,
-                                 bufferCapacityInBytes);
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        retVal = new jonoondb_buffer(buffer, bufferLengthInBytes,
+                                     bufferCapacityInBytes);
+      },
+      *sts);
 
   return retVal;
 }
@@ -445,13 +391,15 @@ jonoondb_buffer_ptr jonoondb_buffer_construct3(const char* buffer,
 jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
                                                uint64_t bufferLengthInBytes,
                                                uint64_t bufferCapacityInBytes,
-                                               void(* customDeleterFunc)(char*),
+                                               void (*customDeleterFunc)(char*),
                                                status_ptr* sts) {
   jonoondb_buffer_ptr retVal = nullptr;
-  TranslateExceptions([&] {
-    retVal = new jonoondb_buffer(buffer, bufferLengthInBytes,
-                                 bufferCapacityInBytes, customDeleterFunc);
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        retVal = new jonoondb_buffer(buffer, bufferLengthInBytes,
+                                     bufferCapacityInBytes, customDeleterFunc);
+      },
+      *sts);
 
   return retVal;
 }
@@ -459,9 +407,7 @@ jonoondb_buffer_ptr jonoondb_buffer_construct4(char* buffer,
 jonoondb_buffer_ptr jonoondb_buffer_copy_construct(jonoondb_buffer_ptr buf,
                                                    status_ptr* sts) {
   jonoondb_buffer_ptr retVal = nullptr;
-  TranslateExceptions([&] {
-    retVal = new jonoondb_buffer(buf->impl);
-  }, *sts);
+  TranslateExceptions([&] { retVal = new jonoondb_buffer(buf->impl); }, *sts);
 
   return retVal;
 }
@@ -473,9 +419,7 @@ void jonoondb_buffer_destruct(jonoondb_buffer_ptr buf) {
 void jonoondb_buffer_copy_assignment(jonoondb_buffer_ptr self,
                                      jonoondb_buffer_ptr other,
                                      status_ptr* sts) {
-  TranslateExceptions([&] {
-    self->impl = other->impl;
-  }, *sts);
+  TranslateExceptions([&] { self->impl = other->impl; }, *sts);
 }
 
 int32_t jonoondb_buffer_op_lessthan(jonoondb_buffer_ptr self,
@@ -508,21 +452,16 @@ int32_t jonoondb_buffer_op_notequal(jonoondb_buffer_ptr self,
   return (self->impl != other->impl ? 1 : 0);
 }
 
-void jonoondb_buffer_copy(jonoondb_buffer_ptr buf,
-                          const char* srcBuf,
-                          uint64_t bytesToCopy,
-                          status_ptr* sts) {
-  TranslateExceptions([&] {
-    buf->impl.Copy(srcBuf, bytesToCopy);
-  }, *sts);
+void jonoondb_buffer_copy(jonoondb_buffer_ptr buf, const char* srcBuf,
+                          uint64_t bytesToCopy, status_ptr* sts) {
+  TranslateExceptions([&] { buf->impl.Copy(srcBuf, bytesToCopy); }, *sts);
 }
 
 void jonoondb_buffer_resize(jonoondb_buffer_ptr buf,
                             uint64_t newBufferCapacityInBytes,
                             status_ptr* sts) {
-  TranslateExceptions([&] {
-    buf->impl.Resize(newBufferCapacityInBytes);
-  }, *sts);
+  TranslateExceptions([&] { buf->impl.Resize(newBufferCapacityInBytes); },
+                      *sts);
 }
 
 const char* jonoondb_buffer_getdata(jonoondb_buffer_ptr buf) {
@@ -541,8 +480,7 @@ uint64_t jonoondb_buffer_getcapacity(jonoondb_buffer_ptr buf) {
 // ResultSet Functions
 //
 struct resultset {
-  resultset(ResultSetImpl&& val) : impl(std::move(val)) {
-  }
+  resultset(ResultSetImpl&& val) : impl(std::move(val)) {}
 
   ResultSetImpl impl;
 };
@@ -559,47 +497,42 @@ int32_t jonoondb_resultset_next(resultset_ptr rs) {
   }
 }
 
-int64_t jonoondb_resultset_getinteger(resultset_ptr rs,
-                                      int32_t columnIndex,
+int64_t jonoondb_resultset_getinteger(resultset_ptr rs, int32_t columnIndex,
                                       status_ptr* sts) {
   int64_t val;
-  TranslateExceptions([&] {
-    val = rs->impl.GetInteger(columnIndex);
-  }, *sts);
+  TranslateExceptions([&] { val = rs->impl.GetInteger(columnIndex); }, *sts);
   return val;
 }
 
-double jonoondb_resultset_getdouble(resultset_ptr rs,
-                                    int32_t columnIndex,
+double jonoondb_resultset_getdouble(resultset_ptr rs, int32_t columnIndex,
                                     status_ptr* sts) {
   double val;
-  TranslateExceptions([&] {
-    val = rs->impl.GetDouble(columnIndex);
-  }, *sts);
+  TranslateExceptions([&] { val = rs->impl.GetDouble(columnIndex); }, *sts);
   return val;
 }
 
-const char* jonoondb_resultset_getstring(resultset_ptr rs,
-                                         int32_t columnIndex,
+const char* jonoondb_resultset_getstring(resultset_ptr rs, int32_t columnIndex,
                                          uint64_t** retValSize,
                                          status_ptr* sts) {
   char* strPtr;
-  TranslateExceptions([&] {
-    const std::string& str = rs->impl.GetString(columnIndex);
-    **retValSize = str.size();
-    strPtr = const_cast<char*>(str.c_str());
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        const std::string& str = rs->impl.GetString(columnIndex);
+        **retValSize = str.size();
+        strPtr = const_cast<char*>(str.c_str());
+      },
+      *sts);
   return strPtr;
 }
 
-const char* jonoondb_resultset_getblob(resultset_ptr rs,
-                                       int32_t columnIndex,
-                                       uint64_t** retValSize,
-                                       status_ptr* sts) {
+const char* jonoondb_resultset_getblob(resultset_ptr rs, int32_t columnIndex,
+                                       uint64_t** retValSize, status_ptr* sts) {
   char* blob;
-  TranslateExceptions([&] {
-    blob = const_cast<char*>(rs->impl.GetBlob(columnIndex, **retValSize));    
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        blob = const_cast<char*>(rs->impl.GetBlob(columnIndex, **retValSize));
+      },
+      *sts);
   return blob;
 }
 
@@ -608,10 +541,12 @@ int32_t jonoondb_resultset_getcolumnindex(resultset_ptr rs,
                                           uint64_t columnLabelLength,
                                           status_ptr* sts) {
   int32_t val;
-  TranslateExceptions([&] {
-    boost::string_ref strRef(columnLabel, columnLabelLength);
-    val = rs->impl.GetColumnIndex(strRef);
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        boost::string_ref strRef(columnLabel, columnLabelLength);
+        val = rs->impl.GetColumnIndex(strRef);
+      },
+      *sts);
   return val;
 }
 
@@ -619,13 +554,12 @@ int32_t jonoondb_resultset_getcolumncount(resultset_ptr rs) {
   return rs->impl.GetColumnCount();
 }
 
-int32_t jonoondb_resultset_getcolumntype(resultset_ptr rs,
-                                         int32_t columnIndex,
+int32_t jonoondb_resultset_getcolumntype(resultset_ptr rs, int32_t columnIndex,
                                          status_ptr* sts) {
   int32_t val;
-  TranslateExceptions([&] {
-    val = static_cast<int32_t>(rs->impl.GetColumnType(columnIndex));
-  }, *sts);
+  TranslateExceptions(
+      [&] { val = static_cast<int32_t>(rs->impl.GetColumnType(columnIndex)); },
+      *sts);
   return val;
 }
 
@@ -634,20 +568,20 @@ const char* jonoondb_resultset_getcolumnlabel(resultset_ptr rs,
                                               uint64_t** retValSize,
                                               status_ptr* sts) {
   char* strPtr;
-  TranslateExceptions([&] {
-    const std::string& str = rs->impl.GetColumnLabel(columnIndex);
-    **retValSize = str.size();
-    strPtr = const_cast<char*>(str.c_str());
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        const std::string& str = rs->impl.GetColumnLabel(columnIndex);
+        **retValSize = str.size();
+        strPtr = const_cast<char*>(str.c_str());
+      },
+      *sts);
   return strPtr;
 }
 
 int32_t jonoondb_resultset_isnull(resultset_ptr rs, int32_t columnIndex,
                                   status_ptr* sts) {
   bool val;
-  TranslateExceptions([&] {
-    val = rs->impl.IsNull(columnIndex);
-  }, *sts);
+  TranslateExceptions([&] { val = rs->impl.IsNull(columnIndex); }, *sts);
 
   return val ? 1 : 0;
 }
@@ -657,20 +591,17 @@ int32_t jonoondb_resultset_isnull(resultset_ptr rs, int32_t columnIndex,
 //
 struct database {
   database(const char* dbPath, const char* dbName, const OptionsImpl& opt)
-      : impl(dbPath, dbName, opt) {
-  }
+      : impl(dbPath, dbName, opt) {}
 
   DatabaseImpl impl;
 };
 
-database_ptr jonoondb_database_construct(const char* dbPath,
-                                         const char* dbName,
+database_ptr jonoondb_database_construct(const char* dbPath, const char* dbName,
                                          const options_ptr opt,
                                          status_ptr* sts) {
   database_ptr db = nullptr;
-  TranslateExceptions([&] {
-    db = new database(dbPath, dbName, opt->impl);
-  }, *sts);
+  TranslateExceptions([&] { db = new database(dbPath, dbName, opt->impl); },
+                      *sts);
 
   return db;
 }
@@ -679,54 +610,53 @@ void jonoondb_database_destruct(database_ptr db) {
   delete db;
 }
 
-void jonoondb_database_createcollection(database_ptr db,
-                                        const char* name,
-                                        int32_t schemaType,
-                                        const char* schema,
+void jonoondb_database_createcollection(database_ptr db, const char* name,
+                                        int32_t schemaType, const char* schema,
                                         uint64_t schemaSize,
                                         indexinfo_ptr* indexes,
                                         uint64_t indexesLength,
                                         status_ptr* sts) {
-  TranslateExceptions([&] {
-    // Todo: We should use array_view here from GSL. That can speedup this and will also be more clean.
-    std::vector<IndexInfoImpl*> vec;
-    for (uint64_t i = 0; i < indexesLength; i++) {
-      vec.push_back(&indexes[i]->impl);
-    }
-    std::string schemaBuffer(schema, schemaSize);
-    db->impl.CreateCollection(name,
-                              ToSchemaType(schemaType),
-                              schemaBuffer,
-                              vec);
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        // Todo: We should use array_view here from GSL. That can speedup this
+        // and will also be more clean.
+        std::vector<IndexInfoImpl*> vec;
+        for (uint64_t i = 0; i < indexesLength; i++) {
+          vec.push_back(&indexes[i]->impl);
+        }
+        std::string schemaBuffer(schema, schemaSize);
+        db->impl.CreateCollection(name, ToSchemaType(schemaType), schemaBuffer,
+                                  vec);
+      },
+      *sts);
 }
 
-void jonoondb_database_insert(database_ptr db,
-                              const char* collectionName,
+void jonoondb_database_insert(database_ptr db, const char* collectionName,
                               const jonoondb_buffer_ptr documentData,
-                              const write_options_ptr wo,
-                              status_ptr* sts) {
-  TranslateExceptions([&] {
-    db->impl.Insert(collectionName, documentData->impl, wo->impl);
-  }, *sts);
+                              const write_options_ptr wo, status_ptr* sts) {
+  TranslateExceptions(
+      [&] { db->impl.Insert(collectionName, documentData->impl, wo->impl); },
+      *sts);
 }
 
-void jonoondb_database_multi_insert(database_ptr db,
-                                    const char* collectionName,
+void jonoondb_database_multi_insert(database_ptr db, const char* collectionName,
                                     uint64_t collectionNameLength,
                                     const jonoondb_buffer_ptr* documentArr,
                                     uint64_t documentArrLength,
                                     const write_options_ptr wo,
                                     status_ptr* sts) {
-  TranslateExceptions([&] {
-    boost::string_ref colName(collectionName, collectionNameLength);
-    static_assert(sizeof(jonoondb_buffer) == sizeof(BufferImpl),
-                  "Critical Error. Size assumptions not correct for jonoondb_buffer & BufferImpl.");
-    // Todo: Use a safer cast than C Style cast
-    const BufferImpl** start = (const BufferImpl**)documentArr;
-    gsl::span<const BufferImpl*> documents(start, documentArrLength);
-    db->impl.MultiInsert(colName, documents, wo->impl);
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        boost::string_ref colName(collectionName, collectionNameLength);
+        static_assert(sizeof(jonoondb_buffer) == sizeof(BufferImpl),
+                      "Critical Error. Size assumptions not correct for "
+                      "jonoondb_buffer & BufferImpl.");
+        // Todo: Use a safer cast than C Style cast
+        const BufferImpl** start = (const BufferImpl**)documentArr;
+        gsl::span<const BufferImpl*> documents(start, documentArrLength);
+        db->impl.MultiInsert(colName, documents, wo->impl);
+      },
+      *sts);
 }
 
 resultset_ptr jonoondb_database_executeselect(database_ptr db,
@@ -735,10 +665,12 @@ resultset_ptr jonoondb_database_executeselect(database_ptr db,
                                               status_ptr* sts) {
   resultset_ptr val;
   // Todo: Use string_view for performance improvement
-  TranslateExceptions([&] {
-    std::string selectStatement(selectStmt, selectStmtLength);
-    val = new resultset(db->impl.ExecuteSelect(selectStatement));
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        std::string selectStatement(selectStmt, selectStmtLength);
+        val = new resultset(db->impl.ExecuteSelect(selectStatement));
+      },
+      *sts);
 
   return val;
 }
@@ -749,12 +681,14 @@ JONOONDB_API_EXPORT int64_t jonoondb_database_delete(database_ptr db,
                                                      status_ptr* sts) {
   int64_t val;
   // Todo: Use string_view for performance improvement
-  TranslateExceptions([&] {
-    std::string deleteStatement(deleteStmt, deleteStmtLength);
-    val = db->impl.Delete(deleteStatement);
-  }, *sts);
+  TranslateExceptions(
+      [&] {
+        std::string deleteStatement(deleteStmt, deleteStmtLength);
+        val = db->impl.Delete(deleteStatement);
+      },
+      *sts);
 
   return val;
 }
 
-} // extern "C"
+}  // extern "C"

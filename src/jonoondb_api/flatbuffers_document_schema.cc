@@ -1,42 +1,41 @@
+#include "jonoondb_api/flatbuffers_document_schema.h"
+#include <boost/tokenizer.hpp>
 #include <memory>
 #include <string>
-#include <boost/tokenizer.hpp>
 #include "flatbuffers/idl.h"
 #include "flatbuffers/reflection.h"
-#include "jonoondb_api/flatbuffers_document_schema.h"
 #include "jonoondb_api/enums.h"
-#include "jonoondb_api/string_utils.h"
 #include "jonoondb_api/exception_utils.h"
-#include "jonoondb_api/flatbuffers_field.h"
 #include "jonoondb_api/field.h"
+#include "jonoondb_api/flatbuffers_field.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
+#include "jonoondb_api/string_utils.h"
 
 using namespace std;
 using namespace jonoondb_api;
 using namespace boost;
 
-FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(std::string binarySchema) :
-    m_binarySchema(move(binarySchema)) {
+FlatbuffersDocumentSchema::FlatbuffersDocumentSchema(std::string binarySchema)
+    : m_binarySchema(move(binarySchema)) {
   flatbuffers::Verifier verifier(
-      reinterpret_cast<const std::uint8_t*>(
-          m_binarySchema.c_str()), m_binarySchema.size());
+      reinterpret_cast<const std::uint8_t*>(m_binarySchema.c_str()),
+      m_binarySchema.size());
 
   if (!reflection::VerifySchemaBuffer(verifier)) {
     throw InvalidSchemaException(
-        "Schema verification failed for flatbuffers binary schema.",
-        __FILE__, __func__, __LINE__);
+        "Schema verification failed for flatbuffers binary schema.", __FILE__,
+        __func__, __LINE__);
   }
 
   // TODO: Add more checks for schema
   // 1. Maybe dont support UINT64
   // 2. Check if union types have no fields with same name and different types
 
-  m_schema =
-      const_cast<reflection::Schema*>(reflection::GetSchema(m_binarySchema.c_str()));
+  m_schema = const_cast<reflection::Schema*>(
+      reflection::GetSchema(m_binarySchema.c_str()));
 }
 
-FlatbuffersDocumentSchema::~FlatbuffersDocumentSchema() {
-}
+FlatbuffersDocumentSchema::~FlatbuffersDocumentSchema() {}
 
 const std::string& FlatbuffersDocumentSchema::GetSchemaText() const {
   return m_binarySchema;
@@ -46,11 +45,12 @@ SchemaType FlatbuffersDocumentSchema::GetSchemaType() const {
   return SchemaType::FLAT_BUFFERS;
 }
 
-FieldType FlatbuffersDocumentSchema::GetFieldType(const std::string& fieldName) const {
+FieldType FlatbuffersDocumentSchema::GetFieldType(
+    const std::string& fieldName) const {
   // The fieldName is dot(.) sperated e.g. Field1.Field2.Field3
   if (fieldName.size() == 0) {
-    throw InvalidArgumentException("Argument fieldName is empty.",
-                                   __FILE__, __func__, __LINE__);
+    throw InvalidArgumentException("Argument fieldName is empty.", __FILE__,
+                                   __func__, __LINE__);
   }
 
   char_separator<char> sep(".");
@@ -61,15 +61,16 @@ FieldType FlatbuffersDocumentSchema::GetFieldType(const std::string& fieldName) 
   for (size_t i = 0; i < tokenVec.size() - 1; i++) {
     auto fieldDef = refObj->fields()->LookupByKey(tokenVec[i].c_str());
     if (fieldDef == nullptr) {
-      throw JonoonDBException(ExceptionUtils::GetMissingFieldErrorString(
-          tokenVec[i]),
-                              __FILE__, __func__, __LINE__);
+      throw JonoonDBException(
+          ExceptionUtils::GetMissingFieldErrorString(tokenVec[i]), __FILE__,
+          __func__, __LINE__);
     }
 
     if (fieldDef->type()->base_type() != reflection::BaseType::Obj) {
       // TODO: Remove once unions are supported
       throw JonoonDBException(ExceptionUtils::GetInvalidStructFieldErrorString(
-          tokenVec[i], fieldName), __FILE__, __func__, __LINE__);
+                                  tokenVec[i], fieldName),
+                              __FILE__, __func__, __LINE__);
     }
 
     refObj = m_schema->objects()->Get(fieldDef->type()->index());
@@ -78,13 +79,14 @@ FieldType FlatbuffersDocumentSchema::GetFieldType(const std::string& fieldName) 
   auto fieldDef =
       refObj->fields()->LookupByKey(tokenVec[tokenVec.size() - 1].c_str());
   if (fieldDef == nullptr) {
-    throw JonoonDBException(ExceptionUtils::GetMissingFieldErrorString(fieldName),
-                            __FILE__, __func__, __LINE__);
+    throw JonoonDBException(
+        ExceptionUtils::GetMissingFieldErrorString(fieldName), __FILE__,
+        __func__, __LINE__);
   }
 
   FlatbuffersField fbField;
   fbField.SetMembers(const_cast<reflection::Field*>(fieldDef), m_schema);
-  return fbField.GetType();  
+  return fbField.GetType();
 }
 
 std::size_t FlatbuffersDocumentSchema::GetRootFieldCount() const {
@@ -95,8 +97,9 @@ void FlatbuffersDocumentSchema::GetRootField(size_t index,
                                              Field*& field) const {
   FlatbuffersField* fbField = dynamic_cast<FlatbuffersField*>(field);
   if (fbField == nullptr) {
-    // This means that the passed in doc cannot be casted to FlatbuffersDocument    
-    string errorMsg = "Argument field cannot be casted to underlying field "
+    // This means that the passed in doc cannot be casted to FlatbuffersDocument
+    string errorMsg =
+        "Argument field cannot be casted to underlying field "
         "implementation i.e. FlatbuffersField. "
         "Make sure you are creating the val by calling AllocateField call.";
     throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
@@ -104,14 +107,12 @@ void FlatbuffersDocumentSchema::GetRootField(size_t index,
 
   if (index > GetRootFieldCount() - 1) {
     throw IndexOutOfBoundException("Index was outside the bounds of the array.",
-                                   __FILE__,
-                                   __func__,
-                                   __LINE__);
+                                   __FILE__, __func__, __LINE__);
   }
   auto rootField = m_schema->root_table()->fields()->Get(index);
-  fbField->SetMembers(
-      const_cast<reflection::Field*>(
-          m_schema->root_table()->fields()->Get(index)), m_schema);
+  fbField->SetMembers(const_cast<reflection::Field*>(
+                          m_schema->root_table()->fields()->Get(index)),
+                      m_schema);
 }
 
 Field* FlatbuffersDocumentSchema::AllocateField() const {
@@ -136,10 +137,9 @@ FieldType FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
       break;
     case reflection::ULong:
       throw JonoonDBException(
-          "Cannot map flatbuffers ULong type. JonoonDB does not support this type.",
-          __FILE__,
-          __func__,
-          __LINE__);
+          "Cannot map flatbuffers ULong type. JonoonDB does not support this "
+          "type.",
+          __FILE__, __func__, __LINE__);
     case reflection::Float:
       return FieldType::FLOAT;
     case reflection::Double:
@@ -155,7 +155,8 @@ FieldType FlatbuffersDocumentSchema::MapFlatbuffersToJonoonDBType(
     default: {
       std::ostringstream ss;
       ss << "Cannot map flatbuffers field type to JonoonDB field type. "
-          "Unknown type " << flatbuffersType << " encountered.";
+            "Unknown type "
+         << flatbuffersType << " encountered.";
       throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
