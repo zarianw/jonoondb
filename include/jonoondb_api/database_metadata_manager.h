@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 // Forward declarations
 struct sqlite3;
