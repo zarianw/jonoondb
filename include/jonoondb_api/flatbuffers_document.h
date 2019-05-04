@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "flatbuffers/reflection.h"
 #include "document.h"
+#include "flatbuffers/reflection.h"
 
 namespace jonoondb_api {
 
@@ -10,28 +10,28 @@ namespace jonoondb_api {
 class FlatbuffersDocumentSchema;
 class BufferImpl;
 
-class FlatbuffersDocument final: public Document {
+class FlatbuffersDocument final : public Document {
  public:
-  FlatbuffersDocument(
-      FlatbuffersDocumentSchema* fbDocumentSchema, BufferImpl* buffer);
+  FlatbuffersDocument(FlatbuffersDocumentSchema* fbDocumentSchema,
+                      BufferImpl* buffer);
 
   std::string GetStringValue(const std::string& fieldName) const override;
   const char* GetStringValue(const std::string& fieldName,
                              std::size_t& size) const override;
 
-  std::int64_t
-      GetIntegerValueAsInt64(const std::string& fieldName) const override;
+  std::int64_t GetIntegerValueAsInt64(
+      const std::string& fieldName) const override;
   double GetFloatingValueAsDouble(const std::string& fieldName) const override;
 
-  bool TryGetDocumentValue(const std::string& fieldName, Document& val) const
-      override;
+  bool TryGetDocumentValue(const std::string& fieldName,
+                           Document& val) const override;
 
   const char* GetBlobValue(const std::string& fieldName,
                            std::size_t& size) const override;
 
   std::unique_ptr<Document> AllocateSubDocument() const override;
-  void VerifyFieldForRead(const std::string& fieldName, FieldType type) const
-      override;
+  void VerifyFieldForRead(const std::string& fieldName,
+                          FieldType type) const override;
 
   void SetMembers(FlatbuffersDocumentSchema* schema, BufferImpl* buffer,
                   reflection::Object* obj, flatbuffers::Table* table,
@@ -53,4 +53,4 @@ class FlatbuffersDocument final: public Document {
   flatbuffers::Struct* m_struct = nullptr;
 };
 
-}  // jonoondb_api
+}  // namespace jonoondb_api

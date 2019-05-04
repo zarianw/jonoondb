@@ -1,12 +1,12 @@
 #pragma once
 
+#include <boost/thread/lock_types.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <map>
 #include <memory>
-#include <boost/thread/shared_mutex.hpp>
-#include <boost/thread/lock_types.hpp>
 
 namespace jonoondb_api {
-template<class T1, class T2>
+template <class T1, class T2>
 class ConcurrentMap {
  public:
   void Add(const T1& key, const std::shared_ptr<T2>& value) {
@@ -31,4 +31,4 @@ class ConcurrentMap {
   std::map<T1, std::shared_ptr<T2>> m_map;
   boost::shared_mutex m_mutex;
 };
-}// namespace jonoondb_api
+}  // namespace jonoondb_api

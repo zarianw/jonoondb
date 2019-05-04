@@ -4,15 +4,10 @@
 #include "jonoondb_api_export.h"
 
 namespace jonoondb_api {
-enum class SchemaType
-    : std::int32_t {
-  FLAT_BUFFERS = 1
-};
+enum class SchemaType : std::int32_t { FLAT_BUFFERS = 1 };
 extern SchemaType ToSchemaType(std::int32_t type);
 
-
-enum class IndexType
-    : std::int32_t {
+enum class IndexType : std::int32_t {
   INVERTED_COMPRESSED_BITMAP = 1,
   VECTOR = 2,
 };

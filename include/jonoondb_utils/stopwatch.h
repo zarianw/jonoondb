@@ -12,7 +12,6 @@ class Stopwatch {
   bool m_isRunning;
 
  public:
-
   Stopwatch(bool startNow = false)
       : m_isRunning(false), m_prevDuration(std::chrono::nanoseconds::zero()) {
     if (startNow) {
@@ -78,4 +77,4 @@ class Stopwatch {
     return std::chrono::duration_cast<std::chrono::microseconds>(dur).count();
   }
 };
-} // jonoondb_utils
+}  // namespace jonoondb_utils

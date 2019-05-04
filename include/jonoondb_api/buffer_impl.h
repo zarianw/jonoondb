@@ -10,7 +10,7 @@ class BufferImpl {
   BufferImpl(const char* buffer, size_t bufferLengthInBytes,
              size_t bufferCapacityInBytes);
   BufferImpl(char* buffer, size_t bufferLengthInBytes,
-             size_t bufferCapacityInBytes, void(* customDeleterFunc)(char*));
+             size_t bufferCapacityInBytes, void (*customDeleterFunc)(char*));
   BufferImpl(BufferImpl&& other) noexcept;
   BufferImpl(const BufferImpl& other);
   BufferImpl& operator=(const BufferImpl& other);
@@ -30,9 +30,10 @@ class BufferImpl {
   void SetLength(size_t val);
 
   void Copy(const char* buffer, size_t bytesToCopy);
+
  private:
-  std::unique_ptr<char, void(*)(char*)> m_buffer;
+  std::unique_ptr<char, void (*)(char*)> m_buffer;
   size_t m_length;
-  size_t m_capacity;  
+  size_t m_capacity;
 };
-}  // jonoondb_api
+}  // namespace jonoondb_api

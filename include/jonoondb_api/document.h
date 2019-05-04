@@ -4,25 +4,24 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "jonoondb_api/null_helpers.h"
 #include "jonoondb_api/buffer_impl.h"
 #include "jonoondb_api/field.h"
+#include "jonoondb_api/null_helpers.h"
 
 namespace jonoondb_api {
 class Document {
  public:
-  virtual ~Document() {
-  }
+  virtual ~Document() {}
 
   virtual std::string GetStringValue(const std::string& fieldName) const = 0;
   virtual const char* GetStringValue(const std::string& fieldName,
                                      std::size_t& size) const = 0;
-  virtual std::int64_t
-      GetIntegerValueAsInt64(const std::string& fieldName) const = 0;
-  virtual double
-      GetFloatingValueAsDouble(const std::string& fieldName) const = 0;
-  virtual bool
-      TryGetDocumentValue(const std::string& fieldName, Document& val) const = 0;
+  virtual std::int64_t GetIntegerValueAsInt64(
+      const std::string& fieldName) const = 0;
+  virtual double GetFloatingValueAsDouble(
+      const std::string& fieldName) const = 0;
+  virtual bool TryGetDocumentValue(const std::string& fieldName,
+                                   Document& val) const = 0;
   virtual const char* GetBlobValue(const std::string& fieldName,
                                    std::size_t& size) const = 0;
   virtual std::unique_ptr<Document> AllocateSubDocument() const = 0;
@@ -33,10 +32,10 @@ class Document {
 };
 
 class DocumentUtils {
-public:
+ public:
   static bool TryGetSubDocumentRecursively(
-    const Document& parentDoc, const std::vector<std::string>& tokens,
-    Document& subDoc) {
+      const Document& parentDoc, const std::vector<std::string>& tokens,
+      Document& subDoc) {
     for (size_t i = 0; i < tokens.size() - 1; i++) {
       if (i == 0) {
         if (!parentDoc.TryGetDocumentValue(tokens[i], subDoc)) {
@@ -60,8 +59,7 @@ public:
       if (!subDoc) {
         subDoc = document.AllocateSubDocument();
       }
-      if (!DocumentUtils::TryGetSubDocumentRecursively(document,
-                                                       tokens,
+      if (!DocumentUtils::TryGetSubDocumentRecursively(document, tokens,
                                                        *subDoc.get())) {
         size = 0;
         return nullptr;
@@ -86,8 +84,7 @@ public:
       if (!subDoc) {
         subDoc = document.AllocateSubDocument();
       }
-      if (!DocumentUtils::TryGetSubDocumentRecursively(document,
-                                                       tokens,
+      if (!DocumentUtils::TryGetSubDocumentRecursively(document, tokens,
                                                        *subDoc.get())) {
         return JONOONDB_NULL_INT64;
       }
@@ -104,8 +101,7 @@ public:
       if (!subDoc) {
         subDoc = document.AllocateSubDocument();
       }
-      if (!DocumentUtils::TryGetSubDocumentRecursively(document,
-                                                       tokens,
+      if (!DocumentUtils::TryGetSubDocumentRecursively(document, tokens,
                                                        *subDoc.get())) {
         return JONOONDB_NULL_DOUBLE;
       }
@@ -123,8 +119,7 @@ public:
       if (!subDoc) {
         subDoc = document.AllocateSubDocument();
       }
-      if (!DocumentUtils::TryGetSubDocumentRecursively(document,
-                                                       tokens,
+      if (!DocumentUtils::TryGetSubDocumentRecursively(document, tokens,
                                                        *subDoc.get())) {
         return JONOONDB_NULL_STR;
       }
@@ -134,4 +129,4 @@ public:
     }
   }
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

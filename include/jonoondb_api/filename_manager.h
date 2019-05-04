@@ -1,18 +1,18 @@
 #pragma once
 
-#include <string>
+#include <boost/filesystem.hpp>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <boost/filesystem.hpp>
+#include <string>
 #include "concurrent_map.h"
 
-//Forward declarations
+// Forward declarations
 struct sqlite3;
 struct sqlite3_stmt;
 
 namespace jonoondb_api {
-//Forward declaration
+// Forward declaration
 struct FileInfo;
 
 class FileNameManager {
@@ -24,6 +24,7 @@ class FileNameManager {
   void GetNextDataFileInfo(FileInfo& fileInfo);
   void GetFileInfo(const int fileKey, std::shared_ptr<FileInfo>& fileInfo);
   void UpdateDataFileLength(int fileKey, int64_t length);
+
  private:
   void AddFileRecord(int fileKey, const std::string& fileName);
   void FinalizeStatements();
@@ -35,8 +36,8 @@ class FileNameManager {
   sqlite3_stmt* m_getFileNameStatement;
   sqlite3_stmt* m_getLastFileKeyStatement;
   sqlite3_stmt* m_updateStatement;
-  //std::map<int, std::shared_ptr<FileInfo>> m_fileInfoMap;
+  // std::map<int, std::shared_ptr<FileInfo>> m_fileInfoMap;
   ConcurrentMap<int32_t, FileInfo> m_fileInfoMap;
   std::mutex m_mutex;
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

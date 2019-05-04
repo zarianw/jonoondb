@@ -64,4 +64,4 @@ extern const char kStatusSchemaParseErrorCode;
 extern const char kStatusIndexOutOfBoundErrorCode;
 
 extern const char kStatusSQLiteErrorCode;
-}  // jonoon_api
+}  // namespace jonoondb_api

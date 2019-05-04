@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <boost/filesystem.hpp>
+#include <string>
 
 namespace jonoondb_api {
 class PathUtils {
@@ -16,4 +16,4 @@ class PathUtils {
     return normalizedPath;
   }
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

@@ -1,14 +1,14 @@
 #pragma once
 
 #include <assert.h>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include <string>
 #include <thread>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem.hpp>
-#include "sqlite3.h"
+#include "jonoondb_api/guard_funcs.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
 #include "jonoondb_api/path_utils.h"
-#include "jonoondb_api/guard_funcs.h"
+#include "sqlite3.h"
 
 namespace jonoondb_api {
 const std::chrono::milliseconds SQLiteBusyHandlerRetryIntervalInMillisecs(200);
@@ -56,7 +56,8 @@ class SQLiteUtils {
         throw SQLException(sqliteErrorMsg, __FILE__, __func__, __LINE__);
       }
 
-      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__, __LINE__);
+      throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
+                         __LINE__);
     }
   }
 

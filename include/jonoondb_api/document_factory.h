@@ -12,11 +12,11 @@ class DocumentSchema;
 class DocumentFactory {
  public:
   static std::unique_ptr<Document> CreateDocument(
-      const DocumentSchema& documentSchema,
-      const BufferImpl& buffer);
+      const DocumentSchema& documentSchema, const BufferImpl& buffer);
+
  private:
   DocumentFactory() = delete;
   DocumentFactory(const DocumentFactory&) = delete;
   DocumentFactory(DocumentFactory&&) = delete;
 };
-}
+}  // namespace jonoondb_api

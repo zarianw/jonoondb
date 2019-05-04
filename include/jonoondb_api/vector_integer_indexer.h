@@ -1,25 +1,25 @@
 #pragma once
 
-#include <memory>
-#include <cstdint>
-#include <sstream>
-#include <vector>
-#include <string>
 #include <cmath>
+#include <cstdint>
 #include <limits>
-#include "indexer.h"
-#include "index_info_impl.h"
-#include "string_utils.h"
-#include "document.h"
-#include "mama_jennies_bitmap.h"
-#include "exception_utils.h"
-#include "index_stat.h"
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 #include "constraint.h"
+#include "document.h"
 #include "enums.h"
+#include "exception_utils.h"
+#include "index_info_impl.h"
+#include "index_stat.h"
+#include "indexer.h"
+#include "mama_jennies_bitmap.h"
+#include "string_utils.h"
 
 namespace jonoondb_api {
-template<typename T>
-class VectorIntegerIndexer final: public Indexer {
+template <typename T>
+class VectorIntegerIndexer final : public Indexer {
  public:
   VectorIntegerIndexer(const IndexInfoImpl& indexInfo,
                        const FieldType& fieldType) {
@@ -30,11 +30,12 @@ class VectorIntegerIndexer final: public Indexer {
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::VECTOR) {
       errorMsg =
-          "Argument indexInfo can only have IndexType VECTOR for VectorIntegerIndexer.";
+          "Argument indexInfo can only have IndexType VECTOR for "
+          "VectorIntegerIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-          << " is not valid for VectorIntegerIndexer.";
+         << " is not valid for VectorIntegerIndexer.";
       errorMsg = ss.str();
     }
 
@@ -47,22 +48,20 @@ class VectorIntegerIndexer final: public Indexer {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::INT8
-        || fieldType == FieldType::INT16
-        || fieldType == FieldType::INT32
-        || fieldType == FieldType::INT64);
+    return (fieldType == FieldType::INT8 || fieldType == FieldType::INT16 ||
+            fieldType == FieldType::INT32 || fieldType == FieldType::INT64);
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {
-    auto val = DocumentUtils::GetIntegerValue(document, m_subDoc,
-                                              m_fieldNameTokens);
+    auto val =
+        DocumentUtils::GetIntegerValue(document, m_subDoc, m_fieldNameTokens);
     assert(m_dataVector.size() == documentID);
     assert(val <= std::numeric_limits<T>::max());
     assert(val >= std::numeric_limits<T>::min());
     // We create this class with int32_t as T for int32 and smaller types
-    // So we should never get a overflow situation for int32_t. However it is technically
-    // possible to abuse this situation hence adding the asserts above to catch any misuse
-    // atleast in debug build
+    // So we should never get a overflow situation for int32_t. However it is
+    // technically possible to abuse this situation hence adding the asserts
+    // above to catch any misuse atleast in debug build
     m_dataVector.push_back(val);
   }
 
@@ -70,7 +69,8 @@ class VectorIntegerIndexer final: public Indexer {
     return m_indexStat;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
+  std::shared_ptr<MamaJenniesBitmap> Filter(
+      const Constraint& constraint) override {
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
@@ -87,7 +87,7 @@ class VectorIntegerIndexer final: public Indexer {
       default:
         std::ostringstream ss;
         ss << "IndexConstraintOperator type "
-            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+           << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
@@ -141,9 +141,8 @@ class VectorIntegerIndexer final: public Indexer {
     return false;
   }
 
-  bool TryGetIntegerVector(
-      const gsl::span<std::uint64_t>& documentIDs,
-      std::vector<std::int64_t>& values) override {
+  bool TryGetIntegerVector(const gsl::span<std::uint64_t>& documentIDs,
+                           std::vector<std::int64_t>& values) override {
     assert(documentIDs.size() == values.size());
     for (auto i = 0; i < documentIDs.size(); i++) {
       if (documentIDs[i] >= m_dataVector.size()) {
@@ -167,8 +166,8 @@ class VectorIntegerIndexer final: public Indexer {
     } else if (constraint.operandType == OperandType::DOUBLE) {
       // Check if double has no fractional part. If it has fractional part
       // then it can't be equal to any integer
-      std::int64_t
-          intVal = static_cast<std::int64_t>(constraint.operand.doubleVal);
+      std::int64_t intVal =
+          static_cast<std::int64_t>(constraint.operand.doubleVal);
       if (constraint.operand.doubleVal == intVal) {
         for (size_t i = 0; i < m_dataVector.size(); i++) {
           if (m_dataVector[i] == intVal) {
@@ -179,7 +178,8 @@ class VectorIntegerIndexer final: public Indexer {
     }
 
     // In all other cases the operand cannot be equal. The cases are:
-    // Operand is a string value, this should not happen because the query should fail before reaching this point   
+    // Operand is a string value, this should not happen because the query
+    // should fail before reaching this point
     return bitmap;
   }
 
@@ -236,4 +236,4 @@ class VectorIntegerIndexer final: public Indexer {
   std::vector<T> m_dataVector;
   std::unique_ptr<Document> m_subDoc;
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

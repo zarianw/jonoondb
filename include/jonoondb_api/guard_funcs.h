@@ -11,6 +11,5 @@ class GuardFuncs {
   static void DisposeField(Field* field);
   static void SQLite3Close(sqlite3* db);
   static void SQLite3Finalize(sqlite3_stmt* stmt);
-
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

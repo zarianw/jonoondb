@@ -1,9 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
-#include <mutex>
 #include <vector>
 #include "jonoondb_api/field.h"
 
@@ -13,10 +13,10 @@ class DocumentCollection;
 
 struct ColumnInfo {
   ColumnInfo(const std::string& colName, FieldType colType,
-             const std::vector<std::string>& colNameTokens) :
-      columnName(colName), columnType(colType),
-      columnNameTokens(colNameTokens) {
-  }
+             const std::vector<std::string>& colNameTokens)
+      : columnName(colName),
+        columnType(colType),
+        columnNameTokens(colNameTokens) {}
   std::string columnName;
   FieldType columnType;
   std::vector<std::string> columnNameTokens;
@@ -50,4 +50,4 @@ class DocumentCollectionDictionary {
       m_dictionary;
 };
 
-}  // jonoondb_api
+}  // namespace jonoondb_api

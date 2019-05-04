@@ -2,9 +2,9 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include "sqlite3.h"
 #include "guard_funcs.h"
 #include "object_pool.h"
+#include "sqlite3.h"
 
 namespace jonoondb_api {
 // Forward declarations
@@ -31,4 +31,4 @@ class QueryProcessor final {
   std::string m_dbConnStr;
   std::string m_dbName;
 };
-}  // jonoondb_api
+}  // namespace jonoondb_api

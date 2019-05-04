@@ -7,4 +7,4 @@ struct BlobMetadata {
   std::int32_t fileKey;
   std::int64_t offset;
 };
-}  // jonoondb_api
+}  // namespace jonoondb_api

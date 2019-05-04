@@ -5,7 +5,7 @@
 namespace jonoondb_api {
 class OptionsImpl {
  public:
-  //Default constructor that sets all the options to their default value
+  // Default constructor that sets all the options to their default value
   OptionsImpl();
   OptionsImpl(bool createDBIfMissing, std::size_t maxDataFileSize,
               std::size_t memClenupThresholdInBytes);
