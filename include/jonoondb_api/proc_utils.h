@@ -8,8 +8,8 @@
 #include "jonoondb_api/jonoondb_exceptions.h"
 
 #if _WIN32
-#include <Psapi.h>
 #include <Windows.h>
+#include <Psapi.h>
 #elif __linux__
 #include <sys/types.h>
 #include <unistd.h>
