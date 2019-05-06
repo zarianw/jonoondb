@@ -1,8 +1,8 @@
 #pragma once
 
 #include <exception>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace jonoondb_api {
 
@@ -12,18 +12,27 @@ class JonoonDBException : public std::exception {
   JonoonDBException(const std::string& msg, const std::string& srcFileName,
                     const std::string& funcName, std::size_t lineNum)
       : m_message(msg),
-        m_fileName(srcFileName), m_funcName(funcName), m_lineNum(lineNum) {
-  }
+        m_fileName(srcFileName),
+        m_funcName(funcName),
+        m_lineNum(lineNum) {}
 
-  const char* what() const noexcept { return m_message.c_str(); }
-  const char* GetSourceFileName() const { return m_fileName.c_str(); }
-  const char* GetFunctionName() const { return m_funcName.c_str(); }
-  std::size_t GetLineNumber() const { return m_lineNum; }
+  const char* what() const noexcept {
+    return m_message.c_str();
+  }
+  const char* GetSourceFileName() const {
+    return m_fileName.c_str();
+  }
+  const char* GetFunctionName() const {
+    return m_funcName.c_str();
+  }
+  std::size_t GetLineNumber() const {
+    return m_lineNum;
+  }
   std::string to_string() {
     std::ostringstream ss;
     ss << "ExceptionType: " << GetType() << ", Message: " << m_message
-       << ", SourceFile: " << m_fileName
-       << ", Function: " << m_funcName << ", Line: " << m_lineNum << ".";
+       << ", SourceFile: " << m_fileName << ", Function: " << m_funcName
+       << ", Line: " << m_lineNum << ".";
 
     return ss.str();
   }
@@ -36,17 +45,15 @@ class JonoonDBException : public std::exception {
   std::string m_fileName;
   std::string m_funcName;
   size_t m_lineNum;
-
 };
 
 class InvalidArgumentException : public JonoonDBException {
  public:
   InvalidArgumentException(const std::string& msg,
                            const std::string& srcFileName,
-                           const std::string& funcName,
-                           std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                           const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "InvalidArgumentException";
@@ -57,10 +64,9 @@ class MissingDatabaseFileException : public JonoonDBException {
  public:
   MissingDatabaseFileException(const std::string& msg,
                                const std::string& srcFileName,
-                               const std::string& funcName,
-                               std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                               const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "MissingDatabaseFileException";
@@ -72,9 +78,9 @@ class MissingDatabaseFolderException : public JonoonDBException {
   MissingDatabaseFolderException(const std::string& msg,
                                  const std::string& srcFileName,
                                  const std::string& funcName,
-                                 std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                                 std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "MissingDatabaseFolderException";
@@ -84,9 +90,9 @@ class MissingDatabaseFolderException : public JonoonDBException {
 class OutOfMemoryException : public JonoonDBException {
  public:
   OutOfMemoryException(const std::string& msg, const std::string& srcFileName,
-                       const std::string& funcName, std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                       const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "OutOfMemoryException";
@@ -96,9 +102,9 @@ class OutOfMemoryException : public JonoonDBException {
 class DuplicateKeyException : public JonoonDBException {
  public:
   DuplicateKeyException(const std::string& msg, const std::string& srcFileName,
-                        const std::string& funcName, std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                        const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "DuplicateKeyException";
@@ -110,9 +116,9 @@ class CollectionAlreadyExistException : public JonoonDBException {
   CollectionAlreadyExistException(const std::string& msg,
                                   const std::string& srcFileName,
                                   const std::string& funcName,
-                                  std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                                  std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "CollectionAlreadyExistException";
@@ -123,10 +129,9 @@ class IndexAlreadyExistException : public JonoonDBException {
  public:
   IndexAlreadyExistException(const std::string& msg,
                              const std::string& srcFileName,
-                             const std::string& funcName,
-                             std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                             const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "IndexAlreadyExistException";
@@ -137,10 +142,9 @@ class CollectionNotFoundException : public JonoonDBException {
  public:
   CollectionNotFoundException(const std::string& msg,
                               const std::string& srcFileName,
-                              const std::string& funcName,
-                              std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                              const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "CollectionNotFoundException";
@@ -150,9 +154,9 @@ class CollectionNotFoundException : public JonoonDBException {
 class InvalidSchemaException : public JonoonDBException {
  public:
   InvalidSchemaException(const std::string& msg, const std::string& srcFileName,
-                         const std::string& funcName, std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                         const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "InvalidSchemaException";
@@ -163,10 +167,9 @@ class IndexOutOfBoundException : public JonoonDBException {
  public:
   IndexOutOfBoundException(const std::string& msg,
                            const std::string& srcFileName,
-                           const std::string& funcName,
-                           std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                           const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "IndexOutOfBoundException";
@@ -176,9 +179,9 @@ class IndexOutOfBoundException : public JonoonDBException {
 class SQLException : public JonoonDBException {
  public:
   SQLException(const std::string& msg, const std::string& srcFileName,
-               const std::string& funcName, std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+               const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "SQLException";
@@ -188,9 +191,9 @@ class SQLException : public JonoonDBException {
 class FileIOException : public JonoonDBException {
  public:
   FileIOException(const std::string& msg, const std::string& srcFileName,
-                  const std::string& funcName, std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                  const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "FileIOException";
@@ -201,10 +204,9 @@ class MissingDocumentException : public JonoonDBException {
  public:
   MissingDocumentException(const std::string& msg,
                            const std::string& srcFileName,
-                           const std::string& funcName,
-                           std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+                           const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "MissingDocumentException";
@@ -213,16 +215,14 @@ class MissingDocumentException : public JonoonDBException {
 
 class ApiMisuseException : public JonoonDBException {
  public:
-  ApiMisuseException(const std::string& msg,
-                     const std::string& srcFileName,
-                     const std::string& funcName,
-                     std::size_t lineNum) :
-      JonoonDBException(msg, srcFileName, funcName, lineNum) {
-  }
+  ApiMisuseException(const std::string& msg, const std::string& srcFileName,
+                     const std::string& funcName, std::size_t lineNum)
+      : JonoonDBException(msg, srcFileName, funcName, lineNum) {}
+
  private:
   virtual std::string GetType() override {
     return "ApiMisuseException";
   }
 };
 
-} // jonoondb_api
+}  // namespace jonoondb_api

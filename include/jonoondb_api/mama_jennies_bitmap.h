@@ -1,22 +1,20 @@
 #pragma once
 
-#include <memory>
 #include <cstdint>
-#include "gsl/span.h"
+#include <memory>
 #include "ewah_boolarray/ewah.h"
+#include "gsl/span.h"
 
 namespace jonoondb_api {
 // forward declarations
 class BufferImpl;
 
-enum class BitmapType : std::int32_t {
-  EWAH_COMPRESSED_BITMAP = 1
-};
+enum class BitmapType : std::int32_t { EWAH_COMPRESSED_BITMAP = 1 };
 
 class MamaJenniesBitmapConstIterator {
  public:
-  MamaJenniesBitmapConstIterator
-      (EWAHBoolArray<std::uint64_t>::const_iterator& iter);
+  MamaJenniesBitmapConstIterator(
+      EWAHBoolArray<std::uint64_t>::const_iterator& iter);
   std::size_t operator*() const;
   MamaJenniesBitmapConstIterator& operator++();
   bool operator==(const MamaJenniesBitmapConstIterator& other);
@@ -25,6 +23,7 @@ class MamaJenniesBitmapConstIterator {
   bool operator<=(const MamaJenniesBitmapConstIterator& other);
   bool operator>(const MamaJenniesBitmapConstIterator& other);
   bool operator>=(const MamaJenniesBitmapConstIterator& other);
+
  private:
   EWAHBoolArray<std::uint64_t>::const_iterator m_iter;
 };
@@ -39,14 +38,17 @@ class MamaJenniesBitmap {
   MamaJenniesBitmap& operator=(const MamaJenniesBitmap& other);
   MamaJenniesBitmap& operator=(MamaJenniesBitmap&& other);
   void Add(std::uint64_t x);
-  void LogicalAND(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
-  void LogicalOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
-  void LogicalXOR(const MamaJenniesBitmap& other, MamaJenniesBitmap& output) const;
+  void LogicalAND(const MamaJenniesBitmap& other,
+                  MamaJenniesBitmap& output) const;
+  void LogicalOR(const MamaJenniesBitmap& other,
+                 MamaJenniesBitmap& output) const;
+  void LogicalXOR(const MamaJenniesBitmap& other,
+                  MamaJenniesBitmap& output) const;
 
-  static std::shared_ptr<MamaJenniesBitmap>
-  LogicalAND(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
-  static std::shared_ptr<MamaJenniesBitmap>
-  LogicalOR(std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
+  static std::shared_ptr<MamaJenniesBitmap> LogicalAND(
+      std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
+  static std::shared_ptr<MamaJenniesBitmap> LogicalOR(
+      std::vector<std::shared_ptr<MamaJenniesBitmap>>& bitmaps);
 
   void LogicalNOT(MamaJenniesBitmap& output) const;
   void InPlaceLogicalNOT();
@@ -66,8 +68,8 @@ class MamaJenniesBitmap {
 
  private:
   std::uint64_t GetSizeInBits() const;
-  MamaJenniesBitmap
-      (std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray);
+  MamaJenniesBitmap(
+      std::unique_ptr<EWAHBoolArray<std::uint64_t>> ewahBoolArray);
   std::unique_ptr<EWAHBoolArray<std::uint64_t>> m_ewahBoolArray;
 };
-} // namesapce jonoondb_api
+}  // namespace jonoondb_api

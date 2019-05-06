@@ -1,9 +1,9 @@
 #include <boost/filesystem.hpp>
-#include "gtest/gtest.h"
-#include "test_utils.h"
-#include "filename_manager.h"
-#include "jonoondb_exceptions.h"
 #include "file_info.h"
+#include "filename_manager.h"
+#include "gtest/gtest.h"
+#include "jonoondb_exceptions.h"
+#include "test_utils.h"
 
 using namespace std;
 using namespace jonoondb_api;
@@ -13,7 +13,9 @@ TEST(FileNameManager, Initialize_MissingDatabaseFile) {
   string dbName = "FileNameManager_Initialize_MissingDatabaseFile";
   string dbPath = g_TestRootDirectory;
   string collectionName = "Collection";
-  ASSERT_THROW(FileNameManager fileNameManager(dbPath, dbName, collectionName, false), MissingDatabaseFileException);
+  ASSERT_THROW(
+      FileNameManager fileNameManager(dbPath, dbName, collectionName, false),
+      MissingDatabaseFileException);
 }
 
 TEST(FileNameManager, GetCurrentDataFileInfo) {
@@ -31,7 +33,7 @@ TEST(FileNameManager, GetCurrentDataFileInfo) {
       dbPath + "/FileNameManager_GetCurrentDataFileInfo_Collection.0";
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), completePath.c_str());
 
-  //Again get the same thing and make sure we get the same file
+  // Again get the same thing and make sure we get the same file
   FileInfo fileInfo2;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo2);
   ASSERT_EQ(fileInfo.fileKey, fileInfo2.fileKey);
@@ -53,12 +55,12 @@ TEST(FileNameManager, GetNextDataFileInfo) {
   string fileName;
   string fileNameWithPath;
 
-  //Add the first FileInfo record
+  // Add the first FileInfo record
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   int count = 5;
 
-  //Get next file in a loop
+  // Get next file in a loop
   for (int i = 1; i < count; i++) {
     fileNameManager.GetNextDataFileInfo(fileInfo);
 
@@ -82,15 +84,16 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined) {
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(),
-               "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0");
+  ASSERT_STREQ(
+      fileInfo.fileName.c_str(),
+      "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0");
   boost::filesystem::path completePath(dbPath);
   completePath /=
       "FileNameManager_GetCurrentAndNextFileInfoCombined_Collection.0";
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(),
                completePath.generic_string().c_str());
 
-  //Again get the same thing and make sure we get the same file
+  // Again get the same thing and make sure we get the same file
   FileInfo fileInfo2;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo2);
   ASSERT_EQ(fileInfo.fileKey, fileInfo2.fileKey);
@@ -104,14 +107,14 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined) {
       (completePath.parent_path() / fileNamePattern).generic_string();
   string fileName;
   string fileNameWithPath;
-  //Get next file in a loop
+  // Get next file in a loop
   for (int i = 1; i < 11; i++) {
     fileNameManager.GetNextDataFileInfo(fileInfo);
 
     ASSERT_EQ(fileInfo.fileKey, i);
     fileName = fileNamePattern + std::to_string(i);
     fileNameWithPath = fileNameWithPathPattern + std::to_string(i);
-    
+
     ASSERT_STREQ(fileInfo.fileName.c_str(), fileName.c_str());
     ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(), fileNameWithPath.c_str());
   }
@@ -133,8 +136,9 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_Slash) {
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   ASSERT_EQ(fileInfo.fileKey, 0);
-  ASSERT_STREQ(fileInfo.fileName.c_str(),
-               "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.0");
+  ASSERT_STREQ(
+      fileInfo.fileName.c_str(),
+      "FileNameManager_GetCurrentAndNextFileInfoCombined_Slash_Collection.0");
   boost::filesystem::path completePath(dbPath);
   if (dbPath.at(dbPath.size() - 1) != '/') {
     completePath /= "/";
@@ -144,7 +148,7 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_Slash) {
   ASSERT_STREQ(fileInfo.fileNameWithPath.c_str(),
                completePath.generic_string().c_str());
 
-  //Again get the same thing and make sure we get the same file
+  // Again get the same thing and make sure we get the same file
   FileInfo fileInfo2;
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo2);
   ASSERT_EQ(fileInfo.fileKey, fileInfo2.fileKey);
@@ -159,7 +163,7 @@ TEST(FileNameManager, GetCurrentAndNextFileInfoCombined_Slash) {
   string fileName;
   string fileNameWithPath;
 
-  //Get next file in a loop
+  // Get next file in a loop
   for (int i = 1; i < 11; i++) {
     fileNameManager.GetNextDataFileInfo(fileInfo);
 
@@ -186,17 +190,17 @@ TEST(FileNameManager, GetDataFileInfo) {
   string fileName;
   string fileNameWithPath;
 
-  //Add the first FileInfo record
+  // Add the first FileInfo record
   fileNameManager.GetCurrentDataFileInfo(true, fileInfo);
 
   int count = 5;
 
-  //Insert some data
+  // Insert some data
   for (int i = 1; i < count; i++) {
     fileNameManager.GetNextDataFileInfo(fileInfo);
   }
 
-  //Now retrieve these file info objects
+  // Now retrieve these file info objects
   shared_ptr<FileInfo> fileInfoOut(new FileInfo());
   for (int i = 0; i < count; i++) {
     fileNameManager.GetFileInfo(i, fileInfoOut);
@@ -207,6 +211,7 @@ TEST(FileNameManager, GetDataFileInfo) {
     fileNameWithPath = fileNameWithPathPattern + std::to_string(i);
 
     ASSERT_STREQ(fileInfoOut->fileName.c_str(), fileName.c_str());
-    ASSERT_STREQ(fileInfoOut->fileNameWithPath.c_str(), fileNameWithPath.c_str());
+    ASSERT_STREQ(fileInfoOut->fileNameWithPath.c_str(),
+                 fileNameWithPath.c_str());
   }
 }

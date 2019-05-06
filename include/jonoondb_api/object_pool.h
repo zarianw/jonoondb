@@ -1,46 +1,41 @@
 #pragma once
 
 #include <stdlib.h>
-#include <list>
-#include <vector>
-#include <mutex>
 #include <functional>
+#include <list>
+#include <mutex>
+#include <vector>
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
-template<typename ObjectType>
+template <typename ObjectType>
 class ObjectPool final {
  public:
-  ObjectPool(int poolInitialiSize,
-             int poolCapacity,
+  ObjectPool(int poolInitialiSize, int poolCapacity,
              std::function<ObjectType*()> objectAllocatorFunc,
              std::function<void(ObjectType*)> objectDeallocatorFunc,
-             std::function<void(ObjectType*)> objectResetFunc = std::function<
-                 void(ObjectType*)>()) :
-      m_poolInitialiSize(poolInitialiSize), m_poolCapacity(poolCapacity),
-      m_objectAllocatorFunc(objectAllocatorFunc),
-      m_objectDeallocatorFunc(objectDeallocatorFunc), m_currentObjectIndex(-1) {
+             std::function<void(ObjectType*)> objectResetFunc =
+                 std::function<void(ObjectType*)>())
+      : m_poolInitialiSize(poolInitialiSize),
+        m_poolCapacity(poolCapacity),
+        m_objectAllocatorFunc(objectAllocatorFunc),
+        m_objectDeallocatorFunc(objectDeallocatorFunc),
+        m_currentObjectIndex(-1) {
     if (m_poolCapacity == 0 || m_poolCapacity < m_poolInitialiSize) {
       throw InvalidArgumentException(
           "Argument poolCapacity cannot be 0 or less than initialPoolSize.",
-          __FILE__,
-          __func__,
-          __LINE__);
+          __FILE__, __func__, __LINE__);
     }
 
     if (!m_objectAllocatorFunc) {
       throw InvalidArgumentException(
-          "Argument objectAllocatorFunc cannot be empty.",
-          __FILE__,
-          __func__,
+          "Argument objectAllocatorFunc cannot be empty.", __FILE__, __func__,
           __LINE__);
     }
 
     if (!m_objectDeallocatorFunc) {
       throw InvalidArgumentException(
-          "Argument objectDeallocatorFunc cannot be empty.",
-          __FILE__,
-          __func__,
+          "Argument objectDeallocatorFunc cannot be empty.", __FILE__, __func__,
           __LINE__);
     }
 
@@ -56,9 +51,7 @@ class ObjectPool final {
         if (m_objects[i] == nullptr) {
           throw JonoonDBException(
               "Object allocation failed. ObjectAllocatorFunc returned nullptr.",
-              __FILE__,
-              __func__,
-              __LINE__);
+              __FILE__, __func__, __LINE__);
         }
       }
       m_currentObjectIndex = m_poolInitialiSize - 1;
@@ -75,7 +68,7 @@ class ObjectPool final {
 
   ObjectType* Take() {
     {
-      //The lock will be released when lock goes out of scope
+      // The lock will be released when lock goes out of scope
       std::lock_guard<std::mutex> lock(m_mutex);
       if (m_currentObjectIndex > -1) {
         ObjectType* obj = m_objects[m_currentObjectIndex];
@@ -85,14 +78,14 @@ class ObjectPool final {
       }
     }
 
-    //If we are here the we have exhausted all objects of the pool.
-    //Construct a new object and hand it to the consumer
+    // If we are here the we have exhausted all objects of the pool.
+    // Construct a new object and hand it to the consumer
     return InvokeObjectAllocatorFunc();
   }
 
   void Return(ObjectType* object) {
     {
-      //The lock will be released when lock goes out of scope
+      // The lock will be released when lock goes out of scope
       std::lock_guard<std::mutex> lock(m_mutex);
       if (m_currentObjectIndex < (m_poolCapacity - 1)) {
         InvokeObjectResetFunc(object);
@@ -102,8 +95,8 @@ class ObjectPool final {
       }
     }
 
-    //Drop this object to the floor and continue.
-    //This will only happen if pool is at max capacity. 
+    // Drop this object to the floor and continue.
+    // This will only happen if pool is at max capacity.
     InvokeObjectDeallocatorFunc(object);
   }
 
@@ -139,15 +132,13 @@ class ObjectPool final {
   std::mutex m_mutex;
 };
 
-template<typename ObjectType>
+template <typename ObjectType>
 class ObjectPoolGuard {
  public:
-  ObjectPoolGuard() : m_pool(nullptr), m_obj(nullptr) {
-  }
+  ObjectPoolGuard() : m_pool(nullptr), m_obj(nullptr) {}
 
   ObjectPoolGuard(ObjectPool<ObjectType>* pool, ObjectType* obj)
-      : m_pool(pool), m_obj(obj) {
-  }
+      : m_pool(pool), m_obj(obj) {}
 
   ObjectPoolGuard(ObjectPoolGuard&& other) {
     if (this != &other) {
@@ -184,12 +175,13 @@ class ObjectPoolGuard {
     }
   }
 
-  //implicit conversion from ObjectPoolGuard to Object
+  // implicit conversion from ObjectPoolGuard to Object
   operator ObjectType*() {
     return m_obj;
   }
+
  private:
   ObjectPool<ObjectType>* m_pool;
   ObjectType* m_obj;
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

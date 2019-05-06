@@ -2,17 +2,15 @@
 
 #include <cstdint>
 #include <string>
-#include "flatbuffers/idl.h"
 #include "document_schema.h"
+#include "flatbuffers/idl.h"
 
 namespace jonoondb_api {
-//Forward declaration
-enum class FieldType
-    : std::int8_t;
-enum class SchemaType
-    : std::int32_t;
+// Forward declaration
+enum class FieldType : std::int8_t;
+enum class SchemaType : std::int32_t;
 
-class FlatbuffersDocumentSchema final: public DocumentSchema {
+class FlatbuffersDocumentSchema final : public DocumentSchema {
  public:
   FlatbuffersDocumentSchema(const FlatbuffersDocumentSchema&) = delete;
   FlatbuffersDocumentSchema(FlatbuffersDocumentSchema&&) = delete;
@@ -26,8 +24,9 @@ class FlatbuffersDocumentSchema final: public DocumentSchema {
   std::size_t GetRootFieldCount() const override;
   void GetRootField(size_t index, Field*& field) const override;
   Field* AllocateField() const override;
+
  private:
   std::string m_binarySchema;
   reflection::Schema* m_schema;
 };
-}  // jonoondb_api
+}  // namespace jonoondb_api

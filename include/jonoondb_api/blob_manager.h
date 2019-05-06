@@ -1,15 +1,15 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include <map>
-#include <mutex>
-#include <vector>
 #include <gsl/span.h>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+#include "buffer_impl.h"
+#include "concurrent_lru_cache.h"
 #include "file_info.h"
 #include "memory_mapped_file.h"
-#include "concurrent_lru_cache.h"
-#include "buffer_impl.h"
 
 namespace jonoondb_api {
 // Forward Declarations
@@ -25,18 +25,17 @@ class BlobManager final {
   BlobManager(BlobManager&&) = delete;
   BlobManager& operator=(const BlobManager&) = delete;
   BlobManager& operator=(BlobManager&&) = delete;
-  void Put(const BufferImpl& blob, BlobMetadata& blobMetadata,
-           bool compress);
+  void Put(const BufferImpl& blob, BlobMetadata& blobMetadata, bool compress);
   void MultiPut(gsl::span<const BufferImpl*> blobs,
-                std::vector<BlobMetadata>& blobMetadataVec,
-                bool compress);
+                std::vector<BlobMetadata>& blobMetadataVec, bool compress);
   void Get(const BlobMetadata& blobMetadata, BufferImpl& blob);
   void UnmapLRUDataFiles();
+
  private:
   inline void Flush(size_t offset, size_t numBytes);
   void SwitchToNewDataFile();
   size_t PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata,
-                   bool compress);
+                     bool compress);
 
   FileInfo m_currentBlobFileInfo;
   std::shared_ptr<MemoryMappedFile> m_currentBlobFile;
@@ -53,9 +52,10 @@ class BlobIterator {
   BlobIterator(FileInfo fileInfo);
   std::size_t GetNextBatch(std::vector<BufferImpl>& blobs,
                            std::vector<BlobMetadata>& metadataVec);
+
  private:
   FileInfo m_fileInfo;
   MemoryMappedFile m_memMapFile;
   char* m_currentOffsetAddress;
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

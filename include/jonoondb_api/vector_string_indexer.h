@@ -2,21 +2,21 @@
 
 #include <cstdint>
 #include <sstream>
-#include <vector>
 #include <string>
-#include "indexer.h"
-#include "index_info_impl.h"
-#include "string_utils.h"
-#include "document.h"
-#include "mama_jennies_bitmap.h"
-#include "exception_utils.h"
-#include "index_stat.h"
+#include <vector>
 #include "constraint.h"
+#include "document.h"
 #include "enums.h"
+#include "exception_utils.h"
+#include "index_info_impl.h"
+#include "index_stat.h"
+#include "indexer.h"
+#include "mama_jennies_bitmap.h"
 #include "null_helpers.h"
+#include "string_utils.h"
 
 namespace jonoondb_api {
-class VectorStringIndexer final: public Indexer {
+class VectorStringIndexer final : public Indexer {
  public:
   VectorStringIndexer(const IndexInfoImpl& indexInfo,
                       const FieldType& fieldType) {
@@ -27,11 +27,12 @@ class VectorStringIndexer final: public Indexer {
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::VECTOR) {
       errorMsg =
-          "Argument indexInfo can only have IndexType VECTOR for VectorStringIndexer.";
+          "Argument indexInfo can only have IndexType VECTOR for "
+          "VectorStringIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-          << " is not valid for VectorStringIndexer.";
+         << " is not valid for VectorStringIndexer.";
       errorMsg = ss.str();
     }
 
@@ -48,8 +49,8 @@ class VectorStringIndexer final: public Indexer {
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {
-    auto val = DocumentUtils::GetStringValue(document, m_subDoc,
-                                             m_fieldNameTokens);
+    auto val =
+        DocumentUtils::GetStringValue(document, m_subDoc, m_fieldNameTokens);
     assert(m_dataVector.size() == documentID);
     m_dataVector.push_back(val);
   }
@@ -58,7 +59,8 @@ class VectorStringIndexer final: public Indexer {
     return m_indexStat;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
+  std::shared_ptr<MamaJenniesBitmap> Filter(
+      const Constraint& constraint) override {
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
@@ -75,7 +77,7 @@ class VectorStringIndexer final: public Indexer {
       default:
         std::ostringstream ss;
         ss << "IndexConstraintOperator type "
-            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+           << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
@@ -87,35 +89,37 @@ class VectorStringIndexer final: public Indexer {
     auto lowerVal = GetOperandVal(lowerConstraint);
     auto upperVal = GetOperandVal(upperConstraint);
 
-    if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
-        && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
+    if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN &&
+        upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
-        if (m_dataVector[i] > lowerVal && m_dataVector[i] < upperVal
-            && !NullHelpers::IsNull(m_dataVector[i])) {
+        if (m_dataVector[i] > lowerVal && m_dataVector[i] < upperVal &&
+            !NullHelpers::IsNull(m_dataVector[i])) {
           bitmap->Add(i);
         }
       }
-    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
-        && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN &&
+               upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
-        if (m_dataVector[i] > lowerVal && m_dataVector[i] <= upperVal
-            && !NullHelpers::IsNull(m_dataVector[i])) {
+        if (m_dataVector[i] > lowerVal && m_dataVector[i] <= upperVal &&
+            !NullHelpers::IsNull(m_dataVector[i])) {
           bitmap->Add(i);
         }
       }
-    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
-        && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
+    } else if (lowerConstraint.op ==
+                   IndexConstraintOperator::GREATER_THAN_EQUAL &&
+               upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
-        if (m_dataVector[i] >= lowerVal && m_dataVector[i] < upperVal
-            && !NullHelpers::IsNull(m_dataVector[i])) {
+        if (m_dataVector[i] >= lowerVal && m_dataVector[i] < upperVal &&
+            !NullHelpers::IsNull(m_dataVector[i])) {
           bitmap->Add(i);
         }
       }
-    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
-        && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+    } else if (lowerConstraint.op ==
+                   IndexConstraintOperator::GREATER_THAN_EQUAL &&
+               upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
-        if (m_dataVector[i] >= lowerVal && m_dataVector[i] <= upperVal
-            && !NullHelpers::IsNull(m_dataVector[i])) {
+        if (m_dataVector[i] >= lowerVal && m_dataVector[i] <= upperVal &&
+            !NullHelpers::IsNull(m_dataVector[i])) {
           bitmap->Add(i);
         }
       }
@@ -171,7 +175,8 @@ class VectorStringIndexer final: public Indexer {
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapLTE(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapLTE(
+      const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     auto val = GetOperandVal(constraint);
 
@@ -197,7 +202,8 @@ class VectorStringIndexer final: public Indexer {
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(
+      const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     auto val = GetOperandVal(constraint);
 
@@ -215,4 +221,4 @@ class VectorStringIndexer final: public Indexer {
   std::vector<std::string> m_dataVector;
   std::unique_ptr<Document> m_subDoc;
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

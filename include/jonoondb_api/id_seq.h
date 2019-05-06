@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 #include <vector>
 #include "gsl/gsl.h"
 #include "mama_jennies_bitmap.h"
@@ -12,6 +12,7 @@ class IDSequence final {
   IDSequence(std::shared_ptr<MamaJenniesBitmap> bitmap, int vecSize);
   const gsl::span<std::uint64_t>& Current();
   bool Next();
+
  private:
   std::shared_ptr<MamaJenniesBitmap> m_bitmap;
   std::unique_ptr<MamaJenniesBitmap::const_iterator> m_iter;
@@ -19,4 +20,4 @@ class IDSequence final {
   std::vector<std::uint64_t> m_currentVector;
   gsl::span<std::uint64_t> m_currentSpan;
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

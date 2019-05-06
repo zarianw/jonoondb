@@ -1,10 +1,10 @@
 #pragma once
 
-#include "flatbuffers/flatbuffers.h"
-#include "index_info_impl.h"
-#include "index_info_fb_generated.h"
 #include "buffer_impl.h"
 #include "enums.h"
+#include "flatbuffers/flatbuffers.h"
+#include "index_info_fb_generated.h"
+#include "index_info_impl.h"
 
 namespace jonoondb_api {
 class SerializerUtils {
@@ -23,7 +23,7 @@ class SerializerUtils {
       buffer.Resize(size);
     }
 
-    buffer.Copy((char*) fbb.GetBufferPointer(), size);
+    buffer.Copy((char*)fbb.GetBufferPointer(), size);
   }
 
   static IndexInfoImpl BytesToIndexInfo(const BufferImpl& buffer) {
@@ -34,8 +34,7 @@ class SerializerUtils {
 
     return IndexInfoImpl(std::move(indexName),
                          static_cast<IndexType>(fbObj->type()),
-                         std::move(columnName),
-                         fbObj->is_ascending());
+                         std::move(columnName), fbObj->is_ascending());
   }
 };
-}  // jonoondb_api
+}  // namespace jonoondb_api

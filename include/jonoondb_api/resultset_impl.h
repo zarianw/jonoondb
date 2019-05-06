@@ -1,13 +1,13 @@
 #pragma once
 
+#include <boost/utility/string_ref.hpp>
 #include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <map>
-#include <boost/utility/string_ref.hpp>
-#include "sqlite3.h"
-#include "object_pool.h"
+#include <memory>
 #include "enums.h"
+#include "object_pool.h"
+#include "sqlite3.h"
 
 namespace jonoondb_api {
 class ResultSetImpl {
@@ -28,6 +28,7 @@ class ResultSetImpl {
   SqlType GetColumnType(std::int32_t columnIndex);
   const std::string& GetColumnLabel(std::int32_t columnIndex);
   bool IsNull(std::int32_t columnIndex);
+
  private:
   ObjectPoolGuard<sqlite3> m_db;
   std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> m_stmt;
@@ -37,4 +38,4 @@ class ResultSetImpl {
   mutable std::string m_tmpStrStorage;
   bool m_resultSetConsumed = false;
 };
-} // jonoondb_api
+}  // namespace jonoondb_api

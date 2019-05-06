@@ -1,30 +1,30 @@
 #pragma once
 
+#include <cmath>
+#include <cstdint>
 #include <map>
 #include <memory>
-#include <cstdint>
 #include <sstream>
-#include <vector>
 #include <string>
-#include <cmath>
-#include "jonoondb_api/indexer.h"
-#include "jonoondb_api/index_info_impl.h"
-#include "jonoondb_api/string_utils.h"
-#include "jonoondb_api/document.h"
-#include "jonoondb_api/mama_jennies_bitmap.h"
-#include "jonoondb_api/exception_utils.h"
-#include "jonoondb_api/index_stat.h"
+#include <vector>
 #include "jonoondb_api/constraint.h"
+#include "jonoondb_api/document.h"
 #include "jonoondb_api/enums.h"
+#include "jonoondb_api/exception_utils.h"
+#include "jonoondb_api/index_info_impl.h"
+#include "jonoondb_api/index_stat.h"
+#include "jonoondb_api/indexer.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
+#include "jonoondb_api/mama_jennies_bitmap.h"
+#include "jonoondb_api/string_utils.h"
 
 namespace jonoondb_api {
 
-class EWAHCompressedBitmapIndexerDouble final: public Indexer {
+class EWAHCompressedBitmapIndexerDouble final : public Indexer {
  public:
   static void Construct(const IndexInfoImpl& indexInfo,
                         const FieldType& fieldType,
-                        EWAHCompressedBitmapIndexerDouble*& obj) {    
+                        EWAHCompressedBitmapIndexerDouble*& obj) {
     std::string errorMsg;
     if (indexInfo.GetIndexName().size() == 0) {
       errorMsg = "Argument indexInfo has empty name.";
@@ -32,11 +32,12 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::INVERTED_COMPRESSED_BITMAP) {
       errorMsg =
-          "Argument indexInfo can only have IndexType INVERTED_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
+          "Argument indexInfo can only have IndexType "
+          "INVERTED_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-          << " is not valid for EWAHCompressedBitmapIndexerDouble.";
+         << " is not valid for EWAHCompressedBitmapIndexerDouble.";
       errorMsg = ss.str();
     }
 
@@ -44,24 +45,21 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
       throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
     }
 
-    std::vector<std::string>
-        tokens = StringUtils::Split(indexInfo.GetColumnName(), ".");
+    std::vector<std::string> tokens =
+        StringUtils::Split(indexInfo.GetColumnName(), ".");
     IndexStat indexStat(indexInfo, fieldType);
     obj = new EWAHCompressedBitmapIndexerDouble(indexStat, tokens);
   }
 
-  ~EWAHCompressedBitmapIndexerDouble() override {
-  }
+  ~EWAHCompressedBitmapIndexerDouble() override {}
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::FLOAT
-        || fieldType == FieldType::DOUBLE);
+    return (fieldType == FieldType::FLOAT || fieldType == FieldType::DOUBLE);
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {
-    auto val = DocumentUtils::GetFloatValue(document,
-                                            m_subDoc,
-                                            m_fieldNameTokens);
+    auto val =
+        DocumentUtils::GetFloatValue(document, m_subDoc, m_fieldNameTokens);
     auto compressedBitmap = m_compressedBitmaps.find(val);
     if (compressedBitmap == m_compressedBitmaps.end()) {
       auto bm = shared_ptr<MamaJenniesBitmap>(new MamaJenniesBitmap());
@@ -76,7 +74,8 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
     return m_indexStat;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
+  std::shared_ptr<MamaJenniesBitmap> Filter(
+      const Constraint& constraint) override {
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
@@ -93,7 +92,7 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
       default:
         std::ostringstream ss;
         ss << "IndexConstraintOperator type "
-            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+           << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
@@ -105,7 +104,8 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
     double lowerVal = GetOperandVal(lowerConstraint);
     double upperVal = GetOperandVal(upperConstraint);
     std::map<double, std::shared_ptr<MamaJenniesBitmap>>::const_iterator
-        startIter, endIter;
+        startIter,
+        endIter;
 
     if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL) {
       startIter = m_compressedBitmaps.lower_bound(lowerVal);
@@ -116,8 +116,9 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
     while (startIter != m_compressedBitmaps.end()) {
       if (startIter->first < upperVal) {
         bitmaps.push_back(startIter->second);
-      } else if (upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL
-          && startIter->first == upperVal) {
+      } else if (upperConstraint.op ==
+                     IndexConstraintOperator::LESS_THAN_EQUAL &&
+                 startIter->first == upperVal) {
         bitmaps.push_back(startIter->second);
       } else {
         break;
@@ -132,15 +133,13 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
  private:
   EWAHCompressedBitmapIndexerDouble(const IndexStat& indexStat,
                                     std::vector<std::string>& fieldNameTokens)
-      : m_indexStat(indexStat),
-        m_fieldNameTokens(fieldNameTokens) {
-  }
+      : m_indexStat(indexStat), m_fieldNameTokens(fieldNameTokens) {}
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     if (constraint.operandType == OperandType::INTEGER) {
-      auto iter =
-          m_compressedBitmaps.find(static_cast<double>(constraint.operand.int64Val));
+      auto iter = m_compressedBitmaps.find(
+          static_cast<double>(constraint.operand.int64Val));
       if (iter != m_compressedBitmaps.end()) {
         bitmaps.push_back(iter->second);
       }
@@ -152,7 +151,8 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
     }
 
     // In all other cases the operand cannot be equal. The cases are:
-    // Operand is a string value, this should not happen because the query should fail before reaching this point   
+    // Operand is a string value, this should not happen because the query
+    // should fail before reaching this point
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
@@ -186,7 +186,8 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
     }
 
     // In all other cases the operand cannot be equal. The cases are:
-    // Operand is a string value, this should not happen because the query should fail before reaching this point   
+    // Operand is a string value, this should not happen because the query
+    // should fail before reaching this point
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
@@ -208,7 +209,8 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
     return MamaJenniesBitmap::LogicalOR(bitmaps);
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(
+      const Constraint& constraint) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
     double operandVal;
     if (constraint.operandType == OperandType::DOUBLE) {
@@ -232,7 +234,7 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
       val = static_cast<double>(constraint.operand.int64Val);
     } else if (constraint.operandType == OperandType::DOUBLE) {
       val = constraint.operand.doubleVal;
-    } 
+    }
 
     // Todo: See if we should throw exception in case of string operand
     return val;
@@ -240,8 +242,9 @@ class EWAHCompressedBitmapIndexerDouble final: public Indexer {
 
   IndexStat m_indexStat;
   std::vector<std::string> m_fieldNameTokens;
-  // Todo: We are assuming that double will be 8 bytes (which should be the case mostly),
-  // but that is not gauranteed. Change the code to handle this properly
+  // Todo: We are assuming that double will be 8 bytes (which should be the case
+  // mostly), but that is not gauranteed. Change the code to handle this
+  // properly
   std::map<double, std::shared_ptr<MamaJenniesBitmap>> m_compressedBitmaps;
   std::unique_ptr<Document> m_subDoc;
 };

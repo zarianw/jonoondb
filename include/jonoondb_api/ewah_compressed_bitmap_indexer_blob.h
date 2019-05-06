@@ -1,31 +1,31 @@
 #pragma once
 
+#include <cmath>
+#include <cstdint>
 #include <map>
 #include <memory>
-#include <cstdint>
 #include <sstream>
-#include <vector>
 #include <string>
-#include <cmath>
-#include "jonoondb_api/indexer.h"
+#include <vector>
+#include "jonoondb_api/buffer_impl.h"
+#include "jonoondb_api/constraint.h"
+#include "jonoondb_api/document.h"
+#include "jonoondb_api/document_id_generator.h"
+#include "jonoondb_api/enums.h"
+#include "jonoondb_api/exception_utils.h"
 #include "jonoondb_api/index_info_impl.h"
+#include "jonoondb_api/index_stat.h"
+#include "jonoondb_api/indexer.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
+#include "jonoondb_api/mama_jennies_bitmap.h"
+#include "jonoondb_api/null_helpers.h"
+#include "jonoondb_api/standard_deleters.h"
 #include "jonoondb_api/status_impl.h"
 #include "jonoondb_api/string_utils.h"
-#include "jonoondb_api/document.h"
-#include "jonoondb_api/mama_jennies_bitmap.h"
-#include "jonoondb_api/exception_utils.h"
-#include "jonoondb_api/index_stat.h"
-#include "jonoondb_api/constraint.h"
-#include "jonoondb_api/enums.h"
-#include "jonoondb_api/document_id_generator.h"
-#include "jonoondb_api/null_helpers.h"
-#include "jonoondb_api/buffer_impl.h"
-#include "jonoondb_api/standard_deleters.h"
-#include "jonoondb_api/jonoondb_exceptions.h"
 
 namespace jonoondb_api {
 
-class EWAHCompressedBitmapIndexerBlob final: public Indexer {
+class EWAHCompressedBitmapIndexerBlob final : public Indexer {
  public:
   static void Construct(const IndexInfoImpl& indexInfo,
                         const FieldType& fieldType,
@@ -37,11 +37,12 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::INVERTED_COMPRESSED_BITMAP) {
       errorMsg =
-          "Argument indexInfo can only have IndexType INVERTED_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
+          "Argument indexInfo can only have IndexType "
+          "INVERTED_COMPRESSED_BITMAP for EWAHCompressedBitmapIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-          << " is not valid for EWAHCompressedBitmapIndexerBlob.";
+         << " is not valid for EWAHCompressedBitmapIndexerBlob.";
       errorMsg = ss.str();
     }
 
@@ -49,15 +50,13 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
       throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
     }
 
-    std::vector<std::string>
-        tokens = StringUtils::Split(indexInfo.GetColumnName(),
-                                    ".");
+    std::vector<std::string> tokens =
+        StringUtils::Split(indexInfo.GetColumnName(), ".");
     IndexStat indexStat(indexInfo, fieldType);
     obj = new EWAHCompressedBitmapIndexerBlob(indexStat, tokens);
   }
 
-  ~EWAHCompressedBitmapIndexerBlob() override {
-  }
+  ~EWAHCompressedBitmapIndexerBlob() override {}
 
   static bool IsValidFieldType(FieldType fieldType) {
     return (fieldType == FieldType::BLOB);
@@ -65,10 +64,8 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
 
   void Insert(std::uint64_t documentID, const Document& document) override {
     std::size_t size = 0;
-    auto val = DocumentUtils::GetBlobValue(document,
-                                           m_subDoc,
-                                           m_fieldNameTokens,
-                                           size);
+    auto val = DocumentUtils::GetBlobValue(document, m_subDoc,
+                                           m_fieldNameTokens, size);
 
     BufferImpl buffer(const_cast<char*>(val), size, size, nullptr);
     auto compressedBitmap = m_compressedBitmaps.find(buffer);
@@ -88,7 +85,8 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
     return m_indexStat;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
+  std::shared_ptr<MamaJenniesBitmap> Filter(
+      const Constraint& constraint) override {
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
@@ -105,7 +103,7 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
       default:
         std::ostringstream ss;
         ss << "IndexConstraintOperator type "
-            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+           << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
@@ -117,24 +115,25 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
     if (lowerConstraint.operandType == OperandType::BLOB &&
         upperConstraint.operandType == OperandType::BLOB) {
       std::map<BufferImpl, std::shared_ptr<MamaJenniesBitmap>>::const_iterator
-          startIter, endIter;
+          startIter,
+          endIter;
 
       if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL) {
         startIter = m_compressedBitmaps.lower_bound(lowerConstraint.blobVal);
       } else {
         startIter = m_compressedBitmaps.upper_bound(lowerConstraint.blobVal);
       }
-      
+
       while (startIter != m_compressedBitmaps.end()) {
         if (startIter->first.GetData() == nullptr) {
           continue;
-        }        
+        }
 
         if (startIter->first < upperConstraint.blobVal) {
           bitmaps.push_back(startIter->second);
-        } else if (
-            upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL
-                && startIter->first == upperConstraint.blobVal) {
+        } else if (upperConstraint.op ==
+                       IndexConstraintOperator::LESS_THAN_EQUAL &&
+                   startIter->first == upperConstraint.blobVal) {
           bitmaps.push_back(startIter->second);
         } else {
           break;
@@ -152,8 +151,7 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
                                   std::vector<std::string>& fieldNameTokens)
       : m_indexStat(indexStat),
         m_fieldNameTokens(fieldNameTokens),
-        m_lastInsertedDocId(-1) {
-  }  
+        m_lastInsertedDocId(-1) {}
 
   std::shared_ptr<MamaJenniesBitmap> GetBitmapEQ(const Constraint& constraint) {
     std::vector<std::shared_ptr<MamaJenniesBitmap>> bitmaps;
@@ -202,11 +200,11 @@ class EWAHCompressedBitmapIndexerBlob final: public Indexer {
       } else {
         iter = m_compressedBitmaps.upper_bound(constraint.blobVal);
       }
-      
+
       while (iter != m_compressedBitmaps.end()) {
         if (iter->first.GetData() == nullptr) {
           continue;
-        }        
+        }
 
         bitmaps.push_back(iter->second);
         iter++;

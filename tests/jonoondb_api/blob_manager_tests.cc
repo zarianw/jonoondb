@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
-#include <memory>
 #include <boost/filesystem.hpp>
-#include "buffer_impl.h"
+#include <memory>
 #include "blob_manager.h"
-#include "filename_manager.h"
 #include "blob_metadata.h"
+#include "buffer_impl.h"
+#include "filename_manager.h"
 #include "test_utils.h"
 
 using namespace jonoondb_api;
@@ -124,7 +124,7 @@ void ExecuteMultiputTest(const std::string& dbName, bool enableCompression) {
   for (auto& buf : bufferArray) {
     bufferPtrArray.push_back(&buf);
   }
-  
+
   bm.MultiPut(bufferPtrArray, metadataArray, enableCompression);
 
   BufferImpl outBuffer;

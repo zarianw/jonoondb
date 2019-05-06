@@ -1,18 +1,15 @@
 #pragma once
 
-#include <memory>
-#include <string>
-#include <sstream>
-#include <cstdint>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <cstdint>
+#include <memory>
+#include <sstream>
+#include <string>
 #include "jonoondb_exceptions.h"
 
 namespace jonoondb_api {
-enum class MemoryMappedFileMode: std::int32_t {
-  ReadOnly = 1,
-  ReadWrite = 2
-};
+enum class MemoryMappedFileMode : std::int32_t { ReadOnly = 1, ReadWrite = 2 };
 
 class MemoryMappedFile final {
  public:
@@ -26,8 +23,8 @@ class MemoryMappedFile final {
     auto internalMode = GetInternalMode(mode);
     m_fileMapping =
         boost::interprocess::file_mapping(fileName.c_str(), internalMode);
-    m_mappedRegion = boost::interprocess::mapped_region(m_fileMapping,
-                                                        internalMode);
+    m_mappedRegion =
+        boost::interprocess::mapped_region(m_fileMapping, internalMode);
 
     if (mode == MemoryMappedFileMode::ReadWrite) {
       m_currentWriteOffset = writeOffset;
@@ -73,14 +70,17 @@ class MemoryMappedFile final {
    memcpy(destinationAddress, data, length);
    }
    catch (boost::interprocess::interprocess_exception& ex) {
-   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, __func__, __LINE__);
+   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, __func__,
+   __LINE__);
    }
    catch (std::exception& ex) {
-   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, __func__, __LINE__);
+   return Status(kStatusFileIOErrorCode, ex.what(), __FILE__, __func__,
+   __LINE__);
    }
    catch (...) {
-   std::string errorMessage = "Unexpected error occured while opening mmap file.";
-   return Status(kStatusGenericErrorCode, errorMessage.c_str(), __FILE__, __func__, __LINE__);
+   std::string errorMessage = "Unexpected error occured while opening mmap
+   file."; return Status(kStatusGenericErrorCode, errorMessage.c_str(),
+   __FILE__, __func__, __LINE__);
    }
    }*/
 
@@ -101,9 +101,7 @@ class MemoryMappedFile final {
     if (!m_mappedRegion.flush(offset, numBytes, m_asynchronous)) {
       throw FileIOException(
           "Unexpected error occured while flushing memory mapped file.",
-          __FILE__,
-          __func__,
-          __LINE__);
+          __FILE__, __func__, __LINE__);
     }
   }
 
@@ -117,7 +115,7 @@ class MemoryMappedFile final {
       default:
         std::ostringstream ss;
         ss << "Mode value " << static_cast<int32_t>(mode)
-            << "is not supported for memory mapped files.";
+           << "is not supported for memory mapped files.";
         throw InvalidArgumentException(ss.str(), __FILE__, __func__, __LINE__);
         break;
     }

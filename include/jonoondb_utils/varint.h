@@ -6,9 +6,8 @@ namespace jonoondb_utils {
 #define kMaxVarintBytes 10
 class Varint {
  public:
-  template<typename int_t>
-  inline static int EncodeVarint(int_t value,
-                                 std::uint8_t* target) {
+  template <typename int_t>
+  inline static int EncodeVarint(int_t value, std::uint8_t* target) {
     auto base = target;
     while (value >= 0x80) {
       *target = static_cast<std::uint8_t>(value | 0x80);
@@ -20,7 +19,7 @@ class Varint {
     return static_cast<int>(target - base);
   }
 
-  template<typename int_t>
+  template <typename int_t>
   inline static int DecodeVarint(std::uint8_t* input, int_t* result) {
     int count = 0;
     std::uint8_t b;
@@ -75,8 +74,8 @@ class Varint {
 
   inline static bool OnLittleEndianMachine() {
     int a = 1;
-    std::int8_t val = *((std::int8_t*) &a);
+    std::int8_t val = *((std::int8_t*)&a);
     return val != 0;
   }
 };
-} // namespace jonoondb_utils
+}  // namespace jonoondb_utils

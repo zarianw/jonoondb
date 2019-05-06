@@ -1,11 +1,11 @@
 #pragma once
 
+#include <cstdlib>
+#include <fstream>
 #include <memory>
 #include <string>
-#include <fstream>
-#include <cstdlib>
-#include "jonoondb_api/jonoondb_exceptions.h"
 #include "jonoondb_api/exception_utils.h"
+#include "jonoondb_api/jonoondb_exceptions.h"
 
 #if _WIN32
 #include <Windows.h>
@@ -14,10 +14,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 #elif __APPLE__
-#include <mach/task.h>
 #include <mach/mach.h>
+#include <mach/task.h>
 #else
-static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
+static_assert(
+    false,
+    "Unsupported platform. Supported platforms are windows, linux and OS X.");
 #endif
 
 namespace jonoondb_api {
@@ -34,7 +36,8 @@ class ProcessUtils {
     // GetCurrentProcess returns pseudo handle so no need to close it
     PROCESS_MEMORY_COUNTERS pmc;
     if (!GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
-      auto msg = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
+      auto msg =
+          ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       throw jonoondb_api::JonoonDBException(msg, __FILE__, __func__, __LINE__);
     }
     stat.MemoryUsedInBytes = pmc.WorkingSetSize;
@@ -54,9 +57,7 @@ class ProcessUtils {
     if (line.size() == 0) {
       std::string message =
           "Unable to read " + fileName + " to determine memory usage.";
-      throw jonoondb_api::JonoonDBException(message,
-                                            __FILE__,
-                                            __func__,
+      throw jonoondb_api::JonoonDBException(message, __FILE__, __func__,
                                             __LINE__);
     }
 
@@ -75,17 +76,20 @@ class ProcessUtils {
     struct task_basic_info t_info;
     mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
 
-    if (KERN_SUCCESS != task_info(mach_task_self(),
-                                  TASK_BASIC_INFO,
-                                  (task_info_t) &t_info, &t_info_count)) {
+    if (KERN_SUCCESS != task_info(mach_task_self(), TASK_BASIC_INFO,
+                                  (task_info_t)&t_info, &t_info_count)) {
       std::string message = "Unable to to determine memory usage. ";
-      message.append(ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError()));
-      throw jonoondb_api::JonoonDBException(message, __FILE__, __func__, __LINE__);
+      message.append(ExceptionUtils::GetErrorTextFromErrorCode(
+          ExceptionUtils::GetError()));
+      throw jonoondb_api::JonoonDBException(message, __FILE__, __func__,
+                                            __LINE__);
     }
     stat.MemoryUsedInBytes = t_info.resident_size;
   }
 #else
-  static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
+  static_assert(
+      false,
+      "Unsupported platform. Supported platforms are windows, linux and OS X.");
 #endif
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

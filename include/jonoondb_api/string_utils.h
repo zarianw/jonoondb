@@ -1,8 +1,8 @@
 #pragma once
 
+#include <boost/tokenizer.hpp>
 #include <string>
 #include <vector>
-#include <boost/tokenizer.hpp>
 
 namespace jonoondb_api {
 class StringUtils {
@@ -15,4 +15,4 @@ class StringUtils {
   }
 };
 
-}  // jonoondb_api
+}  // namespace jonoondb_api

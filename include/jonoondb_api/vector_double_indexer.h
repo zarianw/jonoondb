@@ -1,22 +1,22 @@
 #pragma once
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 #include <sstream>
-#include <vector>
 #include <string>
-#include "indexer.h"
-#include "index_info_impl.h"
-#include "string_utils.h"
-#include "document.h"
-#include "mama_jennies_bitmap.h"
-#include "exception_utils.h"
-#include "index_stat.h"
+#include <vector>
 #include "constraint.h"
+#include "document.h"
 #include "enums.h"
+#include "exception_utils.h"
+#include "index_info_impl.h"
+#include "index_stat.h"
+#include "indexer.h"
+#include "mama_jennies_bitmap.h"
+#include "string_utils.h"
 
 namespace jonoondb_api {
-class VectorDoubleIndexer final: public Indexer {
+class VectorDoubleIndexer final : public Indexer {
  public:
   VectorDoubleIndexer(const IndexInfoImpl& indexInfo,
                       const FieldType& fieldType) {
@@ -27,11 +27,12 @@ class VectorDoubleIndexer final: public Indexer {
       errorMsg = "Argument indexInfo has empty column name.";
     } else if (indexInfo.GetType() != IndexType::VECTOR) {
       errorMsg =
-          "Argument indexInfo can only have IndexType VECTOR for VectorDoubleIndexer.";
+          "Argument indexInfo can only have IndexType VECTOR for "
+          "VectorDoubleIndexer.";
     } else if (!IsValidFieldType(fieldType)) {
       std::ostringstream ss;
       ss << "Argument fieldType " << GetFieldString(fieldType)
-          << " is not valid for VectorDoubleIndexer.";
+         << " is not valid for VectorDoubleIndexer.";
       errorMsg = ss.str();
     }
 
@@ -44,13 +45,12 @@ class VectorDoubleIndexer final: public Indexer {
   }
 
   static bool IsValidFieldType(FieldType fieldType) {
-    return (fieldType == FieldType::FLOAT
-        || fieldType == FieldType::DOUBLE);
+    return (fieldType == FieldType::FLOAT || fieldType == FieldType::DOUBLE);
   }
 
   void Insert(std::uint64_t documentID, const Document& document) override {
-    auto val = DocumentUtils::GetFloatValue(document, m_subDoc,
-                                            m_fieldNameTokens);
+    auto val =
+        DocumentUtils::GetFloatValue(document, m_subDoc, m_fieldNameTokens);
     assert(m_dataVector.size() == documentID);
     m_dataVector.push_back(val);
   }
@@ -59,7 +59,8 @@ class VectorDoubleIndexer final: public Indexer {
     return m_indexStat;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> Filter(const Constraint& constraint) override {
+  std::shared_ptr<MamaJenniesBitmap> Filter(
+      const Constraint& constraint) override {
     switch (constraint.op) {
       case jonoondb_api::IndexConstraintOperator::EQUAL:
         return GetBitmapEQ(constraint);
@@ -76,7 +77,7 @@ class VectorDoubleIndexer final: public Indexer {
       default:
         std::ostringstream ss;
         ss << "IndexConstraintOperator type "
-            << static_cast<std::int32_t>(constraint.op) << " is not valid.";
+           << static_cast<std::int32_t>(constraint.op) << " is not valid.";
         throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
@@ -88,29 +89,31 @@ class VectorDoubleIndexer final: public Indexer {
     double lowerVal = GetOperandVal(lowerConstraint);
     double upperVal = GetOperandVal(upperConstraint);
 
-    if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
-        && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
+    if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN &&
+        upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] > lowerVal && m_dataVector[i] < upperVal) {
           bitmap->Add(i);
         }
       }
-    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN
-        && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN &&
+               upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] > lowerVal && m_dataVector[i] <= upperVal) {
           bitmap->Add(i);
         }
       }
-    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
-        && upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
+    } else if (lowerConstraint.op ==
+                   IndexConstraintOperator::GREATER_THAN_EQUAL &&
+               upperConstraint.op == IndexConstraintOperator::LESS_THAN) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] >= lowerVal && m_dataVector[i] < upperVal) {
           bitmap->Add(i);
         }
       }
-    } else if (lowerConstraint.op == IndexConstraintOperator::GREATER_THAN_EQUAL
-        && upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
+    } else if (lowerConstraint.op ==
+                   IndexConstraintOperator::GREATER_THAN_EQUAL &&
+               upperConstraint.op == IndexConstraintOperator::LESS_THAN_EQUAL) {
       for (size_t i = 0; i < m_dataVector.size(); i++) {
         if (m_dataVector[i] >= lowerVal && m_dataVector[i] <= upperVal) {
           bitmap->Add(i);
@@ -130,9 +133,8 @@ class VectorDoubleIndexer final: public Indexer {
     return false;
   }
 
-  virtual bool TryGetDoubleVector(
-      const gsl::span<std::uint64_t>& documentIDs,
-      std::vector<double>& values) override {
+  virtual bool TryGetDoubleVector(const gsl::span<std::uint64_t>& documentIDs,
+                                  std::vector<double>& values) override {
     assert(documentIDs.size() == values.size());
     for (auto i = 0; i < documentIDs.size(); i++) {
       if (documentIDs[i] >= m_dataVector.size()) {
@@ -168,7 +170,8 @@ class VectorDoubleIndexer final: public Indexer {
     }
 
     // In all other cases the operand cannot be equal. The cases are:
-    // Operand is a string value, this should not happen because the query should fail before reaching this point   
+    // Operand is a string value, this should not happen because the query
+    // should fail before reaching this point
     return bitmap;
   }
 
@@ -185,7 +188,8 @@ class VectorDoubleIndexer final: public Indexer {
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapLTE(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapLTE(
+      const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     double val = GetOperandVal(constraint);
 
@@ -211,7 +215,8 @@ class VectorDoubleIndexer final: public Indexer {
     return bitmap;
   }
 
-  std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(const Constraint& constraint) {
+  std::shared_ptr<MamaJenniesBitmap> GetBitmapGTE(
+      const Constraint& constraint) {
     auto bitmap = std::make_shared<MamaJenniesBitmap>();
     double val = GetOperandVal(constraint);
 
@@ -229,4 +234,4 @@ class VectorDoubleIndexer final: public Indexer {
   std::vector<double> m_dataVector;
   std::unique_ptr<Document> m_subDoc;
 };
-} // namespace jonoondb_api
+}  // namespace jonoondb_api

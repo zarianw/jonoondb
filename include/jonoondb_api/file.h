@@ -1,18 +1,18 @@
 #pragma once
 
-#include <string>
-#include <sstream>
 #include <fstream>
-#include "jonoondb_exceptions.h"
+#include <sstream>
+#include <string>
 #include "exception_utils.h"
+#include "jonoondb_exceptions.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
 #else
 // Linux code goes here
-#include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
 #endif
 
 namespace jonoondb_api {
@@ -44,8 +44,8 @@ class File {
       std::string reason =
           ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
-      ss << "Failed to read the file at path " << path << ". Reason: "
-          << reason;
+      ss << "Failed to read the file at path " << path
+         << ". Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
@@ -54,51 +54,58 @@ class File {
 
   static void FastAllocate(std::string& fileName, std::size_t fileSize) {
 #if defined(_WIN32)
-    //1. Create a new file. This will fail if the file already exist, which is what we want.
+    // 1. Create a new file. This will fail if the file already exist, which is
+    // what we want.
     //   We don't want to delete or overwrite any data
-    auto fileHandle = CreateFile(fileName.c_str(),
-        GENERIC_WRITE,
-        NULL,//No Sharing
-        NULL,
-        CREATE_NEW,
-        NULL,
-        NULL);
+    auto fileHandle = CreateFile(fileName.c_str(), GENERIC_WRITE,
+                                 NULL,  // No Sharing
+                                 NULL, CREATE_NEW, NULL, NULL);
 
     if (fileHandle == INVALID_HANDLE_VALUE) {
-      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
+      std::string reason =
+          ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
-      ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
+      ss << "Fast allocate for file " << fileName
+         << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
-    //2. Move the file pointer to the desired position
+    // 2. Move the file pointer to the desired position
     LARGE_INTEGER li;
     li.QuadPart = fileSize;
 
-    if (SetFilePointer(fileHandle, li.LowPart, &li.HighPart, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
+    if (SetFilePointer(fileHandle, li.LowPart, &li.HighPart, FILE_BEGIN) ==
+        INVALID_SET_FILE_POINTER) {
+      std::string reason =
+          ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
-      ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
+      ss << "Fast allocate for file " << fileName
+         << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
-    //3. Set the physical file size
+    // 3. Set the physical file size
     if (!SetEndOfFile(fileHandle)) {
-      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
+      std::string reason =
+          ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
-      ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
+      ss << "Fast allocate for file " << fileName
+         << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
-    //4. Close FileHandle
+    // 4. Close FileHandle
     if (!CloseHandle(fileHandle)) {
-      std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
+      std::string reason =
+          ExceptionUtils::GetErrorTextFromErrorCode(ExceptionUtils::GetError());
       std::ostringstream ss;
-      ss << "Fast allocate for file " << fileName << " failed. Reason: " << reason;
+      ss << "Fast allocate for file " << fileName
+         << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 #elif defined(__linux) || defined(__APPLE__)
-    //1. Create a new file. This will fail if the file already exist, which is what we want.
+    // 1. Create a new file. This will fail if the file already exist, which is
+    // what we want.
     //   We don't want to delete or overwrite any data
     int fd;
     if ((fd = open(fileName.c_str(), O_RDWR | O_CREAT | O_EXCL,
@@ -106,22 +113,22 @@ class File {
       int errCode = errno;
       std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
-      ss << "Fast allocate for file " << fileName << " failed. Reason: "
-          << reason;
+      ss << "Fast allocate for file " << fileName
+         << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 
 #ifdef __linux__
     if (ftruncate64(fd, fileSize) != 0) {
 #elif __APPLE__
-      if (ftruncate(fd, fileSize) != 0) {
+    if (ftruncate(fd, fileSize) != 0) {
 #endif
 
       int errCode = errno;
       std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
-      ss << "Fast allocate for file " << fileName << " failed. Reason: "
-          << reason;
+      ss << "Fast allocate for file " << fileName
+         << " failed. Reason: " << reason;
       close(fd);
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
@@ -130,14 +137,15 @@ class File {
       int errCode = errno;
       std::string reason = ExceptionUtils::GetErrorTextFromErrorCode(errCode);
       std::ostringstream ss;
-      ss << "Fast allocate for file " << fileName << " failed. Reason: "
-          << reason;
+      ss << "Fast allocate for file " << fileName
+         << " failed. Reason: " << reason;
       throw FileIOException(ss.str(), __FILE__, __func__, __LINE__);
     }
 #else
-    static_assert(false, "Unsupported platform. Supported platforms are windows, linux and OS X.");
+    static_assert(false,
+                  "Unsupported platform. Supported platforms are windows, "
+                  "linux and OS X.");
 #endif
   }
 };
 }  // namespace jonoondb_api
-

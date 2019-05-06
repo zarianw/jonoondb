@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "database.h"
+#include "gtest/gtest.h"
 
 using namespace jonoondb_api;
 

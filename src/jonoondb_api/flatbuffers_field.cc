@@ -13,8 +13,8 @@ const std::string FlatbuffersField::GetName() const {
 }
 
 FieldType FlatbuffersField::GetType() const {
-  if (m_fieldDef->type()->base_type() == reflection::BaseType::Vector && 
-      (m_fieldDef->type()->element() == reflection::BaseType::Byte || 
+  if (m_fieldDef->type()->base_type() == reflection::BaseType::Vector &&
+      (m_fieldDef->type()->element() == reflection::BaseType::Byte ||
        m_fieldDef->type()->element() == reflection::BaseType::UByte)) {
     return FieldType::BLOB;
   }
@@ -31,8 +31,10 @@ FieldType FlatbuffersField::GetElementType() const {
 
 size_t FlatbuffersField::GetSubFieldCount() const {
   if (m_fieldDef->type()->base_type() == reflection::BaseType::Obj) {
-    return m_schema->objects()->Get(
-        m_fieldDef->type()->index())->fields()->size();
+    return m_schema->objects()
+        ->Get(m_fieldDef->type()->index())
+        ->fields()
+        ->size();
   }
 
   return 0;
@@ -41,8 +43,9 @@ size_t FlatbuffersField::GetSubFieldCount() const {
 void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
   FlatbuffersField* fbField = dynamic_cast<FlatbuffersField*>(field);
   if (fbField == nullptr) {
-    // This means that the passed in doc cannot be casted to FlatbuffersDocument    
-    string errorMsg = "Argument field cannot be casted to underlying field "
+    // This means that the passed in doc cannot be casted to FlatbuffersDocument
+    string errorMsg =
+        "Argument field cannot be casted to underlying field "
         "implementation i.e. FlatbuffersField. "
         "Make sure you are creating the val by calling AllocateField call.";
     throw InvalidArgumentException(errorMsg, __FILE__, __func__, __LINE__);
@@ -54,8 +57,8 @@ void FlatbuffersField::GetSubField(size_t index, Field*& field) const {
   }
 
   auto obj = m_schema->objects()->Get(m_fieldDef->type()->index());
-  fbField->SetMembers(
-      const_cast<reflection::Field*>(obj->fields()->Get(index)), m_schema);
+  fbField->SetMembers(const_cast<reflection::Field*>(obj->fields()->Get(index)),
+                      m_schema);
 }
 
 Field* FlatbuffersField::AllocateField() const {

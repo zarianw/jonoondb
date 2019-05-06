@@ -1,23 +1,20 @@
 #include "resultset_impl.h"
+#include <sstream>
 #include "guard_funcs.h"
 #include "jonoondb_exceptions.h"
-#include <sstream>
 
 using namespace jonoondb_api;
 
 ResultSetImpl::ResultSetImpl(ObjectPoolGuard<sqlite3> db,
-                             const std::string& selectStmt) :
-    m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
+                             const std::string& selectStmt)
+    : m_db(std::move(db)), m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
   sqlite3_stmt* stmt = nullptr;
-  int code = sqlite3_prepare_v2(m_db,
-                                selectStmt.c_str(),
-                                selectStmt.size(),
-                                &stmt,
-                                nullptr);
+  int code = sqlite3_prepare_v2(m_db, selectStmt.c_str(), selectStmt.size(),
+                                &stmt, nullptr);
   m_stmt.reset(stmt);
   if (code != SQLITE_OK) {
     // We can safely use sqlite3_errmsg because each ResultSetImpl
-    // has a dedicated sqlite3 connection, so it will only be used 
+    // has a dedicated sqlite3 connection, so it will only be used
     // by one thread at any given time.
     const char* errMsg = sqlite3_errmsg(m_db);
     if (errMsg != nullptr) {
@@ -35,7 +32,7 @@ ResultSetImpl::ResultSetImpl(ObjectPoolGuard<sqlite3> db,
       throw SQLException("Failed to get column names for the resultset.",
                          __FILE__, __func__, __LINE__);
     }
-    // Todo: maybe we need to handle UTF8 strings here     
+    // Todo: maybe we need to handle UTF8 strings here
     m_columnMapStringStore.push_back(colName);
 
     m_columnSqlType.push_back(sqlite3_column_type(m_stmt.get(), i));
@@ -47,8 +44,8 @@ ResultSetImpl::ResultSetImpl(ObjectPoolGuard<sqlite3> db,
 }
 
 // Todo: Use more efficient move sematics (e.g. pimpl idom)
-ResultSetImpl::ResultSetImpl(ResultSetImpl&& other) : m_stmt(nullptr,
-                                                             GuardFuncs::SQLite3Finalize) {
+ResultSetImpl::ResultSetImpl(ResultSetImpl&& other)
+    : m_stmt(nullptr, GuardFuncs::SQLite3Finalize) {
   this->m_db = std::move(other.m_db);
   this->m_stmt = std::move(other.m_stmt);
   this->m_columnMapStringStore = std::move(other.m_columnMapStringStore);
@@ -115,7 +112,7 @@ const char* ResultSetImpl::GetBlob(std::int32_t columnIndex,
                                    std::uint64_t& size) const {
   auto val = sqlite3_column_blob(m_stmt.get(), columnIndex);
   if (val != nullptr) {
-    size = sqlite3_column_bytes(m_stmt.get(), columnIndex);    
+    size = sqlite3_column_bytes(m_stmt.get(), columnIndex);
   } else {
     size = 0;
   }
@@ -123,12 +120,13 @@ const char* ResultSetImpl::GetBlob(std::int32_t columnIndex,
   return static_cast<const char*>(val);
 }
 
-std::int32_t ResultSetImpl::GetColumnIndex(const boost::string_ref& columnLabel) const {
+std::int32_t ResultSetImpl::GetColumnIndex(
+    const boost::string_ref& columnLabel) const {
   auto iter = m_columnMap.find(columnLabel);
   if (iter == m_columnMap.end()) {
     std::ostringstream ss;
     ss << "Unable to find column index for column label '" << columnLabel
-        << "' in the resultset.";
+       << "' in the resultset.";
     throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   }
 
@@ -155,7 +153,7 @@ SqlType ResultSetImpl::GetColumnType(std::int32_t columnIndex) {
     default: {
       std::ostringstream ss;
       ss << "Unknown/Unsupported type " << type
-          << " encountered for columnIndex " << columnIndex << ".";
+         << " encountered for columnIndex " << columnIndex << ".";
       throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }

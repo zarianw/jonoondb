@@ -1,14 +1,13 @@
 #pragma once
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 
 namespace jonoondb_api {
 // Forward declaration
 class BufferImpl;
-enum class IndexType
-    : std::int32_t;
+enum class IndexType : std::int32_t;
 
 class IndexInfoImpl {
  public:
@@ -32,5 +31,4 @@ class IndexInfoImpl {
   struct IndexInfoData;
   IndexInfoData* m_indexInfoData;
 };
-}
-
+}  // namespace jonoondb_api

@@ -1,8 +1,8 @@
 #include "jonoondb_api/delete_vector.h"
 #include "jonoondb_api/document_collection.h"
+#include "jonoondb_api/guard_funcs.h"
 #include "jonoondb_api/jonoondb_exceptions.h"
 #include "jonoondb_api/sqlite_utils.h"
-#include "jonoondb_api/guard_funcs.h"
 #include "sqlite3.h"
 
 using namespace std;
@@ -11,9 +11,10 @@ using namespace gsl;
 using namespace jonoondb_api;
 
 DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
-                           const string& collectionName, bool
-                           createDBIfMissing, uint64_t nextDocId)
-    : m_collectionName(collectionName), m_nextDocumentId(nextDocId),
+                           const string& collectionName, bool createDBIfMissing,
+                           uint64_t nextDocId)
+    : m_collectionName(collectionName),
+      m_nextDocumentId(nextDocId),
       m_dbConnection(nullptr, GuardFuncs::SQLite3Close),
       m_updateStmt(nullptr, GuardFuncs::SQLite3Finalize),
       m_selectStmt(nullptr, GuardFuncs::SQLite3Finalize) {
@@ -36,7 +37,7 @@ DeleteVector::DeleteVector(const string& dbPath, const string& dbName,
 
 void DeleteVector::OnDocumentDeleted(uint64_t docId) {
   assert(docId < m_nextDocumentId);
-  assert (m_deletedDocIds.find(docId) == m_deletedDocIds.end());
+  assert(m_deletedDocIds.find(docId) == m_deletedDocIds.end());
 
   m_deletedDocIds.insert(docId);
 
@@ -90,12 +91,12 @@ void DeleteVector::MaybeReconstructBitmap() {
 
 void DeleteVector::InsertEmptyDeleteVector() {
   sqlite3_stmt* stmt = nullptr;
-  int sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
-                                      "INSERT INTO CollectionDeleteVector (CollectionName, "
-                                      "DeleteVectorType, Version, DeleteVectorData) VALUES (?, ?, 1, NULL)",  // stmt
-                                      -1,
-                                      &stmt,
-                                      0);
+  int sqliteCode =
+      sqlite3_prepare_v2(m_dbConnection.get(),
+                         "INSERT INTO CollectionDeleteVector (CollectionName, "
+                         "DeleteVectorType, Version, DeleteVectorData) VALUES "
+                         "(?, ?, 1, NULL)",  // stmt
+                         -1, &stmt, 0);
   std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> statementGuard(
       stmt, GuardFuncs::SQLite3Finalize);
   SQLiteUtils::HandleSQLiteCode(sqliteCode);
@@ -158,16 +159,19 @@ void DeleteVector::LoadBitmap() {
   std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> statementGuard(
       m_selectStmt.get(), SQLiteUtils::ClearAndResetStatement);
 
-  int sqliteCode = sqlite3_bind_text(m_selectStmt.get(), 1, m_collectionName.c_str(), -1, SQLITE_STATIC);
+  int sqliteCode = sqlite3_bind_text(
+      m_selectStmt.get(), 1, m_collectionName.c_str(), -1, SQLITE_STATIC);
   SQLiteUtils::HandleSQLiteCode(sqliteCode);
 
   // Now read the record
   sqliteCode = sqlite3_step(m_selectStmt.get());
   if (sqliteCode == SQLITE_ROW) {
-    BitmapType type = static_cast<BitmapType>(sqlite3_column_int(m_selectStmt.get(), 0));
+    BitmapType type =
+        static_cast<BitmapType>(sqlite3_column_int(m_selectStmt.get(), 0));
     int version = sqlite3_column_int(m_selectStmt.get(), 1);
 
-    const char* data = reinterpret_cast<const char*>(sqlite3_column_blob(m_selectStmt.get(), 2));
+    const char* data = reinterpret_cast<const char*>(
+        sqlite3_column_blob(m_selectStmt.get(), 2));
     if (data != nullptr) {
       int length = sqlite3_column_bytes(m_selectStmt.get(), 2);
       span<const char> s(data, length);
@@ -179,8 +183,7 @@ void DeleteVector::LoadBitmap() {
   } else if (sqliteCode == SQLITE_DONE) {
     ostringstream ss;
     ss << "Bitmap not found for collection " << m_collectionName << ".";
-    throw JonoonDBException(ss.str(), __FILE__, __func__,
-                            __LINE__);
+    throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
   } else {
     throw SQLException(sqlite3_errstr(sqliteCode), __FILE__, __func__,
                        __LINE__);
@@ -206,37 +209,34 @@ void DeleteVector::InitializeTableAndStatements() {
                                   "SET DeleteVectorType = ?, "
                                   "DeleteVectorData = ? "
                                   "WHERE CollectionName = ?",
-                                  -1,
-                                  &stmt,
-                                  0);
+                                  -1, &stmt, 0);
   m_updateStmt.reset(stmt);
   SQLiteUtils::HandleSQLiteCode(sqliteCode);
 
   stmt = nullptr;
-  sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
-                                  "SELECT DeleteVectorType, Version, DeleteVectorData "
-                                  "FROM CollectionDeleteVector "
-                                  "WHERE CollectionName = ?",
-                                  -1,
-                                  &stmt,
-                                  0);
+  sqliteCode =
+      sqlite3_prepare_v2(m_dbConnection.get(),
+                         "SELECT DeleteVectorType, Version, DeleteVectorData "
+                         "FROM CollectionDeleteVector "
+                         "WHERE CollectionName = ?",
+                         -1, &stmt, 0);
   m_selectStmt.reset(stmt);
   SQLiteUtils::HandleSQLiteCode(sqliteCode);
 }
 
 int64_t DeleteVector::GetRowCount() {
   sqlite3_stmt* stmt = nullptr;
-  int sqliteCode = sqlite3_prepare_v2(m_dbConnection.get(),
-                                      "SELECT COUNT(*) FROM CollectionDeleteVector "
-                                      "WHERE CollectionName = ?",  // stmt
-                                      -1,
-                                      &stmt,
-                                      0);
+  int sqliteCode =
+      sqlite3_prepare_v2(m_dbConnection.get(),
+                         "SELECT COUNT(*) FROM CollectionDeleteVector "
+                         "WHERE CollectionName = ?",  // stmt
+                         -1, &stmt, 0);
   std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> statementGuard(
       stmt, GuardFuncs::SQLite3Finalize);
   SQLiteUtils::HandleSQLiteCode(sqliteCode);
 
-  sqliteCode = sqlite3_bind_text(stmt, 1, m_collectionName.c_str(), -1, SQLITE_STATIC);
+  sqliteCode =
+      sqlite3_bind_text(stmt, 1, m_collectionName.c_str(), -1, SQLITE_STATIC);
   SQLiteUtils::HandleSQLiteCode(sqliteCode);
 
   sqliteCode = sqlite3_step(stmt);
@@ -247,5 +247,3 @@ int64_t DeleteVector::GetRowCount() {
 
   return sqlite3_column_int64(stmt, 0);
 }
-
-

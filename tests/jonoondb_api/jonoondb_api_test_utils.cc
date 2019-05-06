@@ -1,7 +1,7 @@
-#include "gtest/gtest.h"
 #include "jonoondb_api_test_utils.h"
-#include "tweet_generated.h"
 #include "all_field_type_generated.h"
+#include "gtest/gtest.h"
+#include "tweet_generated.h"
 
 using namespace jonoondb_test;
 using namespace jonoondb_api;
@@ -37,6 +37,6 @@ void TestUtils::CompareTweetObject(const Document& doc,
   ASSERT_DOUBLE_EQ(doc.GetFloatingValueAsDouble("rating"), tweet->rating());
   std::size_t size;
   auto data = doc.GetBlobValue("binData", size);
-  ASSERT_EQ(memcmp(data, reinterpret_cast<const char*>(tweet->binData()),
-                   size), 0);
+  ASSERT_EQ(memcmp(data, reinterpret_cast<const char*>(tweet->binData()), size),
+            0);
 }

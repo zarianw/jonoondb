@@ -18,6 +18,8 @@ if(APPLE)
 elseif(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -std=c++14 -m64")
+elseif(WIN32)
+  add_definitions(-DNOMINMAX)
 endif()
 
 option(ASAN "Address sanitizer to detect memory issues." OFF)

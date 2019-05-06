@@ -1,19 +1,19 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
+#include <memory>
+#include <string>
 #include <vector>
 
-//Forward declarations
+// Forward declarations
 struct sqlite3;
 struct sqlite3_stmt;
 
 namespace jonoondb_api {
-//Forward declaration
+// Forward declaration
 class IndexInfoImpl;
 struct FileInfo;
-enum class SchemaType
-    : std::int32_t;
+enum class SchemaType : std::int32_t;
 
 struct CollectionMetadata {
   std::string name;
@@ -28,12 +28,10 @@ class DatabaseMetadataManager final {
   DatabaseMetadataManager(const DatabaseMetadataManager&) = delete;
   DatabaseMetadataManager(DatabaseMetadataManager&&) = delete;
   DatabaseMetadataManager& operator=(const DatabaseMetadataManager&) = delete;
-  DatabaseMetadataManager(const std::string& dbPath,
-                          const std::string& dbName,
+  DatabaseMetadataManager(const std::string& dbPath, const std::string& dbName,
                           bool createDBIfMissing);
   ~DatabaseMetadataManager();
-  void AddCollection(const std::string& name,
-                     SchemaType schemaType,
+  void AddCollection(const std::string& name, SchemaType schemaType,
                      const std::string& schema,
                      const std::vector<IndexInfoImpl*>& indexes);
   const std::string& GetDBPath() const;
@@ -43,8 +41,8 @@ class DatabaseMetadataManager final {
  private:
   void CreateTables();
   void PrepareStatements();
-  void CreateIndex
-      (const std::string& collectionName, const IndexInfoImpl& indexInfo);
+  void CreateIndex(const std::string& collectionName,
+                   const IndexInfoImpl& indexInfo);
   void FinalizeStatements();
 
   std::string m_dbName;
@@ -54,4 +52,4 @@ class DatabaseMetadataManager final {
   sqlite3_stmt* m_insertCollectionSchemaStmt;
   sqlite3_stmt* m_insertCollectionIndexStmt;
 };
-}
+}  // namespace jonoondb_api

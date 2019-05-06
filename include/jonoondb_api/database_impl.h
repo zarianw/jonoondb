@@ -1,25 +1,24 @@
 #pragma once
-#include <memory>
-#include <map>
-#include <string>
-#include <cstdint>
 #include <boost/utility/string_ref.hpp>
-#include <thread>
 #include <condition_variable>
-#include "gsl/span.h"
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <string>
+#include <thread>
 #include "database_metadata_manager.h"
 #include "document_collection.h"
-#include "query_processor.h"
+#include "gsl/span.h"
 #include "options_impl.h"
+#include "query_processor.h"
 
 namespace jonoondb_api {
-//Forward Declarations
+// Forward Declarations
 class BufferImpl;
 class IndexInfoImpl;
 class ResultSetImpl;
 struct WriteOptionsImpl;
-enum class SchemaType
-    : std::int32_t;
+enum class SchemaType : std::int32_t;
 
 class DatabaseImpl final {
  public:
@@ -30,8 +29,7 @@ class DatabaseImpl final {
   DatabaseImpl(DatabaseImpl&&) = delete;
   DatabaseImpl& operator=(const DatabaseImpl&) = delete;
 
-  void CreateCollection(const std::string& name,
-                        SchemaType schemaType,
+  void CreateCollection(const std::string& name, SchemaType schemaType,
                         const std::string& schema,
                         const std::vector<IndexInfoImpl*>& indexes);
   void Insert(const char* collectionName, const BufferImpl& documentData,
@@ -44,17 +42,16 @@ class DatabaseImpl final {
 
  private:
   std::shared_ptr<DocumentCollection> CreateCollectionInternal(
-      const std::string& name,
-      SchemaType schemaType,
-      const std::string& schema,
+      const std::string& name, SchemaType schemaType, const std::string& schema,
       const std::vector<IndexInfoImpl*>& indexes,
       const std::vector<FileInfo>& dataFilesToLoad);
   std::unique_ptr<DatabaseMetadataManager> m_dbMetadataMgrImpl;
   void MemoryWatcherFunc();
-  // m_collectionNameStore stores the collection name as string, m_collectionContainer just uses
-  // string_ref as the key. m_collectionNameStore should be declared before m_collectionContainer.
-  // This insures that they get destroyed in reverse order i.e. m_collectionContainer first and then
-  // m_collectionNameStore.
+  // m_collectionNameStore stores the collection name as string,
+  // m_collectionContainer just uses string_ref as the key.
+  // m_collectionNameStore should be declared before m_collectionContainer. This
+  // insures that they get destroyed in reverse order i.e. m_collectionContainer
+  // first and then m_collectionNameStore.
   std::vector<std::unique_ptr<std::string>> m_collectionNameStore;
   std::map<boost::string_ref, std::shared_ptr<DocumentCollection>>
       m_collectionContainer;
@@ -66,4 +63,4 @@ class DatabaseImpl final {
   std::condition_variable m_memWatcherCV;
 };
 
-}  // jonoondb_api
+}  // namespace jonoondb_api

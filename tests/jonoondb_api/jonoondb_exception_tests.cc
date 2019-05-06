@@ -23,10 +23,10 @@ TEST(JonoonDBException, Constructor2) {
 TEST(JonoonDBException, CopyConstructor) {
   JonoonDBException ex("Error Message.", "srcfile", "funcName", 10);
 
-  //Now copy the object
+  // Now copy the object
   JonoonDBException ex2(ex);
 
-  //Now verify both objects
+  // Now verify both objects
   ASSERT_STREQ(ex.what(), ex2.what());
   ASSERT_STREQ(ex.GetFunctionName(), ex2.GetFunctionName());
   ASSERT_STREQ(ex.GetSourceFileName(), ex2.GetSourceFileName());
@@ -36,11 +36,11 @@ TEST(JonoonDBException, CopyConstructor) {
 TEST(JonoonDBException, AssignmentOperator) {
   JonoonDBException ex("Error Message.", "srcfile", "funcName", 10);
 
-  //Do the assignment
+  // Do the assignment
   JonoonDBException ex2;
   ex2 = ex;
 
-  //Now verify both objects
+  // Now verify both objects
   ASSERT_STREQ(ex.what(), ex2.what());
   ASSERT_STREQ(ex.GetFunctionName(), ex2.GetFunctionName());
   ASSERT_STREQ(ex.GetSourceFileName(), ex2.GetSourceFileName());
@@ -49,7 +49,7 @@ TEST(JonoonDBException, AssignmentOperator) {
 
 TEST(JonoonDBException, MoveAssignmentOperator) {
   JonoonDBException ex;
-  //Assign ex from a rvalue object
+  // Assign ex from a rvalue object
   ex = JonoonDBException("Error Message.", "srcfile", "funcName", 10);
   ASSERT_STREQ(ex.what(), "Error Message.");
   ASSERT_STREQ(ex.GetFunctionName(), "funcName");
@@ -63,10 +63,10 @@ JonoonDBException GetStatusRValue() {
 }
 
 TEST(JonoonDBException, MoveConstructor) {
-  //Construct ex from a rvalue object			
+  // Construct ex from a rvalue object
   JonoonDBException ex = GetStatusRValue();
 
-  //Now verify
+  // Now verify
   ASSERT_STREQ(ex.what(), "Error Message.");
   ASSERT_STREQ(ex.GetFunctionName(), "funcName");
   ASSERT_STREQ(ex.GetSourceFileName(), "srcfile");
@@ -74,12 +74,12 @@ TEST(JonoonDBException, MoveConstructor) {
 }
 
 TEST(JonoonDBException, SQLException) {
-  //Construct ex from a rvalue object			
+  // Construct ex from a rvalue object
   try {
     throw SQLException("Error Message.", "srcfile", "funcName", 10);
   } catch (JonoonDBException& ex) {
     // we should get the exception here as JonoonDBException is the base class
-    //Now verify
+    // Now verify
     ASSERT_STREQ(ex.what(), "Error Message.");
     ASSERT_STREQ(ex.GetFunctionName(), "funcName");
     ASSERT_STREQ(ex.GetSourceFileName(), "srcfile");

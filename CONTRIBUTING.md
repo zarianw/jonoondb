@@ -6,12 +6,19 @@ There are number of ways in which you can contribute:
 
 1. Submit bugs/issues when you experience them.
 2. Help other users of JonoonDB when they post questions on stack overflow or on our google group.
-3. Build complementry libraries or products for JonoonDB.
+3. Build complementary libraries or products for JonoonDB.
 4. Submit pull requests with bug fixes.
-5. Contribute code for new features. But before you embark on this please post your ideas on our google group. Sometimes the feature you want to work on may already be in progress. At other times it may be implmented in a better way if discussed before implmentation.
+5. Contribute code for new features. But before you embark on this please post your ideas on our google group. Sometimes the feature you want to work on may already be in progress. At other times it may be implemented in a better way if discussed before implementation.
 
 ## C++ style guide 
-We use [google's c++ style guide](https://google.github.io/styleguide/cppguide.html) for the most part. The places where we differ are documented below:
+We use [google's c++ style guide](https://google.github.io/styleguide/cppguide.html) for the most part.
+Code formatting is enforced through the clang-format tool that uses the .clang-format file located at the repository root. There is a pre-commit hook for formatting as well that you can activate by running the following command:
+
+`git config core.hooksPath .githooks`
+
+Now all your changes will be formatted before each commit.
+
+The places where we differ from google style guide are documented below:
 
 1. Instance/Member variables should being with "m_". It works with intellisense better as you are trying to use the member variables.
 2. Variable names such as parameters, local function variables, instance variables should use camelCase instead of snake_case.

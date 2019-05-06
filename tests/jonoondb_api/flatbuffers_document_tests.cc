@@ -1,13 +1,13 @@
-#include "gtest/gtest.h"
 #include <string>
+#include "all_field_type_generated.h"
 #include "buffer_impl.h"
+#include "enums.h"
+#include "file.h"
+#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers_document.h"
 #include "flatbuffers_document_schema.h"
-#include "enums.h"
+#include "gtest/gtest.h"
 #include "test_utils.h"
-#include "all_field_type_generated.h"
-#include "flatbuffers/flatbuffers.h"
-#include "file.h"
 
 using namespace std;
 using namespace flatbuffers;
@@ -20,11 +20,11 @@ BufferImpl GetAllFieldTypeObject() {
   auto nestedobject =
       CreateNestedAllFieldType(fbb, 1, 2, true, 4, 5, 6, 7, 8.0f, 9, 10.0, str);
   auto str2 = fbb.CreateString("ali");
-  auto allfieldtype = CreateAllFieldType(fbb, 1, 2, false, 4, 5, 6, 7, 8.0f, 9, 10.0, str2, nestedobject);
+  auto allfieldtype = CreateAllFieldType(fbb, 1, 2, false, 4, 5, 6, 7, 8.0f, 9,
+                                         10.0, str2, nestedobject);
   fbb.Finish(allfieldtype);
   auto size = fbb.GetSize();
-  return BufferImpl(reinterpret_cast<char*>(fbb.GetBufferPointer()),
-                    size,
+  return BufferImpl(reinterpret_cast<char*>(fbb.GetBufferPointer()), size,
                     size);
 }
 
