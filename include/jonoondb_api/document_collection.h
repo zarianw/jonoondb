@@ -7,6 +7,7 @@
 #include "blob_metadata.h"
 #include "document_id_generator.h"
 #include "gsl/span.h"
+#include "gsl/string_span.h"
 #include "index_manager.h"
 
 // Forward declaration
@@ -72,6 +73,8 @@ class DocumentCollection final {
                                        std::vector<double>& values) const;
   void UnmapLRUDataFiles();
   void AddToDeleteVector(std::uint64_t id);
+  std::int64_t Update(std::vector<int64_t> docIds, gsl::span<char> document,
+                      const WriteOptionsImpl& wo);
 
  private:
   void PopulateColumnTypes(

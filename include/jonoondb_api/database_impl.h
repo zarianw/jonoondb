@@ -9,6 +9,7 @@
 #include "database_metadata_manager.h"
 #include "document_collection.h"
 #include "gsl/span.h"
+#include "gsl/string_span.h"
 #include "options_impl.h"
 #include "query_processor.h"
 
@@ -39,6 +40,9 @@ class DatabaseImpl final {
                    const WriteOptionsImpl& wo);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
   std::int64_t Delete(const std::string& deleteStatement);
+  std::int64_t Update(const boost::string_ref& collectionName,
+                      gsl::span<char> document, gsl::string_span<> whereClause,
+                      bool allowMultipleUpdates, const WriteOptionsImpl& wo);
 
  private:
   std::shared_ptr<DocumentCollection> CreateCollectionInternal(

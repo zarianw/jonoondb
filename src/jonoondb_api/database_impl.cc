@@ -196,6 +196,30 @@ std::int64_t DatabaseImpl::Delete(const std::string& deleteStatement) {
   return m_queryProcessor->Delete(deleteStatement);
 }
 
+std::int64_t jonoondb_api::DatabaseImpl::Update(
+    const boost::string_ref& collectionName, gsl::span<char> document,
+    gsl::string_span<> whereClause, bool allowMultipleUpdates,
+    const WriteOptionsImpl& wo) {
+  string selectStmt = "SELECT rowid FROM ";
+  selectStmt.append(collectionName.begin(), collectionName.end())
+      .append(" WHERE ")
+      .append(whereClause.begin(), whereClause.end());
+  auto rs = ExecuteSelect(selectStmt);
+  vector<int64_t> rowids;
+  while (rs.Next()) {
+    rowids.push_back(rs.GetInteger(0));
+    if (!allowMultipleUpdates && rowids.size() > 1) {
+      ostringstream ss;
+      ss << "Where clause: " << gsl::to_string(whereClause)
+         << " matched with more than one document. If the intention was to "
+            "update multiple documents then set allowMultipleUpdates to true";
+      throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
+    }
+  }
+
+  return std::int64_t();
+}
+
 std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
     const std::string& name, SchemaType schemaType, const std::string& schema,
     const std::vector<IndexInfoImpl*>& indexes,

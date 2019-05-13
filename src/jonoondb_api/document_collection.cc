@@ -317,6 +317,12 @@ void DocumentCollection::AddToDeleteVector(std::uint64_t docId) {
   m_deleteVector->OnDocumentDeleted(docId);
 }
 
+std::int64_t jonoondb_api::DocumentCollection::Update(
+    std::vector<int64_t> docIds, gsl::span<char> document,
+    const WriteOptionsImpl& wo) {
+  return 0;
+}
+
 void DocumentCollection::PopulateColumnTypes(
     const std::vector<IndexInfoImpl*>& indexes,
     const DocumentSchema& documentSchema,
