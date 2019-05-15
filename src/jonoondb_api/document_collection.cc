@@ -320,6 +320,13 @@ void DocumentCollection::AddToDeleteVector(std::uint64_t docId) {
 std::int64_t jonoondb_api::DocumentCollection::Update(
     std::vector<int64_t> docIds, gsl::span<char> document,
     const WriteOptionsImpl& wo) {
+  // Delete the docIds
+  // Insert the new doc n number of times where n == docIds.size()
+
+  // Transaction between delete and insert, have overloads in blob_manager
+  // and delete_vector that takes in extra db_conn so that we can update
+  // both in a transaction
+
   return 0;
 }
 

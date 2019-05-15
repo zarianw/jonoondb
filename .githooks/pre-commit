@@ -1,1 +1,1 @@
-git clang-format --extensions cc,h --style file -v
+git-clang-format --extensions cc,h --style file -v
