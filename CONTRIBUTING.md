@@ -12,11 +12,11 @@ There are number of ways in which you can contribute:
 
 ## C++ style guide 
 We use [google's c++ style guide](https://google.github.io/styleguide/cppguide.html) for the most part.
-Code formatting is enforced through the clang-format tool that uses the .clang-format file located at the repository root. There is a pre-commit hook for formatting as well that you can activate by running the following command:
+Code formatting is enforced through the clang-format tool that uses the .clang-format file located at the repository root. You would need to install clang-format and git-clang-format tools for formatting. There is a pre-commit hook for formatting as well that you can activate by running the following command:
 
 `git config core.hooksPath .githooks`
 
-Now all your changes will be formatted before each commit.
+This hook will invoke git-clang-format, to ensure that all your changes are formatted, before each commit.
 
 The places where we differ from google style guide are documented below:
 
