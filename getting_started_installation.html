@@ -154,7 +154,7 @@ b2 install address-model=64 --prefix=64bit
 ./bootstrap.sh --without-icu
 ./b2 install address-model=64 cxxflags=<span style="color:#61ce3c">"-fPIC"</span> cflags=<span style="color:#61ce3c">"-fPIC"</span> --prefix=64bit
 </pre>
-                            The JonoonDB build does not search for Boost in system paths in order to avoid conflicts with other Boost versions installed. You need to specify <strong>BOOST_ROOT</strong> when you are invoking cmake as shown later. Its important to note that <strong>BOOST_ROOT</strong> needs to point to the path where Boost was installed and not where it was extracted. If you used the prefix 64bit while building boost then the path will be something like <strong>path/to/boost/64bit</strong>.                            
+                            The JonoonDB build does not search for Boost in system paths to avoid conflicts with other Boost versions installed. You need to specify <strong>BOOST_ROOT</strong> when you are invoking cmake as shown later. Its important to note that <strong>BOOST_ROOT</strong> needs to point to the path where Boost was installed and not where it was extracted. If you used the prefix 64bit while building boost then the path will be something like <strong>path/to/boost/64bit</strong>.                            
                         </li>
                     </ol>                    
                 </div>
@@ -182,7 +182,7 @@ mkdir build
 <span style="color:#8da6ce">cd</span> build
 cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=/path/to/boost/64bit -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
 </pre>
-                    <p>Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. In order to generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
+                    <p>Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. To generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
                 </div>
             </div>
         </div>

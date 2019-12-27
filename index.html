@@ -109,7 +109,7 @@
             <div class="col-md-12">
                 <div class="content">
                     <h2 class="bold">Introduction</h2>
-                    <p>JonoonDB is a multi-model database. Its aim is to do what specialized databases (row stores, column stores, nosql stores etc.) do at equal or better performance.
+                    <p>JonoonDB is a multi-model database. It aims to do what specialized databases (row stores, column stores, nosql stores etc.) do at equal or better performance.
                     </p>
                 </div>
             </div>
@@ -118,7 +118,7 @@
             <div class="col-md-12">
                 <div class="content">
                     <h5 class="bold">Not another database! Don't we have enough already?</h5>
-                    <p>Well we have too many, somewhere north of 100 actually. But the real question is why do we have so many databases. If it’s a solved problem, we should have maybe less than 5 right? The truth is a lot of databases just cover a thin vertical slice of the overall data use cases. We need a database that can cover all the data uses cases or at least try. JonoonDB is an attempt to write such a database.
+                    <p>Well we have too many, somewhere north of 100. But the real question is why do we have so many databases. If it’s a solved problem, we should have maybe less than 5 right? The truth is a lot of databases just cover a thin vertical slice of the overall data use cases. We need a database that can cover all the data uses cases or at least try. JonoonDB is an attempt to write such a database.
                     </p>
                 </div>
             </div>
@@ -162,7 +162,7 @@
                 <div class="content ">
                         <h5 class="bold ">Wouldn't keeping data in many different forms make the writes extremely slow?
                         </h5>
-                        <p>JonoonDB uses a row oriented format for on disk representation. In addition, it allows the user to create different kinds of indexes (InvertedCompressedBitmaps, Vector and more to come.) that are only stored in memory. Keeping the indexes in memory allows us to do very fast inserts as compared to traditional databases.</p>
+                        <p>JonoonDB uses a row oriented format for on disk representation. Also, it allows the user to create different kinds of indexes (InvertedCompressedBitmaps, Vector and more to come.) that are only stored in memory. Keeping the indexes in memory allows us to do very fast inserts as compared to traditional databases.</p>
                 </div>
             </div>
         </div>
@@ -196,7 +196,7 @@
                             <li><strong>NoORM: </strong>If your application uses the same storage format as JonoonDB then you can avoid the mapping between application and database format. Currently we only support flatbuffers but in future we will support other popular formats such as Cap'n Proto and Protobuf.</li>
                             <li><strong>Cross platform: </strong>Supported on Windows, Linux and Mac OS X.</li>
                             <li><strong>LGPL license: </strong>Can be used in both open source and closed source projects.</li>
-                            <li><strong>Extensible: </strong>JonoonDB allows you to plugin your own indexers and encoding formats.</li>
+                            <li><strong>Extensible: </strong>JonoonDB allows you to plugin your custom indexers and encoding formats.</li>
                         </ul>
                 </div>
             </div>
