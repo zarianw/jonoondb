@@ -182,7 +182,7 @@ void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata,
       headerSize + (compress ? compSize : blob.GetLength());
 
   if (estimatedBytesToWrite + currentOffsetInFile > m_maxDataFileSize) {
-    SwitchToNewDataFile();
+    SwitchToNewDataFile(currentOffsetInFile);
     currentOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();
   }
 
@@ -190,15 +190,14 @@ void BlobManager::Put(const BufferImpl& blob, BlobMetadata& blobMetadata,
     size_t bytesWritten = PutInternal(blob, blobMetadata, compress);
     // Flush the contents to ensure durability
     Flush(currentOffsetInFile, bytesWritten);
+    // Set the file length
+    m_fileNameManager->UpdateDataFileLength(
+        m_currentBlobFileInfo.fileKey,
+        m_currentBlobFile->GetCurrentWriteOffset());
   } catch (...) {
     m_currentBlobFile->SetCurrentWriteOffset(currentOffsetInFile);
     throw;
   }
-
-  // Set the file length
-  m_fileNameManager->UpdateDataFileLength(
-      m_currentBlobFileInfo.fileKey,
-      m_currentBlobFile->GetCurrentWriteOffset());
 }
 
 void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs,
@@ -227,7 +226,7 @@ void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs,
         throw;
       }
       // Now lets switch to a new file
-      SwitchToNewDataFile();
+      SwitchToNewDataFile(baseOffsetInFile);
 
       // Reset baseOffset and totalBytesWritten
       baseOffsetInFile = m_currentBlobFile->GetCurrentWriteOffset();
@@ -244,18 +243,17 @@ void BlobManager::MultiPut(gsl::span<const BufferImpl*> blobs,
     totalBytesWrittenInFile += bytesWritten;
   }
 
-  // Flush to make sure all blobs are written to disk
   try {
+    // Flush to make sure all blobs are written to disk
     Flush(baseOffsetInFile, totalBytesWrittenInFile);
+    // Set the file length
+    m_fileNameManager->UpdateDataFileLength(
+        m_currentBlobFileInfo.fileKey,
+        m_currentBlobFile->GetCurrentWriteOffset());
   } catch (...) {
     m_currentBlobFile->SetCurrentWriteOffset(baseOffsetInFile);
     throw;
   }
-
-  // Set the file length
-  m_fileNameManager->UpdateDataFileLength(
-      m_currentBlobFileInfo.fileKey,
-      m_currentBlobFile->GetCurrentWriteOffset());
 }
 
 void BlobManager::Get(const BlobMetadata& blobMetaData, BufferImpl& blob) {
@@ -370,24 +368,30 @@ inline void BlobManager::Flush(size_t offset, size_t numBytes) {
   m_currentBlobFile->Flush(offset, numBytes);
 }
 
-void BlobManager::SwitchToNewDataFile() {
+void BlobManager::SwitchToNewDataFile(size_t writeOffsetForRollback) {
   FileInfo fileInfo;
-  m_fileNameManager->GetNextDataFileInfo(fileInfo);
-  File::FastAllocate(fileInfo.fileNameWithPath, m_maxDataFileSize);
+  unique_ptr<MemoryMappedFile> file;
+  try {
+    m_fileNameManager->GetNextDataFileInfo(fileInfo);
+    File::FastAllocate(fileInfo.fileNameWithPath, m_maxDataFileSize);
 
-  auto file = std::make_unique<MemoryMappedFile>(
-      fileInfo.fileNameWithPath, MemoryMappedFileMode::ReadWrite, 0,
-      !m_synchronous);
-  m_fileNameManager->UpdateDataFileLength(
-      m_currentBlobFileInfo.fileKey,
-      m_currentBlobFile->GetCurrentWriteOffset());
+    file = std::make_unique<MemoryMappedFile>(fileInfo.fileNameWithPath,
+                                              MemoryMappedFileMode::ReadWrite,
+                                              0, !m_synchronous);
+    m_fileNameManager->UpdateDataFileLength(
+        m_currentBlobFileInfo.fileKey,
+        m_currentBlobFile->GetCurrentWriteOffset());
+  } catch (...) {
+    m_currentBlobFile->SetCurrentWriteOffset(writeOffsetForRollback);
+    throw;
+  }
 
   // Set the evictable flag on the current file before switching
   bool retVal = m_readerFiles.SetEvictable(m_currentBlobFileInfo.fileKey, true);
   assert(retVal);
 
   m_currentBlobFileInfo = fileInfo;
-  m_currentBlobFile.reset(file.release());
+  m_currentBlobFile = std::move(file);
   m_readerFiles.Add(m_currentBlobFileInfo.fileKey, m_currentBlobFile, false);
 }
 

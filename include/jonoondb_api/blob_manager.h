@@ -33,7 +33,7 @@ class BlobManager final {
 
  private:
   inline void Flush(size_t offset, size_t numBytes);
-  void SwitchToNewDataFile();
+  void SwitchToNewDataFile(size_t writeOffsetForRollback);
   size_t PutInternal(const BufferImpl& blob, BlobMetadata& blobMetadata,
                      bool compress);
 

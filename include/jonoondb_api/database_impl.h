@@ -9,6 +9,7 @@
 #include "database_metadata_manager.h"
 #include "document_collection.h"
 #include "gsl/span.h"
+#include "gsl/string_span.h"
 #include "options_impl.h"
 #include "query_processor.h"
 
@@ -39,6 +40,9 @@ class DatabaseImpl final {
                    const WriteOptionsImpl& wo);
   ResultSetImpl ExecuteSelect(const std::string& selectStatement);
   std::int64_t Delete(const std::string& deleteStatement);
+  std::int64_t Update(const boost::string_ref& collectionName,
+                      gsl::span<char> document, gsl::string_span<> whereClause,
+                      const WriteOptionsImpl& wo);
 
  private:
   std::shared_ptr<DocumentCollection> CreateCollectionInternal(
@@ -47,6 +51,7 @@ class DatabaseImpl final {
       const std::vector<FileInfo>& dataFilesToLoad);
   std::unique_ptr<DatabaseMetadataManager> m_dbMetadataMgrImpl;
   void MemoryWatcherFunc();
+
   // m_collectionNameStore stores the collection name as string,
   // m_collectionContainer just uses string_ref as the key.
   // m_collectionNameStore should be declared before m_collectionContainer. This
