@@ -198,8 +198,7 @@ std::int64_t DatabaseImpl::Delete(const std::string& deleteStatement) {
 
 std::int64_t jonoondb_api::DatabaseImpl::Update(
     const boost::string_ref& collectionName, gsl::span<char> document,
-    gsl::string_span<> whereClause, bool allowMultipleUpdates,
-    const WriteOptionsImpl& wo) {
+    gsl::string_span<> whereClause, const WriteOptionsImpl& wo) {
   string selectStmt = "SELECT rowid FROM ";
   selectStmt.append(collectionName.begin(), collectionName.end())
       .append(" WHERE ")
@@ -208,16 +207,26 @@ std::int64_t jonoondb_api::DatabaseImpl::Update(
   vector<int64_t> rowids;
   while (rs.Next()) {
     rowids.push_back(rs.GetInteger(0));
-    if (!allowMultipleUpdates && rowids.size() > 1) {
+    if (rowids.size() > 1) {
       ostringstream ss;
       ss << "Where clause: " << gsl::to_string(whereClause)
-         << " matched with more than one document. If the intention was to "
-            "update multiple documents then set allowMultipleUpdates to true";
+         << " matched with more than one document. It must match with one "
+            "document that is to be updated.";
       throw JonoonDBException(ss.str(), __FILE__, __func__, __LINE__);
     }
   }
 
-  return std::int64_t();
+  if (rowids.size() > 0) {
+    auto item = m_collectionContainer.find(collectionName);
+    if (item == m_collectionContainer.end()) {
+      std::ostringstream ss;
+      ss << "Collection \"" << collectionName << "\" not found.";
+      throw CollectionNotFoundException(ss.str(), __FILE__, __func__, __LINE__);
+    }
+    return item->second->Update(rowids.front(), document, wo);
+  }
+
+	return 0;
 }
 
 std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(

@@ -23,6 +23,7 @@
 #include "sqlite3.h"
 #include "sqlite_utils.h"
 #include "string_utils.h"
+#include "standard_deleters.h"
 
 using namespace jonoondb_api;
 using namespace boost::filesystem;
@@ -318,16 +319,22 @@ void DocumentCollection::AddToDeleteVector(std::uint64_t docId) {
 }
 
 std::int64_t jonoondb_api::DocumentCollection::Update(
-    std::vector<int64_t> docIds, gsl::span<char> document,
+    std::int64_t docId, gsl::span<char> document,
     const WriteOptionsImpl& wo) {
-  // Delete the docIds
-  // Insert the new doc n number of times where n == docIds.size()
+  // Delete the docId
+	AddToDeleteVector(docId);
+  // Insert the new doc 
+	BufferImpl buffer(document.data(), document.size(), document.size(),
+                          StandardDeleteNoOp);
+	Insert(buffer, wo);
+
 
   // Transaction between delete and insert, have overloads in blob_manager
   // and delete_vector that takes in extra db_conn so that we can update
   // both in a transaction
 
-  return 0;
+	// Return number of documents updated
+  return 1;
 }
 
 void DocumentCollection::PopulateColumnTypes(

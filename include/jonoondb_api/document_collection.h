@@ -73,7 +73,7 @@ class DocumentCollection final {
                                        std::vector<double>& values) const;
   void UnmapLRUDataFiles();
   void AddToDeleteVector(std::uint64_t id);
-  std::int64_t Update(std::vector<int64_t> docIds, gsl::span<char> document,
+  std::int64_t Update(std::int64_t docId, gsl::span<char> document,
                       const WriteOptionsImpl& wo);
 
  private:
