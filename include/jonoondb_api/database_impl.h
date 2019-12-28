@@ -42,7 +42,7 @@ class DatabaseImpl final {
   std::int64_t Delete(const std::string& deleteStatement);
   std::int64_t Update(const boost::string_ref& collectionName,
                       gsl::span<char> document, gsl::string_span<> whereClause,
-											const WriteOptionsImpl& wo);
+                      const WriteOptionsImpl& wo);
 
  private:
   std::shared_ptr<DocumentCollection> CreateCollectionInternal(

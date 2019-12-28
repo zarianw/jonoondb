@@ -226,7 +226,7 @@ std::int64_t jonoondb_api::DatabaseImpl::Update(
     return item->second->Update(rowids.front(), document, wo);
   }
 
-	return 0;
+  return 0;
 }
 
 std::shared_ptr<DocumentCollection> DatabaseImpl::CreateCollectionInternal(
