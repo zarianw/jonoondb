@@ -8,7 +8,7 @@ set(THIRDPARTY_PATH ${PROJECT_SOURCE_DIR}/thirdparty)
 set(TEST_PATH ${PROJECT_SOURCE_DIR}/tests)
 
 # download and build boost
-if (NOT EXISTS ${THIRDPARTY_PATH}/boost_1_73_0/64bit)
+if (NOT BOOST_ROOT AND NOT EXISTS ${THIRDPARTY_PATH}/boost_1_73_0/64bit)
   message("Downloading Boost...")
   file(DOWNLOAD https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz ${THIRDPARTY_PATH}/boost_1_73_0.tar.gz
           TIMEOUT 180  # seconds
@@ -28,7 +28,7 @@ if (NOT EXISTS ${THIRDPARTY_PATH}/boost_1_73_0/64bit)
     )
   else ()
     execute_process(
-            COMMAND ${PROJECT_SOURCE_DIR}/scripts/install_boost_for_linux_or_mac.sh
+            COMMAND ${PROJECT_SOURCE_DIR}/scripts/install_boost_for_linux_or_osx.sh
             WORKING_DIRECTORY ${THIRDPARTY_PATH}/boost_1_73_0
             RESULT_VARIABLE return_code
     )
@@ -36,9 +36,8 @@ if (NOT EXISTS ${THIRDPARTY_PATH}/boost_1_73_0/64bit)
   if(NOT return_code EQUAL "0")
     message( FATAL_ERROR "Boost build failed!")
   endif()
+  set(BOOST_ROOT ${THIRDPARTY_PATH}/boost_1_73_0/64bit)
 endif ()
-
-set(BOOST_ROOT ${THIRDPARTY_PATH}/boost_1_73_0/64bit)
 
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
