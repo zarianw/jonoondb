@@ -30,10 +30,10 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
 install:
-- bash ./scripts/install_boost_1.60.0.sh
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then bash ./scripts/install_cmake_for_linux; fi
 
 script:
-- cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=$ASAN_FLAG && make -j${JOBS}
+- cmake . -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=$ASAN_FLAG && make -j${JOBS}
 - ctest -V
 
 matrix:
@@ -49,6 +49,6 @@ matrix:
     compiler: gcc
     env: BUILD_TYPE=Debug ASAN_FLAG=ON
 
-cache:
-  directories:
-  - boost_1_60_0
+#cache:
+#  directories:
+#  - boost_1_60_0
