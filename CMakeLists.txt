@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.18)
 
 project(JonoonDB)
 
@@ -17,25 +17,38 @@ if (NOT EXISTS ${THIRDPARTY_PATH}/boost_1_73_0/64bit)
 
   message("Extracting Boost...")
   file(ARCHIVE_EXTRACT INPUT ${THIRDPARTY_PATH}/boost_1_73_0.tar.gz
-          DESTINATION ${THIRDPARTY_PATH})
+       DESTINATION ${THIRDPARTY_PATH})
 
   message("Building Boost...")
   if (WIN32)
     execute_process(
             COMMAND ${PROJECT_SOURCE_DIR}/scripts/install_boost_for_win.bat
             WORKING_DIRECTORY ${THIRDPARTY_PATH}/boost_1_73_0
-            OUTPUT_VARIABLE outVar
+            RESULT_VARIABLE return_code
     )
   else ()
     execute_process(
             COMMAND ${PROJECT_SOURCE_DIR}/scripts/install_boost_for_linux_or_mac.sh
             WORKING_DIRECTORY ${THIRDPARTY_PATH}/boost_1_73_0
-            OUTPUT_VARIABLE outVar
+            RESULT_VARIABLE return_code
     )
   endif ()
+  if(NOT return_code EQUAL "0")
+    message( FATAL_ERROR "Boost build failed!")
+  endif()
 endif ()
 
 set(BOOST_ROOT ${THIRDPARTY_PATH}/boost_1_73_0/64bit)
+
+set(Boost_USE_STATIC_LIBS        ON) # only find static libs
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+set(Boost_NO_SYSTEM_PATHS ON)
+find_package(Boost 1.73.0 EXACT REQUIRED COMPONENTS filesystem system thread chrono program_options)
+include_directories(${Boost_INCLUDE_DIR})
+
+message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
+message("Using Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
 
 # add the include directories
 include_directories(${INCLUDE_PATH} ${INCLUDE_PATH}/jonoondb_api ${THIRDPARTY_PATH})
@@ -81,17 +94,6 @@ include_directories(${THIRDPARTY_PATH}/flatbuffers-1.3.0/include)
 add_library(
   linenoise
   ${THIRDPARTY_PATH}/linenoise/linenoise.h ${THIRDPARTY_PATH}/linenoise/linenoise.c)
-
-# boost
-set(Boost_USE_STATIC_LIBS        ON) # only find static libs
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME    OFF)
-set(Boost_NO_SYSTEM_PATHS ON)
-find_package(Boost 1.73.0 EXACT REQUIRED COMPONENTS filesystem system thread chrono program_options)
-include_directories(${Boost_INCLUDE_DIR})
-
-message("Using Boost_INCLUDE_DIR = ${Boost_INCLUDE_DIR}")
-message("Using Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
 
 # LZ4
 SET(BUILD_TOOLS OFF CACHE BOOL "Build LZ4 command line tools")
