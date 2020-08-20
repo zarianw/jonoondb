@@ -49,6 +49,6 @@ matrix:
     compiler: gcc
     env: BUILD_TYPE=Debug ASAN_FLAG=ON
 
-#cache:
-#  directories:
-#  - boost_1_60_0
+cache:
+  directories:
+  - cmake-3.18.1
