@@ -9,8 +9,8 @@ if [ ! -e cmake-3.18.1 ]; then
 fi
 
 cd cmake-3.18.1
-./configure >> cmake_log.out
-sudo make install -j 2 >> cmake_log.out
+./configure
+sudo make install -j 2
 cd ..
 
 
