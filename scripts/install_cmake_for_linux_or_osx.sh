@@ -12,5 +12,8 @@ cd cmake-3.18.1
 ./configure
 sudo make install -j 2
 cd ..
-
-
+cmake --version
+which cmake
+hash -r
+cmake --version
+which cmake
