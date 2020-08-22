@@ -143,18 +143,7 @@
                     <h5 class="bold">Build/Install 3rd party dependencies</h5>
                     <ol>
                         <li>
-                            Download and install cmake version 3.5 or higher from <a href="https://cmake.org/download/">cmake's website</a>.
-                        </li>
-                        <li>
-                            Download Boost version 1.60.0 from <a href="https://sourceforge.net/projects/boost/files/boost/1.60.0/">Boost's website</a>. Unpack\Unzip the downloaded boost release. On the command line, go to the root of the unpacked tree. Next execute the following commands to build boost in 64bit.
-                            <pre style="background:#0c1021;color:#f8f8f8">(On Windows)
-bootstrap.bat
-b2 install address-model=64 --prefix=64bit
-(On Linux and Mac OS X)
-./bootstrap.sh --without-icu
-./b2 install address-model=64 cxxflags=<span style="color:#61ce3c">"-fPIC"</span> cflags=<span style="color:#61ce3c">"-fPIC"</span> --prefix=64bit
-</pre>
-                            The JonoonDB build does not search for Boost in system paths to avoid conflicts with other Boost versions installed. You need to specify <strong>BOOST_ROOT</strong> when you are invoking cmake as shown later. Its important to note that <strong>BOOST_ROOT</strong> needs to point to the path where Boost was installed and not where it was extracted. If you used the prefix 64bit while building boost then the path will be something like <strong>path/to/boost/64bit</strong>.                            
+                            Download and install the latest cmake from <a href="https://cmake.org/download/">cmake's website</a>.
                         </li>
                     </ol>                    
                 </div>
@@ -180,7 +169,7 @@ b2 install address-model=64 --prefix=64bit
 <span style="color:#8da6ce">cd</span> jonoondb/
 mkdir build
 <span style="color:#8da6ce">cd</span> build
-cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DBOOST_ROOT=/path/to/boost/64bit -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
+cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_force_shared_crt=ON -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
 </pre>
                     <p>Please note that -G "Visual Studio 14 Win64" command line argument shown above generates the files for VS 2015 with 64bit build configuration. To generate project files for Eclipse CDT4 on Linux use -G "Eclipse CDT4 - Unix Makefiles". You can list all the available cmake generators by typing cmake --help.</p>
                 </div>
@@ -194,7 +183,7 @@ cmake .. -G <span style="color:#61ce3c">"Visual Studio 14 Win64"</span> -Dgtest_
 <span style="color:#8da6ce">cd</span> jonoondb/
 mkdir build
 <span style="color:#8da6ce">cd</span> build
-cmake .. -G <span style="color:#61ce3c">"Unix Makefiles"</span> -DBOOST_ROOT=/path/to/boost/64bit -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
+cmake .. -G <span style="color:#61ce3c">"Unix Makefiles"</span> -DCMAKE_INSTALL_PREFIX=/path/to/install/directory
 make
 </pre>
                     <p>If you want to run unittests from terminal then you can type "ctest -V" from inside the build directory.</p>
