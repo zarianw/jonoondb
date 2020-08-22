@@ -1,5 +1,5 @@
 # Operating system (build VM template)
-os: Visual Studio 2015
+os: Visual Studio 2019
 
 shallow_clone: true
 
@@ -11,7 +11,7 @@ configuration:
 
 # scripts to run before build
 before_build:
-- cmake . -G "Visual Studio 14 Win64" -Dgtest_force_shared_crt=ON -DBOOST_ROOT=C:\Libraries\boost_1_60_0 -DBOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
+- cmake . -G "Visual Studio 16 2019" -A x64 -Dgtest_force_shared_crt=ON -DBOOST_ROOT=C:\Libraries\boost_1_73_0 -DBOOST_LIBRARYDIR=C:\Libraries\boost_1_73_0\lib64-msvc-16.0
   
 build:
   parallel: true             # enable MSBuild parallel builds

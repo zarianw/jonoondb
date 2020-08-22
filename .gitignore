@@ -15,6 +15,7 @@
 *.[0123456789]
 test_config_generated.h
 jonoondb_api_version_generated.h
+/thirdparty/boost*
 
 # clion
 .idea/

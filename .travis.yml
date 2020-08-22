@@ -30,10 +30,10 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ln -s -v -f $(which gcc-$GCC_VERSION) /usr/bin/gcc; fi
 
 install:
-- bash ./scripts/install_boost_1.60.0.sh
+- bash ./scripts/install_cmake_for_linux_or_osx.sh
 
 script:
-- cmake . -G "Unix Makefiles" -DBOOST_ROOT=./boost_1_60_0/64bit -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=$ASAN_FLAG && make -j${JOBS}
+- /usr/local/bin/cmake . -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASAN=$ASAN_FLAG && make -j${JOBS}
 - ctest -V
 
 matrix:
@@ -51,4 +51,4 @@ matrix:
 
 cache:
   directories:
-  - boost_1_60_0
+  - cmake-3.18.1
